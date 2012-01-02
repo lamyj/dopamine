@@ -28,14 +28,14 @@ class TestDatabase(unittest.TestCase) :
         # unittest.TestCase has not __del__ member
     
     def setUp(self) :
-        self._temporary_directory = tempfile.mkdtemp()
-        self._db_name = os.path.split(self._temporary_directory)[-1]
-        self._database = Database(self._db_name, self._temporary_directory)
+        temporary_directory = tempfile.mkdtemp()
+        shutil.rmtree(temporary_directory)
+        self._db_name = os.path.split(temporary_directory)[-1]
+        self._database = Database(self._db_name)
     
     def tearDown(self) :
         connection = Connection()
         connection.drop_database(self._db_name)
-        shutil.rmtree(self._temporary_directory)
     
     def test_user(self) :
         radiologist = { "id" : "radiologist", "name" : "Ronald Radiologist" }

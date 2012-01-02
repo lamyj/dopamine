@@ -1,16 +1,23 @@
 import logging
 import os
 
+import gridfs
 import medipy.io.dicom
 from pymongo import Connection
 
 class Database(object) :
-    def __init__(self, db_name, fs_db, *args, **kwargs) :
+    """ A wrapper around a MongoDB to store, query and retrieve DICOM
+        documents.
+    """
+    
+    def __init__(self, db_name, *args, **kwargs) :
+        """ Create a new database. *args and **kwargs are passed
+            directly to the constructor of pymongo.Connection. 
+        """
+        
         self._connection = Connection(*args, **kwargs)
         self._mongo_db = self._connection[db_name]
-        self._fs_db = fs_db
-        if not os.path.isdir(self._fs_db) :
-            os.makedirs(self._fs_db)
+        self._grid_fs = gridfs.GridFS(self._mongo_db)
     
     def insert_user(self, user) :
         if self._mongo_db.users.find_one({"id" : user["id"]}) :
@@ -46,7 +53,8 @@ class Database(object) :
                 logging.debug("TODO : do we store private elements in database ?")
                 continue
             
-            if key in [0x7fe00010] :
+            if key in [0x7fe00010, 0x00420011] :
+                # Pixel Data, Encapsulated Document
                 continue
             if key.group/256 == 0x60 and key.element == 0x3000 :
                 # Overlay Data (60xx,3000)
@@ -57,8 +65,10 @@ class Database(object) :
         document = Database._to_document(document)
         self._mongo_db.documents.insert(document)
         
-        # Store on file system : how to do this ?
-        logging.debug("TODO : store to filesystem")
+        # Store on the GridFS
+        logging.debug("TODO : serialize the dataset")
+        data = ""
+        self._grid_fs.put(data, _id=dataset.sop_instance_uid)
     
     def query(self, query, fields=None, collection="documents") :
         """ Query a collection from the database (defaults to the 
@@ -110,6 +120,18 @@ class Database(object) :
         dataset.clinical_trial_sponsor_name = sponsor
         dataset.clinical_trial_protocol_id = protocol
         dataset.clinical_trial_subject_id = subject
+    
+    def get_document(self, sop_instance_uid) :
+        """ Return a file-like interface to a previously-stored document,
+            identified by its SOP Instance UID (0008,0018)
+        """
+        
+        return self._grid_fs.get(sop_instance_uid)
+
+    
+    #####################
+    # Private interface #
+    #####################
     
     @staticmethod
     def _to_document(element) :
