@@ -87,6 +87,11 @@ T parse_ascii(gdcm::DataElement const & data_element, unsigned long index, bool 
     char const * const data = data_element.GetByteValue()->GetPointer();
     gdcm::VL const length = data_element.GetVL();
 
+    if(length==0)
+    {
+        return T("");
+    }
+
     char const * begin = data;
     for(unsigned long i=0; i<index; ++i)
     {
