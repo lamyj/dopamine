@@ -16,3 +16,9 @@ env.Program("test_database", ["tests/code/test_database.cpp"],
     CPPPATH=env["CPPPATH"]+["."],
     LIBPATH=env["LIBPATH"]+["."],
     LIBS=["research_pacs", "boost_unit_test_framework"])
+
+env.Program("research_pacs", ["main.cpp"],
+    CPPFLAGS=env["CPPFLAGS"],
+    CPPPATH=env["CPPPATH"]+["."],
+    LIBPATH=env["LIBPATH"]+["."],
+    LIBS=["research_pacs", "boost_unit_test_framework"])
