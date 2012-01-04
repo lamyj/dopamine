@@ -6,11 +6,30 @@
 #include <cstdlib>
 #include <ctime>
 
+#include <boost/filesystem.hpp>
 #include <gdcmAttribute.h>
 #include <gdcmDataSet.h>
 #include <gdcmReader.h>
 #include <mongo/client/dbclient.h>
 #include "database.h"
+
+struct StaticData
+{
+    StaticData()
+    {
+        char tmpl[] = "/tmp/XXXXXX";
+        this->temp_dir = mkdtemp(tmpl);
+
+        std::string const command("tar zx -C "+this->temp_dir+" -f tests/data/brainix.tgz");
+        system(command.c_str());
+    }
+    ~StaticData()
+    {
+        std::string const command("rm -rf "+this->temp_dir);
+        system(command.c_str());
+    }
+    std::string temp_dir;
+};
 
 class TestDatabaseFixture
 {
@@ -26,6 +45,8 @@ public :
         connection.connect("localhost");
         connection.dropDatabase(this->database_name);
     }
+
+    static StaticData const static_data;
     
     std::string database_name;
     Database database;
@@ -47,7 +68,7 @@ private :
         std::string _range;
     };
     
-    static int _dummy;
+    static int const _dummy;
     
     static std::string get_database_name(int length=8)
     {
@@ -64,7 +85,8 @@ private :
     }
 };
 
-int TestDatabaseFixture::_dummy(TestDatabaseFixture::initialize_rng());
+int const TestDatabaseFixture::_dummy(TestDatabaseFixture::initialize_rng());
+StaticData const TestDatabaseFixture::static_data = StaticData();
 
 BOOST_FIXTURE_TEST_SUITE(TestDatabase, TestDatabaseFixture);
 
@@ -128,7 +150,8 @@ BOOST_AUTO_TEST_CASE(Dataset)
     this->database.insert_protocol(protocol);
     
     gdcm::Reader reader;
-    reader.SetFileName("/home/lamy/src/research_pacs/BRAINIX/2182114/801/00070001");
+    std::string const filename(this->static_data.temp_dir+"/BRAINIX/2182114/801/00070001");
+    reader.SetFileName(filename.c_str());
     reader.Read();
     gdcm::DataSet const & dataset = reader.GetFile().GetDataSet();
     
