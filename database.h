@@ -28,8 +28,6 @@ private :
     std::string _db_name;
     mongo::DBClientConnection _connection;
     //GridFS _grid_fs;
-    
-    void _dataset_to_document(gdcm::DataSet const & dataset, mongo::BSONObj & document);
 };
 
 #endif // _4bca776c_a256_4cdb_9c45_400d5c2ec0f1

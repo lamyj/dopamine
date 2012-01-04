@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     this->database.insert_protocol(protocol);
     
     gdcm::Reader reader;
-    reader.SetFileName("/home/julien/src/research_pacs/BRAINIX/2182114/801/00070001");
+    reader.SetFileName("/home/lamy/src/research_pacs/BRAINIX/2182114/801/00070001");
     reader.Read();
     gdcm::DataSet const & dataset = reader.GetFile().GetDataSet();
     
@@ -171,7 +171,18 @@ BOOST_AUTO_TEST_CASE(Dataset)
         BOOST_REQUIRE_EQUAL(at.GetValue().Trim(), "Sim^Ho");
     }
     
-    this->database.insert_dataset(dataset);
+    this->database.insert_dataset(de_identified);
+
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = this->database.query(
+        QUERY("(0012|0020)" << "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d"),
+        NULL, "documents");
+
+    BOOST_REQUIRE(cursor->more());
+    mongo::BSONObj const item = cursor->next();
+    BOOST_REQUIRE_EQUAL(item.getStringField("(0012|0020)"), "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
+    BOOST_REQUIRE_EQUAL(item.getStringField("(0012|0040)"), "Sim^Ho");
+    BOOST_REQUIRE_EQUAL(item.getStringField("(0012|0010)"), "bpc");
+    BOOST_REQUIRE(!cursor->more());
 }
 
 BOOST_AUTO_TEST_SUITE_END();
