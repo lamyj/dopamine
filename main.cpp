@@ -81,18 +81,18 @@ int retrieve(int argc, char** argv)
     std::string const filename(argv[1]);
 
     Database database("research_pacs");
-    mongo::auto_ptr<mongo::DBClientCursor> cursor = database.query(
-        QUERY("(0008|0018)"<<sop_instance_uid));
-    if(!cursor->more())
+
+    try
     {
-        std::cerr << "Retrieve : no such SOP instance UID " << sop_instance_uid << "\n";
+        std::ofstream stream(filename.c_str());
+        database.get_file(sop_instance_uid, stream);
+        stream.close();
+    }
+    catch(std::exception const & e)
+    {
+        std::cerr << e.what() << "\n";
         return EXIT_FAILURE;
     }
-
-    mongo::BSONObj const item = cursor->next();
-    std::ofstream stream(filename.c_str());
-    stream << item;
-    stream.close();
 
     return EXIT_SUCCESS;
 }
