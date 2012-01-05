@@ -9,7 +9,7 @@ env.SharedLibrary("research_pacs", ["dicom_to_cpp.cpp", "database.cpp"],
     CPPFLAGS=env["CPPFLAGS"],
     CPPPATH=env["CPPPATH"],
     LIBS=["mongoclient", "boost_thread", "boost_filesystem", 
-          "gdcmCommon", "gdcmIOD", "gdcmMSFF"])
+          "gdcmCommon", "gdcmIOD", "gdcmMSFF", "magic"])
 
 env.Program("test_database", ["tests/code/test_database.cpp"],
     CPPFLAGS=env["CPPFLAGS"],
