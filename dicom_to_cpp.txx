@@ -102,7 +102,7 @@ T parse_ascii(gdcm::DataElement const & data_element, unsigned long index, bool 
 
     if(!is_padding_significant)
     {
-        while(*begin == ' ')
+        while(begin<end && *begin == ' ')
         {
             ++begin;
         }
@@ -111,7 +111,7 @@ T parse_ascii(gdcm::DataElement const & data_element, unsigned long index, bool 
         {
             --end;
         }
-        while(*end == ' ' || *end == '\\' || *end == '\0')
+        while(end>begin && (*end == ' ' || *end == '\\' || *end == '\0'))
         {
             --end;
         }
