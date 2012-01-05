@@ -12,6 +12,10 @@ gdcm::VL get_values_count(gdcm::DataElement const & data_element)
 {
     unsigned long count=0;
 
+    if(data_element.GetVL() == 0)
+    {
+        return 0;
+    }
     if(data_element.GetVR() == gdcm::VR::SQ)
     {
         count = data_element.GetValueAsSQ()->GetNumberOfItems();
