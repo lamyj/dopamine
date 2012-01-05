@@ -8,12 +8,14 @@
 #include <boost/lexical_cast.hpp>
 #include <gdcmAnonymizer.h>
 #include <gdcmAttribute.h>
+#include <gdcmByteValue.h>
 #include <gdcmDataSet.h>
 #include <gdcmFile.h>
 #include <gdcmFileMetaInformation.h>
 #include <gdcmUIDGenerator.h>
 #include <gdcmSystem.h>
 #include <gdcmWriter.h>
+#include <magic.h>
 
 #include "dicom_to_cpp.h"
 
@@ -161,6 +163,67 @@ Database
 }
 
 void 
+Database
+::insert_file(std::string const & filename)
+{
+    gdcm::DataSet dataset;
+
+    // SOP Class UID
+    {
+        gdcm::Attribute<0x0008,0x0016> attribute;
+        attribute.SetValue("1.2.840.10008.5.1.4.1.1.66"); // Raw Data Storage
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+
+    // SOP Instance UID
+    {
+        gdcm::Attribute<0x0008,0x0018> attribute;
+        attribute.SetValue(std::string(gdcm::UIDGenerator().Generate()));
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+
+    // Instance Number
+    {
+        gdcm::Attribute<0x0020,0x0013> attribute;
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+
+    // MIME Type of Encapsulated Document
+    {
+        magic_t cookie = magic_open(MAGIC_MIME_TYPE|MAGIC_MIME_ENCODING);
+        magic_load(cookie, NULL);
+        char const * const type = magic_file(cookie, filename.c_str());
+
+        gdcm::Attribute<0x0042,0x0012> attribute;
+        attribute.SetValue(type);
+        dataset.Insert(attribute.GetAsDataElement());
+
+        magic_close(cookie);
+    }
+
+    // Encapsulated Document
+    {
+        std::ifstream stream(filename.c_str());
+        // Find file length and allocate buffer
+        stream.seekg(0, std::ios_base::end);
+        long int const length = stream.tellg();
+        std::vector<char> buffer(length);
+        // Go back to beginning and read the file
+        stream.seekg(0, std::ios_base::beg);
+        stream.read(&buffer[0], buffer.size());
+
+        gdcm::DataElement data_element(gdcm::Tag(0x0042,0x0011));
+        data_element.SetVR(gdcm::VR::OB);
+        data_element.SetByteValue(&buffer[0], buffer.size());
+        dataset.Insert(data_element);
+    }
+
+    std::cout << dataset << std::endl;
+
+    //this->insert_dataset(dataset);
+}
+
+void
 Database::
 insert_dataset(gdcm::DataSet const & dataset)
 {
