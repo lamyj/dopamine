@@ -12,6 +12,8 @@
 #include <gdcmFile.h>
 #include <gdcmFileMetaInformation.h>
 #include <gdcmUIDGenerator.h>
+#include <gdcmSystem.h>
+#include <gdcmWriter.h>
 
 #include "dicom_to_cpp.h"
 
@@ -109,8 +111,13 @@ Database
 : _db_name(db_name)
 {
     this->_connection.connect(host+":"+boost::lexical_cast<std::string>(port));
-    //this->_grid_fs = GridFS(this->_connection, this->_db_name);
-    
+    this->_grid_fs = new mongo::GridFS(this->_connection, this->_db_name);
+}
+
+Database
+::~Database()
+{
+    delete this->_grid_fs;
 }
     
 void 
@@ -161,6 +168,30 @@ insert_dataset(gdcm::DataSet const & dataset)
     BSONBuilderAction action(&builder);
     parse(dataset, action);
     this->_connection.insert(this->_db_name+".documents", builder.obj());
+
+    gdcm::FileMetaInformation header;
+    header.FillFromDataSet(dataset);
+    header.SetDataSetTransferSyntax(gdcm::TransferSyntax::ExplicitVRLittleEndian);
+
+    // This code crashes when a gdcm::File (without the SmartPointer) is used
+    gdcm::SmartPointer<gdcm::File> file = new gdcm::File();
+    file->SetHeader(header);
+    file->SetDataSet(dataset);
+
+    char filename[] = "/tmp/XXXXXX";
+    int const fd = mkstemp(filename);
+    close(fd);
+
+    gdcm::Writer writer;
+    writer.SetFile(*file);
+    writer.SetFileName(filename);
+    writer.Write();
+
+    gdcm::Attribute<0x0008,0x0018> attribute;
+    attribute.SetFromDataElement(dataset.GetDataElement(gdcm::Tag(0x0008,0x0018)));
+    this->_grid_fs->storeFile(filename, attribute.GetValue());
+
+    gdcm::System::RemoveFile(filename);
 }
 
 mongo::auto_ptr<mongo::DBClientCursor> 
@@ -291,4 +322,19 @@ Database
         de.SetByteValue(value, value.length());
         dataset.Insert(de);
     }
+}
+
+void
+Database
+::get_file(std::string const sop_instance_uid, std::ostream & stream) const
+{
+    mongo::GridFile file = this->_grid_fs->findFile(sop_instance_uid);
+    if(!file.exists())
+    {
+        std::ostringstream message;
+        message << "No file with SOP Instance UID \""
+                << sop_instance_uid << "\"";
+        throw std::runtime_error(message.str());
+    }
+    file.write(stream);
 }
