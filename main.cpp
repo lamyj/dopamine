@@ -28,15 +28,17 @@ int store(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    Database database("research_pacs");
+
     gdcm::Reader reader;
     reader.SetFileName(argv[0]);
     if(!reader.Read())
     {
-        std::cerr << "Store : could not read " << filename << "\n";
-        return EXIT_FAILURE;
+        database.insert_file(filename);
+        return EXIT_SUCCESS;
     }
 
-    Database database("research_pacs");
+
     database.insert_dataset(reader.GetFile().GetDataSet());
 
     return EXIT_SUCCESS;

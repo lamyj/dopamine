@@ -15,7 +15,7 @@ public :
     
     void insert_user(mongo::BSONObj const & user);
     void insert_protocol(mongo::BSONObj const & protocol);
-    //void insert_file(std::string const & filename);
+    void insert_file(std::string const & filename);
     void insert_dataset(gdcm::DataSet const & dataset);
     
     mongo::auto_ptr<mongo::DBClientCursor> query(
