@@ -58,7 +58,7 @@ int query(int argc, char** argv)
     std::string const value(argv[1]);
 
     Database database("research_pacs");
-    mongo::auto_ptr<mongo::DBClientCursor> cursor = database.query(
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = database.query_documents(
         QUERY(field<<value));
     while(cursor->more())
     {

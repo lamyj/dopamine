@@ -18,9 +18,18 @@ public :
     void insert_file(std::string const & filename);
     void insert_dataset(gdcm::DataSet const & dataset);
     
-    mongo::auto_ptr<mongo::DBClientCursor> query(
-        mongo::Query const & query, mongo::BSONObj* fields=NULL, 
-        std::string const & ns="documents");
+    mongo::auto_ptr<mongo::DBClientCursor> query_users(mongo::Query const & query);
+    mongo::auto_ptr<mongo::DBClientCursor> query_users(
+        mongo::Query const & query, std::vector<std::string> const & fields);
+
+    mongo::auto_ptr<mongo::DBClientCursor> query_protocols(mongo::Query const & query);
+    mongo::auto_ptr<mongo::DBClientCursor> query_protocols(
+        mongo::Query const & query, std::vector<std::string> const & fields);
+
+    mongo::auto_ptr<mongo::DBClientCursor> query_documents(mongo::Query const & query);
+    mongo::auto_ptr<mongo::DBClientCursor> query_documents(
+        mongo::Query const & query, std::vector<std::string> const & fields);
+
     //void remove();
     
     gdcm::DataSet de_identify(gdcm::DataSet const & dataset) const;
@@ -35,6 +44,10 @@ private :
     // mongo::GridFS constructor. Since we cannot do this in the initializer
     // list, we need a /pointer/ to mongo::GridFS for late initialization.
     mongo::GridFS* _grid_fs;
+
+    mongo::auto_ptr<mongo::DBClientCursor> _query(
+        std::string const & ns, mongo::Query const & query,
+        std::vector<std::string> const & fields);
 };
 
 #endif // _4bca776c_a256_4cdb_9c45_400d5c2ec0f1

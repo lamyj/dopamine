@@ -126,9 +126,9 @@ void
 Database
 ::insert_user(mongo::BSONObj const & user)
 {
-    if(!this->_connection.findOne(
+    if(this->_connection.count(
            this->_db_name+".users", 
-           QUERY("id" << user.getStringField("id"))).isEmpty())
+           BSON("id" << user.getStringField("id")))>0)
     {
         std::ostringstream message;
         message << "Cannot insert user \"" << user.getStringField("id") << "\""
@@ -143,7 +143,9 @@ void
 Database
 ::insert_protocol(mongo::BSONObj const & protocol)
 {
-    if(!this->_connection.findOne(this->_db_name+".protocols", QUERY("id" << protocol.getStringField("id"))).isEmpty())
+    if(this->_connection.count(
+            this->_db_name+".protocols",
+            BSON("id" << protocol.getStringField("id")))>0)
     {
         std::ostringstream message;
         message << "Cannot insert protocol \"" << protocol.getStringField("id") << "\""
@@ -151,7 +153,9 @@ Database
         throw std::runtime_error(message.str());
     }
     
-    if(this->_connection.findOne(this->_db_name+".users", QUERY("id" << protocol.getStringField("sponsor"))).isEmpty())
+    if(this->_connection.count(
+            this->_db_name+".users",
+            BSON("id" << protocol.getStringField("sponsor")))==0)
     {
         std::ostringstream message;
         message << "Cannot insert protocol \"" << protocol.getStringField("id") << "\""
@@ -232,36 +236,66 @@ insert_dataset(gdcm::DataSet const & dataset)
     parse(dataset, action);
     this->_connection.insert(this->_db_name+".documents", builder.obj());
 
-    gdcm::FileMetaInformation header;
-    header.FillFromDataSet(dataset);
-    header.SetDataSetTransferSyntax(gdcm::TransferSyntax::ExplicitVRLittleEndian);
-
-    // This code crashes when a gdcm::File (without the SmartPointer) is used
-    gdcm::SmartPointer<gdcm::File> file = new gdcm::File();
-    file->SetHeader(header);
-    file->SetDataSet(dataset);
-
     char filename[] = "/tmp/XXXXXX";
     int const fd = mkstemp(filename);
     close(fd);
 
     gdcm::Writer writer;
-    writer.SetFile(*file);
+    writer.GetFile().SetDataSet(dataset);
     writer.SetFileName(filename);
     writer.Write();
 
     gdcm::Attribute<0x0008,0x0018> attribute;
-    attribute.SetFromDataElement(dataset.GetDataElement(gdcm::Tag(0x0008,0x0018)));
+    attribute.Set(dataset);
     this->_grid_fs->storeFile(filename, attribute.GetValue());
 
     gdcm::System::RemoveFile(filename);
 }
 
-mongo::auto_ptr<mongo::DBClientCursor> 
+mongo::auto_ptr<mongo::DBClientCursor>
 Database
-::query(mongo::Query const & query, mongo::BSONObj* fields, std::string const & ns)
+::query_users(mongo::Query const & query)
 {
-    return this->_connection.query(this->_db_name+"."+ns, query, 0, 0, fields);
+    std::vector<std::string> fields;
+    return this->query_users(query, fields);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::query_users(mongo::Query const & query, std::vector<std::string> const & fields)
+{
+    return this->_query("users", query, fields);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::query_protocols(mongo::Query const & query)
+{
+    std::vector<std::string> fields;
+    return this->query_protocols(query, fields);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::query_protocols(mongo::Query const & query, std::vector<std::string> const & fields)
+{
+    return this->_query("protocols", query, fields);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::query_documents(mongo::Query const & query)
+{
+    std::vector<std::string> fields;
+    fields.push_back("(0008|0018)");
+    return this->query_documents(query, fields);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::query_documents(mongo::Query const & query, std::vector<std::string> const & fields)
+{
+    return this->_query("documents", query, fields);
 }
 
 gdcm::DataSet
@@ -270,77 +304,72 @@ Database::de_identify(gdcm::DataSet const & dataset) const
     // PS 3.15 - 2008
     // Table E.1-1
     // BALCPA
-    gdcm::Tag BasicApplicationLevelConfidentialityProfileAttributes[] = {
-//              Attribute Name                                            Tag
-/*              Instance Creator UID                                  */ gdcm::Tag(0x0008,0x0014),
-/*              SOP Instance UID                                      */ gdcm::Tag(0x0008,0x0018),
-/*              Accession Number                                      */ gdcm::Tag(0x0008,0x0050),
-/*              Institution Name                                      */ gdcm::Tag(0x0008,0x0080),
-/*              Institution Address                                   */ gdcm::Tag(0x0008,0x0081),
-/*              Referring Physician's Name                            */ gdcm::Tag(0x0008,0x0090),
-/*              Referring Physician's Address                         */ gdcm::Tag(0x0008,0x0092),
-/*              Referring Physician's Telephone Numbers               */ gdcm::Tag(0x0008,0x0094),
-/*              Station Name                                          */ gdcm::Tag(0x0008,0x1010),
-/*              Study Description                                     */ gdcm::Tag(0x0008,0x1030),
-/*              Series Description                                    */ gdcm::Tag(0x0008,0x103E),
-/*              Institutional Department Name                         */ gdcm::Tag(0x0008,0x1040),
-/*              Physician(s) of Record                                */ gdcm::Tag(0x0008,0x1048),
-/*              Performing Physicians' Name                           */ gdcm::Tag(0x0008,0x1050),
-/*              Name of Physician(s) Reading Study                    */ gdcm::Tag(0x0008,0x1060),
-/*              Operators' Name                                       */ gdcm::Tag(0x0008,0x1070),
-/*              Admitting Diagnoses Description                       */ gdcm::Tag(0x0008,0x1080),
-/*              Referenced SOP Instance UID                           */ gdcm::Tag(0x0008,0x1155),
-/*              Derivation Description                                */ gdcm::Tag(0x0008,0x2111),
-/*              Patient's Name                                        */ gdcm::Tag(0x0010,0x0010),
-/*              Patient ID                                            */ gdcm::Tag(0x0010,0x0020),
-/*              Patient's Birth Date                                  */ gdcm::Tag(0x0010,0x0030),
-/*              Patient's Birth Time                                  */ gdcm::Tag(0x0010,0x0032),
-/*              Patient's Sex                                         */ gdcm::Tag(0x0010,0x0040),
-/*              Other Patient Ids                                     */ gdcm::Tag(0x0010,0x1000),
-/*              Other Patient Names                                   */ gdcm::Tag(0x0010,0x1001),
-/*              Patient's Age                                         */ gdcm::Tag(0x0010,0x1010),
-/*              Patient's Size                                        */ gdcm::Tag(0x0010,0x1020),
-/*              Patient's Weight                                      */ gdcm::Tag(0x0010,0x1030),
-/*              Medical Record Locator                                */ gdcm::Tag(0x0010,0x1090),
-/*              Ethnic Group                                          */ gdcm::Tag(0x0010,0x2160),
-/*              Occupation                                            */ gdcm::Tag(0x0010,0x2180),
-/*              Additional Patient's History                          */ gdcm::Tag(0x0010,0x21B0),
-/*              Patient Comments                                      */ gdcm::Tag(0x0010,0x4000),
-/*              Device Serial Number                                  */ gdcm::Tag(0x0018,0x1000),
-/*              Protocol Name                                         */ gdcm::Tag(0x0018,0x1030),
-/*              Study Instance UID                                    */ gdcm::Tag(0x0020,0x000D),
-/*              Series Instance UID                                   */ gdcm::Tag(0x0020,0x000E),
-/*              Study ID                                              */ gdcm::Tag(0x0020,0x0010),
-/*              Frame of Reference UID                                */ gdcm::Tag(0x0020,0x0052),
-/*              Synchronization Frame of Reference UID                */ gdcm::Tag(0x0020,0x0200),
-/*              Image Comments                                        */ gdcm::Tag(0x0020,0x4000),
-/*              Request Attributes Sequence                           */ gdcm::Tag(0x0040,0x0275),
-/*              UID                                                   */ gdcm::Tag(0x0040,0xA124),
-/*              Content Sequence                                      */ gdcm::Tag(0x0040,0xA730),
-/*              Storage Media File-set UID                            */ gdcm::Tag(0x0088,0x0140),
-/*              Referenced Frame of Reference UID                     */ gdcm::Tag(0x3006,0x0024),
-/*              Related Frame of Reference UID                        */ gdcm::Tag(0x3006,0x00C2)
-};
+    gdcm::Tag to_remove[] = {
+        gdcm::Tag(0x0008,0x0014), //Instance Creator UID
+        gdcm::Tag(0x0008,0x0018), //SOP Instance UID
+        gdcm::Tag(0x0008,0x0018), //Accession Number
+        gdcm::Tag(0x0008,0x0080), //Institution Name
+        gdcm::Tag(0x0008,0x0081), //Institution Address
+        gdcm::Tag(0x0008,0x0090), //Referring Physician's Name
+        gdcm::Tag(0x0008,0x0092), //Referring Physician's Address
+        gdcm::Tag(0x0008,0x0094), //Referring Physician's Telephone Numbers
+        gdcm::Tag(0x0008,0x1010), //Station Name
+        gdcm::Tag(0x0008,0x1030), //Study Description
+        gdcm::Tag(0x0008,0x103E), //Series Description
+        gdcm::Tag(0x0008,0x1040), //Institutional Department Name
+        gdcm::Tag(0x0008,0x1048), //Physician(s) of Record
+        gdcm::Tag(0x0008,0x1050), //Performing Physicians' Name
+        gdcm::Tag(0x0008,0x1060), //Name of Physician(s) Reading Study
+        gdcm::Tag(0x0008,0x1070), //Operators' Name
+        gdcm::Tag(0x0008,0x1080), //Admitting Diagnoses Description
+        gdcm::Tag(0x0008,0x1155), //Referenced SOP Instance UID
+        gdcm::Tag(0x0008,0x2111), //Derivation Description
+        gdcm::Tag(0x0010,0x0010), //Patient's Name
+        gdcm::Tag(0x0010,0x0020), //Patient ID
+        gdcm::Tag(0x0010,0x0030), //Patient's Birth Date
+        gdcm::Tag(0x0010,0x0032), //Patient's Birth Time
+        gdcm::Tag(0x0010,0x0040), //Patient's Sex
+        gdcm::Tag(0x0010,0x1000), //Other Patient Ids
+        gdcm::Tag(0x0010,0x1001), //Other Patient Names
+        gdcm::Tag(0x0010,0x1010), //Patient's Age
+        gdcm::Tag(0x0010,0x1020), //Patient's Size
+        gdcm::Tag(0x0010,0x1030), //Patient's Weight
+        gdcm::Tag(0x0010,0x1090), //Medical Record Locator
+        gdcm::Tag(0x0010,0x2160), //Ethnic Group
+        gdcm::Tag(0x0010,0x2180), //Occupation
+        gdcm::Tag(0x0010,0x21B0), //Additional Patient's History
+        gdcm::Tag(0x0010,0x4000), //Patient Comments
+        gdcm::Tag(0x0018,0x1000), //Device Serial Number
+        gdcm::Tag(0x0018,0x1030), //Protocol Name
+        gdcm::Tag(0x0020,0x000D), //Study Instance UID
+        gdcm::Tag(0x0020,0x000E), //Series Instance UID
+        gdcm::Tag(0x0020,0x0010), //Study ID
+        gdcm::Tag(0x0020,0x0052), //Frame of Reference UID
+        gdcm::Tag(0x0020,0x0200), //Synchronization Frame of Reference UID
+        gdcm::Tag(0x0020,0x4000), //Image Comments
+        gdcm::Tag(0x0040,0x0275), //Request Attributes Sequence
+        gdcm::Tag(0x0040,0xA124), //UID
+        gdcm::Tag(0x0040,0xA730), //Content Sequence
+        gdcm::Tag(0x0088,0x0140), //Storage Media File-set UID
+        gdcm::Tag(0x3006,0x0024), //Referenced Frame of Reference UID
+        gdcm::Tag(0x3006,0x00C2), //Related Frame of Reference UID
+    };
 
-    unsigned int const deidSize = sizeof(gdcm::Tag);
-    unsigned int const numDeIds = sizeof(BasicApplicationLevelConfidentialityProfileAttributes) / deidSize;
-    gdcm::Tag const *start = BasicApplicationLevelConfidentialityProfileAttributes;
-    gdcm::Tag const *end = start + numDeIds;
+    gdcm::Tag * to_remove_end = to_remove+sizeof(to_remove)/sizeof(gdcm::Tag);
 
-    gdcm::Anonymizer anonymizer;
-    anonymizer.GetFile().SetDataSet(dataset);
-    
-    for(gdcm::Tag const * it=start; it!=end; ++it)
+    gdcm::DataSet de_identified;
+    for(gdcm::DataSet::ConstIterator it=dataset.Begin(); it!=dataset.End(); ++it)
     {
-        anonymizer.Empty(*it);
+        if(std::find(to_remove, to_remove_end, it->GetTag()) == to_remove_end)
+        {
+            de_identified.Insert(*it);
+        }
     }
 
-    // Generated a new SOP Instance UID for this dataset
+    // Generated a new SOP Instance UID for the anonymized dataset
     std::string const sop_instance_uid = gdcm::UIDGenerator().Generate();
     gdcm::Attribute<0x0008,0x0018> attribute;
     attribute.SetValue(sop_instance_uid);
-
-    gdcm::DataSet de_identified = anonymizer.GetFile().GetDataSet();
     de_identified.Replace(attribute.GetAsDataElement());
 
     return de_identified;
@@ -350,41 +379,31 @@ void
 Database
 ::set_clinical_trial_informations(gdcm::DataSet & dataset, std::string const & sponsor, std::string const & protocol, std::string const &subject)
 {
-    if(this->_connection.findOne(this->_db_name+".users", QUERY("id" << sponsor)).isEmpty())
+    if(this->_connection.count(this->_db_name+".users", BSON("id" << sponsor)) == 0)
     {
         std::ostringstream message;
         message << "Cannot set Clinical Trial informations : no such sponsor \"" << sponsor << "\"";
         throw std::runtime_error(message.str());
     }
     
-    if(this->_connection.findOne(this->_db_name+".protocols", QUERY("id" << protocol)).isEmpty())
+    if(this->_connection.count(this->_db_name+".protocols", BSON("id" << protocol)) == 0)
     {
         std::ostringstream message;
         message << "Cannot set Clinical Trial informations : no such protocol \"" << protocol << "\"";
         throw std::runtime_error(message.str());
     }
     
-    {
-        gdcm::DataElement de(gdcm::Tag(0x0012,0x0010));
-        de.SetVR(gdcm::VR::LO);
-        gdcm::LOComp value(sponsor);
-        de.SetByteValue(value, value.length());
-        dataset.Insert(de);
-    }
-    {
-        gdcm::DataElement de(gdcm::Tag(0x0012,0x0020));
-        de.SetVR(gdcm::VR::LO);
-        gdcm::LOComp value(protocol);
-        de.SetByteValue(value, value.length());
-        dataset.Insert(de);
-    }
-    {
-        gdcm::DataElement de(gdcm::Tag(0x0012,0x0040));
-        de.SetVR(gdcm::VR::LO);
-        gdcm::LOComp value(subject);
-        de.SetByteValue(value, value.length());
-        dataset.Insert(de);
-    }
+    gdcm::Attribute<0x0012,0x0010> clinical_trial_sponsor_name;
+    clinical_trial_sponsor_name.SetValue(sponsor);
+    dataset.Insert(clinical_trial_sponsor_name.GetAsDataElement());
+
+    gdcm::Attribute<0x0012,0x0020> clinical_trial_protocol_id;
+    clinical_trial_protocol_id.SetValue(protocol);
+    dataset.Insert(clinical_trial_protocol_id.GetAsDataElement());
+
+    gdcm::Attribute<0x0012,0x0040> clinical_trial_subject_id;
+    clinical_trial_subject_id.SetValue(subject);
+    dataset.Insert(clinical_trial_subject_id.GetAsDataElement());
 }
 
 void
@@ -400,4 +419,26 @@ Database
         throw std::runtime_error(message.str());
     }
     file.write(stream);
+}
+
+mongo::auto_ptr<mongo::DBClientCursor>
+Database
+::_query(std::string const & ns, mongo::Query const & query, std::vector<std::string> const & fields)
+{
+    if(!fields.empty())
+    {
+        mongo::BSONObjBuilder builder;
+        for(std::vector<std::string>::const_iterator it=fields.begin(); it!=fields.end();
+            ++it)
+        {
+            builder << *it << 1;
+        }
+        mongo::BSONObj bson_fields(builder.obj());
+
+        return this->_connection.query(this->_db_name+"."+ns, query, 0, 0, &bson_fields);
+    }
+    else
+    {
+        return this->_connection.query(this->_db_name+"."+ns, query);
+    }
 }
