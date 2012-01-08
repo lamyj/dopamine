@@ -10,7 +10,9 @@
 #include <gdcmDataSet.h>
 #include <gdcmReader.h>
 #include <mongo/client/dbclient.h>
+
 #include "database.h"
+#include "user.h"
 
 struct StaticData
 {
@@ -99,26 +101,21 @@ BOOST_FIXTURE_TEST_SUITE(TestDatabase, TestDatabaseFixture);
 
 BOOST_AUTO_TEST_CASE(User)
 {
-    mongo::BSONObj const user = BSON(
-        "id" << "radiologist" << "name" << "Ronald Radiologist");
+    ::User const user("radiologist", "Ronald Radiologist");
     this->get_database().insert_user(user);
     
-    mongo::auto_ptr<mongo::DBClientCursor> cursor = 
-        this->get_database().query_users(mongo::Query());
+    std::vector< ::User> const users = this->get_database().query_users(mongo::Query());
         
-    BOOST_REQUIRE(cursor->more());
-    mongo::BSONObj const item = cursor->next();
-    BOOST_REQUIRE_EQUAL(item.getStringField("id"), "radiologist");
-    BOOST_REQUIRE_EQUAL(item.getStringField("name"), "Ronald Radiologist");
-    BOOST_REQUIRE(!cursor->more());
+    BOOST_REQUIRE_EQUAL(users.size(), 1);
+    BOOST_REQUIRE_EQUAL(users[0].get_id(), "radiologist");
+    BOOST_REQUIRE_EQUAL(users[0].get_name(), "Ronald Radiologist");
     
     BOOST_REQUIRE_THROW(this->get_database().insert_user(user), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(Protocol)
 {
-    mongo::BSONObj const user = BSON(
-        "id" << "bpc" << "name" << "Big Pharmaceutical Company");
+    ::User const user("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(user);
     
     mongo::BSONObj const protocol = BSON(
@@ -146,9 +143,8 @@ BOOST_AUTO_TEST_CASE(Protocol)
 
 BOOST_AUTO_TEST_CASE(Dataset)
 {
-    mongo::BSONObj const user = BSON(
-        "id" << "bpc" << "name" << "Big Pharmaceutical Company");
-    this->get_database().insert_user(user);
+    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    this->get_database().insert_user(sponsor);
 
     mongo::BSONObj const protocol = BSON(
         "id" << "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d" <<
@@ -172,7 +168,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     BOOST_REQUIRE(!de_identified.FindDataElement(gdcm::Tag(0x0010,0x0010)));
 
     this->get_database().set_clinical_trial_informations(de_identified,
-        "bpc", "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", "Sim^Ho");
+        sponsor, "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", "Sim^Ho");
 
     {
         gdcm::Attribute<0x0012,0x0010> at;

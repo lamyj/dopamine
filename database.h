@@ -2,10 +2,13 @@
 #define _4bca776c_a256_4cdb_9c45_400d5c2ec0f1
 
 #include <string>
+#include <vector>
 
 #include <gdcmDataSet.h>
 #include <mongo/client/dbclient.h>
 #include <mongo/client/gridfs.h>
+
+#include "user.h"
 
 class Database
 {
@@ -13,14 +16,12 @@ public :
     Database(std::string const & db_name, std::string const & host="localhost", unsigned int port=27017);
     ~Database();
     
-    void insert_user(mongo::BSONObj const & user);
+    void insert_user(User const & user);
     void insert_protocol(mongo::BSONObj const & protocol);
-    void insert_file(std::string const & filename);
+    void insert_file(std::string const & filename, User const & sponsor, std::string const & protocol, std::string const & subject);
     void insert_dataset(gdcm::DataSet const & dataset);
     
-    mongo::auto_ptr<mongo::DBClientCursor> query_users(mongo::Query const & query);
-    mongo::auto_ptr<mongo::DBClientCursor> query_users(
-        mongo::Query const & query, std::vector<std::string> const & fields);
+    std::vector<User> query_users(mongo::Query const & query);
 
     mongo::auto_ptr<mongo::DBClientCursor> query_protocols(mongo::Query const & query);
     mongo::auto_ptr<mongo::DBClientCursor> query_protocols(
@@ -33,7 +34,7 @@ public :
     //void remove();
     
     gdcm::DataSet de_identify(gdcm::DataSet const & dataset) const;
-    void set_clinical_trial_informations(gdcm::DataSet & dataset, std::string const & sponsor, std::string const & protocol, std::string const &subject);
+    void set_clinical_trial_informations(gdcm::DataSet & dataset, User const & sponsor, std::string const & protocol, std::string const &subject);
 
     void get_file(std::string const sop_instance_uid, std::ostream & stream) const;
 
