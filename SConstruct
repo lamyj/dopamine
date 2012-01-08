@@ -6,7 +6,7 @@ env.AppendUnique(CPPPATH=os.environ.get("CPPPATH", "").split(os.pathsep))
 env.AppendUnique(LIBPATH=os.environ.get("LIBPATH", "").split(os.pathsep))
 
 env.SharedLibrary("research_pacs", 
-    ["dicom_to_cpp.cpp", "database.cpp", "user.cpp"],
+    ["dicom_to_cpp.cpp", "database.cpp", "user.cpp", "protocol.cpp"],
     CPPFLAGS=env["CPPFLAGS"],
     CPPPATH=env["CPPPATH"],
     LIBS=["mongoclient", "boost_thread", "boost_filesystem", 
@@ -19,6 +19,12 @@ env.Program("test_database", ["tests/code/test_database.cpp"],
     LIBS=["research_pacs", "boost_unit_test_framework"])
 
 env.Program("test_user", ["tests/code/test_user.cpp"],
+    CPPFLAGS=env["CPPFLAGS"],
+    CPPPATH=env["CPPPATH"]+["."],
+    LIBPATH=env["LIBPATH"]+["."],
+    LIBS=["research_pacs", "boost_unit_test_framework"])
+
+env.Program("test_protocol", ["tests/code/test_protocol.cpp"],
     CPPFLAGS=env["CPPFLAGS"],
     CPPPATH=env["CPPPATH"]+["."],
     LIBPATH=env["LIBPATH"]+["."],

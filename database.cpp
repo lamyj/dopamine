@@ -19,6 +19,7 @@
 #include <magic.h>
 
 #include "dicom_to_cpp.h"
+#include "protocol.h"
 #include "user.h"
 
 class BSONBuilderAction
@@ -141,34 +142,30 @@ Database
 
 void 
 Database
-::insert_protocol(mongo::BSONObj const & protocol)
+::insert_protocol(Protocol const & protocol)
 {
-    if(this->_connection.count(
-            this->_db_name+".protocols",
-            BSON("id" << protocol.getStringField("id")))>0)
+    if(this->_connection.count(this->_db_name+".protocols", BSON("id" << protocol.get_id()))>0)
     {
         std::ostringstream message;
-        message << "Cannot insert protocol \"" << protocol.getStringField("id") << "\""
+        message << "Cannot insert protocol \"" << protocol.get_id() << "\""
                 << " : already exists";
         throw std::runtime_error(message.str());
     }
     
-    if(this->_connection.count(
-            this->_db_name+".users",
-            BSON("id" << protocol.getStringField("sponsor")))==0)
+    if(this->_connection.count(this->_db_name+".users", BSON("id" << protocol.get_sponsor()))==0)
     {
         std::ostringstream message;
-        message << "Cannot insert protocol \"" << protocol.getStringField("id") << "\""
-                << " : no such sponsor \"" << protocol.getStringField("sponsor") << "\"";
+        message << "Cannot insert protocol \"" << protocol.get_id() << "\""
+                << " : no such sponsor \"" << protocol.get_sponsor() << "\"";
         throw std::runtime_error(message.str());
     }
     
-    this->_connection.insert(this->_db_name+".protocols", protocol);
+    this->_connection.insert(this->_db_name+".protocols", protocol.to_bson());
 }
 
 void 
 Database
-::insert_file(std::string const & filename, User const & sponsor, std::string const & protocol, std::string const & subject)
+::insert_file(std::string const & filename, User const & sponsor, Protocol const & protocol, std::string const & subject)
 {
     gdcm::DataSet dataset;
 
@@ -293,19 +290,25 @@ Database
     return result;
 }
 
-mongo::auto_ptr<mongo::DBClientCursor>
+std::vector<Protocol>
 Database
 ::query_protocols(mongo::Query const & query)
 {
     std::vector<std::string> fields;
-    return this->query_protocols(query, fields);
-}
-
-mongo::auto_ptr<mongo::DBClientCursor>
-Database
-::query_protocols(mongo::Query const & query, std::vector<std::string> const & fields)
-{
-    return this->_query("protocols", query, fields);
+    
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = 
+        this->_query("protocols", query, fields);
+    
+    std::vector<Protocol> result;
+    while(cursor->more())
+    {
+        mongo::BSONObj const & object = cursor->next();
+        Protocol protocol;
+        protocol.from_bson(object);
+        result.push_back(protocol);
+    }
+    
+    return result;
 }
 
 mongo::auto_ptr<mongo::DBClientCursor>
@@ -403,7 +406,7 @@ Database::de_identify(gdcm::DataSet const & dataset) const
 
 void 
 Database
-::set_clinical_trial_informations(gdcm::DataSet & dataset, User const & sponsor, std::string const & protocol, std::string const &subject)
+::set_clinical_trial_informations(gdcm::DataSet & dataset, User const & sponsor, Protocol const & protocol, std::string const &subject)
 {
     if(this->_connection.count(this->_db_name+".users", BSON("id" << sponsor.get_id())) == 0)
     {
@@ -412,10 +415,10 @@ Database
         throw std::runtime_error(message.str());
     }
     
-    if(this->_connection.count(this->_db_name+".protocols", BSON("id" << protocol)) == 0)
+    if(this->_connection.count(this->_db_name+".protocols", BSON("id" << protocol.get_id())) == 0)
     {
         std::ostringstream message;
-        message << "Cannot set Clinical Trial informations : no such protocol \"" << protocol << "\"";
+        message << "Cannot set Clinical Trial informations : no such protocol \"" << protocol.get_id() << "\"";
         throw std::runtime_error(message.str());
     }
     
@@ -424,7 +427,7 @@ Database
     dataset.Insert(clinical_trial_sponsor_name.GetAsDataElement());
 
     gdcm::Attribute<0x0012,0x0020> clinical_trial_protocol_id;
-    clinical_trial_protocol_id.SetValue(protocol);
+    clinical_trial_protocol_id.SetValue(protocol.get_id());
     dataset.Insert(clinical_trial_protocol_id.GetAsDataElement());
 
     gdcm::Attribute<0x0012,0x0040> clinical_trial_subject_id;

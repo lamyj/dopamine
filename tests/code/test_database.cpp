@@ -118,26 +118,19 @@ BOOST_AUTO_TEST_CASE(Protocol)
     ::User const user("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(user);
     
-    mongo::BSONObj const protocol = BSON(
-        "id" << "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d" <<
-        "name" << "Foobaril, phase 2" <<
-        "sponsor" << "bpc");
+    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", 
+        "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
     
-    mongo::auto_ptr<mongo::DBClientCursor> cursor = 
-        this->get_database().query_protocols(mongo::Query());
+    std::vector< ::Protocol> const protocols = this->get_database().query_protocols(mongo::Query());
         
-    BOOST_REQUIRE(cursor->more());
-    mongo::BSONObj const item = cursor->next();
-    BOOST_REQUIRE_EQUAL(item.getStringField("id"), "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
-    BOOST_REQUIRE_EQUAL(item.getStringField("name"), "Foobaril, phase 2");
-    BOOST_REQUIRE_EQUAL(item.getStringField("sponsor"), "bpc");
-    BOOST_REQUIRE(!cursor->more());
+    BOOST_REQUIRE_EQUAL(protocols.size(), 1);
+    BOOST_REQUIRE_EQUAL(protocols[0].get_id(), "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
+    BOOST_REQUIRE_EQUAL(protocols[0].get_name(), "Foobaril, phase 2");
+    BOOST_REQUIRE_EQUAL(protocols[0].get_sponsor(), "bpc");
     
-    mongo::BSONObj const invalid_protocol = BSON(
-        "id" << "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d" <<
-        "name" << "Foobaril, phase 2" <<
-        "sponsor" << "unknown");
+    ::Protocol const invalid_protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+        "Foobaril, phase 2", "unknown");
     BOOST_REQUIRE_THROW(this->get_database().insert_protocol(invalid_protocol), std::runtime_error);
 }
 
@@ -146,10 +139,8 @@ BOOST_AUTO_TEST_CASE(Dataset)
     ::User const sponsor("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(sponsor);
 
-    mongo::BSONObj const protocol = BSON(
-        "id" << "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d" <<
-        "name" << "Foobaril, phase 2" <<
-        "sponsor" << "bpc");
+    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+        "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
 
     gdcm::Reader reader;
@@ -168,7 +159,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     BOOST_REQUIRE(!de_identified.FindDataElement(gdcm::Tag(0x0010,0x0010)));
 
     this->get_database().set_clinical_trial_informations(de_identified,
-        sponsor, "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", "Sim^Ho");
+        sponsor, protocol, "Sim^Ho");
 
     {
         gdcm::Attribute<0x0012,0x0010> at;
