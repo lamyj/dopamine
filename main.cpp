@@ -30,11 +30,15 @@ int store(int argc, char** argv)
 
     Database database("research_pacs");
 
+    std::string const sponsor = "TODO";
+    std::string const protocol = "TODO";
+    std::string const subject = "TODO";
+
     gdcm::Reader reader;
     reader.SetFileName(argv[0]);
     if(!reader.Read())
     {
-        database.insert_file(filename);
+        database.insert_file(filename, sponsor, protocol, subject);
         return EXIT_SUCCESS;
     }
 

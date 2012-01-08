@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <boost/lexical_cast.hpp>
 #include <gdcmAnonymizer.h>
@@ -18,6 +19,7 @@
 #include <magic.h>
 
 #include "dicom_to_cpp.h"
+#include "user.h"
 
 class BSONBuilderAction
 {
@@ -124,19 +126,17 @@ Database
     
 void 
 Database
-::insert_user(mongo::BSONObj const & user)
+::insert_user(User const & user)
 {
-    if(this->_connection.count(
-           this->_db_name+".users", 
-           BSON("id" << user.getStringField("id")))>0)
+    if(this->_connection.count(this->_db_name+".users", BSON("id" << user.get_id()))>0)
     {
         std::ostringstream message;
-        message << "Cannot insert user \"" << user.getStringField("id") << "\""
+        message << "Cannot insert user \"" << user.get_id()<< "\""
                 << " : already exists";
         throw std::runtime_error(message.str());
     }
     
-    this->_connection.insert(this->_db_name+".users", user);
+    this->_connection.insert(this->_db_name+".users", user.to_bson());
 }
 
 void 
@@ -168,7 +168,7 @@ Database
 
 void 
 Database
-::insert_file(std::string const & filename)
+::insert_file(std::string const & filename, User const & sponsor, std::string const & protocol, std::string const & subject)
 {
     gdcm::DataSet dataset;
 
@@ -192,17 +192,15 @@ Database
         dataset.Insert(attribute.GetAsDataElement());
     }
 
+    magic_t cookie = magic_open(MAGIC_MIME_TYPE|MAGIC_MIME_ENCODING);
+    magic_load(cookie, NULL);
+    std::string const mime_type(magic_file(cookie, filename.c_str()));
+    magic_close(cookie);
     // MIME Type of Encapsulated Document
     {
-        magic_t cookie = magic_open(MAGIC_MIME_TYPE|MAGIC_MIME_ENCODING);
-        magic_load(cookie, NULL);
-        char const * const type = magic_file(cookie, filename.c_str());
-
         gdcm::Attribute<0x0042,0x0012> attribute;
-        attribute.SetValue(type);
+        attribute.SetValue(mime_type);
         dataset.Insert(attribute.GetAsDataElement());
-
-        magic_close(cookie);
     }
 
     // Encapsulated Document
@@ -222,18 +220,40 @@ Database
         dataset.Insert(data_element);
     }
 
-    std::cout << dataset << std::endl;
+    this->set_clinical_trial_informations(dataset, sponsor, protocol, subject);
 
-    //this->insert_dataset(dataset);
+    // TODO : refactor the code with insert_dataset. Only difference is 
+    // value of original_mime_type
+    mongo::BSONObjBuilder builder;
+    BSONBuilderAction action(&builder);
+    parse(dataset, action);
+    builder << "original_mime_type" << mime_type;
+    this->_connection.insert(this->_db_name+".documents", builder.obj());
+
+    char temp_filename[] = "/tmp/XXXXXX";
+    int const fd = mkstemp(temp_filename);
+    close(fd);
+
+    gdcm::Writer writer;
+    writer.GetFile().SetDataSet(dataset);
+    writer.SetFileName(temp_filename);
+    writer.Write();
+
+    gdcm::Attribute<0x0008,0x0018> attribute;
+    attribute.Set(dataset);
+    this->_grid_fs->storeFile(filename, attribute.GetValue());
+
+    gdcm::System::RemoveFile(temp_filename);
 }
 
 void
-Database::
-insert_dataset(gdcm::DataSet const & dataset)
+Database
+::insert_dataset(gdcm::DataSet const & dataset)
 {
     mongo::BSONObjBuilder builder;
     BSONBuilderAction action(&builder);
     parse(dataset, action);
+    builder << "original_mime_type" << "application/dicom; charset=binary";
     this->_connection.insert(this->_db_name+".documents", builder.obj());
 
     char filename[] = "/tmp/XXXXXX";
@@ -252,19 +272,25 @@ insert_dataset(gdcm::DataSet const & dataset)
     gdcm::System::RemoveFile(filename);
 }
 
-mongo::auto_ptr<mongo::DBClientCursor>
+std::vector<User>
 Database
 ::query_users(mongo::Query const & query)
 {
     std::vector<std::string> fields;
-    return this->query_users(query, fields);
-}
-
-mongo::auto_ptr<mongo::DBClientCursor>
-Database
-::query_users(mongo::Query const & query, std::vector<std::string> const & fields)
-{
-    return this->_query("users", query, fields);
+    
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = 
+        this->_query("users", query, fields);
+    
+    std::vector<User> result;
+    while(cursor->more())
+    {
+        mongo::BSONObj const & object = cursor->next();
+        User user;
+        user.from_bson(object);
+        result.push_back(user);
+    }
+    
+    return result;
 }
 
 mongo::auto_ptr<mongo::DBClientCursor>
@@ -377,12 +403,12 @@ Database::de_identify(gdcm::DataSet const & dataset) const
 
 void 
 Database
-::set_clinical_trial_informations(gdcm::DataSet & dataset, std::string const & sponsor, std::string const & protocol, std::string const &subject)
+::set_clinical_trial_informations(gdcm::DataSet & dataset, User const & sponsor, std::string const & protocol, std::string const &subject)
 {
-    if(this->_connection.count(this->_db_name+".users", BSON("id" << sponsor)) == 0)
+    if(this->_connection.count(this->_db_name+".users", BSON("id" << sponsor.get_id())) == 0)
     {
         std::ostringstream message;
-        message << "Cannot set Clinical Trial informations : no such sponsor \"" << sponsor << "\"";
+        message << "Cannot set Clinical Trial informations : no such sponsor \"" << sponsor.get_id() << "\"";
         throw std::runtime_error(message.str());
     }
     
@@ -394,7 +420,7 @@ Database
     }
     
     gdcm::Attribute<0x0012,0x0010> clinical_trial_sponsor_name;
-    clinical_trial_sponsor_name.SetValue(sponsor);
+    clinical_trial_sponsor_name.SetValue(sponsor.get_id());
     dataset.Insert(clinical_trial_sponsor_name.GetAsDataElement());
 
     gdcm::Attribute<0x0012,0x0020> clinical_trial_protocol_id;
