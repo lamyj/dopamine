@@ -163,7 +163,7 @@ Database
     this->_connection.insert(this->_db_name+".protocols", protocol.to_bson());
 }
 
-void 
+std::string 
 Database
 ::insert_file(std::string const & filename, User const & sponsor, Protocol const & protocol, std::string const & subject)
 {
@@ -189,7 +189,7 @@ Database
         dataset.Insert(attribute.GetAsDataElement());
     }
 
-    magic_t cookie = magic_open(MAGIC_MIME_TYPE|MAGIC_MIME_ENCODING);
+    magic_t cookie = magic_open(MAGIC_MIME_TYPE);
     magic_load(cookie, NULL);
     std::string const mime_type(magic_file(cookie, filename.c_str()));
     magic_close(cookie);
@@ -241,6 +241,8 @@ Database
     this->_grid_fs->storeFile(filename, attribute.GetValue());
 
     gdcm::System::RemoveFile(temp_filename);
+    
+    return attribute.GetValue();
 }
 
 void

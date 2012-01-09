@@ -19,7 +19,7 @@ public :
     
     void insert_user(User const & user);
     void insert_protocol(Protocol const & protocol);
-    void insert_file(std::string const & filename, User const & sponsor, Protocol const & protocol, std::string const & subject);
+    std::string insert_file(std::string const & filename, User const & sponsor, Protocol const & protocol, std::string const & subject);
     void insert_dataset(gdcm::DataSet const & dataset);
     
     std::vector<User> query_users(mongo::Query const & query);
