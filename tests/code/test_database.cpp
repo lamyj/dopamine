@@ -134,21 +134,14 @@ BOOST_AUTO_TEST_CASE(Protocol)
     BOOST_REQUIRE_THROW(this->get_database().insert_protocol(invalid_protocol), std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(Dataset)
+BOOST_AUTO_TEST_CASE(DeIdentify)
 {
-    ::User const sponsor("bpc", "Big Pharmaceutical Company");
-    this->get_database().insert_user(sponsor);
-
-    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
-        "Foobaril, phase 2", "bpc");
-    this->get_database().insert_protocol(protocol);
-
     gdcm::Reader reader;
     std::string const filename(this->static_data.temp_dir+"/BRAINIX/2182114/801/00070001");
     reader.SetFileName(filename.c_str());
     reader.Read();
     gdcm::DataSet const & dataset = reader.GetFile().GetDataSet();
-
+    
     {
         gdcm::Attribute<0x0010,0x0010> at;
         at.Set(dataset);
@@ -157,27 +150,110 @@ BOOST_AUTO_TEST_CASE(Dataset)
 
     gdcm::DataSet de_identified = this->get_database().de_identify(dataset);
     BOOST_REQUIRE(!de_identified.FindDataElement(gdcm::Tag(0x0010,0x0010)));
+}
 
-    this->get_database().set_clinical_trial_informations(de_identified,
+BOOST_AUTO_TEST_CASE(ClinicalTrialInformations)
+{
+    gdcm::Reader reader;
+    std::string const filename(this->static_data.temp_dir+"/BRAINIX/2182114/801/00070001");
+    reader.SetFileName(filename.c_str());
+    reader.Read();
+    gdcm::DataSet dataset = reader.GetFile().GetDataSet();
+    
+    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+        "Foobaril, phase 2", "bpc");
+    
+    // Neither sponsor nor protocol in DB
+    BOOST_REQUIRE_THROW(
+        this->get_database().set_clinical_trial_informations(dataset,
+            sponsor, protocol, "Sim^Ho"), std::runtime_error);
+    
+    this->get_database().insert_user(sponsor);
+    
+    // Protocol not in DB
+    BOOST_REQUIRE_THROW(
+        this->get_database().set_clinical_trial_informations(dataset,
+            sponsor, protocol, "Sim^Ho"), std::runtime_error);
+    
+    this->get_database().insert_protocol(protocol);
+    
+    this->get_database().set_clinical_trial_informations(dataset,
         sponsor, protocol, "Sim^Ho");
-
+        
     {
         gdcm::Attribute<0x0012,0x0010> at;
-        at.Set(de_identified);
+        at.Set(dataset);
         BOOST_REQUIRE_EQUAL(at.GetValue().Trim(), "bpc");
     }
     {
         gdcm::Attribute<0x0012,0x0020> at;
-        at.Set(de_identified);
+        at.Set(dataset);
         BOOST_REQUIRE_EQUAL(at.GetValue().Trim(), "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
     }
     {
         gdcm::Attribute<0x0012,0x0040> at;
-        at.Set(de_identified);
+        at.Set(dataset);
         BOOST_REQUIRE_EQUAL(at.GetValue().Trim(), "Sim^Ho");
     }
+}
 
-    this->get_database().insert_dataset(de_identified);
+BOOST_AUTO_TEST_CASE(Dataset)
+{   
+    gdcm::Reader reader;
+    std::string const filename(this->static_data.temp_dir+"/BRAINIX/2182114/801/00070001");
+    reader.SetFileName(filename.c_str());
+    reader.Read();
+    gdcm::DataSet dataset = reader.GetFile().GetDataSet();
+    
+    // Neither Clinical Trial Sponsor Name nor Clinical Trial Protocol ID nor
+    // Clinical Trial Subject ID
+    BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
+        std::runtime_error);
+    
+    {
+        gdcm::Attribute<0x0012,0x0010> attribute;
+        attribute.SetValue("bpc");
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+    
+    // Clinical Trial Sponsor Name not in DB, neither Clinical Trial Protocol ID nor
+    // Clinical Trial Subject ID
+    BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
+        std::runtime_error);
+    
+    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    this->get_database().insert_user(sponsor);
+    
+    // Neither Clinical Trial Protocol ID nor Clinical Trial Subject ID
+    BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
+        std::runtime_error);
+    
+    {
+        gdcm::Attribute<0x0012,0x0020> attribute;
+        attribute.SetValue("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+    
+    // Clinical Trial Protocol ID not in DB, no Clinical Trial Subject ID
+    BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
+        std::runtime_error);
+
+    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+        "Foobaril, phase 2", "bpc");
+    this->get_database().insert_protocol(protocol);
+    
+    // No Clinical Trial Subject ID
+    BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
+        std::runtime_error);
+
+    {
+        gdcm::Attribute<0x0012,0x0040> attribute;
+        attribute.SetValue("Sim^Ho");
+        dataset.Insert(attribute.GetAsDataElement());
+    }
+
+    this->get_database().insert_dataset(dataset);
 
     std::vector<std::string> fields;
     fields.push_back("(0012|0010)");
@@ -192,6 +268,16 @@ BOOST_AUTO_TEST_CASE(Dataset)
     BOOST_REQUIRE_EQUAL(item.getStringField("(0012|0040)"), "Sim^Ho");
     BOOST_REQUIRE_EQUAL(item.getStringField("(0012|0010)"), "bpc");
     BOOST_REQUIRE(!cursor->more());
+}
+
+BOOST_AUTO_TEST_CASE(File)
+{
+    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    this->get_database().insert_user(sponsor);
+
+    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+        "Foobaril, phase 2", "bpc");
+    this->get_database().insert_protocol(protocol);
 }
 
 BOOST_AUTO_TEST_SUITE_END();

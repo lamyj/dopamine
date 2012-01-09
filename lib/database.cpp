@@ -247,6 +247,53 @@ void
 Database
 ::insert_dataset(gdcm::DataSet const & dataset)
 {
+    // Clinical Trial Sponsor Name
+    {
+        if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0010)))
+        {
+            throw std::runtime_error("Cannot insert dataset : "
+                "does not contain Clinical Trial Sponsor Name (0012,0010)");
+        }
+        
+        gdcm::Attribute<0x0012,0x0010> attribute;
+        attribute.Set(dataset);
+        std::vector<User> const users = this->query_users(
+            QUERY("id" << attribute.GetValue().Trim()));
+        if(users.empty())
+        {
+            throw std::runtime_error("Cannot insert dataset : "
+                "sponsor \""+attribute.GetValue()+"\" not in database");
+        }
+    }
+    
+    // Clinical Trial Protocol ID
+    {
+        if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0020)))
+        {
+            throw std::runtime_error("Cannot insert dataset : "
+                "does not contain Clinical Trial Protocol ID (0012,0020)");
+        }
+        
+        gdcm::Attribute<0x0012,0x0020> attribute;
+        attribute.Set(dataset);
+        std::vector<Protocol> const protocols = this->query_protocols(
+            QUERY("id" << attribute.GetValue().Trim()));
+        if(protocols.empty())
+        {
+            throw std::runtime_error("Cannot insert dataset : "
+                "protocol \""+attribute.GetValue()+"\" not in database");
+        }
+    }
+    
+    // Clinical Trial Subject ID
+    {
+        if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0040)))
+        {
+            throw std::runtime_error("Cannot insert dataset : "
+                "does not contain Clinical Trial Subject ID (0012,0040)");
+        }
+    }
+    
     mongo::BSONObjBuilder builder;
     BSONBuilderAction action(&builder);
     parse(dataset, action);
