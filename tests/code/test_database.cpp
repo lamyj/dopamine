@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <sstream>
 
 #include <gdcmAttribute.h>
 #include <gdcmDataSet.h>
@@ -278,6 +279,38 @@ BOOST_AUTO_TEST_CASE(File)
     ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
+    
+    std::string const & sop_instance_uid = 
+        this->get_database().insert_file("tests/data/brainix.tgz", sponsor, protocol, "Sim^Ho");
+    
+    std::vector<std::string> fields;
+    fields.push_back("(0008|0018)");
+    fields.push_back("original_mime_type");
+    mongo::auto_ptr<mongo::DBClientCursor> cursor = this->get_database().query_documents(
+        QUERY("(0008|0018)" << sop_instance_uid), fields);
+
+    BOOST_REQUIRE(cursor->more());
+    mongo::BSONObj const item = cursor->next();
+    BOOST_REQUIRE_EQUAL(item.getStringField("(0008|0018)"), sop_instance_uid);
+    BOOST_REQUIRE_EQUAL(item.getStringField("original_mime_type"), "application/x-gzip");
+    BOOST_REQUIRE(!cursor->more());
+    
+    std::string data;
+    {
+        std::ostringstream stream;
+        this->get_database().get_file(sop_instance_uid, stream);
+        data = stream.str();
+        
+        BOOST_REQUIRE_EQUAL(data.size(), 23708991);
+    }
+    
+    char* expected = new char[23708991];
+    {
+        std::ifstream stream("tests/data/brainix.tgz");
+        stream.read(expected, 23708991);
+    }
+    BOOST_REQUIRE(std::equal(data.begin(), data.end(), expected));
+    delete[] expected;
 }
 
 BOOST_AUTO_TEST_SUITE_END();
