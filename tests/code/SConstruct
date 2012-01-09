@@ -1,0 +1,10 @@
+import os.path
+
+Import("env")
+
+for node in Glob("*.cpp") :
+    env.Program(os.path.splitext(os.path.basename(node.path))[0], node,
+        CPPFLAGS=env["CPPFLAGS"],
+        CPPPATH=env["CPPPATH"]+["../../lib"],
+        LIBPATH=env["LIBPATH"]+["../../lib"],
+        LIBS=["research_pacs", "boost_unit_test_framework"])
