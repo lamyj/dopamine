@@ -4,6 +4,8 @@
 #include <string>
 #include <mongo/client/dbclient.h>
 
+#include "exception.h"
+
 namespace research_pacs
 {
 

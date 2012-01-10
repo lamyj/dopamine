@@ -19,6 +19,7 @@
 #include <magic.h>
 
 #include "dicom_to_cpp.h"
+#include "exception.h"
 #include "protocol.h"
 #include "user.h"
 
@@ -137,7 +138,7 @@ Database
         std::ostringstream message;
         message << "Cannot insert user \"" << user.get_id()<< "\""
                 << " : already exists";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     
     this->_connection.insert(this->_db_name+".users", user.to_bson());
@@ -152,7 +153,7 @@ Database
         std::ostringstream message;
         message << "Cannot insert protocol \"" << protocol.get_id() << "\""
                 << " : already exists";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     
     if(this->_connection.count(this->_db_name+".users", BSON("id" << protocol.get_sponsor()))==0)
@@ -160,7 +161,7 @@ Database
         std::ostringstream message;
         message << "Cannot insert protocol \"" << protocol.get_id() << "\""
                 << " : no such sponsor \"" << protocol.get_sponsor() << "\"";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     
     this->_connection.insert(this->_db_name+".protocols", protocol.to_bson());
@@ -256,7 +257,7 @@ Database
     {
         if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0010)))
         {
-            throw std::runtime_error("Cannot insert dataset : "
+            throw research_pacs::exception("Cannot insert dataset : "
                 "does not contain Clinical Trial Sponsor Name (0012,0010)");
         }
         
@@ -266,7 +267,7 @@ Database
             QUERY("id" << attribute.GetValue().Trim()));
         if(users.empty())
         {
-            throw std::runtime_error("Cannot insert dataset : "
+            throw research_pacs::exception("Cannot insert dataset : "
                 "sponsor \""+attribute.GetValue()+"\" not in database");
         }
     }
@@ -275,7 +276,7 @@ Database
     {
         if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0020)))
         {
-            throw std::runtime_error("Cannot insert dataset : "
+            throw research_pacs::exception("Cannot insert dataset : "
                 "does not contain Clinical Trial Protocol ID (0012,0020)");
         }
         
@@ -285,7 +286,7 @@ Database
             QUERY("id" << attribute.GetValue().Trim()));
         if(protocols.empty())
         {
-            throw std::runtime_error("Cannot insert dataset : "
+            throw research_pacs::exception("Cannot insert dataset : "
                 "protocol \""+attribute.GetValue()+"\" not in database");
         }
     }
@@ -294,7 +295,7 @@ Database
     {
         if(!dataset.FindDataElement(gdcm::Tag(0x0012,0x0040)))
         {
-            throw std::runtime_error("Cannot insert dataset : "
+            throw research_pacs::exception("Cannot insert dataset : "
                 "does not contain Clinical Trial Subject ID (0012,0040)");
         }
     }
@@ -464,14 +465,14 @@ Database
     {
         std::ostringstream message;
         message << "Cannot set Clinical Trial informations : no such sponsor \"" << sponsor.get_id() << "\"";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     
     if(this->_connection.count(this->_db_name+".protocols", BSON("id" << protocol.get_id())) == 0)
     {
         std::ostringstream message;
         message << "Cannot set Clinical Trial informations : no such protocol \"" << protocol.get_id() << "\"";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     
     gdcm::Attribute<0x0012,0x0010> clinical_trial_sponsor_name;
@@ -497,7 +498,7 @@ Database
         std::ostringstream message;
         message << "No file with SOP Instance UID \""
                 << sop_instance_uid << "\"";
-        throw std::runtime_error(message.str());
+        throw research_pacs::exception(message.str());
     }
     file.write(stream);
 }

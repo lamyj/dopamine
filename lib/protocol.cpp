@@ -75,7 +75,7 @@ Protocol
 {
     if(!object.hasField("id"))
     {
-        throw std::runtime_error("Cannot set Protocol from BSON : no such field \"id\"");
+        throw exception("Cannot set Protocol from BSON : no such field \"id\"");
     }
     
     this->set_id(object.getStringField("id"));

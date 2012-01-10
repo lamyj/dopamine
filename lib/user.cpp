@@ -5,6 +5,8 @@
 
 #include <mongo/client/dbclient.h>
 
+#include "exception.h"
+
 namespace research_pacs
 {
 
@@ -57,7 +59,7 @@ User
 {
     if(!object.hasField("id"))
     {
-        throw std::runtime_error("Cannot set User from BSON : no such field \"id\"");
+        throw exception("Cannot set User from BSON : no such field \"id\"");
     }
     
     this->_id = object.getStringField("id");

@@ -13,6 +13,7 @@
 #include <mongo/client/dbclient.h>
 
 #include "database.h"
+#include "exception.h"
 #include "user.h"
 
 struct StaticData
@@ -111,7 +112,7 @@ BOOST_AUTO_TEST_CASE(User)
     BOOST_REQUIRE_EQUAL(users[0].get_id(), "radiologist");
     BOOST_REQUIRE_EQUAL(users[0].get_name(), "Ronald Radiologist");
     
-    BOOST_REQUIRE_THROW(this->get_database().insert_user(user), std::runtime_error);
+    BOOST_REQUIRE_THROW(this->get_database().insert_user(user), research_pacs::exception);
 }
 
 BOOST_AUTO_TEST_CASE(Protocol)
@@ -132,7 +133,8 @@ BOOST_AUTO_TEST_CASE(Protocol)
     
     research_pacs::Protocol const invalid_protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "unknown");
-    BOOST_REQUIRE_THROW(this->get_database().insert_protocol(invalid_protocol), std::runtime_error);
+    BOOST_REQUIRE_THROW(this->get_database().insert_protocol(invalid_protocol),
+        research_pacs::exception);
 }
 
 BOOST_AUTO_TEST_CASE(DeIdentify)
@@ -168,14 +170,14 @@ BOOST_AUTO_TEST_CASE(ClinicalTrialInformations)
     // Neither sponsor nor protocol in DB
     BOOST_REQUIRE_THROW(
         this->get_database().set_clinical_trial_informations(dataset,
-            sponsor, protocol, "Sim^Ho"), std::runtime_error);
+            sponsor, protocol, "Sim^Ho"), research_pacs::exception);
     
     this->get_database().insert_user(sponsor);
     
     // Protocol not in DB
     BOOST_REQUIRE_THROW(
         this->get_database().set_clinical_trial_informations(dataset,
-            sponsor, protocol, "Sim^Ho"), std::runtime_error);
+            sponsor, protocol, "Sim^Ho"), research_pacs::exception);
     
     this->get_database().insert_protocol(protocol);
     
@@ -210,7 +212,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     // Neither Clinical Trial Sponsor Name nor Clinical Trial Protocol ID nor
     // Clinical Trial Subject ID
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
-        std::runtime_error);
+        research_pacs::exception);
     
     {
         gdcm::Attribute<0x0012,0x0010> attribute;
@@ -221,14 +223,14 @@ BOOST_AUTO_TEST_CASE(Dataset)
     // Clinical Trial Sponsor Name not in DB, neither Clinical Trial Protocol ID nor
     // Clinical Trial Subject ID
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
-        std::runtime_error);
+        research_pacs::exception);
     
     research_pacs::User const sponsor("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(sponsor);
     
     // Neither Clinical Trial Protocol ID nor Clinical Trial Subject ID
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
-        std::runtime_error);
+        research_pacs::exception);
     
     {
         gdcm::Attribute<0x0012,0x0020> attribute;
@@ -238,7 +240,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     
     // Clinical Trial Protocol ID not in DB, no Clinical Trial Subject ID
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
-        std::runtime_error);
+        research_pacs::exception);
 
     research_pacs::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "bpc");
@@ -246,7 +248,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     
     // No Clinical Trial Subject ID
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
-        std::runtime_error);
+        research_pacs::exception);
 
     {
         gdcm::Attribute<0x0012,0x0040> attribute;

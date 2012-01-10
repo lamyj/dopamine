@@ -2,6 +2,7 @@
 #define BOOST_TEST_MODULE TestUser
 #include <boost/test/unit_test.hpp>
 
+#include "exception.h"
 #include "user.h"
 
 #include <stdexcept>
@@ -55,7 +56,7 @@ BOOST_AUTO_TEST_CASE(FromBSON_Empty)
     mongo::BSONObj object;
     research_pacs::User user;
     
-    BOOST_REQUIRE_THROW(user.from_bson(object), std::runtime_error);
+    BOOST_REQUIRE_THROW(user.from_bson(object), research_pacs::exception);
 }
 
 BOOST_AUTO_TEST_CASE(FromBSON_Id)
@@ -73,7 +74,7 @@ BOOST_AUTO_TEST_CASE(FromBSON_Name)
     mongo::BSONObj object(BSON("name" << "bar"));
     research_pacs::User user;
     
-    BOOST_REQUIRE_THROW(user.from_bson(object), std::runtime_error);
+    BOOST_REQUIRE_THROW(user.from_bson(object), research_pacs::exception);
 }
 
 BOOST_AUTO_TEST_CASE(FromBSON_Id_and_Name)
