@@ -41,7 +41,7 @@ public :
     TestDatabaseFixture()
     {
         this->_database_name = get_database_name();
-        this->_database = new Database(_database_name);
+        this->_database = new research_pacs::Database(_database_name);
     }
     
     ~TestDatabaseFixture()
@@ -53,7 +53,7 @@ public :
         connection.dropDatabase(this->_database_name);
     }
 
-    Database & get_database()
+    research_pacs::Database & get_database()
     {
         return *(this->_database);
     }
@@ -78,7 +78,7 @@ private :
     
     static int const _dummy;
     std::string _database_name;
-    Database * _database;
+    research_pacs::Database * _database;
     
     static std::string get_database_name(int length=8)
     {
@@ -102,10 +102,10 @@ BOOST_FIXTURE_TEST_SUITE(TestDatabase, TestDatabaseFixture);
 
 BOOST_AUTO_TEST_CASE(User)
 {
-    ::User const user("radiologist", "Ronald Radiologist");
+    research_pacs::User const user("radiologist", "Ronald Radiologist");
     this->get_database().insert_user(user);
     
-    std::vector< ::User> const users = this->get_database().query_users(mongo::Query());
+    std::vector<research_pacs::User> const users = this->get_database().query_users(mongo::Query());
         
     BOOST_REQUIRE_EQUAL(users.size(), 1);
     BOOST_REQUIRE_EQUAL(users[0].get_id(), "radiologist");
@@ -116,21 +116,21 @@ BOOST_AUTO_TEST_CASE(User)
 
 BOOST_AUTO_TEST_CASE(Protocol)
 {
-    ::User const user("bpc", "Big Pharmaceutical Company");
+    research_pacs::User const user("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(user);
     
-    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", 
+    research_pacs::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d", 
         "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
     
-    std::vector< ::Protocol> const protocols = this->get_database().query_protocols(mongo::Query());
+    std::vector<research_pacs::Protocol> const protocols = this->get_database().query_protocols(mongo::Query());
         
     BOOST_REQUIRE_EQUAL(protocols.size(), 1);
     BOOST_REQUIRE_EQUAL(protocols[0].get_id(), "6dfd7305-10ac-4c90-8c05-e48f2f2fd88d");
     BOOST_REQUIRE_EQUAL(protocols[0].get_name(), "Foobaril, phase 2");
     BOOST_REQUIRE_EQUAL(protocols[0].get_sponsor(), "bpc");
     
-    ::Protocol const invalid_protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+    research_pacs::Protocol const invalid_protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "unknown");
     BOOST_REQUIRE_THROW(this->get_database().insert_protocol(invalid_protocol), std::runtime_error);
 }
@@ -161,8 +161,8 @@ BOOST_AUTO_TEST_CASE(ClinicalTrialInformations)
     reader.Read();
     gdcm::DataSet dataset = reader.GetFile().GetDataSet();
     
-    ::User const sponsor("bpc", "Big Pharmaceutical Company");
-    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+    research_pacs::User const sponsor("bpc", "Big Pharmaceutical Company");
+    research_pacs::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "bpc");
     
     // Neither sponsor nor protocol in DB
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
         std::runtime_error);
     
-    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    research_pacs::User const sponsor("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(sponsor);
     
     // Neither Clinical Trial Protocol ID nor Clinical Trial Subject ID
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(Dataset)
     BOOST_REQUIRE_THROW(this->get_database().insert_dataset(dataset),
         std::runtime_error);
 
-    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+    research_pacs::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
     
@@ -273,10 +273,10 @@ BOOST_AUTO_TEST_CASE(Dataset)
 
 BOOST_AUTO_TEST_CASE(File)
 {
-    ::User const sponsor("bpc", "Big Pharmaceutical Company");
+    research_pacs::User const sponsor("bpc", "Big Pharmaceutical Company");
     this->get_database().insert_user(sponsor);
 
-    ::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
+    research_pacs::Protocol const protocol("6dfd7305-10ac-4c90-8c05-e48f2f2fd88d",
         "Foobaril, phase 2", "bpc");
     this->get_database().insert_protocol(protocol);
     

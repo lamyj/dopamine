@@ -11,6 +11,9 @@
 #include "protocol.h"
 #include "user.h"
 
+namespace research_pacs
+{
+
 class Database
 {
 public :
@@ -48,5 +51,7 @@ private :
         std::string const & ns, mongo::Query const & query,
         std::vector<std::string> const & fields);
 };
+
+} // namespace research_pacs
 
 #endif // _4bca776c_a256_4cdb_9c45_400d5c2ec0f1

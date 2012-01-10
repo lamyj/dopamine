@@ -22,6 +22,9 @@
 #include "protocol.h"
 #include "user.h"
 
+namespace research_pacs
+{
+
 class BSONBuilderAction
 {
 public :
@@ -520,3 +523,5 @@ Database
         return this->_connection.query(this->_db_name+"."+ns, query);
     }
 }
+
+} // namespace research_pacs

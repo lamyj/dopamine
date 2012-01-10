@@ -4,6 +4,9 @@
 #include <string>
 #include <mongo/client/dbclient.h>
 
+namespace research_pacs
+{
+
 class User
 {
 public :
@@ -22,6 +25,8 @@ private :
     std::string _id;
     std::string _name;
 };
+
+} // namespace research_pacs
 
 #endif // _65404e35_21b0_4c47_8ceb_83838851a43e
 
