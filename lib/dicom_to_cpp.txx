@@ -9,6 +9,9 @@
 #include <gdcmDataElement.h>
 #include <gdcmVL.h>
 
+namespace research_pacs
+{
+
 template<typename Action>
 void parse(gdcm::DataSet const & data_set, Action & action)
 {
@@ -127,5 +130,7 @@ T parse_binary(gdcm::DataElement const & data_element, unsigned long index=0)
     T const * begin = reinterpret_cast<T const *>(data_element.GetByteValue()->GetPointer());
     return *(begin+index);
 }
+
+} // namespace research_pacs
 
 #endif // _69efd62b_5e38_4cd9_a5f3_d00be3019fdb

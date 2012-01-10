@@ -5,6 +5,9 @@
 
 #include <mongo/client/dbclient.h>
 
+namespace research_pacs
+{
+
 User
 ::User(std::string const & id, std::string const & name)
 : _id(id), _name(name)
@@ -60,3 +63,5 @@ User
     this->_id = object.getStringField("id");
     this->_name = object.getStringField("name");
 }
+
+} // namespace research_pacs

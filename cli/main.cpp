@@ -10,6 +10,15 @@
 
 namespace po = boost::program_options;
 
+// TODO
+// For each command :
+//   * add [-b DATABASE], defaults to research_pacs
+//   * add credentials
+// For store :
+//   * add clinical trial informations (--sponsor, --protocol, --subject)
+// For query :
+//   * display original MIME type and original file name if not DICOM
+
 int store(int argc, char** argv)
 {
     std::string const syntax("Syntax : store filename\n");
@@ -28,7 +37,7 @@ int store(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    Database database("research_pacs");
+    research_pacs::Database database("research_pacs");
 
     std::string const sponsor = "TODO";
     std::string const protocol = "TODO";
@@ -61,7 +70,7 @@ int query(int argc, char** argv)
     std::string const field(argv[0]);
     std::string const value(argv[1]);
 
-    Database database("research_pacs");
+    research_pacs::Database database("research_pacs");
     mongo::auto_ptr<mongo::DBClientCursor> cursor = database.query_documents(
         QUERY(field<<value));
     while(cursor->more())
@@ -86,7 +95,7 @@ int retrieve(int argc, char** argv)
     std::string const sop_instance_uid(argv[0]);
     std::string const filename(argv[1]);
 
-    Database database("research_pacs");
+    research_pacs::Database database("research_pacs");
 
     try
     {

@@ -5,6 +5,9 @@
 #include "gdcmDataSet.h"
 #include "gdcmVL.h"
 
+namespace research_pacs
+{
+
 template<typename Action>
 void parse(gdcm::DataSet const & data_set, Action & action);
 
@@ -47,6 +50,8 @@ T parse_binary(gdcm::DataElement const & data_element, unsigned long index=0);
 
 template<gdcm::VR::VRType VVR>
 typename VRToType<VVR>::Type parse(gdcm::DataElement const & data_element, unsigned long index=0);
+
+} // namespace research_pacs
 
 #include "dicom_to_cpp.txx"
 

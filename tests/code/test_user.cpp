@@ -11,28 +11,28 @@
 
 BOOST_AUTO_TEST_CASE(empty)
 {
-    User empty;
+    research_pacs::User empty;
     BOOST_REQUIRE_EQUAL(empty.get_id(), "");
     BOOST_REQUIRE_EQUAL(empty.get_name(), "");
 }
 
 BOOST_AUTO_TEST_CASE(id_only)
 {
-    User id_only("foo");
+    research_pacs::User id_only("foo");
     BOOST_REQUIRE_EQUAL(id_only.get_id(), "foo");
     BOOST_REQUIRE_EQUAL(id_only.get_name(), "");
 }
 
 BOOST_AUTO_TEST_CASE(id_and_name)
 {
-    User id_and_name("foo", "bar");
+    research_pacs::User id_and_name("foo", "bar");
     BOOST_REQUIRE_EQUAL(id_and_name.get_id(), "foo");
     BOOST_REQUIRE_EQUAL(id_and_name.get_name(), "bar");
 }
 
 BOOST_AUTO_TEST_CASE(setters)
 {
-    User user;
+    research_pacs::User user;
     
     user.set_id("foo");
     BOOST_REQUIRE_EQUAL(user.get_id(), "foo");
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(setters)
 
 BOOST_AUTO_TEST_CASE(ToBSON)
 {
-    User user("foo", "bar");
+    research_pacs::User user("foo", "bar");
     mongo::BSONObj const object = user.to_bson();
     BOOST_REQUIRE_EQUAL(object.jsonString(), "{ \"id\" : \"foo\", \"name\" : \"bar\" }");
 }
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(ToBSON)
 BOOST_AUTO_TEST_CASE(FromBSON_Empty)
 {
     mongo::BSONObj object;
-    User user;
+    research_pacs::User user;
     
     BOOST_REQUIRE_THROW(user.from_bson(object), std::runtime_error);
 }
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(FromBSON_Empty)
 BOOST_AUTO_TEST_CASE(FromBSON_Id)
 {
     mongo::BSONObj object(BSON("id" << "foo"));
-    User user;
+    research_pacs::User user;
     
     user.from_bson(object);
     BOOST_REQUIRE_EQUAL(user.get_id(), "foo");
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(FromBSON_Id)
 BOOST_AUTO_TEST_CASE(FromBSON_Name)
 {
     mongo::BSONObj object(BSON("name" << "bar"));
-    User user;
+    research_pacs::User user;
     
     BOOST_REQUIRE_THROW(user.from_bson(object), std::runtime_error);
 }
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(FromBSON_Name)
 BOOST_AUTO_TEST_CASE(FromBSON_Id_and_Name)
 {
     mongo::BSONObj object(BSON("id" << "foo" << "name" << "bar"));
-    User user;
+    research_pacs::User user;
     
     user.from_bson(object);
     BOOST_REQUIRE_EQUAL(user.get_id(), "foo");

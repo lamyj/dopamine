@@ -11,7 +11,7 @@
 
 BOOST_AUTO_TEST_CASE(empty)
 {
-    Protocol empty;
+    research_pacs::Protocol empty;
     BOOST_REQUIRE_EQUAL(empty.get_id(), "");
     BOOST_REQUIRE_EQUAL(empty.get_name(), "");
     BOOST_REQUIRE_EQUAL(empty.get_sponsor(), "");
@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(empty)
 
 BOOST_AUTO_TEST_CASE(ToBSON)
 {
-    Protocol protocol("id", "name", "sponsor");
+    research_pacs::Protocol protocol("id", "name", "sponsor");
     mongo::BSONObj const object = protocol.to_bson();
     BOOST_REQUIRE_EQUAL(object.jsonString(), 
         "{ \"id\" : \"id\", \"name\" : \"name\", \"sponsor\" : \"sponsor\" }");
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(ToBSON)
 BOOST_AUTO_TEST_CASE(FromBSON)
 {
     mongo::BSONObj object(BSON("id" << "id" << "name" << "name" << "sponsor" << "sponsor"));
-    Protocol protocol;
+    research_pacs::Protocol protocol;
     
     protocol.from_bson(object);
     BOOST_REQUIRE_EQUAL(protocol.get_id(), "id");

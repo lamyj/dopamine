@@ -8,6 +8,9 @@
 #include <gdcmVL.h>
 #include <gdcmVR.h>
 
+namespace research_pacs
+{
+
 gdcm::VL get_values_count(gdcm::DataElement const & data_element)
 {
     unsigned long count=0;
@@ -196,3 +199,5 @@ parse<gdcm::VR::UT>(gdcm::DataElement const & data_element, unsigned long index)
 {
     return parse_ascii<VRToType<gdcm::VR::UT>::Type>(data_element, index, false);
 }
+
+} // namespace research_pacs

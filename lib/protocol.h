@@ -4,6 +4,9 @@
 #include <string>
 #include <mongo/client/dbclient.h>
 
+namespace research_pacs
+{
+
 class Protocol
 {
 public :
@@ -26,6 +29,8 @@ private :
     std::string _name;
     std::string _sponsor;
 };
+
+} // namespace research_pacs
 
 #endif // _e6a999e4_4204_43c7_8f33_ce190367901a
 

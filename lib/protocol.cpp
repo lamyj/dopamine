@@ -5,6 +5,9 @@
 
 #include <mongo/client/dbclient.h>
 
+namespace research_pacs
+{
+
 Protocol
 ::Protocol(std::string const & id, std::string const & name, std::string const & sponsor)
 {
@@ -79,3 +82,5 @@ Protocol
     this->set_name(object.getStringField("name"));
     this->set_sponsor(object.getStringField("sponsor"));
 }
+
+} // namespace research_pacs
