@@ -1,11 +1,17 @@
 #include "BSONToDataSet.h"
 
+#include <locale>
+#include <sstream>
 #include <stdexcept>
+#include <stdint.h>
+#include <typeinfo>
 
 #include <errno.h>
 #include <iconv.h>
 
 #include <gdcmDataElement.h>
+#include <gdcmSequenceOfItems.h>
+#include <gdcmItem.h>
 #include <gdcmTag.h>
 
 BSONToDataSet
@@ -96,7 +102,7 @@ BSONToDataSet
     {
         iconv_close(this->_converter);
     }
-    this->_converter = iconv_open("UTF-8", encoding.c_str());
+    this->_converter = iconv_open(encoding.c_str(), "UTF-8");
 }
 
 gdcm::DataSet
@@ -113,9 +119,312 @@ BSONToDataSet
     return data_set;
 }
 
+template<gdcm::VR::VRType VVR>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm(mongo::BSONElement const & bson) const
+{
+    throw std::runtime_error(std::string("Conversion for ")+
+                             gdcm::VR::GetVRString(VVR)+
+                             std::string(" is not implemented"));
+}
+
+/*******************************************************************************
+ * Specializations of BSONToDataSet::_to_gdcm for the different VRs.
+ ******************************************************************************/
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::AE>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::AS>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, ' ');
+}
+
+// TODO : AT
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::CS>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson,  false, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::DA>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::DS>(mongo::BSONElement const & bson) const
+{
+    std::vector<uint8_t> value;
+
+    if(bson.isABSONObj())
+    {
+        // Multiple value
+        std::vector<mongo::BSONElement> const elements = bson.Array();
+        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+            it != elements.end(); ++it)
+        {
+            std::vector<uint8_t> const element_value =
+                this->_to_gdcm<gdcm::VR::DS>(*it);
+
+            value.resize(value.size()+element_value.size());
+            std::copy(element_value.begin(), element_value.end(),
+                      value.end()-element_value.size());
+            if(it != last_it)
+            {
+                value.push_back('\\');
+            }
+        }
+
+        if(value.size()%2!=0)
+        {
+            value.push_back(' ');
+        }
+    }
+    else
+    {
+        double const number = bson.Number();
+
+        std::ostringstream stream;
+        stream.imbue(std::locale("C"));
+        stream.precision(std::numeric_limits<double>::digits10);
+        stream << number;
+        std::string const string = stream.str();
+
+        value.resize(string.size());
+        std::copy(string.begin(), string.end(), value.begin());
+    }
+
+    return value;
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::DT>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::FD>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<double>(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::FL>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<float>(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::IS>(mongo::BSONElement const & bson) const
+{
+    std::vector<uint8_t> value;
+
+    if(bson.isABSONObj())
+    {
+        // Multiple value
+        std::vector<mongo::BSONElement> const elements = bson.Array();
+        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+            it != elements.end(); ++it)
+        {
+            std::vector<uint8_t> const element_value =
+                this->_to_gdcm<gdcm::VR::IS>(*it);
+
+            value.resize(value.size()+element_value.size());
+            std::copy(element_value.begin(), element_value.end(),
+                      value.end()-element_value.size());
+            if(it != last_it)
+            {
+                value.push_back('\\');
+            }
+        }
+
+        if(value.size()%2!=0)
+        {
+            value.push_back(' ');
+        }
+    }
+    else
+    {
+        long long const number = bson.Long();
+
+        std::ostringstream stream;
+        stream.imbue(std::locale("C"));
+        stream << number;
+        std::string const string = stream.str();
+
+        value.resize(string.size());
+        std::copy(string.begin(), string.end(), value.begin());
+    }
+
+    return value;
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::LO>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::LT>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::OB>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_raw(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::OF>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_raw(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::OW>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_raw(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::PN>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::SH>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::SL>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<int32_t>(bson);
+}
+
+// SQ is not processed here
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::SS>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<int16_t>(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::ST>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::TM>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, ' ');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::UI>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, false, '\0');
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::UL>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<uint32_t>(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::UN>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_raw(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::US>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_binary<uint16_t>(bson);
+}
+
+template<>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm<gdcm::VR::UT>(mongo::BSONElement const & bson) const
+{
+    return this->_to_gdcm_text(bson, true, ' ');
+}
+
+/*******************************************************************************
+ * End of specializations of BSONToDataSet::_to_gdcm for the different VRs.
+ ******************************************************************************/
+
 void
 BSONToDataSet
-::_add_element(mongo::BSONElement const & bson, gdcm::DataSet & data_set) const
+::_add_element(mongo::BSONElement const & bson, gdcm::DataSet & data_set)
 {
     gdcm::DataElement element;
 
@@ -126,49 +435,216 @@ BSONToDataSet
     char* endptr;
     long const d = std::strtol(field_name.c_str(), &endptr, 16);
     setlocale(LC_NUMERIC, old_numeric);
+
+    gdcm::Tag const tag(d);
     element.SetTag(gdcm::Tag(d));
 
     // Value holding the VR and the data
     std::vector<mongo::BSONElement> const array = bson.Array();
 
-    // Get the VR : first item of value
+        // Get the VR : first item of value
     gdcm::VR const vr(gdcm::VR::GetVRType(array[0].String().c_str()));
     element.SetVR(vr);
 
-    // Get the byte value
-    if(vr == gdcm::VR::SQ)
+    if(!array[1].isNull())
     {
-        // TODO : SQ
-        /*
-        gdcm::SequenceOfItems sequence;
-        for(;;)
+        if(d == 0x00080005)
         {
-            BSONToDataSet converter;
-            converter.set_specific_character_set(this->get_specific_character_set());
-
-            gdcm::DataSet const item = converter(array[1]);
+            // Specific Character Set: map to iconv encoding
+            std::string value = array[1].String();
+            if(value.size()%2 != 0)
+            {
+                value += ' ';
+            }
+            // TODO : multi-valued Specific Character Set
+            this->set_specific_character_set(value);
         }
-        */
-    }
-    else if(vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
-    {
-    }
-    else if(vr & (gdcm::VR::AE | gdcm::VR::AS | gdcm::VR::CS | gdcm::VR::DA |
-                  gdcm::VR::DT | gdcm::VR::TM | gdcm::VR::UI))
-    {
-        if(!array[1].isNull())
+
+        if(vr == gdcm::VR::SQ)
         {
-            std::string const value = array[1].String().c_str();
-            element.SetByteValue(value.c_str(), value.size());
+            gdcm::SmartPointer<gdcm::SequenceOfItems> sequence(new gdcm::SequenceOfItems());
+
+            std::vector<mongo::BSONElement> elements = array[1].Array();
+            for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+                it != elements.end(); ++it)
+            {
+                BSONToDataSet converter;
+                converter.set_specific_character_set(this->get_specific_character_set());
+
+                gdcm::DataSet const item_dataset = converter(it->Obj());
+                gdcm::Item item;
+                item.SetNestedDataSet(item_dataset);
+                sequence->AddItem(item);
+            }
+
+            element.SetValue(*sequence);
+        }
+        else
+        {
+            std::vector<uint8_t> value;
+            if(vr == gdcm::VR::AE) value=this->_to_gdcm<gdcm::VR::AE>(array[1]);
+            else if(vr == gdcm::VR::AS) value=this->_to_gdcm<gdcm::VR::AS>(array[1]);
+            else if(vr == gdcm::VR::AT) value=this->_to_gdcm<gdcm::VR::AT>(array[1]);
+            else if(vr == gdcm::VR::CS) value=this->_to_gdcm<gdcm::VR::CS>(array[1]);
+            else if(vr == gdcm::VR::DA) value=this->_to_gdcm<gdcm::VR::DA>(array[1]);
+            else if(vr == gdcm::VR::DT) value=this->_to_gdcm<gdcm::VR::DT>(array[1]);
+            else if(vr == gdcm::VR::DS) value=this->_to_gdcm<gdcm::VR::DS>(array[1]);
+            else if(vr == gdcm::VR::FD) value=this->_to_gdcm<gdcm::VR::FD>(array[1]);
+            else if(vr == gdcm::VR::FL) value=this->_to_gdcm<gdcm::VR::FL>(array[1]);
+            else if(vr == gdcm::VR::IS) value=this->_to_gdcm<gdcm::VR::IS>(array[1]);
+            else if(vr == gdcm::VR::LO) value=this->_to_gdcm<gdcm::VR::LO>(array[1]);
+            else if(vr == gdcm::VR::LT) value=this->_to_gdcm<gdcm::VR::LT>(array[1]);
+            else if(vr == gdcm::VR::OB) value=this->_to_gdcm<gdcm::VR::OB>(array[1]);
+            else if(vr == gdcm::VR::OF) value=this->_to_gdcm<gdcm::VR::OF>(array[1]);
+            else if(vr == gdcm::VR::OW) value=this->_to_gdcm<gdcm::VR::OW>(array[1]);
+            else if(vr == gdcm::VR::PN) value=this->_to_gdcm<gdcm::VR::PN>(array[1]);
+            else if(vr == gdcm::VR::SH) value=this->_to_gdcm<gdcm::VR::SH>(array[1]);
+            // SQ is not processed here
+            else if(vr == gdcm::VR::SL) value=this->_to_gdcm<gdcm::VR::SL>(array[1]);
+            else if(vr == gdcm::VR::SS) value=this->_to_gdcm<gdcm::VR::SS>(array[1]);
+            else if(vr == gdcm::VR::ST) value=this->_to_gdcm<gdcm::VR::ST>(array[1]);
+            else if(vr == gdcm::VR::TM) value=this->_to_gdcm<gdcm::VR::TM>(array[1]);
+            else if(vr == gdcm::VR::UI) value=this->_to_gdcm<gdcm::VR::UI>(array[1]);
+            else if(vr == gdcm::VR::UL) value=this->_to_gdcm<gdcm::VR::UL>(array[1]);
+            else if(vr == gdcm::VR::UN) value=this->_to_gdcm<gdcm::VR::UN>(array[1]);
+            else if(vr == gdcm::VR::US) value=this->_to_gdcm<gdcm::VR::US>(array[1]);
+            else if(vr == gdcm::VR::UT) value=this->_to_gdcm<gdcm::VR::UT>(array[1]);
+            else
+            {
+                throw std::runtime_error(std::string("Unhandled VR:") + gdcm::VR::GetVRString(vr));
+            }
+            element.SetByteValue(reinterpret_cast<char*>(&value[0]), value.size());
         }
     }
-    else if(vr & (gdcm::VR::LO | gdcm::VR::LT | gdcm::VR::PN | gdcm::VR::SH |
-                  gdcm::VR::ST | gdcm::VR::UT))
-    {
-        // Non-ASCII text content
-    }
-    // TODO : non-text content
 
-    std::cout << element << "\n";
     data_set.Insert(element);
+}
+
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm_text(mongo::BSONElement const & bson, bool use_utf8, char padding) const
+{
+    std::vector<uint8_t> value;
+
+    if(bson.isABSONObj())
+    {
+        // Multiple value
+        std::vector<mongo::BSONElement> const elements = bson.Array();
+        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+            it != elements.end(); ++it)
+        {
+            std::vector<uint8_t> const element_value =
+                this->_to_gdcm_text(*it, use_utf8, padding);
+
+            value.resize(value.size()+element_value.size());
+            std::copy(element_value.begin(), element_value.end(),
+                      value.end()-element_value.size());
+            if(it != last_it)
+            {
+                value.push_back('\\');
+            }
+        }
+
+        if(value.size()%2!=0)
+        {
+            value.push_back(padding);
+        }
+    }
+    else
+    {
+        std::string const string = bson.String();
+
+        if(use_utf8)
+        {
+            unsigned long size = string.size();
+            unsigned long buffer_size = size*4; // worst case: UTF-8 with only ascii->UCS-32
+            char* buffer = new char[buffer_size];
+            std::fill(buffer, buffer+buffer_size, 0);
+
+            size_t inbytesleft=size;
+            size_t outbytesleft=buffer_size;
+            char* inbuf = const_cast<char*>(&string[0]);
+            char* outbuf = buffer;
+
+            size_t const result = iconv(this->_converter,
+                &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+            if(result == size_t(-1))
+            {
+                throw std::runtime_error(std::string("iconv error ")+strerror(errno));
+            }
+
+            value.resize(buffer_size-outbytesleft);
+            std::copy(buffer, buffer+buffer_size-outbytesleft, value.begin());
+        }
+        else
+        {
+            value.resize(string.size());
+            std::copy(string.begin(), string.end(), value.begin());
+        }
+    }
+
+    return value;
+}
+
+template<typename T>
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm_binary(mongo::BSONElement const & bson) const
+{
+    std::vector<uint8_t> value;
+
+    if(bson.isABSONObj())
+    {
+        // Multiple value
+        std::vector<mongo::BSONElement> const elements = bson.Array();
+        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+            it != elements.end(); ++it)
+        {
+            std::vector<uint8_t> const element_value = this->_to_gdcm_binary<T>(*it);
+
+            value.resize(value.size()+element_value.size());
+            std::copy(element_value.begin(), element_value.end(),
+                      value.end()-element_value.size());
+        }
+    }
+    else
+    {
+        T number=0;
+        if(bson.type() == mongo::NumberInt)
+        {
+            number = bson.Int();
+        }
+        else if(bson.type() == mongo::NumberLong)
+        {
+            number = bson.Long();
+        }
+        else if(bson.type() == mongo::NumberDouble)
+        {
+            number = bson.Double();
+        }
+        else
+        {
+            throw std::runtime_error("Cannot convert BSON element");
+        }
+        value.resize(sizeof(number));
+        std::copy(reinterpret_cast<char const*>(&number),
+                  reinterpret_cast<char const*>(&number)+sizeof(number),
+                  value.begin());
+    }
+
+    return value;
+}
+
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm_raw(mongo::BSONElement const & bson) const
+{
+    int size;
+    char const * begin = bson.binData(size);
+    std::vector<uint8_t> value(size);
+    std::copy(begin, begin+size, value.begin());
+
+    return value;
 }
