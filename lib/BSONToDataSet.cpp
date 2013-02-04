@@ -172,48 +172,7 @@ std::vector<uint8_t>
 BSONToDataSet
 ::_to_gdcm<gdcm::VR::DS>(mongo::BSONElement const & bson) const
 {
-    std::vector<uint8_t> value;
-
-    if(bson.isABSONObj())
-    {
-        // Multiple value
-        std::vector<mongo::BSONElement> const elements = bson.Array();
-        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
-        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-            it != elements.end(); ++it)
-        {
-            std::vector<uint8_t> const element_value =
-                this->_to_gdcm<gdcm::VR::DS>(*it);
-
-            value.resize(value.size()+element_value.size());
-            std::copy(element_value.begin(), element_value.end(),
-                      value.end()-element_value.size());
-            if(it != last_it)
-            {
-                value.push_back('\\');
-            }
-        }
-
-        if(value.size()%2!=0)
-        {
-            value.push_back(' ');
-        }
-    }
-    else
-    {
-        double const number = bson.Number();
-
-        std::ostringstream stream;
-        stream.imbue(std::locale("C"));
-        stream.precision(std::numeric_limits<double>::digits10);
-        stream << number;
-        std::string const string = stream.str();
-
-        value.resize(string.size());
-        std::copy(string.begin(), string.end(), value.begin());
-    }
-
-    return value;
+    return this->_to_gdcm_number_string(bson);
 }
 
 template<>
@@ -245,47 +204,7 @@ std::vector<uint8_t>
 BSONToDataSet
 ::_to_gdcm<gdcm::VR::IS>(mongo::BSONElement const & bson) const
 {
-    std::vector<uint8_t> value;
-
-    if(bson.isABSONObj())
-    {
-        // Multiple value
-        std::vector<mongo::BSONElement> const elements = bson.Array();
-        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
-        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-            it != elements.end(); ++it)
-        {
-            std::vector<uint8_t> const element_value =
-                this->_to_gdcm<gdcm::VR::IS>(*it);
-
-            value.resize(value.size()+element_value.size());
-            std::copy(element_value.begin(), element_value.end(),
-                      value.end()-element_value.size());
-            if(it != last_it)
-            {
-                value.push_back('\\');
-            }
-        }
-
-        if(value.size()%2!=0)
-        {
-            value.push_back(' ');
-        }
-    }
-    else
-    {
-        long long const number = bson.Long();
-
-        std::ostringstream stream;
-        stream.imbue(std::locale("C"));
-        stream << number;
-        std::string const string = stream.str();
-
-        value.resize(string.size());
-        std::copy(string.begin(), string.end(), value.begin());
-    }
-
-    return value;
+    return this->_to_gdcm_number_string(bson);
 }
 
 template<>
@@ -436,7 +355,6 @@ BSONToDataSet
     long const d = std::strtol(field_name.c_str(), &endptr, 16);
     setlocale(LC_NUMERIC, old_numeric);
 
-    gdcm::Tag const tag(d);
     element.SetTag(gdcm::Tag(d));
 
     // Value holding the VR and the data
@@ -522,7 +440,8 @@ BSONToDataSet
 
 std::vector<uint8_t>
 BSONToDataSet
-::_to_gdcm_text(mongo::BSONElement const & bson, bool use_utf8, char padding) const
+::_to_gdcm_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
+                bool add_padding) const
 {
     std::vector<uint8_t> value;
 
@@ -535,7 +454,7 @@ BSONToDataSet
             it != elements.end(); ++it)
         {
             std::vector<uint8_t> const element_value =
-                this->_to_gdcm_text(*it, use_utf8, padding);
+                this->_to_gdcm_text(*it, use_utf8, padding, false);
 
             value.resize(value.size()+element_value.size());
             std::copy(element_value.begin(), element_value.end(),
@@ -581,6 +500,11 @@ BSONToDataSet
         {
             value.resize(string.size());
             std::copy(string.begin(), string.end(), value.begin());
+        }
+
+        if(add_padding && value.size()%2!=0)
+        {
+            value.push_back(padding);
         }
     }
 
@@ -645,6 +569,71 @@ BSONToDataSet
     char const * begin = bson.binData(size);
     std::vector<uint8_t> value(size);
     std::copy(begin, begin+size, value.begin());
+
+    return value;
+}
+
+std::vector<uint8_t>
+BSONToDataSet
+::_to_gdcm_number_string(mongo::BSONElement const & bson, bool add_padding) const
+{
+    std::vector<uint8_t> value;
+
+    if(bson.isABSONObj())
+    {
+        // Multiple value
+        std::vector<mongo::BSONElement> const elements = bson.Array();
+        std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+            it != elements.end(); ++it)
+        {
+            std::vector<uint8_t> const element_value = this->_to_gdcm_number_string(*it, false);
+
+            value.resize(value.size()+element_value.size());
+            std::copy(element_value.begin(), element_value.end(),
+                      value.end()-element_value.size());
+            if(it != last_it)
+            {
+                value.push_back('\\');
+            }
+        }
+
+        if(value.size()%2!=0)
+        {
+            value.push_back(' ');
+        }
+    }
+    else
+    {
+        std::ostringstream stream;
+        stream.imbue(std::locale("C"));
+
+        if(bson.type() == mongo::NumberDouble)
+        {
+            double const number = bson.Double();
+            stream << number;
+        }
+        else if(bson.type() == mongo::NumberInt)
+        {
+            int const number = bson.Int();
+            stream << number;
+        }
+        else if(bson.type() == mongo::NumberLong)
+        {
+            long long const number = bson.Long();
+            stream << number;
+        }
+
+        std::string const string = stream.str();
+
+        value.resize(string.size());
+        std::copy(string.begin(), string.end(), value.begin());
+
+        if(add_padding && value.size()%2!=0)
+        {
+            value.push_back(' ');
+        }
+    }
 
     return value;
 }
