@@ -35,11 +35,13 @@ private :
     std::vector<uint8_t> _to_gdcm(mongo::BSONElement const & bson) const;
 
     std::vector<uint8_t> _to_gdcm_text(mongo::BSONElement const & bson,
-                                       bool use_utf8, char padding) const;
+                                       bool use_utf8, char padding, bool add_padding=true) const;
     template<typename T>
     std::vector<uint8_t> _to_gdcm_binary(mongo::BSONElement const & bson) const;
 
     std::vector<uint8_t> _to_gdcm_raw(mongo::BSONElement const & bson) const;
+
+    std::vector<uint8_t> _to_gdcm_number_string(mongo::BSONElement const & bson, bool add_padding=true) const;
 };
 
 #endif // _a97264d3_b54b_494b_93a8_1a595dd06f8a
