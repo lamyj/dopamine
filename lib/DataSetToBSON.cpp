@@ -603,7 +603,7 @@ DataSetToBSON::_to_bson_text(
         {
             unsigned long size = value_end-value_begin;
             unsigned long buffer_size = size*4; // worst case: ascii->UCS-32
-            char* buffer = new char[buffer_size];
+            buffer = new char[buffer_size];
             std::fill(buffer, buffer+buffer_size, 0);
 
             size_t inbytesleft=size;
