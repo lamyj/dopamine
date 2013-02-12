@@ -42,10 +42,14 @@ public :
     void operator()(gdcm::DataSet const & dataset, mongo::BSONObjBuilder & builder);
 
 private :
+    static const std::map<std::string, std::string> _dicom_to_iconv;
     std::string _specific_character_set;
     iconv_t _converter;
 
     //Order::Type _order;
+
+    /// @brief Generate a map from DICOM encoding to IConv encoding
+    static std::map<std::string, std::string> _create_encoding_map();
 
     /// @brief Convert binary data from a DICOM element to BSON.
     template<gdcm::VR::VRType VVR>
@@ -84,8 +88,6 @@ private :
     // this function must be declared after the the specializations.
     void _add_element(gdcm::DataElement const & element,
                       mongo::BSONObjBuilder & builder) const;
-//    void _add_element(char const * begin, char const * end, gdcm::VR const & vr,
-//                      mongo::BSONArrayBuilder & builder) const;
 
     unsigned long _get_length(char const * begin, char const * end,
                               gdcm::VR const & vr) const;

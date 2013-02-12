@@ -71,6 +71,10 @@ TIterator1 find_last_not_of(TIterator1 first1, TIterator1 last1,
     return result;
 }
 
+std::map<std::string, std::string> const
+DataSetToBSON
+::_dicom_to_iconv = DataSetToBSON::_create_encoding_map();
+
 
 DataSetToBSON
 ::DataSetToBSON()
@@ -99,69 +103,46 @@ void
 DataSetToBSON
 ::set_specific_character_set(std::string const & specific_character_set)
 {
-    std::string encoding;
+    std::vector<std::string> elements;
+    std::string const delimiters("\\");
 
-    // Tests files from dclunie
-    // SCSARAB : ok
-    // SCSFREN : ok
-    // SCSGERM : ok
-    // SCSGREEK : ok
-    // SCSH31 : ?
-    // SCSH32 : fail ('ISO 2022 IR 13')
-    // SCSHBRW : ok
-    // SCSI2 : fail (Invalid or incomplete multibyte or wide character, ISO 2022 IR 149)
-    // SCSRUSS : ok
-    // SCSX1 : ok
-    // SCSX2 : ok
-
-    if(specific_character_set == "") { encoding = "ASCII"; }
-    // Single-byte character sets without code extensions (PS 3.3, Table C.12-2)
-    else if(specific_character_set == "ISO_IR 100") { encoding = "ISO-8859-1"; }
-    else if(specific_character_set == "ISO_IR 101") encoding = "ISO-8859-2";
-    else if(specific_character_set == "ISO_IR 109") encoding = "ISO-8859-3";
-    else if(specific_character_set == "ISO_IR 110") encoding = "ISO-8859-4";
-    else if(specific_character_set == "ISO_IR 144") encoding = "ISO-8859-5";
-    else if(specific_character_set == "ISO_IR 127") encoding = "ISO-8859-6";
-    else if(specific_character_set == "ISO_IR 126") encoding = "ISO-8859-7";
-    else if(specific_character_set == "ISO_IR 138") encoding = "ISO-8859-8";
-    else if(specific_character_set == "ISO_IR 148") encoding = "ISO-8859-9";
-    else if(specific_character_set == "ISO_IR 13") encoding = "ISO−2022−JP";
-    // CP874 seems to be a superset of TIS-620/ISO-IR-166 (e.g.
-    // presence of the euro sign in the CP874 at an unassigned place
-    // of TIS-620), but we should get away with it.
-    else if(specific_character_set == "ISO_IR 166") encoding = "CP-874";
-    // Single-byte character sets with code extensions (PS 3.3, Table C.12-3)
-//                ISO 2022 IR 6
-//                ISO 2022 IR 100
-//                ISO 2022 IR 101
-//                ISO 2022 IR 109
-//                ISO 2022 IR 110
-//                ISO 2022 IR 144
-//                ISO 2022 IR 127
-//                ISO 2022 IR 126
-//                ISO 2022 IR 138
-//                ISO 2022 IR 148
-//                ISO 2022 IR 113
-//                ISO 2022 IR 166
-    // Multi-byte character sets with code extensions (PS 3.3, Table C.12-4)
-//                ISO 2022 IR 87
-//                ISO 2022 IR 159
-//                ISO 2022 IR 149
-    // Multi-byte character sets without code extensions (PS 3.3, Table C.12-5)
-    else if(specific_character_set == "ISO_IR 192") encoding = "UTF-8";
-    else if(specific_character_set == "GB18030 ") encoding = "GB18030";
-    else
+    std::size_t current;
+    std::size_t next=-1;
+    do
     {
-        std::ostringstream message;
-        message << "Unkown specific character set: '" << specific_character_set << "'";
-        throw std::runtime_error(message.str());
+        current = next+1;
+        next = specific_character_set.find_first_of(delimiters, current);
+        std::string const element(
+            specific_character_set.substr(current, next-current));
+        //std::cout << "'" << element << "'" << std::endl;
+
+        std::map<std::string, std::string>::const_iterator encoding_it =
+            this->_dicom_to_iconv.find(element);
+        if(encoding_it==this->_dicom_to_iconv.end())
+        {
+            throw std::runtime_error("Unknown encoding: '"+element+"'");
+        }
+
+        elements.push_back(element);
     }
+    while(next != std::string::npos);
+
+    // TODO : handle multi-valued specific character set
+    if(elements.size() != 1)
+    {
+        throw std::runtime_error(
+            "Cannot handle specific character set '"+specific_character_set+"'");
+    }
+
+    this->_specific_character_set = specific_character_set;
 
     if(this->_converter != 0)
     {
         iconv_close(this->_converter);
     }
-    this->_converter = iconv_open("UTF-8", encoding.c_str());
+    this->_converter = iconv_open("UTF-8",
+        this->_dicom_to_iconv.find(elements[0])->second.c_str());
+
 }
 
 /*
@@ -195,10 +176,9 @@ DataSetToBSON
 
         if(tag_group == 0x0008 && tag_element == 0x0005)
         {
-            // Specific Character Set: map to iconv encoding
+            // Specific Character Set: setup internal iconv converter
             gdcm::Attribute<0x0008,0x0005> attribute;
             attribute.SetFromDataElement(*it);
-            // TODO : multi-valued Specific Character Set
             this->set_specific_character_set(attribute.GetValue());
         }
 
@@ -212,6 +192,50 @@ DataSetToBSON
             this->_add_element(*it, builder);
         }
     }
+}
+
+std::map<std::string, std::string>
+DataSetToBSON
+::_create_encoding_map()
+{
+    std::map<std::string, std::string> result;
+
+    // PS 3.3-2011, C.12.1.1.2 - Specific Character Set
+    // Single-byte character sets without code extensions (PS 3.3, Table C.12-2)
+    result[""] = "ISO-IR-6";
+    result["ISO_IR 100"] = "ISO-IR-100";
+    result["ISO_IR 101"] = "ISO-IR-101";
+    result["ISO_IR 109"] = "ISO-IR-109";
+    result["ISO_IR 110"] = "ISO-IR-110";
+    result["ISO_IR 144"] = "ISO-IR-144";
+    result["ISO_IR 127"] = "ISO-IR-127";
+    result["ISO_IR 126"] = "ISO-IR-126";
+    result["ISO_IR 138"] = "ISO-IR-138";
+    result["ISO_IR 148"] = "ISO-IR-148";
+    result["ISO_IR 13"] = "ISO-2022-JP"; // TODO or JP-2 or JP-3 ? DICOM says: Katakana+Romaji
+    result["ISO_IR 166"] = "ISO-IR-166";
+    // Single-byte character sets with code extensions (PS 3.3, Table C.12-3)
+    result["ISO 2022 IR 6"] = "ISO-IR-6";
+    result["ISO 2022 IR 100"] = "ISO-IR-100";
+    result["ISO 2022 IR 101"] = "ISO-IR-101";
+    result["ISO 2022 IR 109"] = "ISO-IR-109";
+    result["ISO 2022 IR 110"] = "ISO-IR-110";
+    result["ISO 2022 IR 144"] = "ISO-IR-144";
+    result["ISO 2022 IR 127"] = "ISO-IR-127";
+    result["ISO 2022 IR 126"] = "ISO-IR-126";
+    result["ISO 2022 IR 138"] = "ISO-IR-138";
+    result["ISO 2022 IR 148"] = "ISO-IR-148";
+    result["ISO 2022 IR 13"] = "ISO-2022-JP"; // TODO or JP-2 or JP-3 ? DICOM says: Katakana+Romaji
+    result["ISO 2022 IR 166"] = "ISO-IR-166";
+    // Multi-byte character sets with code extensions (PS 3.3, Table C.12-4)
+    // result["ISO 2022 IR 87"] // Kanji
+    // result["ISO 2022 IR 159"] // Supplementary Kanji
+    // result["ISO 2022 IR 149"] // Hangul, Hanja
+    // Multi-byte character sets without code extensions (PS 3.3, Table C.12-5)
+    result["ISO_IR 192"] = "UTF-8";
+    result["GB18030"] = "GB18030";
+
+    return result;
 }
 
 template<gdcm::VR::VRType VVR>
