@@ -78,9 +78,11 @@ DataSetToBSON
 
 DataSetToBSON
 ::DataSetToBSON()
-: _specific_character_set(""), _converter(0)
+: _specific_character_set(""), _converter(0),
+  _filter(Filter::EXCLUDE), _filtered_tags()
 {
-    //this->set_order(Order::INCLUDE_FIRST);
+    // Use EXCLUDE and an empty _filtered_tags so that by default all elements are
+    // included
 }
 
 DataSetToBSON
@@ -145,25 +147,51 @@ DataSetToBSON
 
 }
 
-/*
-DataSetToBSON::Order::Type const &
+DataSetToBSON::Filter::Type const &
 DataSetToBSON
-::get_order() const
+::get_filter() const
 {
-    return this->_order;
+    return this->_filter;
 }
 
 void
 DataSetToBSON
-::set_order(Order::Type const & order)
+::set_filter(Filter::Type const & filter)
 {
-    if(order<0 || order>=Order::MAX)
+    if(filter<0 || filter>=Filter::MAX)
     {
-        throw std::runtime_error("Incorrect order value");
+        throw std::runtime_error("Incorrect filter value");
     }
-    this->_order = order;
+    this->_filter = filter;
 }
-*/
+
+void
+DataSetToBSON
+::add_filtered_tag(gdcm::Tag const & tag)
+{
+    this->_filtered_tags.insert(tag);
+}
+
+void
+DataSetToBSON
+::remove_filtered_tag(gdcm::Tag const & tag)
+{
+    this->_filtered_tags.erase(tag);
+}
+
+void
+DataSetToBSON
+::clear_filtered_tags()
+{
+    this->_filtered_tags.clear();
+}
+
+bool
+DataSetToBSON
+::is_tag_filtered(gdcm::Tag const & tag) const
+{
+    return (this->_filtered_tags.find(tag) == this->_filtered_tags.end());
+}
 
 void
 DataSetToBSON
@@ -171,8 +199,42 @@ DataSetToBSON
 {
     for(gdcm::DataSet::ConstIterator it=dataset.Begin(); it!=dataset.End(); ++it)
     {
-        uint16_t const tag_group = it->GetTag().GetGroup();
-        uint16_t const tag_element = it->GetTag().GetElement();
+        bool skip = false;
+        gdcm::Tag const & tag = it->GetTag();
+        if(this->_filter == Filter::INCLUDE)
+        {
+            if(this->_filtered_tags.find(tag) != this->_filtered_tags.end())
+            {
+                // Included
+                skip = false;
+            }
+            else
+            {
+                // Not included => exclude
+                skip = true;
+            }
+        }
+        else if(this->_filter == Filter::EXCLUDE)
+        {
+            if(this->_filtered_tags.find(tag) != this->_filtered_tags.end())
+            {
+                // Excluded
+                skip = true;
+            }
+            else
+            {
+                // Not excluded => include
+                skip = false;
+            }
+        }
+
+        if(skip)
+        {
+            continue;
+        }
+
+        uint16_t const tag_group = tag.GetGroup();
+        uint16_t const tag_element = tag.GetElement();
 
         if(tag_group == 0x0008 && tag_element == 0x0005)
         {

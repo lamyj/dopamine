@@ -1,6 +1,10 @@
 #ifndef _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 #define _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 
+#include <map>
+#include <set>
+#include <string>
+
 #include <gdcmDataElement.h>
 #include <gdcmDataSet.h>
 #include <gdcmVR.h>
@@ -16,18 +20,16 @@ class DataSetToBSON
 {
 public :
 
-    /*
     // cf. https://httpd.apache.org/docs/2.2/en/mod/mod_authz_host.html#order
-    struct Order
+    struct Filter
     {
         enum Type
         {
-            INCLUDE_FIRST=0,
-            EXCLUDE_FIRST,
+            INCLUDE=0,
+            EXCLUDE,
             MAX
         };
     };
-    */
 
     DataSetToBSON();
     ~DataSetToBSON();
@@ -35,9 +37,13 @@ public :
     std::string get_specific_character_set() const;
     void set_specific_character_set(std::string const & specific_character_set);
 
-    //Order::Type const & get_order() const;
-    //void set_order(Order::Type const & order);
-    // TODO : include and exclude filters (don't forget "ALL" rule)
+    Filter::Type const & get_filter() const;
+    void set_filter(Filter::Type const & order);
+
+    void add_filtered_tag(gdcm::Tag const & tag);
+    void remove_filtered_tag(gdcm::Tag const & tag);
+    void clear_filtered_tags();
+    bool is_tag_filtered(gdcm::Tag const & tag) const;
 
     void operator()(gdcm::DataSet const & dataset, mongo::BSONObjBuilder & builder);
 
@@ -46,7 +52,8 @@ private :
     std::string _specific_character_set;
     iconv_t _converter;
 
-    //Order::Type _order;
+    Filter::Type _filter;
+    std::set<gdcm::Tag> _filtered_tags;
 
     /// @brief Generate a map from DICOM encoding to IConv encoding
     static std::map<std::string, std::string> _create_encoding_map();
