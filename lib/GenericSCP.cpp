@@ -1,18 +1,37 @@
 #include "GenericSCP.h"
 
+#include <sstream>
 #include <stdio.h>
+#include <string>
 
+#include <dcmtk/dcmdata/dcostrmb.h>
 #include <dcmtk/dcmnet/diutil.h>
 #include <dcmtk/dcmnet/scp.h>
 #include <gdcmReader.h>
 #include <mongo/bson/bson.h>
+#include <mongo/client/dbclient.h>
+#include <mongo/client/gridfs.h>
 
 #include "DataSetToBSON.h"
 
 GenericSCP
+::GenericSCP(std::string const & db_name,
+             std::string const & host, unsigned int port)
+: _db_name(db_name), _grid_fs(NULL)
+{
+    std::stringstream stream;
+    stream << port;
+    this->_connection.connect(host+":"+stream.str());
+    this->_grid_fs = new mongo::GridFS(this->_connection, this->_db_name);
+}
+
+GenericSCP
 ::~GenericSCP()
 {
-
+    if(this->_grid_fs != NULL)
+    {
+        delete this->_grid_fs;
+    }
 }
 
 template<>
@@ -39,33 +58,56 @@ GenericSCP
     T_DIMSE_C_StoreRSP response;
 
     DcmDataset * dataset = NULL;
-    if(this->receiveDIMSEDataset(&presentation_id, &dataset,NULL,NULL).good())
+    if(this->receiveDIMSEDataset(&presentation_id, &dataset, NULL, NULL).good())
     {
         if(dataset != NULL)
         {
-            // Save the DCMTK dataset to a temporary file
-            char * filename = tempnam(NULL, NULL);
-            dataset->saveFile(filename);
-            delete dataset;
+            // Check if we already have this dataset, based on its SOP Instance UID
+            OFString sop_instance_uid;
+            dataset->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
 
-            // Re-load it as a GDCM dataset
-            gdcm::Reader reader;
-            reader.SetFileName(filename);
-            reader.Read();
+            mongo::auto_ptr<mongo::DBClientCursor> cursor =
+                this->_connection.query(this->_db_name+"."+"datasets",
+                                        QUERY("00080018" << sop_instance_uid.c_str()));
+            if(cursor->more())
+            {
+                // We already have this SOP Instance UID, do not store it
+            }
+            else
+            {
+                // Save the DCMTK dataset to a temporary file
+                char * filename = tempnam(NULL, NULL);
+                dataset->saveFile(filename,
+                    DcmXfer(info.acceptedTransferSyntax.c_str()).getXfer()
+                    // TODO : encoding type, group length, encoding, ...
+                );
+                delete dataset;
 
-            // TODO : store this->getPeerAETitle() in Source Application Entity Title
-            // Convert the GDCM dataset to BSON
-            DataSetToBSON converter;
-            mongo::BSONObjBuilder builder;
-            converter(reader.GetFile().GetDataSet(), builder);
-            mongo::BSONObj const bson = builder.obj();
+                // Re-load it as a GDCM dataset
+                gdcm::Reader reader;
+                reader.SetFileName(filename);
+                reader.Read();
 
-            // Store it in the Mongo DB instance
-            //std::cout << "Converted (" << bson.getField("00100010") << ")" << std::endl;
+                // TODO : store this->getPeerAETitle() in Source Application Entity Title
+                // Convert the GDCM dataset to BSON
+                DataSetToBSON converter;
+                converter.set_filter(DataSetToBSON::Filter::EXCLUDE);
+                converter.add_filtered_tag(0x7fe00010);
+                mongo::BSONObjBuilder builder;
+                converter(reader.GetFile().GetDataSet(), builder);
 
-            // Clean up the temporary file
-            unlink(filename);
-            free(filename);
+                // Store it in the Mongo DB instance
+                mongo::OID const id(mongo::OID::gen());
+                builder << "_id" << id;
+                // Warning: You must call OID::newState() after a fork().
+
+                this->_connection.insert(this->_db_name+".datasets", builder.obj());
+                this->_grid_fs->storeFile(filename, id.str());
+
+                // Clean up the temporary file
+                unlink(filename);
+                free(filename);
+            }
 
             // Generate the DICOM response
             bzero((char*)&response, sizeof(response));
