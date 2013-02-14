@@ -30,7 +30,7 @@ private :
     mongo::GridFS* _grid_fs;
 
     template<T_DIMSE_Command Command>
-    OFCondition handleCommand_(T_DIMSE_Message * message,
+    OFCondition _handleCommand(T_DIMSE_Message * message,
                                DcmPresentationContextInfo const & info);
 };
 
