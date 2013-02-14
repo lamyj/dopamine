@@ -81,6 +81,7 @@ DataSetToBSON
 : _specific_character_set(""), _converter(0),
   _filter(Filter::EXCLUDE), _filtered_tags()
 {
+    this->set_specific_character_set("");
     // Use EXCLUDE and an empty _filtered_tags so that by default all elements are
     // included
 }
