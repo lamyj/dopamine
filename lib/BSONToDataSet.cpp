@@ -113,6 +113,10 @@ BSONToDataSet
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
     {
         mongo::BSONElement const element_bson = it.next();
+        if(element_bson.fieldName() == std::string("_id"))
+        {
+            continue;
+        }
         this->_add_element(element_bson, data_set);
     }
 
