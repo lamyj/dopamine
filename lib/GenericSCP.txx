@@ -10,7 +10,7 @@
 template<T_DIMSE_Command Command>
 OFCondition
 GenericSCP
-::handleCommand_(T_DIMSE_Message * message, DcmPresentationContextInfo const & info)
+::_handleCommand(T_DIMSE_Message * message, DcmPresentationContextInfo const & info)
 {
     OFString tempStr;
     DCMNET_ERROR("Cannot handle this kind of DIMSE command (0x"

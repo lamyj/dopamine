@@ -13,6 +13,7 @@
 #include <mongo/client/gridfs.h>
 
 #include "DataSetToBSON.h"
+#include "Query.h"
 
 GenericSCP
 ::GenericSCP(std::string const & db_name,
@@ -37,7 +38,7 @@ GenericSCP
 template<>
 OFCondition
 GenericSCP
-::handleCommand_<DIMSE_C_ECHO_RQ>(T_DIMSE_Message * message,
+::_handleCommand<DIMSE_C_ECHO_RQ>(T_DIMSE_Message * message,
                                   DcmPresentationContextInfo const & info)
 {
     return this->handleECHORequest(message->msg.CEchoRQ, info.presentationContextID);
@@ -46,7 +47,7 @@ GenericSCP
 template<>
 OFCondition
 GenericSCP
-::handleCommand_<DIMSE_C_STORE_RQ>(T_DIMSE_Message * message,
+::_handleCommand<DIMSE_C_STORE_RQ>(T_DIMSE_Message * message,
                                    DcmPresentationContextInfo const & info)
 {
     // cf. http://forum.dcmtk.org/viewtopic.php?f=1&t=3213&sid=b5fc0c5531c286df56b7e672bb333dc4&start=60
@@ -152,6 +153,61 @@ GenericSCP
     return cond;
 }
 
+template<>
+OFCondition
+GenericSCP
+::_handleCommand<DIMSE_C_FIND_RQ>(T_DIMSE_Message * message,
+                                   DcmPresentationContextInfo const & info)
+{
+    // cf. http://forum.dcmtk.org/viewtopic.php?f=1&t=3213&sid=b5fc0c5531c286df56b7e672bb333dc4&start=60
+    OFCondition cond = DIMSE_BADCOMMANDTYPE;
+
+    T_ASC_PresentationContextID presentation_id = info.presentationContextID;
+    T_DIMSE_C_StoreRQ request = message->msg.CStoreRQ;
+    T_DIMSE_C_StoreRSP response;
+
+    DcmDataset * dataset = NULL;
+    if(this->receiveDIMSEDataset(&presentation_id, &dataset, NULL, NULL).good())
+    {
+        if(dataset != NULL)
+        {
+            // Save the DCMTK dataset to a temporary file
+            char * filename = tempnam(NULL, NULL);
+            dataset->saveFile(filename,
+                DcmXfer(info.acceptedTransferSyntax.c_str()).getXfer()
+                // TODO : encoding type, group length, encoding, ...
+            );
+            delete dataset;
+
+            // Re-load it as a GDCM dataset
+            gdcm::Reader reader;
+            reader.SetFileName(filename);
+            reader.Read();
+
+            Query query(this->_connection, this->_db_name, reader.GetFile().GetDataSet());
+            query();
+
+            for(std::vector<gdcm::DataSet>::const_iterator it=query.getResults().begin();
+                it!=query.getResults().end(); ++it)
+            {
+                std::cout << *it << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << "No dataset" << std::endl;
+            // TODO : value of cond ?
+        }
+    }
+    else
+    {
+        std::cout << "No data received" << std::endl;
+        // TODO : value of cond ?
+    }
+
+    return cond;
+}
+
 OFCondition
 GenericSCP
 ::handleIncomingCommand(T_DIMSE_Message * msg,
@@ -160,15 +216,19 @@ GenericSCP
     OFCondition cond;
     if(msg->CommandField == DIMSE_C_ECHO_RQ)
     {
-        cond = this->handleCommand_<DIMSE_C_ECHO_RQ>(msg, info);
+        cond = this->_handleCommand<DIMSE_C_ECHO_RQ>(msg, info);
     }
     else if(msg->CommandField == DIMSE_C_STORE_RQ)
     {
-        cond = this->handleCommand_<DIMSE_C_STORE_RQ>(msg, info);
+        cond = this->_handleCommand<DIMSE_C_STORE_RQ>(msg, info);
+    }
+    else if(msg->CommandField == DIMSE_C_FIND_RQ)
+    {
+        cond = this->_handleCommand<DIMSE_C_FIND_RQ>(msg, info);
     }
     else
     {
-        cond = this->handleCommand_<DIMSE_NOTHING>(msg, info);
+        cond = this->_handleCommand<DIMSE_NOTHING>(msg, info);
     }
 
     // return result
