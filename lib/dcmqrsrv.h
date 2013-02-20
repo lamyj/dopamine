@@ -17,23 +17,21 @@
  *
  *  Purpose: class DcmQueryRetrieveSCP
  *
- *  Last Update:      $Author: joergr $
- *  Update Date:      $Date: 2010-10-14 13:16:41 $
- *  CVS/RCS Revision: $Revision: 1.4 $
- *  Status:           $State: Exp $
- *
- *  CVS/RCS Log at end of file
- *
  */
 
 #ifndef DCMQRSRV_H
 #define DCMQRSRV_H
+
+#include <string>
 
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include "dcmtk/ofstd/oftypes.h"
 #include "dcmtk/dcmnet/assoc.h"
 #include "dcmtk/dcmnet/dimse.h"
 #include "dcmtk/dcmqrdb/dcmqrptb.h"
+
+#include <mongo/client/dbclient.h>
+#include <mongo/client/gridfs.h>
 
 class DcmQueryRetrieveConfig;
 class DcmQueryRetrieveOptions;
@@ -96,6 +94,11 @@ public:
    */
   void cleanChildren();
 
+  mongo::DBClientConnection const & get_connection() const;
+  mongo::DBClientConnection & get_connection();
+
+  std::string const & get_db_name() const;
+
 private:
 
   /** perform association negotiation for an incoming A-ASSOCIATE request based
@@ -120,8 +123,7 @@ private:
   OFCondition findSCP(
     T_ASC_Association * assoc,
     T_DIMSE_C_FindRQ * request,
-    T_ASC_PresentationContextID presID,
-    DcmQueryRetrieveDatabaseHandle& dbHandle);
+    T_ASC_PresentationContextID presID);
 
   OFCondition getSCP(
     T_ASC_Association * assoc,
@@ -165,34 +167,13 @@ private:
 
   /// SCP configuration options
   const DcmQueryRetrieveOptions& options_;
+
+    std::string _db_name;
+    mongo::DBClientConnection _connection;
+    // mongo::DBClientConnection must be initialized before calling the
+    // mongo::GridFS constructor. Since we cannot do this in the initializer
+    // list, we need a /pointer/ to mongo::GridFS for late initialization.
+    mongo::GridFS* _grid_fs;
 };
 
 #endif
-
-/*
- * CVS Log
- * $Log: dcmqrsrv.h,v $
- * Revision 1.4  2010-10-14 13:16:41  joergr
- * Updated copyright header. Added reference to COPYRIGHT file.
- *
- * Revision 1.3  2009-11-24 10:10:42  uli
- * Switched to logging mechanism provided by the "new" oflog module.
- *
- * Revision 1.2  2009-08-21 09:50:07  joergr
- * Replaced tabs by spaces and updated copyright date.
- *
- * Revision 1.1  2005/12/16 12:42:50  joergr
- * Renamed file to avoid naming conflicts when linking on SunOS 5.5.1 with
- * Sun CC 2.0.1.
- *
- * Revision 1.2  2005/12/08 16:04:27  meichel
- * Changed include path schema for all DCMTK header files
- *
- * Revision 1.1  2005/03/30 13:34:50  meichel
- * Initial release of module dcmqrdb that will replace module imagectn.
- *   It provides a clear interface between the Q/R DICOM front-end and the
- *   database back-end. The imagectn code has been re-factored into a minimal
- *   class structure.
- *
- *
- */
