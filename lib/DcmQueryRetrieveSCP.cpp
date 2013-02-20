@@ -31,7 +31,7 @@
 //#include "dcmtk/dcmqrdb/dcmqrcbg.h"    /* for class DcmQueryRetrieveGetContext */
 //#include "dcmtk/dcmqrdb/dcmqrcbs.h"    /* for class DcmQueryRetrieveStoreContext */
 
-#include "dcmqrsrv.h"
+#include "DcmQueryRetrieveSCP.h"
 #include "FindResponseGenerator.h"
 
 struct FindCallbackData
