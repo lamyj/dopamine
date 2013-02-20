@@ -8,8 +8,9 @@ include_directories(${DCMTK_INCLUDE_DIRS} ${GDCM_INCLUDE_DIRS} ${MONGO_DB_INCLUD
 
 add_definitions(-DHAVE_CONFIG_H)
 add_library(research_pacs SHARED
-    "DataSetToBSON.cpp" "BSONToDataSet.cpp" "GenericSCP.cpp" "Query.cpp")
+    "DataSetToBSON.cpp" "BSONToDataSet.cpp"
+    "DcmQueryRetrieveSCP.cpp" "FindResponseGenerator.cpp")
 target_link_libraries(research_pacs
     ${GDCM_LIBRARIES} ${MONGO_DB_LIBRARIES} ${DCMTK_LIBRARIES}
     dcmdata oflog
-    wrap)
+    wrap pthread)
