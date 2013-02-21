@@ -36,7 +36,6 @@
 class DcmQueryRetrieveConfig;
 class DcmQueryRetrieveOptions;
 class DcmQueryRetrieveDatabaseHandle;
-class DcmQueryRetrieveDatabaseHandleFactory;
 
 /// enumeration describing reasons for refusing an association request
 enum CTN_RefuseReason
@@ -60,6 +59,13 @@ enum CTN_RefuseReason
 class DcmQueryRetrieveSCP
 {
 public:
+    struct DbConnection
+    {
+        std::string db_name;
+        std::string host;
+        unsigned int port;
+    };
+
 
   /** constructor
    *  @param config SCP configuration facility
@@ -69,7 +75,7 @@ public:
   DcmQueryRetrieveSCP(
     const DcmQueryRetrieveConfig& config,
     const DcmQueryRetrieveOptions& options,
-    const DcmQueryRetrieveDatabaseHandleFactory& factory);
+    DbConnection const & db_connection);
 
   /// destructor
   virtual ~DcmQueryRetrieveSCP() { }
@@ -161,9 +167,6 @@ private:
 
   /// flag for database interface: check C-MOVE identifier
   OFBool dbCheckMoveIdentifier_;
-
-  /// factory object used to create database handles
-  const DcmQueryRetrieveDatabaseHandleFactory& factory_;
 
   /// SCP configuration options
   const DcmQueryRetrieveOptions& options_;

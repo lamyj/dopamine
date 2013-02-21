@@ -19,17 +19,11 @@
  *
  */
 
-#include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
-#include "dcmtk/dcmqrdb/dcmqropt.h"
-#include "dcmtk/dcmdata/dcfilefo.h"
-#include "dcmtk/dcmdata/dcdeftag.h"
-#include "dcmtk/dcmdata/dcmetinf.h"
+#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmqrdb/dcmqropt.h>
+#include <dcmtk/dcmdata/dcfilefo.h>
+#include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/diutil.h>
-//#include "dcmtk/dcmqrdb/dcmqrdba.h"
-//#include "dcmtk/dcmqrdb/dcmqrcbf.h"    /* for class DcmQueryRetrieveFindContext */
-//#include "dcmtk/dcmqrdb/dcmqrcbm.h"    /* for class DcmQueryRetrieveMoveContext */
-//#include "dcmtk/dcmqrdb/dcmqrcbg.h"    /* for class DcmQueryRetrieveGetContext */
-//#include "dcmtk/dcmqrdb/dcmqrcbs.h"    /* for class DcmQueryRetrieveStoreContext */
 
 #include "DcmQueryRetrieveSCP.h"
 #include "FindResponseGenerator.h"
@@ -109,11 +103,6 @@ static void findCallback(
     {
         DCMQRDB_DEBUG("  Status detail:" << OFendl << DcmObject::PrintHelper(**stDetail));
     }
-
-  /*
-  DcmQueryRetrieveFindContext *context = OFstatic_cast(DcmQueryRetrieveFindContext *, callbackData);
-  context->callbackHandler(cancelled, request, requestIdentifiers, responseCount, response, responseIdentifiers, stDetail);
-  */
 }
 
 
@@ -175,13 +164,17 @@ static void storeCallback(
 DcmQueryRetrieveSCP::DcmQueryRetrieveSCP(
   const DcmQueryRetrieveConfig& config,
   const DcmQueryRetrieveOptions& options,
-  const DcmQueryRetrieveDatabaseHandleFactory& factory)
+  DbConnection const & db_connection)
 : config_(&config)
 , dbCheckFindIdentifier_(OFFalse)
 , dbCheckMoveIdentifier_(OFFalse)
-, factory_(factory)
-, options_(options)
+, options_(options),
+  _db_name(db_connection.db_name), _grid_fs(NULL)
 {
+    std::stringstream stream;
+    stream << db_connection.port;
+    this->_connection.connect(db_connection.host+":"+stream.str());
+    this->_grid_fs = new mongo::GridFS(this->_connection, this->_db_name);
 }
 
 
