@@ -1,6 +1,6 @@
 #include "FindResponseGenerator.h"
 
-#include <assert.h>
+#include <fstream>
 #include <set>
 #include <stdio.h>
 #include <string>
@@ -13,11 +13,9 @@
 #include <dcmtk/dcmnet/dimse.h>
 #include <dcmtk/ofstd/ofcond.h>
 
-#include <gdcmAttribute.h>
 #include <gdcmDataElement.h>
 #include <gdcmDataSet.h>
-#include <gdcmReader.h>
-#include <gdcmWriter.h>
+#include <gdcmImplicitDataElement.h>
 
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
@@ -32,15 +30,18 @@ FindResponseGenerator
 {
     // Save the DCMTK query dataset to a temporary file
     char * filename = tempnam(NULL, NULL);
-    query.saveFile(filename);
+    query.saveFile(filename, EXS_LittleEndianImplicit);
     // Re-load it as a GDCM dataset
-    gdcm::Reader reader;
-    reader.SetFileName(filename);
-    reader.Read();
-    gdcm::DataSet const & query_gdcm = reader.GetFile().GetDataSet();
+    gdcm::DataSet query_gdcm;
+    {
+        std::ifstream stream(filename);
+        query_gdcm.Read<gdcm::ImplicitDataElement, gdcm::SwapperNoOp>(stream);
+    }
     // Clean up temporary file
-    unlink(filename);
-    free(filename);
+    {
+        unlink(filename);
+        free(filename);
+    }
 
     // Convert the GDCM dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
@@ -107,6 +108,8 @@ OFCondition
 FindResponseGenerator
 ::next(DcmDataset ** responseIdentifiers)
 {
+    OFCondition cond;
+
     bool next_item_found=false;
     mongo::BSONObj item;
     while(this->_cursor->more())
@@ -128,19 +131,42 @@ FindResponseGenerator
     {
         BSONToDataSet bson_to_dataset;
         gdcm::DataSet dataset = bson_to_dataset(item);
-        gdcm::DataElement query_retrieve_level(0x00080052, gdcm::VR::CS);
+        gdcm::DataElement query_retrieve_level(0x00080052, 0, gdcm::VR::CS);
         query_retrieve_level.SetByteValue(&this->_query_retrieve_level[0],
                                           this->_query_retrieve_level.size());
         dataset.Insert(query_retrieve_level);
 
-        // Convert to dcmtk and store in responseIdentifiers
+        char * filename = tempnam(NULL, NULL);
+        // Write to a temporary file
+        {
+            // Only write dataset, no header
+            std::ofstream stream(filename);
+            dataset.Write<gdcm::ImplicitDataElement, gdcm::SwapperNoOp>(stream);
+        }
+
+        // Load as DCMTK
+        {
+            (*responseIdentifiers) = new DcmDataset();
+            (*responseIdentifiers)->loadFile(filename, EXS_LittleEndianImplicit);
+        }
+
+        // Remove temporary file
+        {
+            unlink(filename);
+            free(filename);
+        }
+
         this->_status = STATUS_Pending;
+
+        this->_distinct_items.insert(item.copy());
     }
+
+    return cond;
 }
 
 void
 FindResponseGenerator
 ::cancel()
 {
-
+    std::cout << "TODO : FindResponseGenerator::cancel()" << std::endl;
 }
