@@ -19,12 +19,21 @@
  *
  */
 
+#include <fstream>
+
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
+#include <dcmtk/dcmdata/dcmetinf.h>
 #include <dcmtk/dcmnet/diutil.h>
 
+#include <gdcmDataSet.h>
+#include <gdcmFileMetaInformation.h>
+#include <gdcmImplicitDataElement.h>
+#include <gdcmWriter.h>
+
+#include "DataSetToBSON.h"
 #include "DcmQueryRetrieveSCP.h"
 #include "FindResponseGenerator.h"
 
@@ -32,6 +41,13 @@ struct FindCallbackData
 {
     DcmQueryRetrieveSCP * scp;
     std::string ae_title;
+};
+
+struct StoreCallbackData
+{
+    DIC_US status;
+    DcmQueryRetrieveSCP * scp;
+    std::string source_application_entity_title;
 };
 
 static void findCallback(
@@ -115,6 +131,10 @@ static void getCallback(
         T_DIMSE_C_GetRSP *response, DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
+//    mongo::GridFile file = scp->get_grid_fs().findFile(id.str());
+//    std::cout << file.exists() << std::endl;
+//    std::cout << file.getContentLength() << std::endl;
+//    file.write("foo.dcm");
     /*
   DcmQueryRetrieveGetContext *context = OFstatic_cast(DcmQueryRetrieveGetContext *, callbackData);
   context->callbackHandler(cancelled, request, requestIdentifiers, responseCount, response, stDetail, responseIdentifiers);
@@ -149,10 +169,74 @@ static void storeCallback(
     T_DIMSE_C_StoreRSP *rsp,            /* final store response */
     DcmDataset **stDetail)
 {
-    /*
-  DcmQueryRetrieveStoreContext *context = OFstatic_cast(DcmQueryRetrieveStoreContext *, callbackData);
-  context->callbackHandler(progress, req, imageFileName, imageDataSet, rsp, stDetail);
-    */
+    if(progress->state == DIMSE_StoreEnd)
+    {
+        DcmQueryRetrieveSCP * scp = reinterpret_cast<StoreCallbackData*>(callbackData)->scp;
+
+        // Check if we already have this dataset, based on its SOP Instance UID
+        OFString sop_instance_uid;
+        (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
+
+        mongo::auto_ptr<mongo::DBClientCursor> cursor =
+            scp->get_connection().query(
+                scp->get_db_name()+"."+"datasets",
+                QUERY("00080018" << sop_instance_uid.c_str()));
+
+        if(cursor->more())
+        {
+            // We already have this SOP Instance UID, do not store it
+        }
+        else
+        {
+            // Create a temporary file
+            char * filename = tempnam(NULL, NULL);
+
+            // Save the DCMTK dataset to the temporary file
+            (*imageDataSet)->saveFile(filename, EXS_LittleEndianExplicit);
+            // Re-read it as a GDCM dataset
+            gdcm::DataSet gdcm_dataset;
+            {
+                std::ifstream stream(filename);
+                gdcm_dataset.Read<gdcm::ExplicitDataElement, gdcm::SwapperNoOp>(stream);
+            }
+
+            // Convert the GDCM dataset to BSON
+            DataSetToBSON converter;
+            converter.set_filter(DataSetToBSON::Filter::EXCLUDE);
+            converter.add_filtered_tag(0x7fe00010);
+            mongo::BSONObjBuilder builder;
+            converter(gdcm_dataset, builder);
+
+            // Store it in the Mongo DB instance
+            mongo::OID const id(mongo::OID::gen());
+            std::cout << id << std::endl;
+            builder << "_id" << id;
+
+            // Create the header of the new file
+            gdcm::FileMetaInformation header;
+            header.SetDataSetTransferSyntax(gdcm::TransferSyntax::ExplicitVRLittleEndian);
+            header.SetSourceApplicationEntityTitle(
+                reinterpret_cast<StoreCallbackData*>(callbackData)->source_application_entity_title.c_str());
+            header.FillFromDataSet(gdcm_dataset);
+
+            // Write the new file
+            gdcm::Writer writer;
+            writer.GetFile().SetHeader(header);
+            writer.GetFile().SetDataSet(gdcm_dataset);
+            writer.SetFileName(filename);
+            writer.Write();
+
+            // Store it in the gridfs
+            scp->get_connection().insert(scp->get_db_name()+".datasets", builder.obj());
+            scp->get_grid_fs().storeFile(filename, id.str());
+
+            // Clean up temporary file
+            {
+                unlink(filename);
+                free(filename);
+            }
+        }
+    }
 }
 
 
@@ -209,9 +293,9 @@ OFCondition DcmQueryRetrieveSCP::dispatch(T_ASC_Association *assoc, OFBool corre
                 case DIMSE_C_ECHO_RQ:
                     cond = echoSCP(assoc, &msg.msg.CEchoRQ, presID);
                     break;
-//                case DIMSE_C_STORE_RQ:
-//                    cond = storeSCP(assoc, &msg.msg.CStoreRQ, presID, *dbHandle, correctUIDPadding);
-//                    break;
+                case DIMSE_C_STORE_RQ:
+                    cond = storeSCP(assoc, &msg.msg.CStoreRQ, presID, correctUIDPadding);
+                    break;
                 case DIMSE_C_FIND_RQ:
                     cond = findSCP(assoc, &msg.msg.CFindRQ, presID);
                     break;
@@ -314,7 +398,6 @@ OFCondition DcmQueryRetrieveSCP::findSCP(T_ASC_Association * assoc, T_DIMSE_C_Fi
     OFCondition cond = EC_Normal;
 
     FindCallbackData data;
-
     data.scp = this;
 
     DIC_AE aeTitle;
@@ -382,106 +465,43 @@ OFCondition DcmQueryRetrieveSCP::moveSCP(T_ASC_Association * assoc, T_DIMSE_C_Mo
 
 OFCondition DcmQueryRetrieveSCP::storeSCP(T_ASC_Association * assoc, T_DIMSE_C_StoreRQ * request,
              T_ASC_PresentationContextID presId,
-             DcmQueryRetrieveDatabaseHandle& dbHandle,
              OFBool correctUIDPadding)
 {
     OFCondition cond = EC_Normal;
-//    OFCondition dbcond = EC_Normal;
-//    char imageFileName[MAXPATHLEN+1];
-//    DcmFileFormat dcmff;
 
-//    DcmQueryRetrieveStoreContext context(dbHandle, options_, STATUS_Success, &dcmff, correctUIDPadding);
+    OFString temp_str;
+    DCMQRDB_INFO("Received Store SCP:" << OFendl << DIMSE_dumpMessage(temp_str, *request, DIMSE_INCOMING));
 
-//    OFString temp_str;
-//    DCMQRDB_INFO("Received Store SCP:" << OFendl << DIMSE_dumpMessage(temp_str, *request, DIMSE_INCOMING));
+    StoreCallbackData data;
+    data.scp = this;
 
-//    if (!dcmIsaStorageSOPClassUID(request->AffectedSOPClassUID)) {
-//        /* callback will send back sop class not supported status */
-//        context.setStatus(STATUS_STORE_Refused_SOPClassNotSupported);
-//        /* must still receive data */
-//        strcpy(imageFileName, NULL_DEVICE_NAME);
-//    } else if (options_.ignoreStoreData_) {
-//        strcpy(imageFileName, NULL_DEVICE_NAME);
-//    } else {
-//        dbcond = dbHandle.makeNewStoreFileName(
-//            request->AffectedSOPClassUID,
-//            request->AffectedSOPInstanceUID,
-//            imageFileName);
-//        if (dbcond.bad()) {
-//            DCMQRDB_ERROR("storeSCP: Database: makeNewStoreFileName Failed");
-//            /* must still receive data */
-//            strcpy(imageFileName, NULL_DEVICE_NAME);
-//            /* callback will send back out of resources status */
-//            context.setStatus(STATUS_STORE_Refused_OutOfResources);
-//        }
-//    }
+    if (!dcmIsaStorageSOPClassUID(request->AffectedSOPClassUID))
+    {
+        /* callback will send back sop class not supported status */
+        data.status = STATUS_STORE_Refused_SOPClassNotSupported;
+    }
 
-//#ifdef LOCK_IMAGE_FILES
-//    /* exclusively lock image file */
-//#ifdef O_BINARY
-//    int lockfd = open(imageFileName, (O_WRONLY | O_CREAT | O_TRUNC | O_BINARY), 0666);
-//#else
-//    int lockfd = open(imageFileName, (O_WRONLY | O_CREAT | O_TRUNC), 0666);
-//#endif
-//    if (lockfd < 0)
-//    {
-//        DCMQRDB_ERROR("storeSCP: file locking failed, cannot create file");
+    // store SourceApplicationEntityTitle in metaheader
+    if (assoc && assoc->params)
+    {
+        char const * aet = assoc->params->DULparams.callingAPTitle;
+        if(aet != NULL)
+        {
+            data.source_application_entity_title = assoc->params->DULparams.callingAPTitle;
+        }
+    }
 
-//        /* must still receive data */
-//        strcpy(imageFileName, NULL_DEVICE_NAME);
+    /* we must still retrieve the data set even if some error has occured */
+    DcmDataset dset;
+    DcmDataset * dset_ptr = &dset;
+    cond = DIMSE_storeProvider(assoc, presId, request, (char *)NULL,
+        (int)options_.useMetaheader_, &dset_ptr, storeCallback, (void*)&data,
+        options_.blockMode_, options_.dimse_timeout_);
 
-//        /* callback will send back out of resources status */
-//        context.setStatus(STATUS_STORE_Refused_OutOfResources);
-//    }
-//    else
-//      dcmtk_flock(lockfd, LOCK_EX);
-//#endif
-
-//    context.setFileName(imageFileName);
-
-//    // store SourceApplicationEntityTitle in metaheader
-//    if (assoc && assoc->params)
-//    {
-//      const char *aet = assoc->params->DULparams.callingAPTitle;
-//      if (aet) dcmff.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle, aet);
-//    }
-
-//    DcmDataset *dset = dcmff.getDataset();
-
-//    /* we must still retrieve the data set even if some error has occured */
-
-//    if (options_.bitPreserving_) { /* the bypass option can be set on the command line */
-//        cond = DIMSE_storeProvider(assoc, presId, request, imageFileName, (int)options_.useMetaheader_,
-//                                   NULL, storeCallback,
-//                                   (void*)&context, options_.blockMode_, options_.dimse_timeout_);
-//    } else {
-//        cond = DIMSE_storeProvider(assoc, presId, request, (char *)NULL, (int)options_.useMetaheader_,
-//                                   &dset, storeCallback,
-//                                   (void*)&context, options_.blockMode_, options_.dimse_timeout_);
-//    }
-
-//    if (cond.bad()) {
-//        DCMQRDB_ERROR("Store SCP Failed: " << DimseCondition::dump(temp_str, cond));
-//    }
-//    if (!options_.ignoreStoreData_ && (cond.bad() || (context.getStatus() != STATUS_Success)))
-//    {
-//      /* remove file */
-//      if (strcmp(imageFileName, NULL_DEVICE_NAME) != 0) // don't try to delete /dev/null
-//      {
-//        DCMQRDB_INFO("Store SCP: Deleting Image File: %s" << imageFileName);
-//        unlink(imageFileName);
-//      }
-//      dbHandle.pruneInvalidRecords();
-//    }
-
-//#ifdef LOCK_IMAGE_FILES
-//    /* unlock image file */
-//    if (lockfd >= 0)
-//    {
-//      dcmtk_flock(lockfd, LOCK_UN);
-//      close(lockfd);
-//    }
-//#endif
+    if (cond.bad())
+    {
+        DCMQRDB_ERROR("Store SCP Failed: " << DimseCondition::dump(temp_str, cond));
+    }
 
     return cond;
 }
@@ -1083,6 +1103,8 @@ OFCondition DcmQueryRetrieveSCP::waitForAssociation(T_ASC_Network * theNet)
             }
             else
             {
+                // Prepare child process to generate mongodb OIDs
+                mongo::OID::justForked();
                 /* child process, handle the association */
                 cond = handleAssociation(assoc, options_.correctUIDPadding_);
                 /* the child process is done so exit */
@@ -1147,4 +1169,25 @@ DcmQueryRetrieveSCP
 ::get_db_name() const
 {
     return this->_db_name;
+}
+
+mongo::GridFS const &
+DcmQueryRetrieveSCP
+::get_grid_fs() const
+{
+    return *(this->_grid_fs);
+}
+
+mongo::GridFS &
+DcmQueryRetrieveSCP
+::get_grid_fs()
+{
+    return *(this->_grid_fs);
+}
+
+DcmQueryRetrieveOptions const &
+DcmQueryRetrieveSCP
+::get_options() const
+{
+    return this->options_;
 }
