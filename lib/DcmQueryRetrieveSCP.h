@@ -105,6 +105,11 @@ public:
 
   std::string const & get_db_name() const;
 
+  mongo::GridFS const & get_grid_fs() const;
+  mongo::GridFS & get_grid_fs();
+
+  DcmQueryRetrieveOptions const & get_options() const;
+
 private:
 
   /** perform association negotiation for an incoming A-ASSOCIATE request based
@@ -147,7 +152,6 @@ private:
     T_ASC_Association * assoc,
     T_DIMSE_C_StoreRQ * req,
     T_ASC_PresentationContextID presId,
-    DcmQueryRetrieveDatabaseHandle& dbHandle,
     OFBool correctUIDPadding);
 
   OFCondition dispatch(
