@@ -11,7 +11,9 @@
 
 #include <iconv.h>
 
-#include <mongo/bson/bson.h>
+// We should only include mongo/bson/bson.h, but this might cause compile-time
+// errors, cf. https://jira.mongodb.org/browse/SERVER-1273
+#include <mongo/db/jsobj.h>
 
 /**
  * @brief Convert a GDCM DataSet to a BSON object.
