@@ -5,9 +5,8 @@
 #include <set>
 #include <string>
 
-#include <gdcmDataElement.h>
-#include <gdcmDataSet.h>
-#include <gdcmVR.h>
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dctk.h>
 
 #include <iconv.h>
 
@@ -16,7 +15,7 @@
 #include <mongo/db/jsobj.h>
 
 /**
- * @brief Convert a GDCM DataSet to a BSON object.
+ * @brief Convert a DCMTK DataSet to a BSON object.
  */
 class DataSetToBSON
 {
@@ -42,12 +41,12 @@ public :
     Filter::Type const & get_filter() const;
     void set_filter(Filter::Type const & order);
 
-    void add_filtered_tag(gdcm::Tag const & tag);
-    void remove_filtered_tag(gdcm::Tag const & tag);
+    void add_filtered_tag(DcmTag const & tag);
+    void remove_filtered_tag(DcmTag const & tag);
     void clear_filtered_tags();
-    bool is_tag_filtered(gdcm::Tag const & tag) const;
+    bool is_tag_filtered(DcmTag const & tag) const;
 
-    void operator()(gdcm::DataSet const & dataset, mongo::BSONObjBuilder & builder);
+    void operator()(DcmObject * dataset, mongo::BSONObjBuilder & builder);
 
 private :
     static const std::map<std::string, std::string> _dicom_to_iconv;
@@ -55,51 +54,43 @@ private :
     iconv_t _converter;
 
     Filter::Type _filter;
-    std::set<gdcm::Tag> _filtered_tags;
+    std::set<DcmTag> _filtered_tags;
 
     /// @brief Generate a map from DICOM encoding to IConv encoding
     static std::map<std::string, std::string> _create_encoding_map();
 
     /// @brief Convert binary data from a DICOM element to BSON.
-    template<gdcm::VR::VRType VVR>
-    void _to_bson(char const * begin, char const * end,
-                  mongo::BSONArrayBuilder & builder) const;
+    template<DcmEVR VVR>
+    void _to_bson(DcmObject * element, mongo::BSONArrayBuilder & builder) const;
 
     /**
      * @brief Convert binary data from a text DICOM element.
      *
      * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI, UT
      */
-    void _to_bson_text(char const * begin, char const * end,
-                       mongo::BSONArrayBuilder & builder,
-                       bool trim_left, bool trim_right, std::string const & whitespace,
-                       bool multiple_items, bool use_utf8) const;
+    void _to_bson_text(DcmByteString * element, mongo::BSONArrayBuilder & builder,
+                       bool use_utf8) const;
 
     /**
      * @brief Convert binary data from a DICOM element to BSON binary data.
      *
      * This is used for OB, OF, OW, UN
      */
-    void _to_bson_binary(char const * begin, char const * end,
-                         mongo::BSONArrayBuilder & builder) const;
+    void _to_bson_binary(DcmElement * element, mongo::BSONArrayBuilder & builder) const;
 
     /**
-     * @brief Convert binary data from a DICOM element to BSON using a simple
-     * reinterpret_cast.
+     * @brief Convert binary data from a DICOM element to a BSON number.
      *
      * This is used for FD, FL, SL, SS, UL, US
      */
-    template<typename T>
-    void _to_bson_reinterpret_cast(char const * begin, char const * end,
-                                   mongo::BSONArrayBuilder & builder, gdcm::VR const & vr) const;
+    template<typename TValue>
+    void _to_bson_number(DcmElement * element, 
+        OFCondition (DcmElement::*getter)(TValue &, unsigned long),
+        mongo::BSONArrayBuilder & builder) const;
 
     // Since _to_bson is specialized and instantiated in _add_element,
     // this function must be declared after the the specializations.
-    void _add_element(gdcm::DataElement const & element,
-                      mongo::BSONObjBuilder & builder) const;
-
-    unsigned long _get_length(char const * begin, char const * end,
-                              gdcm::VR const & vr) const;
+    void _add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const;
 
 };
 

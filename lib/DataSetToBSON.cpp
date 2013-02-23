@@ -3,73 +3,11 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dctk.h>
+
 #include <errno.h>
 #include <iconv.h>
-
-#include <gdcmAttribute.h>
-#include <gdcmByteValue.h>
-#include <gdcmDataElement.h>
-#include <gdcmDataSet.h>
-#include <gdcmSequenceOfItems.h>
-#include <gdcmSmartPointer.h>
-#include <gdcmVM.h>
-#include <gdcmVR.h>
-
-template<typename TIterator1, typename TIterator2>
-TIterator1 find_first_not_of(TIterator1 first1, TIterator1 last1,
-                            TIterator2 first2, TIterator2 last2)
-{
-    TIterator1 it=first1;
-    while(it != last1)
-    {
-        if(std::find(first2, last2, *it) == last2)
-        {
-            break;
-        }
-        else
-        {
-            ++it;
-        }
-    }
-    return it;
-}
-
-template<typename TIterator1, typename TIterator2>
-TIterator1 find_last_not_of(TIterator1 first1, TIterator1 last1,
-                            TIterator2 first2, TIterator2 last2)
-{
-    if(first1 == last1)
-    {
-        // Empty sequence
-        return first1;
-    }
-    // If nothing is found,
-    TIterator1 result=last1;
-
-    // Start at the last element
-    TIterator1 it=last1;
-    --it;
-
-    while(it != first1)
-    {
-        if(std::find(first2, last2, *it) == last2)
-        {
-            result = it;
-            break;
-        }
-        --it;
-    }
-
-    // First element of the sequence
-    if(it == first1)
-    {
-        if(std::find(first2, last2, *it) == last2)
-        {
-            result = it;
-        }
-    }
-    return result;
-}
 
 std::map<std::string, std::string> const
 DataSetToBSON
@@ -117,7 +55,6 @@ DataSetToBSON
         next = specific_character_set.find_first_of(delimiters, current);
         std::string const element(
             specific_character_set.substr(current, next-current));
-        //std::cout << "'" << element << "'" << std::endl;
 
         std::map<std::string, std::string>::const_iterator encoding_it =
             this->_dicom_to_iconv.find(element);
@@ -168,14 +105,14 @@ DataSetToBSON
 
 void
 DataSetToBSON
-::add_filtered_tag(gdcm::Tag const & tag)
+::add_filtered_tag(DcmTag const & tag)
 {
     this->_filtered_tags.insert(tag);
 }
 
 void
 DataSetToBSON
-::remove_filtered_tag(gdcm::Tag const & tag)
+::remove_filtered_tag(DcmTag const & tag)
 {
     this->_filtered_tags.erase(tag);
 }
@@ -189,19 +126,20 @@ DataSetToBSON
 
 bool
 DataSetToBSON
-::is_tag_filtered(gdcm::Tag const & tag) const
+::is_tag_filtered(DcmTag const & tag) const
 {
     return (this->_filtered_tags.find(tag) == this->_filtered_tags.end());
 }
 
 void
 DataSetToBSON
-::operator()(gdcm::DataSet const & dataset, mongo::BSONObjBuilder & builder)
+::operator()(DcmObject * dataset, mongo::BSONObjBuilder & builder)
 {
-    for(gdcm::DataSet::ConstIterator it=dataset.Begin(); it!=dataset.End(); ++it)
+    DcmObject * it = NULL;
+    while(NULL != (it = dataset->nextInContainer(it)))
     {
         bool skip = false;
-        gdcm::Tag const & tag = it->GetTag();
+        DcmTag const & tag = it->getTag();
         if(this->_filter == Filter::INCLUDE)
         {
             if(this->_filtered_tags.find(tag) != this->_filtered_tags.end())
@@ -234,15 +172,17 @@ DataSetToBSON
             continue;
         }
 
-        uint16_t const tag_group = tag.GetGroup();
-        uint16_t const tag_element = tag.GetElement();
+        uint16_t const tag_group = tag.getGTag();
+        uint16_t const tag_element = tag.getETag();
 
         if(tag_group == 0x0008 && tag_element == 0x0005)
         {
             // Specific Character Set: setup internal iconv converter
-            gdcm::Attribute<0x0008,0x0005> attribute;
-            attribute.SetFromDataElement(*it);
-            this->set_specific_character_set(attribute.GetValue());
+            DcmCodeString * specific_character_set = 
+                dynamic_cast<DcmCodeString*>(it);
+            char* value;
+            specific_character_set->getString(value);
+            this->set_specific_character_set(value);
         }
 
         if(tag_element == 0)
@@ -252,7 +192,7 @@ DataSetToBSON
         }
         else
         {
-            this->_add_element(*it, builder);
+            this->_add_element(it, builder);
         }
     }
 }
@@ -301,304 +241,267 @@ DataSetToBSON
     return result;
 }
 
-template<gdcm::VR::VRType VVR>
-void
-DataSetToBSON::_to_bson(char const * begin, char const * end,
-                        mongo::BSONArrayBuilder & builder) const
-{
-    std::cout << "TODO " << gdcm::VR(VVR) << std::endl;
-}
-
 /*******************************************************************************
  * Specializations of DataSetToBSON::_to_bson for the different VRs.
  ******************************************************************************/
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::AE>(char const * begin, char const * end,
-                                      mongo::BSONArrayBuilder & builder) const
+DataSetToBSON::_to_bson<EVR_AE>(DcmObject * element,
+                                mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::AS>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_AS>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, false, false, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::AT>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_AT>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<uint32_t>(begin, end, builder, gdcm::VR::AT);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getUint32, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::CS>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_CS>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::DA>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_DA>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::DT>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_DT>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::DS>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_DS>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    unsigned long count = 1+std::count(begin, end, '\\');
+    DcmDecimalString * ds = dynamic_cast<DcmDecimalString*>(element);
+    unsigned long count = ds->getVM();
 
     if(count > 1)
     {
         mongo::BSONArrayBuilder sub_builder;
 
-        char const * item_begin = begin;
         for(unsigned long i=0; i<count; ++i)
         {
-            char const * item_end = std::find(item_begin, end, '\\');
-            this->_to_bson<gdcm::VR::DS>(item_begin, item_end, sub_builder);
-            if(item_end == end)
-            {
-                item_begin = item_end;
-            }
-            else
-            {
-                item_begin = item_end+1;
-            }
+            Float64 value;
+            ds->getFloat64(value, i);
+            sub_builder.append(value);
         }
 
         builder.append(sub_builder.arr());
     }
     else
     {
-        std::string const value(begin, end-begin);
-
-        char * old_numeric = setlocale(LC_NUMERIC, NULL);
-        setlocale(LC_NUMERIC, "C");
-        char* endptr;
-        double const d = std::strtod(value.c_str(), &endptr);
-        setlocale(LC_NUMERIC, old_numeric);
-
-        if(endptr == begin)
-        {
-            throw std::runtime_error("Cannot parse DS");
-        }
-
-        builder.append(d);
+        Float64 value;
+        ds->getFloat64(value, 0);
+        builder.append(value);
     }
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::FD>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_FD>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<double>(begin, end, builder, gdcm::VR::FD);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getFloat64, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::FL>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_FL>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<float>(begin, end, builder, gdcm::VR::FL);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getFloat32, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::IS>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_IS>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    unsigned long count = 1+std::count(begin, end, '\\');
+    DcmIntegerString * is = dynamic_cast<DcmIntegerString*>(element);
+    unsigned long count = is->getVM();
 
     if(count > 1)
     {
         mongo::BSONArrayBuilder sub_builder;
 
-        char const * item_begin = begin;
         for(unsigned long i=0; i<count; ++i)
         {
-            char const * item_end = std::find(item_begin, end, '\\');
-            this->_to_bson<gdcm::VR::IS>(item_begin, item_end, sub_builder);
-            if(item_end == end)
-            {
-                item_begin = item_end;
-            }
-            else
-            {
-                item_begin = item_end+1;
-            }
+            Sint32 value;
+            is->getSint32(value, i);
+            sub_builder.append(value);
         }
 
         builder.append(sub_builder.arr());
     }
     else
     {
-        std::string const value(begin, end-begin);
-
-        char * old_numeric = setlocale(LC_NUMERIC, NULL);
-        setlocale(LC_NUMERIC, "C");
-        char* endptr;
-        long const d = std::strtol(value.c_str(), &endptr, 10);
-        setlocale(LC_NUMERIC, old_numeric);
-
-        if(endptr == begin)
-        {
-            throw std::runtime_error("Cannot parse IS");
-        }
-
-        builder.append(static_cast<long long>(d));
+        Sint32 value;
+        is->getSint32(value, 0);
+        builder.append(value);
     }
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::LO>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_LO>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::LT>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_LT>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, false, true, " ", false, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::OB>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_OB>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_binary(begin, end, builder);
+    this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::OF>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_OF>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_binary(begin, end, builder);
+    this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::OW>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_OW>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_binary(begin, end, builder);
+    this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::PN>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_PN>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, false, true, " ", true, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::SH>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_SH>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::SL>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_SL>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<int32_t>(begin, end, builder, gdcm::VR::SL);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getSint32, builder);
 }
 
 // SQ is not processed here
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::SS>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_SS>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<int16_t>(begin, end, builder, gdcm::VR::SS);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getSint16, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::ST>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_ST>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, false, true, " ", false, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::TM>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_TM>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, " ", true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::UI>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_UI>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, true, true, std::string(1, '\0'), true, false);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::UL>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_UL>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<uint32_t>(begin, end, builder, gdcm::VR::UL);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getUint32, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::UN>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_UN>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_binary(begin, end, builder);
+    this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::US>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_US>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_reinterpret_cast<uint16_t>(begin, end, builder, gdcm::VR::US);
+    this->_to_bson_number(dynamic_cast<DcmElement*>(element), 
+        &DcmElement::getUint16, builder);
 }
 
 template<>
 void
-DataSetToBSON::_to_bson<gdcm::VR::UT>(char const * begin, char const * end,
+DataSetToBSON::_to_bson<EVR_UT>(DcmObject * element,
                                       mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_text(begin, end, builder, false, true, " ", false, true);
+    this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
 
 /*******************************************************************************
@@ -607,71 +510,30 @@ DataSetToBSON::_to_bson<gdcm::VR::UT>(char const * begin, char const * end,
 
 void
 DataSetToBSON::_to_bson_text(
-    char const * begin, char const * end, mongo::BSONArrayBuilder & builder,
-    bool trim_left, bool trim_right, std::string const & whitespace,
-    bool multiple_items, bool use_utf8) const
+    DcmByteString * element, mongo::BSONArrayBuilder & builder,
+    bool use_utf8) const
 {
-    if(multiple_items)
+    unsigned long count = element->getVM();
+
+    if(count > 1)
     {
-        unsigned long count = 1+std::count(begin, end, '\\');
-
-        if(count == 1)
-        {
-            this->_to_bson_text(begin, end, builder,
-                                trim_left, trim_right, whitespace, false, use_utf8);
-        }
-        else
-        {
-            mongo::BSONArrayBuilder sub_builder;
-
-            char const * item_begin = begin;
-            for(unsigned long i=0; i<count; ++i)
-            {
-                char const * item_end = std::find(item_begin, end, '\\');
-                this->_to_bson_text(item_begin, item_end, sub_builder,
-                                    trim_left, trim_right, whitespace, false, use_utf8);
-                if(item_end == end)
-                {
-                    item_begin = item_end;
-                }
-                else
-                {
-                    item_begin = item_end+1;
-                }
-            }
-
-            builder.append(sub_builder.arr());
-        }
+        // TODO
     }
     else
     {
-        // Single item
-        char const * value_begin=begin;
-        char const * value_end=end;
-        if(trim_left)
-        {
-            value_begin = find_first_not_of(begin, end, whitespace.begin(), whitespace.end());
-        }
-        if(trim_right)
-        {
-            value_end = find_last_not_of(begin, end, whitespace.begin(), whitespace.end());
-            if(value_end != end)
-            {
-                ++value_end;
-            }
-        }
-
+        OFString value;
+        element->getOFString(value, 0);
         char* buffer = NULL;
         if(use_utf8)
         {
-            unsigned long size = value_end-value_begin;
+            unsigned long size = value.size();
             unsigned long buffer_size = size*4; // worst case: ascii->UCS-32
             buffer = new char[buffer_size];
             std::fill(buffer, buffer+buffer_size, 0);
 
             size_t inbytesleft=size;
             size_t outbytesleft=buffer_size;
-            char* inbuf = const_cast<char*>(value_begin);
+            char* inbuf = const_cast<char*>(&value[0]);
             char* outbuf = buffer;
 
             size_t const result = iconv(this->_converter,
@@ -681,12 +543,10 @@ DataSetToBSON::_to_bson_text(
                 throw std::runtime_error(std::string("iconv error ")+strerror(errno));
             }
 
-            value_begin = buffer;
-            value_end = buffer+buffer_size-outbytesleft;
+            value = OFString(buffer, buffer_size-outbytesleft);
         }
 
-        std::string const value(value_begin, value_end-value_begin);
-        builder.append(value);
+        builder.append(std::string(value.c_str()));
 
         if(use_utf8)
         {
@@ -695,165 +555,113 @@ DataSetToBSON::_to_bson_text(
     }
 }
 
-template<typename T>
+template<typename TValue>
 void
-DataSetToBSON::_to_bson_reinterpret_cast(char const * begin, char const * end,
-                                         mongo::BSONArrayBuilder & builder, gdcm::VR const & vr) const
+DataSetToBSON::_to_bson_number(DcmElement * element,
+    OFCondition (DcmElement::*getter)(TValue &, unsigned long),
+    mongo::BSONArrayBuilder & builder) const
 {
-    unsigned long const count = (end-begin)/vr.GetSize();
-    if(count>1)
+    unsigned long count = element->getVM();
+    if(count > 1)
     {
         mongo::BSONArrayBuilder sub_builder;
-
-        char const * item_begin = begin;
-        for(unsigned int i=0; i<count; ++i)
+        for(unsigned long i=0; i<count; ++i)
         {
-            char const * item_end = item_begin+this->_get_length(item_begin, end, vr);
-            this->_to_bson_reinterpret_cast<T>(item_begin, item_end, sub_builder, vr);
-            item_begin = item_end;
+            TValue value;
+            (element->*getter)(value, i);
+            sub_builder.append(value);
         }
         builder.append(sub_builder.arr());
-    }
-    else if(count == 1)
-    {
-        builder.append(*reinterpret_cast<T const *>(begin));
-    }
+    }   
     else
-    {
-        // This should not happen.
-        // Do nothing.
-    }
+    {   
+        TValue value;
+        (element->*getter)(value, 0);
+        builder.append(value);
+    }   
 }
 
 void
-DataSetToBSON::_to_bson_binary(char const * begin, char const * end,
+DataSetToBSON::_to_bson_binary(DcmElement * element,
                                mongo::BSONArrayBuilder & builder) const
 {
+
+    char* begin;
+    element->getString(begin);
     mongo::BSONObjBuilder binary_data_builder;
-    binary_data_builder.appendBinData("data", end-begin, mongo::BinDataGeneral, begin);
+    binary_data_builder.appendBinData("data", element->getVM(), 
+                                      mongo::BinDataGeneral, begin);
     builder.append(binary_data_builder.obj().getField("data"));
+
 }
 
 void
 DataSetToBSON
-::_add_element(gdcm::DataElement const & element, mongo::BSONObjBuilder & builder) const
+::_add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const
 {
-    gdcm::VR const vr = element.GetVR();
+    DcmEVR const vr(element->getVR());
 
     mongo::BSONArrayBuilder value_builder;
-    value_builder.append(gdcm::VR::GetVRString(vr));
+    value_builder.append(DcmVR(vr).getValidVRName());
 
-    if(vr == gdcm::VR::SQ)
+    if(vr == EVR_SQ)
     {
-        gdcm::SmartPointer<gdcm::SequenceOfItems> sequence = element.GetValueAsSQ();
+        DcmSequenceOfItems * sequence = dynamic_cast<DcmSequenceOfItems*>(element);
         mongo::BSONArrayBuilder sequence_builder;
 
-        for(gdcm::SequenceOfItems::ConstIterator sequence_it=sequence->Begin();
-            sequence_it!=sequence->End(); ++sequence_it)
+        DcmObject * sequence_it = NULL;
+        while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
             mongo::BSONObjBuilder item_builder;
             DataSetToBSON converter;
             converter.set_specific_character_set(this->get_specific_character_set());
-            converter(sequence_it->GetNestedDataSet(), item_builder);
+            converter(sequence_it, item_builder);
             sequence_builder.append(item_builder.obj());
         }
         value_builder.append(sequence_builder.arr());
     }
-    else if(element.GetByteValue() == NULL)
+    else if(element->getLength() == 0)
     {
         value_builder.appendNull();
     }
     else
     {
-        char const * begin = element.GetByteValue()->GetPointer();
-        char const * end = begin+element.GetByteValue()->GetLength();
-        if(vr == gdcm::VR::AE) this->_to_bson<gdcm::VR::AE>(begin, end, value_builder);
-        else if(vr == gdcm::VR::AS) this->_to_bson<gdcm::VR::AS>(begin, end, value_builder);
-        else if(vr == gdcm::VR::AT) this->_to_bson<gdcm::VR::AT>(begin, end, value_builder);
-        else if(vr == gdcm::VR::CS) this->_to_bson<gdcm::VR::CS>(begin, end, value_builder);
-        else if(vr == gdcm::VR::DA) this->_to_bson<gdcm::VR::DA>(begin, end, value_builder);
-        else if(vr == gdcm::VR::DT) this->_to_bson<gdcm::VR::DT>(begin, end, value_builder);
-        else if(vr == gdcm::VR::DS) this->_to_bson<gdcm::VR::DS>(begin, end, value_builder);
-        else if(vr == gdcm::VR::FD) this->_to_bson<gdcm::VR::FD>(begin, end, value_builder);
-        else if(vr == gdcm::VR::FL) this->_to_bson<gdcm::VR::FL>(begin, end, value_builder);
-        else if(vr == gdcm::VR::IS) this->_to_bson<gdcm::VR::IS>(begin, end, value_builder);
-        else if(vr == gdcm::VR::LO) this->_to_bson<gdcm::VR::LO>(begin, end, value_builder);
-        else if(vr == gdcm::VR::LT) this->_to_bson<gdcm::VR::LT>(begin, end, value_builder);
-        else if(vr == gdcm::VR::OB) this->_to_bson<gdcm::VR::OB>(begin, end, value_builder);
-        else if(vr == gdcm::VR::OF) this->_to_bson<gdcm::VR::OF>(begin, end, value_builder);
-        else if(vr == gdcm::VR::OW) this->_to_bson<gdcm::VR::OW>(begin, end, value_builder);
-        else if(vr == gdcm::VR::PN) this->_to_bson<gdcm::VR::PN>(begin, end, value_builder);
-        else if(vr == gdcm::VR::SH) this->_to_bson<gdcm::VR::SH>(begin, end, value_builder);
+        if(vr == EVR_AE) this->_to_bson<EVR_AE>(element, value_builder);
+        else if(vr == EVR_AS) this->_to_bson<EVR_AS>(element, value_builder);
+        else if(vr == EVR_AT) this->_to_bson<EVR_AT>(element, value_builder);
+        else if(vr == EVR_CS) this->_to_bson<EVR_CS>(element, value_builder);
+        else if(vr == EVR_DA) this->_to_bson<EVR_DA>(element, value_builder);
+        else if(vr == EVR_DT) this->_to_bson<EVR_DT>(element, value_builder);
+        else if(vr == EVR_DS) this->_to_bson<EVR_DS>(element, value_builder);
+        else if(vr == EVR_FD) this->_to_bson<EVR_FD>(element, value_builder);
+        else if(vr == EVR_FL) this->_to_bson<EVR_FL>(element, value_builder);
+        else if(vr == EVR_IS) this->_to_bson<EVR_IS>(element, value_builder);
+        else if(vr == EVR_LO) this->_to_bson<EVR_LO>(element, value_builder);
+        else if(vr == EVR_LT) this->_to_bson<EVR_LT>(element, value_builder);
+        else if(vr == EVR_OB) this->_to_bson<EVR_OB>(element, value_builder);
+        else if(vr == EVR_OF) this->_to_bson<EVR_OF>(element, value_builder);
+        else if(vr == EVR_OW) this->_to_bson<EVR_OW>(element, value_builder);
+        else if(vr == EVR_PN) this->_to_bson<EVR_PN>(element, value_builder);
+        else if(vr == EVR_SH) this->_to_bson<EVR_SH>(element, value_builder);
         // SQ is not processed here
-        else if(vr == gdcm::VR::SL) this->_to_bson<gdcm::VR::SL>(begin, end, value_builder);
-        else if(vr == gdcm::VR::SS) this->_to_bson<gdcm::VR::SS>(begin, end, value_builder);
-        else if(vr == gdcm::VR::ST) this->_to_bson<gdcm::VR::ST>(begin, end, value_builder);
-        else if(vr == gdcm::VR::TM) this->_to_bson<gdcm::VR::TM>(begin, end, value_builder);
-        else if(vr == gdcm::VR::UI) this->_to_bson<gdcm::VR::UI>(begin, end, value_builder);
-        else if(vr == gdcm::VR::UL) this->_to_bson<gdcm::VR::UL>(begin, end, value_builder);
-        else if(vr == gdcm::VR::UN) this->_to_bson<gdcm::VR::UN>(begin, end, value_builder);
-        else if(vr == gdcm::VR::US) this->_to_bson<gdcm::VR::US>(begin, end, value_builder);
-        else if(vr == gdcm::VR::UT) this->_to_bson<gdcm::VR::UT>(begin, end, value_builder);
+        else if(vr == EVR_SL) this->_to_bson<EVR_SL>(element, value_builder);
+        else if(vr == EVR_SS) this->_to_bson<EVR_SS>(element, value_builder);
+        else if(vr == EVR_ST) this->_to_bson<EVR_ST>(element, value_builder);
+        else if(vr == EVR_TM) this->_to_bson<EVR_TM>(element, value_builder);
+        else if(vr == EVR_UI) this->_to_bson<EVR_UI>(element, value_builder);
+        else if(vr == EVR_UL) this->_to_bson<EVR_UL>(element, value_builder);
+        else if(vr == EVR_UN) this->_to_bson<EVR_UN>(element, value_builder);
+        else if(vr == EVR_US) this->_to_bson<EVR_US>(element, value_builder);
+        else if(vr == EVR_UT) this->_to_bson<EVR_UT>(element, value_builder);
         else
         {
-            throw std::runtime_error(std::string("Unhandled VR:") + gdcm::VR::GetVRString(vr));
+            throw std::runtime_error(std::string("Unhandled VR:") + DcmVR(vr).getValidVRName());
         }
     }
 
     static char buffer[9];
-    snprintf(buffer, 9, "%08x", element.GetTag().GetElementTag());
+    snprintf(buffer, 9, "%04x%04x", element->getGTag(), element->getETag());
 
     builder << buffer << value_builder.arr();
 }
 
-unsigned long
-DataSetToBSON
-::_get_length(char const * begin, char const * end, gdcm::VR const & vr) const
-{
-    if(vr & (gdcm::VR::AE | gdcm::VR::AS | gdcm::VR::CS | gdcm::VR::DA |
-             gdcm::VR::DS | gdcm::VR::DT | gdcm::VR::IS | gdcm::VR::LO |
-             gdcm::VR::PN | gdcm::VR::SH | gdcm::VR::TM | gdcm::VR::UI))
-    {
-        char const * value_end = std::find(begin, end, '\\');
-        return (value_end-begin);
-    }
-    else if(vr & (gdcm::VR::LT | gdcm::VR::ST | gdcm::VR::UT))
-    {
-        // LT, ST and UT may not be multi-valued
-        return 1;
-    }
-    else if(vr == gdcm::VR::AT)
-    {
-        return 4;
-    }
-    else if(vr == gdcm::VR::FD)
-    {
-        return 8;
-    }
-    else if(vr == gdcm::VR::FL)
-    {
-        return 4;
-    }
-    else if(vr == gdcm::VR::SL)
-    {
-        return 4;
-    }
-    else if(vr == gdcm::VR::SS)
-    {
-        return 2;
-    }
-    else if(vr == gdcm::VR::UL)
-    {
-        return 4;
-    }
-    else if(vr == gdcm::VR::US)
-    {
-        return 2;
-    }
-    else
-    {
-        std::ostringstream message;
-        message << "Cannot get length for VR " << vr;
-        throw std::runtime_error(message.str());
-    }
-}
