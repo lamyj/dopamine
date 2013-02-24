@@ -1,17 +1,15 @@
 #ifndef _a97264d3_b54b_494b_93a8_1a595dd06f8a
 #define _a97264d3_b54b_494b_93a8_1a595dd06f8a
 
-#include <vector>
-#include <stdint.h>
-
-#include <gdcmDataSet.h>
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dctk.h>
 
 #include <iconv.h>
 
 #include <mongo/bson/bson.h>
 
 /**
- * Convert a BSON object to a GDCM DataSet.
+ * Convert a BSON object to a DCMTK DataSet.
  */
 class BSONToDataSet
 {
@@ -23,25 +21,30 @@ public :
     std::string get_specific_character_set() const;
     void set_specific_character_set(std::string const & specific_character_set);
 
-    gdcm::DataSet operator()(mongo::BSONObj const & bson);
+    DcmDataset operator()(mongo::BSONObj const & bson);
 private :
     std::string _specific_character_set;
     iconv_t _converter;
 
     void _add_element(mongo::BSONElement const & bson,
-                      gdcm::DataSet & data_set);
+                      DcmDataset & dataset);
 
-    template<gdcm::VR::VRType VVR>
-    std::vector<uint8_t> _to_gdcm(mongo::BSONElement const & bson) const;
+    template<DcmEVR VVR>
+    void _to_dcmtk(mongo::BSONElement const & bson, 
+        DcmDataset & dataset, DcmTag const & tag) const;
 
-    std::vector<uint8_t> _to_gdcm_text(mongo::BSONElement const & bson,
-                                       bool use_utf8, char padding, bool add_padding=true) const;
-    template<typename T>
-    std::vector<uint8_t> _to_gdcm_binary(mongo::BSONElement const & bson) const;
+    void _to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
+                  DcmDataset & dataset, DcmTag const & tag) const;
 
-    std::vector<uint8_t> _to_gdcm_raw(mongo::BSONElement const & bson) const;
+    template<typename TInserter, typename TBSONGetter>
+    void _to_binary(mongo::BSONElement const & bson, TBSONGetter getter,
+        DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const;
 
-    std::vector<uint8_t> _to_gdcm_number_string(mongo::BSONElement const & bson, bool add_padding=true) const;
+    void _to_raw(mongo::BSONElement const & bson, DcmDataset & dataset,
+                 DcmTag const & tag) const;
+
+    void _to_number_string(mongo::BSONElement const & bson, 
+                                DcmDataset & dataset, DcmTag const & tag) const;
 };
 
 #endif // _a97264d3_b54b_494b_93a8_1a595dd06f8a
