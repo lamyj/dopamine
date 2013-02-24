@@ -517,7 +517,42 @@ DataSetToBSON::_to_bson_text(
 
     if(count > 1)
     {
-        // TODO
+        mongo::BSONArrayBuilder sub_builder;
+        for(unsigned long i=0; i<count; ++i)
+        {
+            OFString value;
+            element->getOFString(value, i);
+            char* buffer = NULL;
+            if(use_utf8)
+            {
+                unsigned long size = value.size();
+                unsigned long buffer_size = size*4; // worst case: ascii->UCS-32
+                buffer = new char[buffer_size];
+                std::fill(buffer, buffer+buffer_size, 0);
+
+                size_t inbytesleft=size;
+                size_t outbytesleft=buffer_size;
+                char* inbuf = const_cast<char*>(&value[0]);
+                char* outbuf = buffer;
+
+                size_t const result = iconv(this->_converter,
+                    &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+                if(result == size_t(-1))
+                {
+                    throw std::runtime_error(std::string("iconv error ")+strerror(errno));
+                }
+
+                value = OFString(buffer, buffer_size-outbytesleft);
+            }
+
+            sub_builder.append(std::string(value.c_str()));
+
+            if(use_utf8)
+            {
+                delete[] buffer;
+            }
+        }
+        builder.append(sub_builder.arr());
     }
     else
     {
