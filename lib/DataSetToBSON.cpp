@@ -621,10 +621,10 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
                                mongo::BSONArrayBuilder & builder) const
 {
 
-    char* begin;
-    element->getString(begin);
+    Uint8* begin(NULL);
+    element->getUint8Array(begin);
     mongo::BSONObjBuilder binary_data_builder;
-    binary_data_builder.appendBinData("data", element->getVM(), 
+    binary_data_builder.appendBinData("data", element->getLength(), 
                                       mongo::BinDataGeneral, begin);
     builder.append(binary_data_builder.obj().getField("data"));
 
