@@ -59,7 +59,7 @@ FindResponseGenerator
 
     // Always include the keys for the query level.
     OFString ofstring;
-    query.findAndGetOFString(DcmTag(0x0008, 0x0052), ofstring);
+    query.findAndGetOFString(DCM_QueryRetrieveLevel, ofstring);
     this->_query_retrieve_level = std::string(ofstring.c_str());
     if(this->_query_retrieve_level=="PATIENT " && !fields_builder.hasField("00100020"))
     {
@@ -111,7 +111,8 @@ FindResponseGenerator
     {
         BSONToDataSet bson_to_dataset;
         DcmDataset dataset = bson_to_dataset(item);
-        dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel, this->_query_retrieve_level.c_str());
+        dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
+                                          this->_query_retrieve_level.c_str());
 
         (*responseIdentifiers) = new DcmDataset(dataset);
 

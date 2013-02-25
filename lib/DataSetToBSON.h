@@ -68,15 +68,16 @@ private :
      *
      * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI, UT
      */
-    void _to_bson_text(DcmByteString * element, mongo::BSONArrayBuilder & builder,
-                       bool use_utf8) const;
+    void _to_bson_text(DcmByteString * element,
+                       mongo::BSONArrayBuilder & builder, bool use_utf8) const;
 
     /**
      * @brief Convert binary data from a DICOM element to BSON binary data.
      *
      * This is used for OB, OF, OW, UN
      */
-    void _to_bson_binary(DcmElement * element, mongo::BSONArrayBuilder & builder) const;
+    void _to_bson_binary(DcmElement * element,
+                         mongo::BSONArrayBuilder & builder) const;
 
     /**
      * @brief Convert binary data from a DICOM element to a BSON number.
