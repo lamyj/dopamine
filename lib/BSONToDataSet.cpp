@@ -3,8 +3,6 @@
 #include <locale>
 #include <sstream>
 #include <stdexcept>
-#include <stdint.h>
-#include <typeinfo>
 
 #include <errno.h>
 #include <iconv.h>
@@ -185,20 +183,20 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_FD>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Double,
-                          dataset, tag, &DcmDataset::putAndInsertFloat64);
+    this->_to_binary(bson, &mongo::BSONElement::Double, dataset, tag,
+                     &DcmDataset::putAndInsertFloat64);
 }
 
 template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_FL>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Double,
-                          dataset, tag, &DcmDataset::putAndInsertFloat32);
+    this->_to_binary(bson, &mongo::BSONElement::Double, dataset, tag,
+                     &DcmDataset::putAndInsertFloat32);
 }
 
 template<>
@@ -232,7 +230,7 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_OB>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                          DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
     this->_to_raw(bson, dataset, tag);
 }
@@ -241,7 +239,7 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_OF>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                          DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
     this->_to_raw(bson, dataset, tag);
 }
@@ -250,7 +248,7 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_OW>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                          DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
     this->_to_raw(bson, dataset, tag);
 }
@@ -277,10 +275,10 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_SL>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, 
-                          dataset, tag, &DcmDataset::putAndInsertSint32);
+    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
+                     &DcmDataset::putAndInsertSint32);
 }
 
 // SQ is not processed here
@@ -289,10 +287,10 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_SS>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, 
-                          dataset, tag, &DcmDataset::putAndInsertSint16);
+    this->_to_binary(bson, &mongo::BSONElement::Int,  dataset, tag,
+                     &DcmDataset::putAndInsertSint16);
 }
 
 template<>
@@ -327,17 +325,17 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_UL>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, 
-                          dataset, tag, &DcmDataset::putAndInsertUint32);
+    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
+                     &DcmDataset::putAndInsertUint32);
 }
 
 template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_UN>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                          DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
     this->_to_raw(bson, dataset, tag);
 }
@@ -346,10 +344,10 @@ template<>
 void
 BSONToDataSet
 ::_to_dcmtk<EVR_US>(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, 
-                          dataset, tag, &DcmDataset::putAndInsertUint16);
+    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
+                     &DcmDataset::putAndInsertUint16);
 }
 
 template<>
@@ -523,9 +521,8 @@ BSONToDataSet
 template<typename TInserter, typename TBSONGetter>
 void
 BSONToDataSet
-::_to_binary(
-    mongo::BSONElement const & bson, TBSONGetter getter,
-    DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const
+::_to_binary(mongo::BSONElement const & bson, TBSONGetter getter,
+             DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const
 {
     if(bson.isABSONObj())
     {
@@ -556,7 +553,7 @@ BSONToDataSet
 void
 BSONToDataSet
 ::_to_number_string(mongo::BSONElement const & bson, DcmDataset & dataset,
-                         DcmTag const & tag) const
+                    DcmTag const & tag) const
 {
     std::ostringstream stream;
     stream.imbue(std::locale("C"));

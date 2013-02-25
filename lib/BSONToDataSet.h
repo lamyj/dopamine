@@ -1,6 +1,8 @@
 #ifndef _a97264d3_b54b_494b_93a8_1a595dd06f8a
 #define _a97264d3_b54b_494b_93a8_1a595dd06f8a
 
+#include <string>
+
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
@@ -31,20 +33,21 @@ private :
 
     template<DcmEVR VVR>
     void _to_dcmtk(mongo::BSONElement const & bson, 
-        DcmDataset & dataset, DcmTag const & tag) const;
+                   DcmDataset & dataset, DcmTag const & tag) const;
 
     void _to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
                   DcmDataset & dataset, DcmTag const & tag) const;
 
     template<typename TInserter, typename TBSONGetter>
     void _to_binary(mongo::BSONElement const & bson, TBSONGetter getter,
-        DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const;
+                    DcmDataset & dataset, DcmTag const & tag,
+                    TInserter inserter) const;
 
     void _to_raw(mongo::BSONElement const & bson, DcmDataset & dataset,
                  DcmTag const & tag) const;
 
     void _to_number_string(mongo::BSONElement const & bson, 
-                                DcmDataset & dataset, DcmTag const & tag) const;
+                           DcmDataset & dataset, DcmTag const & tag) const;
 };
 
 #endif // _a97264d3_b54b_494b_93a8_1a595dd06f8a
