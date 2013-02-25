@@ -28,11 +28,6 @@
 #include <dcmtk/dcmdata/dcmetinf.h>
 #include <dcmtk/dcmnet/diutil.h>
 
-#include <gdcmDataSet.h>
-#include <gdcmFileMetaInformation.h>
-#include <gdcmImplicitDataElement.h>
-#include <gdcmWriter.h>
-
 #include "DataSetToBSON.h"
 #include "DcmQueryRetrieveSCP.h"
 #include "FindResponseGenerator.h"
@@ -191,40 +186,24 @@ static void storeCallback(
             // Create a temporary file
             char * filename = tempnam(NULL, NULL);
 
-            // Save the DCMTK dataset to the temporary file
-            (*imageDataSet)->saveFile(filename, EXS_LittleEndianExplicit);
-            // Re-read it as a GDCM dataset
-            gdcm::DataSet gdcm_dataset;
-            {
-                std::ifstream stream(filename);
-                gdcm_dataset.Read<gdcm::ExplicitDataElement, gdcm::SwapperNoOp>(stream);
-            }
-
-            // Convert the GDCM dataset to BSON
+            // Convert the dcmtk dataset to BSON
             DataSetToBSON converter;
             converter.set_filter(DataSetToBSON::Filter::EXCLUDE);
-            converter.add_filtered_tag(0x7fe00010);
+            converter.add_filtered_tag(DcmTag(0x7fe0, 0x0010));
             mongo::BSONObjBuilder builder;
-            converter(gdcm_dataset, builder);
+            converter(*imageDataSet, builder);
 
             // Store it in the Mongo DB instance
             mongo::OID const id(mongo::OID::gen());
-            std::cout << id << std::endl;
             builder << "_id" << id;
 
             // Create the header of the new file
-            gdcm::FileMetaInformation header;
-            header.SetDataSetTransferSyntax(gdcm::TransferSyntax::ExplicitVRLittleEndian);
-            header.SetSourceApplicationEntityTitle(
-                reinterpret_cast<StoreCallbackData*>(callbackData)->source_application_entity_title.c_str());
-            header.FillFromDataSet(gdcm_dataset);
+            DcmFileFormat file_format(*imageDataSet);
+            file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle, 
+               reinterpret_cast<StoreCallbackData*>(callbackData)->source_application_entity_title.c_str());
 
             // Write the new file
-            gdcm::Writer writer;
-            writer.GetFile().SetHeader(header);
-            writer.GetFile().SetDataSet(gdcm_dataset);
-            writer.SetFileName(filename);
-            writer.Write();
+            file_format.saveFile(filename, EXS_LittleEndianImplicit);
 
             // Store it in the gridfs
             scp->get_connection().insert(scp->get_db_name()+".datasets", builder.obj());

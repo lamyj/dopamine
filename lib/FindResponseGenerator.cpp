@@ -13,10 +13,6 @@
 #include <dcmtk/dcmnet/dimse.h>
 #include <dcmtk/ofstd/ofcond.h>
 
-#include <gdcmDataElement.h>
-#include <gdcmDataSet.h>
-#include <gdcmImplicitDataElement.h>
-
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
 
@@ -28,27 +24,12 @@ FindResponseGenerator
                         mongo::DBClientConnection & connection,
                         std::string const & db_name)
 {
-    // Save the DCMTK query dataset to a temporary file
-    char * filename = tempnam(NULL, NULL);
-    query.saveFile(filename, EXS_LittleEndianImplicit);
-    // Re-load it as a GDCM dataset
-    gdcm::DataSet query_gdcm;
-    {
-        std::ifstream stream(filename);
-        query_gdcm.Read<gdcm::ImplicitDataElement, gdcm::SwapperNoOp>(stream);
-    }
-    // Clean up temporary file
-    {
-        unlink(filename);
-        free(filename);
-    }
-
-    // Convert the GDCM dataset to BSON, excluding Query/Retrieve Level.
+    // Convert the dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
     dataset_to_bson.set_filter(DataSetToBSON::Filter::EXCLUDE);
-    dataset_to_bson.add_filtered_tag(0x00080052);
+    dataset_to_bson.add_filtered_tag(DcmTag(0x0008, 0x0052));
     mongo::BSONObjBuilder query_builder;
-    dataset_to_bson(query_gdcm, query_builder);
+    dataset_to_bson(&query, query_builder);
     mongo::BSONObj const query_dataset = query_builder.obj();
 
     // Build the MongoDB query and query fields from the query dataset.
@@ -77,10 +58,9 @@ FindResponseGenerator
     }
 
     // Always include the keys for the query level.
-    gdcm::DataElement const & query_retrieve_level = query_gdcm.GetDataElement(0x00080052);
-    this->_query_retrieve_level = std::string(
-        query_retrieve_level.GetByteValue()->GetPointer(),
-        query_retrieve_level.GetByteValue()->GetLength());
+    OFString ofstring;
+    query.findAndGetOFString(DcmTag(0x0008, 0x0052), ofstring);
+    this->_query_retrieve_level = std::string(ofstring.c_str());
     if(this->_query_retrieve_level=="PATIENT " && !fields_builder.hasField("00100020"))
     {
         fields_builder << "00100020" << 1;
@@ -130,31 +110,10 @@ FindResponseGenerator
     else
     {
         BSONToDataSet bson_to_dataset;
-        gdcm::DataSet dataset = bson_to_dataset(item);
-        gdcm::DataElement query_retrieve_level(0x00080052, 0, gdcm::VR::CS);
-        query_retrieve_level.SetByteValue(&this->_query_retrieve_level[0],
-                                          this->_query_retrieve_level.size());
-        dataset.Insert(query_retrieve_level);
+        DcmDataset dataset = bson_to_dataset(item);
+        dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel, this->_query_retrieve_level.c_str());
 
-        char * filename = tempnam(NULL, NULL);
-        // Write to a temporary file
-        {
-            // Only write dataset, no header
-            std::ofstream stream(filename);
-            dataset.Write<gdcm::ImplicitDataElement, gdcm::SwapperNoOp>(stream);
-        }
-
-        // Load as DCMTK
-        {
-            (*responseIdentifiers) = new DcmDataset();
-            (*responseIdentifiers)->loadFile(filename, EXS_LittleEndianImplicit);
-        }
-
-        // Remove temporary file
-        {
-            unlink(filename);
-            free(filename);
-        }
+        (*responseIdentifiers) = new DcmDataset(dataset);
 
         this->_status = STATUS_Pending;
 
