@@ -21,10 +21,30 @@ public :
     OFCondition next(DcmDataset ** responseIdentifiers);
     void cancel();
 private :
+    /// @brief DICOM match type, see PS 3.4-2011, C.2.2.2
+    struct Match
+    {
+        enum Type
+        {
+            SingleValue,
+            ListOfUID,
+            Universal,
+            WildCard,
+            Range,
+            Sequence,
+            MultipleValues,
+            Unknown
+        };
+    };
+    
     DIC_US _status;
     std::string _query_retrieve_level;
     mongo::auto_ptr<mongo::DBClientCursor> _cursor;
     std::set<mongo::BSONObj> _distinct_items;
+    
+    /// @brief Return the DICOM Match Type of an element in BSON form.
+    Match::Type _get_match_type(std::string const & vr, 
+                                mongo::BSONElement const & element) const;
 };
 
 #endif // _ee9915a2_a504_4b21_8d43_7938c66c526e
