@@ -43,11 +43,58 @@ FindResponseGenerator
         // Always include the field in the results
         fields_builder << element.fieldName() << 1;
 
-        // TODO : transform DICOM query language to MongoDB
         // Add the field to the query only if non-null
-        if(!array[1].isNull())
+        mongo::BSONElement const & value = array[1];
+        if(!value.isNull())
         {
-            db_query << element.fieldName() << array[1];
+            std::string const vr = array[0].String();
+            Match::Type const match_type = this->_get_match_type(vr, value);
+            
+            std::string const field = element.fieldName();
+            
+            if(match_type == Match::SingleValue)
+            {
+                db_query << field << value.String();
+            }
+            else if(match_type == Match::WildCard)
+            {
+                // Convert to PCRE
+                std::string regex = value.String();
+                // Convert "*" to ".*"
+                size_t begin=0;
+                while(std::string::npos != (begin=regex.find("*", begin)))
+                {
+                    regex = regex.replace(begin, 1, ".*");
+                    begin = (begin+2<regex.size())?begin+2:std::string::npos;
+                }
+                // Convert "?" to "."
+                begin=0;
+                while(std::string::npos != (begin=regex.find("?", begin)))
+                {
+                    regex = regex.replace(begin, 1, ".");
+                    begin = (begin+1<regex.size())?begin+1:std::string::npos;
+                }
+                // Add the start and end anchors
+                regex = "^"+regex+"$";
+                
+                // Use case-insensitive match for PN
+                db_query.appendRegex(field, regex, (vr=="PN")?"i":"");
+            }
+            else
+            {
+                // Leave as-is
+                db_query << field << value.String();
+            }
+            // C.2.2.2.2 List of UID Matching
+            //   Each UID in the list may generate a match
+            // C.2.2.2.3 Universal Matching
+            //   All entities shall match this attribute
+            // C.2.2.2.5 Range Matching
+            //   TODO
+            // C.2.2.2.6 Sequence Matching
+            //   TODO
+            // C.2.2.3 Matching Multiple Values
+            //   If any of the values match, all values shall be returned
         }
     }
 
@@ -129,4 +176,67 @@ FindResponseGenerator
 ::cancel()
 {
     std::cout << "TODO : FindResponseGenerator::cancel()" << std::endl;
+}
+
+FindResponseGenerator::Match::Type 
+FindResponseGenerator
+::_get_match_type(std::string const & vr, 
+                  mongo::BSONElement const & element) const
+{
+    Match::Type type = Match::Unknown;
+    
+    if(element.isNull())
+    {
+        // C.2.2.2.3 Universal Matching
+        // Value is zero-length
+        type = Match::Universal;
+    }
+    else
+    {
+        bool const is_date_or_time = (vr == "DA" || vr == "DT" || vr == "TM");
+        bool const has_wildcard_matching = (!is_date_or_time &&
+            vr != "SL" && vr != "SS" && vr != "UL" && vr != "UL" &&
+            vr != "FD" && vr != "FL" &&
+            vr != "OB" && vr != "OF" && vr != "OW" && vr != "UN" &&
+            vr != "DS" && vr != "US" &&
+            vr != "UI");
+        if(element.type() == mongo::String)
+        {
+            std::string value(element);
+            // Not a date or time, no wildcard AND date or time, no range
+            if(!(!is_date_or_time && value.find_first_of("?*") != std::string::npos) && 
+               !(is_date_or_time && value.find('-') != std::string::npos))
+            {
+                // C.2.2.2.1 Single Value Matching
+                // Non-zero length AND 
+                //   not a date or time or datetime, contains no wildcard OR
+                //   a date or time or datetime, contains a single date or time 
+                //   or datetime with not "-"
+                type = Match::SingleValue;
+            }
+            else if(has_wildcard_matching && value.find_first_of("?*") != std::string::npos)
+            {
+                // C.2.2.2.4 Wild Card Matching
+                // Not a date, time, datetime, SL, SL, UL, US, FL, FD, OB, 
+                // OW, UN, AT, DS, IS, AS, UI and Value contains "*" or "?"
+                type = Match::WildCard;
+            }
+            else if(is_date_or_time && value.find('-') != std::string::npos)
+            {
+                // C.2.2.2.5 Range Matching
+                // Date, time or datetime, contains "-"
+                type = Match::Range;
+            }
+        }
+        else if(element.type() == mongo::Array && vr == "UI")
+        {
+            // C.2.2.2.2 List of UID Matching
+            type = Match::ListOfUID;
+        }
+    }
+    
+    // TODO : sequence matching
+    // TODO : multiple values matching
+    
+    return type;
 }
