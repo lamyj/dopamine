@@ -19,6 +19,21 @@
 #include "BSONToDataSet.h"
 #include "DataSetToBSON.h"
 
+std::string replace(std::string const & value, std::string const & old, 
+                    std::string const & new_)
+{
+    std::string result(value);
+    size_t begin=0;
+    while(std::string::npos != (begin=result.find(old, begin)))
+    {
+        result = result.replace(begin, old.size(), new_);
+        begin = (begin+new_.size()<result.size())?begin+new_.size()
+                                                 :std::string::npos;
+    }
+    
+    return result;
+}
+
 FindResponseGenerator
 ::FindResponseGenerator(DcmDataset /*const*/ & query, // DcmDataset is not const-correct
                         mongo::DBClientConnection & connection,
@@ -58,22 +73,26 @@ FindResponseGenerator
             }
             else if(match_type == Match::WildCard)
             {
-                // Convert to PCRE
+                // Convert DICOM regex to PCRE: replace "*" by ".*", "?" by ".",
+                // and escape other special PCRE characters (these are :
+                // \^$.[]()+{}
+                //
                 std::string regex = value.String();
-                // Convert "*" to ".*"
-                size_t begin=0;
-                while(std::string::npos != (begin=regex.find("*", begin)))
-                {
-                    regex = regex.replace(begin, 1, ".*");
-                    begin = (begin+2<regex.size())?begin+2:std::string::npos;
-                }
-                // Convert "?" to "."
-                begin=0;
-                while(std::string::npos != (begin=regex.find("?", begin)))
-                {
-                    regex = regex.replace(begin, 1, ".");
-                    begin = (begin+1<regex.size())?begin+1:std::string::npos;
-                }
+                // Escape "." first since we're using it to replace "*"
+                regex = replace(regex, ".", "\\.");
+                regex = replace(regex, "*", ".*");
+                regex = replace(regex, "?", ".");
+                // Escape other PCRE metacharacters
+                regex = replace(regex, "\\", "\\\\");
+                regex = replace(regex, "^", "\\^");
+                regex = replace(regex, "$", "\\$");
+                regex = replace(regex, "[", "\\[");
+                regex = replace(regex, "]", "\\]");
+                regex = replace(regex, "(", "\\(");
+                regex = replace(regex, ")", "\\)");
+                regex = replace(regex, "+", "\\+");
+                regex = replace(regex, "{", "\\{");
+                regex = replace(regex, "}", "\\}");
                 // Add the start and end anchors
                 regex = "^"+regex+"$";
                 
