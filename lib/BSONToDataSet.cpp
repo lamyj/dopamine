@@ -14,6 +14,7 @@ BSONToDataSet
 ::BSONToDataSet()
 : _specific_character_set(""), _converter(0)
 {
+    this->set_specific_character_set("");
 }
 
 BSONToDataSet
