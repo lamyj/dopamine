@@ -21,6 +21,12 @@
 
 #include <fstream>
 
+// MongoDb is still using boost::filesystem v2
+#define BOOST_FILESYSTEM_VERSION 2
+
+#include <boost/date_time.hpp>
+#include <boost/filesystem.hpp>
+
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -44,6 +50,34 @@ struct StoreCallbackData
     DcmQueryRetrieveSCP * scp;
     std::string source_application_entity_title;
 };
+
+template<typename TIterator>
+uint32_t hashCode(TIterator begin, TIterator end)
+{
+    uint32_t hash=0;
+    TIterator it(begin);
+    while(it != end)
+    {   
+        hash = 31*hash+(*it);
+        ++it;
+    }   
+    return hash;
+}
+
+template<typename TString>
+uint32_t hashCode(TString const & s)
+{
+    char const * const begin = s.c_str();
+    char const * const end = begin+s.size();
+    return hashCode(begin, end);
+}
+
+std::string hashToString(uint32_t hash)
+{
+    std::string hash_hex(9, ' '); // Use one more char for '\0'
+    snprintf(&hash_hex[0], hash_hex.size(), "%08X", hash);
+    return hash_hex;
+}
 
 static void findCallback(
         /* in */
@@ -183,9 +217,6 @@ static void storeCallback(
         }
         else
         {
-            // Create a temporary file
-            char * filename = tempnam(NULL, NULL);
-
             // Convert the dcmtk dataset to BSON
             DataSetToBSON converter;
             converter.set_filter(DataSetToBSON::Filter::EXCLUDE);
@@ -202,18 +233,41 @@ static void storeCallback(
             file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle, 
                reinterpret_cast<StoreCallbackData*>(callbackData)->source_application_entity_title.c_str());
 
-            // Write the new file
-            file_format.saveFile(filename, EXS_LittleEndianImplicit);
+            // Compute the destination filename
+            // DCM4CHEE does:
+            // /root
+            //   /year/month/day (of now)
+            //   /(32-bits hash of Study Instance UID
+            //   /(32-bits hash of Series Instance UID)
+            //   /(32-bits hash of SOP Instance UID)
+            // The 32-bits hash is based on String.hashCode (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html#hashCode%28%29)
 
-            // Store it in the gridfs
+            boost::gregorian::date const today(
+                boost::gregorian::day_clock::universal_day());
+
+            OFString study_instance_uid;
+            (*imageDataSet)->findAndGetOFStringArray(DCM_StudyInstanceUID, study_instance_uid);
+            OFString series_instance_uid;
+            (*imageDataSet)->findAndGetOFStringArray(DCM_SeriesInstanceUID, series_instance_uid);
+            OFString sop_instance_uid;
+            (*imageDataSet)->findAndGetOFStringArray(DCM_SOPInstanceUID, sop_instance_uid);
+
+            std::string const study_hash = hashToString(hashCode(study_instance_uid));
+            std::string const series_hash = hashToString(hashCode(series_instance_uid));
+            std::string const sop_instance_hash = hashToString(hashCode(sop_instance_uid));
+
+            boost::filesystem::path const destination =
+                scp->get_storage()
+                    /boost::lexical_cast<std::string>(today.year())
+                    /boost::lexical_cast<std::string>(today.month().as_number())
+                    /boost::lexical_cast<std::string>(today.day())
+                    /study_hash/series_hash/sop_instance_hash;
+
+            // Store the dataset in DB and in filesystem
+            builder << "location" << destination.string();
             scp->get_connection().insert(scp->get_db_name()+".datasets", builder.obj());
-            scp->get_grid_fs().storeFile(filename, id.str());
-
-            // Clean up temporary file
-            {
-                unlink(filename);
-                free(filename);
-            }
+            boost::filesystem::create_directories(destination.parent_path());
+            file_format.saveFile(destination.string().c_str(), EXS_LittleEndianImplicit);
         }
     }
 }
@@ -227,17 +281,16 @@ static void storeCallback(
 DcmQueryRetrieveSCP::DcmQueryRetrieveSCP(
   const DcmQueryRetrieveConfig& config,
   const DcmQueryRetrieveOptions& options,
-  DbConnection const & db_connection)
+  DbConnection const & db_connection, boost::filesystem::path const & storage)
 : config_(&config)
 , dbCheckFindIdentifier_(OFFalse)
 , dbCheckMoveIdentifier_(OFFalse)
 , options_(options),
-  _db_name(db_connection.db_name), _grid_fs(NULL)
+  _db_name(db_connection.db_name), _storage(storage)
 {
     std::stringstream stream;
     stream << db_connection.port;
     this->_connection.connect(db_connection.host+":"+stream.str());
-    this->_grid_fs = new mongo::GridFS(this->_connection, this->_db_name);
 }
 
 
@@ -1150,18 +1203,11 @@ DcmQueryRetrieveSCP
     return this->_db_name;
 }
 
-mongo::GridFS const &
+boost::filesystem::path const &
 DcmQueryRetrieveSCP
-::get_grid_fs() const
+::get_storage() const
 {
-    return *(this->_grid_fs);
-}
-
-mongo::GridFS &
-DcmQueryRetrieveSCP
-::get_grid_fs()
-{
-    return *(this->_grid_fs);
+    return this->_storage;
 }
 
 DcmQueryRetrieveOptions const &

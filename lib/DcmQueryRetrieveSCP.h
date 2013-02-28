@@ -75,7 +75,7 @@ public:
   DcmQueryRetrieveSCP(
     const DcmQueryRetrieveConfig& config,
     const DcmQueryRetrieveOptions& options,
-    DbConnection const & db_connection);
+    DbConnection const & db_connection, boost::filesystem::path const & storage);
 
   /// destructor
   virtual ~DcmQueryRetrieveSCP() { }
@@ -105,8 +105,7 @@ public:
 
   std::string const & get_db_name() const;
 
-  mongo::GridFS const & get_grid_fs() const;
-  mongo::GridFS & get_grid_fs();
+  boost::filesystem::path const & get_storage() const;
 
   DcmQueryRetrieveOptions const & get_options() const;
 
@@ -177,10 +176,7 @@ private:
 
     std::string _db_name;
     mongo::DBClientConnection _connection;
-    // mongo::DBClientConnection must be initialized before calling the
-    // mongo::GridFS constructor. Since we cannot do this in the initializer
-    // list, we need a /pointer/ to mongo::GridFS for late initialization.
-    mongo::GridFS* _grid_fs;
+    boost::filesystem::path _storage;
 };
 
 #endif
