@@ -591,14 +591,30 @@ void
 DataSetToBSON::_to_bson_binary(DcmElement * element,
                                mongo::BSONArrayBuilder & builder) const
 {
+    DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
+    if(byte_string != NULL)
+    {
+        void* begin(NULL);
+        if(element->getVR() != EVR_OW)
+        {
+            byte_string->getUint8Array(*reinterpret_cast<Uint8**>(&begin));
+        }
+        else
+        {
+            byte_string->getUint16Array(*reinterpret_cast<Uint16**>(&begin));
+        }
 
-    Uint8* begin(NULL);
-    element->getUint8Array(begin);
-    mongo::BSONObjBuilder binary_data_builder;
-    binary_data_builder.appendBinData("data", element->getLength(), 
-                                      mongo::BinDataGeneral, begin);
-    builder.append(binary_data_builder.obj().getField("data"));
-
+        mongo::BSONObjBuilder binary_data_builder;
+        binary_data_builder.appendBinData("data", element->getLength(),
+                                          mongo::BinDataGeneral, begin);
+        builder.append(binary_data_builder.obj().getField("data"));
+    }
+    else
+    {
+        throw std::runtime_error(
+            std::string("Cannot handle conversion of ")+
+                DcmVR(element->getVR()).getValidVRName());
+    }
 }
 
 void
