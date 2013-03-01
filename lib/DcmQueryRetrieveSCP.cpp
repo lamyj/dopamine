@@ -302,6 +302,24 @@ DcmQueryRetrieveSCP::DcmQueryRetrieveSCP(
     std::stringstream stream;
     stream << db_connection.port;
     this->_connection.connect(db_connection.host+":"+stream.str());
+
+    std::string const datasets=this->_db_name+".datasets";
+    this->_connection.ensureIndex(
+        datasets, BSON("\"00080018\"" << 1), false, "SOP Instance UID");
+    this->_connection.ensureIndex(
+        datasets, BSON("\"00100010\"" << 1), false, "Patient's Name");
+    this->_connection.ensureIndex(
+        datasets, BSON("\"00100020\"" << 1), false, "Patient ID");
+
+    this->_connection.ensureIndex(
+        datasets, BSON("\"0020000e\"" << 1), false, "Series Instance UID");
+    this->_connection.ensureIndex(
+        datasets, BSON("\"0008103e\"" << 1), false, "Series Description");
+
+    this->_connection.ensureIndex(
+        datasets, BSON("\"0020000d\"" << 1), false, "Study Instance UID");
+    this->_connection.ensureIndex(
+        datasets, BSON("\"00081030\"" << 1), false, "Study Description");
 }
 
 
