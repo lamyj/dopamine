@@ -18,6 +18,7 @@
 
 #include "BSONToDataSet.h"
 #include "DataSetToBSON.h"
+#include "TagMatch.h"
 
 std::string replace(std::string const & value, std::string const & old, 
                     std::string const & new_)
@@ -41,8 +42,12 @@ FindResponseGenerator
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
-    dataset_to_bson.set_filter(DataSetToBSON::Filter::EXCLUDE);
-    dataset_to_bson.add_filtered_tag(DcmTag(0x0008, 0x0052));
+
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
+                       DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
     mongo::BSONObjBuilder query_builder;
     dataset_to_bson(&query, query_builder);
     mongo::BSONObj const query_dataset = query_builder.obj();
