@@ -1,7 +1,8 @@
 #include "DataSetToBSON.h"
 
-#include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
@@ -9,19 +10,18 @@
 #include <errno.h>
 #include <iconv.h>
 
+#include "Condition.h"
+
 std::map<std::string, std::string> const
 DataSetToBSON
 ::_dicom_to_iconv = DataSetToBSON::_create_encoding_map();
 
-
 DataSetToBSON
 ::DataSetToBSON()
 : _specific_character_set(""), _converter(0),
-  _filter(Filter::EXCLUDE), _filtered_tags()
+  _default_filter(FilterAction::INCLUDE)
 {
     this->set_specific_character_set("");
-    // Use EXCLUDE and an empty _filtered_tags so that by default all elements are
-    // included
 }
 
 DataSetToBSON
@@ -85,50 +85,39 @@ DataSetToBSON
 
 }
 
-DataSetToBSON::Filter::Type const &
+DataSetToBSON::FilterAction::Type const &
 DataSetToBSON
-::get_filter() const
+::get_default_filter() const
 {
-    return this->_filter;
+    return this->_default_filter;
 }
 
 void
 DataSetToBSON
-::set_filter(Filter::Type const & filter)
+::set_default_filter(DataSetToBSON::FilterAction::Type const & action)
 {
-    if(filter<0 || filter>=Filter::MAX)
-    {
-        throw std::runtime_error("Incorrect filter value");
-    }
-    this->_filter = filter;
+    this->_default_filter = action;
+}
+
+std::vector<DataSetToBSON::Filter> const &
+DataSetToBSON
+::get_filters() const
+{
+    return this->_filters;
+}
+
+std::vector<DataSetToBSON::Filter> &
+DataSetToBSON
+::get_filters()
+{
+    return this->_filters;
 }
 
 void
 DataSetToBSON
-::add_filtered_tag(DcmTag const & tag)
+::set_filters(std::vector<DataSetToBSON::Filter> const & filters)
 {
-    this->_filtered_tags.insert(tag);
-}
-
-void
-DataSetToBSON
-::remove_filtered_tag(DcmTag const & tag)
-{
-    this->_filtered_tags.erase(tag);
-}
-
-void
-DataSetToBSON
-::clear_filtered_tags()
-{
-    this->_filtered_tags.clear();
-}
-
-bool
-DataSetToBSON
-::is_tag_filtered(DcmTag const & tag) const
-{
-    return (this->_filtered_tags.find(tag) == this->_filtered_tags.end());
+    this->_filters = filters;
 }
 
 void
@@ -138,44 +127,29 @@ DataSetToBSON
     DcmObject * it = NULL;
     while(NULL != (it = dataset->nextInContainer(it)))
     {
-        bool skip = false;
-        DcmTag const & tag = it->getTag();
-        if(this->_filter == Filter::INCLUDE)
+        FilterAction::Type action = FilterAction::UNKNOWN;
+        for(std::vector<Filter>::const_iterator filters_it=this->_filters.begin();
+            filters_it != this->_filters.end(); ++filters_it)
         {
-            if(this->_filtered_tags.find(tag) != this->_filtered_tags.end())
+            Condition const & condition = *(filters_it->first);
+            DcmElement * element = dynamic_cast<DcmElement*>(it);
+            if(condition(element))
             {
-                // Included
-                skip = false;
-            }
-            else
-            {
-                // Not included => exclude
-                skip = true;
+                action = filters_it->second;
+                break;
             }
         }
-        else if(this->_filter == Filter::EXCLUDE)
+        if(action == FilterAction::UNKNOWN)
         {
-            if(this->_filtered_tags.find(tag) != this->_filtered_tags.end())
-            {
-                // Excluded
-                skip = true;
-            }
-            else
-            {
-                // Not excluded => include
-                skip = false;
-            }
+            action = this->_default_filter;
         }
 
-        if(skip)
+        if(action == FilterAction::EXCLUDE)
         {
             continue;
         }
 
-        uint16_t const tag_group = tag.getGTag();
-        uint16_t const tag_element = tag.getETag();
-
-        if(tag_group == 0x0008 && tag_element == 0x0005)
+        if(it->getTag() == DCM_SpecificCharacterSet)
         {
             // Specific Character Set: setup internal iconv converter
             DcmCodeString * specific_character_set = 
@@ -185,7 +159,7 @@ DataSetToBSON
             this->set_specific_character_set(value);
         }
 
-        if(tag_element == 0)
+        if(it->getETag() == 0)
         {
             // Group length, do nothing
             continue;

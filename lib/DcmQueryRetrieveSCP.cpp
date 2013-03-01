@@ -37,6 +37,8 @@
 #include "DataSetToBSON.h"
 #include "DcmQueryRetrieveSCP.h"
 #include "FindResponseGenerator.h"
+#include "Or.h"
+#include "VRMatch.h"
 
 struct FindCallbackData
 {
@@ -219,8 +221,17 @@ static void storeCallback(
         {
             // Convert the dcmtk dataset to BSON
             DataSetToBSON converter;
-            converter.set_filter(DataSetToBSON::Filter::EXCLUDE);
-            converter.add_filtered_tag(DcmTag(0x7fe0, 0x0010));
+
+            Or::Pointer is_binary = Or::New();;
+            is_binary->conditions.push_back(VRMatch::New(EVR_OB));
+            is_binary->conditions.push_back(VRMatch::New(EVR_OF));
+            is_binary->conditions.push_back(VRMatch::New(EVR_OW));
+            is_binary->conditions.push_back(VRMatch::New(EVR_UN));
+
+            converter.get_filters().push_back(
+                std::make_pair(is_binary, DataSetToBSON::FilterAction::EXCLUDE));
+            converter.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
             mongo::BSONObjBuilder builder;
             converter(*imageDataSet, builder);
 
