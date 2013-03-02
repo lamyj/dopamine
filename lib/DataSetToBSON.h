@@ -46,6 +46,11 @@ public :
     FilterAction::Type const & get_default_filter() const;
     void set_default_filter(FilterAction::Type const & action);
 
+    /**
+     * @brief Filters to specify which elements are converted.
+     * 
+     * Processing stops after the first matching condition.
+     */
     std::vector<Filter> const & get_filters() const;
     std::vector<Filter> & get_filters();
     void set_filters(std::vector<Filter> const & filters);
