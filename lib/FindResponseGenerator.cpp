@@ -46,6 +46,9 @@ FindResponseGenerator
     dataset_to_bson.get_filters().push_back(
         std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
                        DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_SpecificCharacterSet),
+                       DataSetToBSON::FilterAction::EXCLUDE));
     dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
 
     mongo::BSONObjBuilder query_builder;
@@ -137,13 +140,19 @@ FindResponseGenerator
         fields_builder << "00100020" << 1;
     }
 
-    // Exclude the id from the query results.
-    fields_builder << "_id" << 0;
-
     // Perform the DB query.
     mongo::BSONObj const fields = fields_builder.obj();
-    this->_cursor = connection.query(
-        db_name+".datasets", db_query.obj(), 0, 0, &fields);
+
+    mongo::BSONObj group_command = BSON("group" << BSON(
+        "ns" << "datasets" <<
+        "key" << fields <<
+        "$reduce" << "function(x,y) {}" <<
+        "initial" << mongo::BSONObj() <<
+        "cond" << db_query.obj()
+    ));
+    connection.runCommand(db_name, group_command, this->_info, 0);
+    this->_results = this->_info["retval"].Array();
+    this->_index = 0;
 
     this->_status = STATUS_Pending;
 }
@@ -161,19 +170,7 @@ FindResponseGenerator
 {
     OFCondition cond;
 
-    bool next_item_found=false;
-    mongo::BSONObj item;
-    while(this->_cursor->more())
-    {
-        item = this->_cursor->next().copy();
-        if(this->_distinct_items.find(item) == this->_distinct_items.end())
-        {
-            next_item_found = true;
-            break;
-        }
-    }
-
-    if(!next_item_found)
+    if(this->_index == this->_results.size())
     {
         // We're done.
         this->_status = STATUS_Success;
@@ -181,15 +178,16 @@ FindResponseGenerator
     else
     {
         BSONToDataSet bson_to_dataset;
+        mongo::BSONObj item = this->_results[this->_index].Obj();
         DcmDataset dataset = bson_to_dataset(item);
+        ++this->_index;
+
         dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
                                           this->_query_retrieve_level.c_str());
 
         (*responseIdentifiers) = new DcmDataset(dataset);
 
         this->_status = STATUS_Pending;
-
-        this->_distinct_items.insert(item.copy());
     }
 
     return cond;
