@@ -35,6 +35,123 @@ std::string replace(std::string const & value, std::string const & old,
     return result;
 }
 
+// Define Unknown specialization first, since other specializations use it.
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::Unknown>(
+    std::string const & field_name, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    // Default action: convert to string
+    builder << field_name << value.String();
+}
+
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::SingleValue>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    builder << field << value.String();
+}
+
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::ListOfUID>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    mongo::BSONArrayBuilder or_builder;
+    std::vector<mongo::BSONElement> or_terms = value.Array();
+    for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
+        or_it!=or_terms.end(); ++or_it)
+    {
+        or_builder << BSON(field << (*or_it));
+    }
+    builder << "$or" << or_builder.arr();
+}
+
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::Universal>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    // Universal is not part of the MongoDB query : do nothing
+}
+
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::WildCard>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    // Convert DICOM regex to PCRE: replace "*" by ".*", "?" by ".",
+    // and escape other special PCRE characters (these are :
+    // \^$.[]()+{}
+    //
+    std::string regex = value.String();
+    // Escape "." first since we're using it to replace "*"
+    regex = replace(regex, ".", "\\.");
+    regex = replace(regex, "*", ".*");
+    regex = replace(regex, "?", ".");
+    // Escape other PCRE metacharacters
+    regex = replace(regex, "\\", "\\\\");
+    regex = replace(regex, "^", "\\^");
+    regex = replace(regex, "$", "\\$");
+    regex = replace(regex, "[", "\\[");
+    regex = replace(regex, "]", "\\]");
+    regex = replace(regex, "(", "\\(");
+    regex = replace(regex, ")", "\\)");
+    regex = replace(regex, "+", "\\+");
+    regex = replace(regex, "{", "\\{");
+    regex = replace(regex, "}", "\\}");
+    // Add the start and end anchors
+    regex = "^"+regex+"$";
+
+    // Use case-insensitive match for PN
+    builder.appendRegex(field, regex, (vr=="PN")?"i":"");
+}
+
+template<>
+void
+FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::MultipleValues>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    mongo::BSONArrayBuilder or_builder;
+    std::vector<mongo::BSONElement> or_terms = value.Array();
+    for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
+        or_it!=or_terms.end(); ++or_it)
+    {
+        Match::Type const match_type = this->_get_match_type(vr, *or_it);
+
+        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        mongo::BSONObjBuilder term_builder;
+        (this->*function)(field, vr, *or_it, term_builder);
+
+        or_builder << term_builder.obj();
+    }
+    builder << "$or" << or_builder.arr();
+}
+
+// C.2.2.2.5 Range Matching
+//   TODO
+// C.2.2.2.6 Sequence Matching
+//   TODO
+
 FindResponseGenerator
 ::FindResponseGenerator(DcmDataset /*const*/ & query, // DcmDataset is not const-correct
                         mongo::DBClientConnection & connection,
@@ -66,74 +183,12 @@ FindResponseGenerator
         // Always include the field in the results
         fields_builder << element.fieldName() << 1;
 
-        // Add the field to the query only if non-null
+        std::string const vr = array[0].String();
         mongo::BSONElement const & value = array[1];
-        if(!value.isNull())
-        {
-            std::string const vr = array[0].String();
-            Match::Type const match_type = this->_get_match_type(vr, value);
-            
-            std::string const field = element.fieldName();
-            
-            if(match_type == Match::SingleValue)
-            {
-                db_query << field << value.String();
-            }
-            else if(match_type == Match::WildCard)
-            {
-                // Convert DICOM regex to PCRE: replace "*" by ".*", "?" by ".",
-                // and escape other special PCRE characters (these are :
-                // \^$.[]()+{}
-                //
-                std::string regex = value.String();
-                // Escape "." first since we're using it to replace "*"
-                regex = replace(regex, ".", "\\.");
-                regex = replace(regex, "*", ".*");
-                regex = replace(regex, "?", ".");
-                // Escape other PCRE metacharacters
-                regex = replace(regex, "\\", "\\\\");
-                regex = replace(regex, "^", "\\^");
-                regex = replace(regex, "$", "\\$");
-                regex = replace(regex, "[", "\\[");
-                regex = replace(regex, "]", "\\]");
-                regex = replace(regex, "(", "\\(");
-                regex = replace(regex, ")", "\\)");
-                regex = replace(regex, "+", "\\+");
-                regex = replace(regex, "{", "\\{");
-                regex = replace(regex, "}", "\\}");
-                // Add the start and end anchors
-                regex = "^"+regex+"$";
-                
-                // Use case-insensitive match for PN
-                db_query.appendRegex(field, regex, (vr=="PN")?"i":"");
-            }
-            else if(match_type == Match::MultipleValues)
-            {
-                mongo::BSONArrayBuilder or_builder;
-                std::vector<mongo::BSONElement> or_terms = value.Array();
-                for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
-                    or_it!=or_terms.end(); ++or_it)
-                {
-                    or_builder << BSON(field << (*or_it));
-                }
-                db_query << "$or" << or_builder.arr();
-            }
-            else
-            {
-                // Leave as-is
-                db_query << field << value.String();
-            }
-            // C.2.2.2.2 List of UID Matching
-            //   Each UID in the list may generate a match
-            // C.2.2.2.3 Universal Matching
-            //   All entities shall match this attribute
-            // C.2.2.2.5 Range Matching
-            //   TODO
-            // C.2.2.2.6 Sequence Matching
-            //   TODO
-            // C.2.2.3 Matching Multiple Values
-            //   If any of the values match, all values shall be returned
-        }
+        Match::Type const match_type = this->_get_match_type(vr, value);
+
+        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        (this->*function)(element.fieldName(), vr, value, db_query);
     }
 
     // Always include Specific Character Set in results.
@@ -276,4 +331,37 @@ FindResponseGenerator
     // TODO : multiple values matching
     
     return type;
+}
+
+FindResponseGenerator::DicomQueryToMongoQuery
+FindResponseGenerator
+::_get_query_conversion(Match::Type const & match_type) const
+{
+    DicomQueryToMongoQuery function = NULL;
+    if(match_type == Match::SingleValue)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::SingleValue>;
+    }
+    else if(match_type == Match::ListOfUID)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::ListOfUID>;
+    }
+    else if(match_type == Match::Universal)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::Universal>;
+    }
+    else if(match_type == Match::WildCard)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::WildCard>;
+    }
+    else if(match_type == Match::MultipleValues)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::MultipleValues>;
+    }
+    else
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::Unknown>;
+    }
+
+    return function;
 }
