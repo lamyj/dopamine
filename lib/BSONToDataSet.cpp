@@ -110,7 +110,25 @@ BSONToDataSet
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
     {
         mongo::BSONElement const element_bson = it.next();
-        if(element_bson.fieldName() == std::string("_id"))
+        // Skip elements that do not look like DICOM tags
+        std::string const field_name = element_bson.fieldName();
+        bool skip_field = (field_name.size()==8);
+        if(!skip_field)
+        {
+            for(std::string::const_iterator field_name_it=field_name.begin();
+                field_name_it!=field_name.end(); ++field_name_it)
+            {
+                if(!((*field_name_it>='0' && *field_name_it<='9') ||
+                     (*field_name_it>='a' && *field_name_it<='f') ||
+                     (*field_name_it>='A' && *field_name_it<='F')))
+                {
+                    skip_field = true;
+                    break;
+                }
+            }
+        }
+
+        if(skip_field)
         {
             continue;
         }
