@@ -112,7 +112,7 @@ BSONToDataSet
         mongo::BSONElement const element_bson = it.next();
         // Skip elements that do not look like DICOM tags
         std::string const field_name = element_bson.fieldName();
-        bool skip_field = (field_name.size()==8);
+        bool skip_field = (field_name.size()!=8);
         if(!skip_field)
         {
             for(std::string::const_iterator field_name_it=field_name.begin();
