@@ -110,6 +110,13 @@ BSONToDataSet
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
     {
         mongo::BSONElement const element_bson = it.next();
+
+        if(element_bson.isNull())
+        {
+            // Skip null elements (might happen when bson is a query result)
+            continue;
+        }
+
         // Skip elements that do not look like DICOM tags
         std::string const field_name = element_bson.fieldName();
         bool skip_field = (field_name.size()!=8);
