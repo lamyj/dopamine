@@ -206,14 +206,33 @@ FindResponseGenerator
         fields_builder << "00100020" << 1;
     }
 
+    // Reduce function depends on Number of Series Related Instances (0020,1209)
+    if(query_dataset.hasField("00201204"))
+    {
+        this->_instance_count_tag = DCM_NumberOfPatientRelatedInstances;
+    }
+    else if(query_dataset.hasField("00201208"))
+    {
+        this->_instance_count_tag = DCM_NumberOfStudyRelatedInstances;
+    }
+    else if(query_dataset.hasField("00201209"))
+    {
+        this->_instance_count_tag = DCM_NumberOfSeriesRelatedInstances;
+    }
+    else
+    {
+        this->_instance_count_tag = DCM_UndefinedTagKey;
+    }
+    bool const count_instances = (this->_instance_count_tag!=DCM_UndefinedTagKey);
+
     // Perform the DB query.
     mongo::BSONObj const fields = fields_builder.obj();
 
     mongo::BSONObj group_command = BSON("group" << BSON(
         "ns" << "datasets" <<
         "key" << fields <<
-        "$reduce" << "function(x,y) {}" <<
-        "initial" << mongo::BSONObj() <<
+        "$reduce" << (count_instances?"function(_,result) {result.count+=1}":"function(x,y) {}") <<
+        "initial" << (count_instances?BSON("count" << 0):mongo::BSONObj()) <<
         "cond" << db_query.obj()
     ));
     connection.runCommand(db_name, group_command, this->_info, 0);
@@ -250,7 +269,13 @@ FindResponseGenerator
 
         dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
                                           this->_query_retrieve_level.c_str());
-
+        if(item.hasField("count"))
+        {
+            OFString count(12, '\0');
+            snprintf(&count[0], 12, "%i", int(item.getField("count").Number()));
+            dataset.putAndInsertOFStringArray(this->_instance_count_tag,
+                                              count);
+        }
         (*responseIdentifiers) = new DcmDataset(dataset);
 
         this->_status = STATUS_Pending;
