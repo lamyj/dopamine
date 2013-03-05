@@ -107,6 +107,17 @@ FindResponseGenerator
                 // Use case-insensitive match for PN
                 db_query.appendRegex(field, regex, (vr=="PN")?"i":"");
             }
+            else if(match_type == Match::MultipleValues)
+            {
+                mongo::BSONArrayBuilder or_builder;
+                std::vector<mongo::BSONElement> or_terms = value.Array();
+                for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
+                    or_it!=or_terms.end(); ++or_it)
+                {
+                    or_builder << BSON(field << (*or_it));
+                }
+                db_query << "$or" << or_builder.arr();
+            }
             else
             {
                 // Leave as-is
@@ -254,6 +265,10 @@ FindResponseGenerator
         {
             // C.2.2.2.2 List of UID Matching
             type = Match::ListOfUID;
+        }
+        else if(element.type() == mongo::Array && vr != "SQ")
+        {
+            type = Match::MultipleValues;
         }
     }
     
