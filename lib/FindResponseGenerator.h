@@ -46,6 +46,7 @@ private :
     std::vector<mongo::BSONElement> _results;
     unsigned long _index;
     DcmTagKey _instance_count_tag;
+    bool _convert_modalities_in_study;
     
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr, 
