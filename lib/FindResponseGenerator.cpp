@@ -206,7 +206,11 @@ FindResponseGenerator
         fields_builder << "00100020" << 1;
     }
 
-    // Reduce function depends on Number of Series Related Instances (0020,1209)
+    // Handle reduce-related attributes
+    std::string reduce_function;
+    mongo::BSONObjBuilder initial_builder;
+
+    // Number of XXX Related Instances (0020,120X)
     if(query_dataset.hasField("00201204"))
     {
         this->_instance_count_tag = DCM_NumberOfPatientRelatedInstances;
@@ -223,17 +227,42 @@ FindResponseGenerator
     {
         this->_instance_count_tag = DCM_UndefinedTagKey;
     }
-    bool const count_instances = (this->_instance_count_tag!=DCM_UndefinedTagKey);
+    if(this->_instance_count_tag!=DCM_UndefinedTagKey)
+    {
+        reduce_function += "result.instance_count+=1;";
+        initial_builder << "instance_count" << 0;
+    }
+
+    // Modalities in Study (0008,0061)
+    if(query_dataset.hasField("00080061"))
+    {
+        // Use the Modality attribute
+        mongo::BSONElement modalities = query_dataset["00080061"];
+        Match::Type const match_type = 
+            this->_get_match_type("CS", modalities);
+        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        (this->*function)("00080060", "CS", modalities, db_query);
+        fields_builder << "00080060" << 1;
+        reduce_function += 
+            "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "
+            "{ result.modalities_in_study.push(current[\"00080060\"][1]); }";
+        initial_builder << "modalities_in_study" << mongo::BSONArrayBuilder().arr();
+        this->_convert_modalities_in_study = true;
+    }
+    else
+    {
+        this->_convert_modalities_in_study = false;
+    }
+
+    // Format the reduce function
+    reduce_function = "function(current, result) { " + reduce_function + " }";
 
     // Perform the DB query.
     mongo::BSONObj const fields = fields_builder.obj();
 
     mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "datasets" <<
-        "key" << fields <<
-        "$reduce" << (count_instances?"function(_,result) {result.count+=1}":"function(x,y) {}") <<
-        "initial" << (count_instances?BSON("count" << 0):mongo::BSONObj()) <<
-        "cond" << db_query.obj()
+        "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
+        "$reduce" << reduce_function << "initial" << initial_builder.obj() 
     ));
     connection.runCommand(db_name, group_command, this->_info, 0);
     this->_results = this->_info["retval"].Array();
@@ -269,12 +298,28 @@ FindResponseGenerator
 
         dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
                                           this->_query_retrieve_level.c_str());
-        if(item.hasField("count"))
+        if(item.hasField("instance_count"))
         {
             OFString count(12, '\0');
-            snprintf(&count[0], 12, "%i", int(item.getField("count").Number()));
+            snprintf(&count[0], 12, "%i", int(item.getField("instance_count").Number()));
             dataset.putAndInsertOFStringArray(this->_instance_count_tag,
                                               count);
+        }
+        if(this->_convert_modalities_in_study)
+        {
+            dataset.remove(DCM_Modality);
+            std::vector<mongo::BSONElement> const modalities = 
+                item.getField("modalities_in_study").Array();
+            std::string value;
+            for(unsigned int i=0; i<modalities.size(); ++i)
+            {
+                value += modalities[i].String();
+                if(i!=modalities.size()-1)
+                {
+                    value += "\\";
+                }
+            }
+            dataset.putAndInsertOFStringArray(DCM_ModalitiesInStudy, OFString(value.c_str()));
         }
         (*responseIdentifiers) = new DcmDataset(dataset);
 
