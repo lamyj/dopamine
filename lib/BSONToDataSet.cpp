@@ -106,6 +106,18 @@ DcmDataset
 BSONToDataSet
 ::operator()(mongo::BSONObj const & bson)
 {
+    if(bson.hasField("00080005") && !bson["00080005"].isNull())
+    {
+        // Specific Character Set: map to iconv encoding
+        std::string value = bson["00080005"].Array()[1].String();
+        if(value.size()%2 != 0)
+        {
+            value += ' ';
+        }
+        // TODO : multi-valued Specific Character Set
+        this->set_specific_character_set(value);
+    }
+
     DcmDataset dataset;
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
     {
@@ -412,18 +424,6 @@ BSONToDataSet
 
     if(!array[1].isNull())
     {
-        if(d == 0x00080005)
-        {
-            // Specific Character Set: map to iconv encoding
-            std::string value = array[1].String();
-            if(value.size()%2 != 0)
-            {
-                value += ' ';
-            }
-            // TODO : multi-valued Specific Character Set
-            this->set_specific_character_set(value);
-        }
-
         if(evr == EVR_SQ)
         {
             std::vector<mongo::BSONElement> elements = array[1].Array();
