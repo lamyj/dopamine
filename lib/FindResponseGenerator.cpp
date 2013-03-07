@@ -40,12 +40,12 @@ template<>
 void
 FindResponseGenerator
 ::_dicom_query_to_mongo_query<FindResponseGenerator::Match::Unknown>(
-    std::string const & field_name, std::string const & vr,
+    std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
 {
     // Default action: convert to string
-    builder << field_name << value.String();
+    builder << field << value.String();
 }
 
 template<>
@@ -126,6 +126,32 @@ FindResponseGenerator
 template<>
 void
 FindResponseGenerator
+::_dicom_query_to_mongo_query<FindResponseGenerator::Match::Range>(
+    std::string const & field, std::string const & vr,
+    mongo::BSONElement const & value,
+    mongo::BSONObjBuilder & builder) const
+{
+    std::string const range = value.String();
+    std::size_t const separator = range.find("-");
+    std::string const begin = range.substr(0, separator);
+    std::string const end = range.substr(separator+1, std::string::npos);
+
+    mongo::BSONObjBuilder range_object;
+    if(!begin.empty())
+    {
+        range_object << "$gte" << begin;
+    }
+    if(!end.empty())
+    {
+        range_object << "$lte" << end;
+    }
+
+    builder << field << range_object.obj();
+}
+
+template<>
+void
+FindResponseGenerator
 ::_dicom_query_to_mongo_query<FindResponseGenerator::Match::MultipleValues>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
@@ -188,7 +214,8 @@ FindResponseGenerator
         Match::Type const match_type = this->_get_match_type(vr, value);
 
         DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-        (this->*function)(element.fieldName(), vr, value, db_query);
+        // Match the array element containing the value
+        (this->*function)(std::string(element.fieldName())+".1", vr, value, db_query);
     }
 
     // Always include Specific Character Set in results.
@@ -241,7 +268,7 @@ FindResponseGenerator
         Match::Type const match_type = 
             this->_get_match_type("CS", modalities);
         DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-        (this->*function)("00080060", "CS", modalities, db_query);
+        (this->*function)("00080060.1", "CS", modalities, db_query);
         fields_builder << "00080060" << 1;
         reduce_function += 
             "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "
@@ -391,14 +418,17 @@ FindResponseGenerator
             // C.2.2.2.2 List of UID Matching
             type = Match::ListOfUID;
         }
+        else if(element.type() == mongo::Array && vr == "SQ")
+        {
+            // C.2.2.2.6 Sequence Matching
+            type = Match::Sequence;
+        }
         else if(element.type() == mongo::Array && vr != "SQ")
         {
             type = Match::MultipleValues;
         }
+
     }
-    
-    // TODO : sequence matching
-    // TODO : multiple values matching
     
     return type;
 }
@@ -424,6 +454,14 @@ FindResponseGenerator
     {
         function = &Self::_dicom_query_to_mongo_query<Match::WildCard>;
     }
+    else if(match_type == Match::Range)
+    {
+        function = &Self::_dicom_query_to_mongo_query<Match::Range>;
+    }
+//    else if(match_type == Match::Sequence)
+//    {
+//        function = &Self::_dicom_query_to_mongo_query<Match::Sequence>;
+//    }
     else if(match_type == Match::MultipleValues)
     {
         function = &Self::_dicom_query_to_mongo_query<Match::MultipleValues>;
