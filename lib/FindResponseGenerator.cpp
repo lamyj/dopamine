@@ -224,13 +224,28 @@ FindResponseGenerator
         fields_builder << "00080005" << 1;
     }
 
-    // Always include the keys for the query level.
+    // Always include the keys for the query level and its higher levels
     OFString ofstring;
     query.findAndGetOFString(DCM_QueryRetrieveLevel, ofstring);
     this->_query_retrieve_level = std::string(ofstring.c_str());
-    if(this->_query_retrieve_level=="PATIENT " && !fields_builder.hasField("00100020"))
+    if(!fields_builder.hasField("00100020"))
     {
         fields_builder << "00100020" << 1;
+    }
+    if((this->_query_retrieve_level=="STUDY" ||
+             this->_query_retrieve_level=="SERIES" ||
+             this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
+    {
+        fields_builder << "0020000d" << 1;
+    }
+    if((this->_query_retrieve_level=="SERIES" ||
+             this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+    {
+        fields_builder << "0020000e" << 1;
+    }
+    if(this->_query_retrieve_level=="IMAGE" && !fields_builder.hasField("00080018"))
+    {
+        fields_builder << "00080018" << 1;
     }
 
     // Handle reduce-related attributes
