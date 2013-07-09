@@ -1,7 +1,0 @@
-Import("env")
-
-env.Program("research_pacs", ["main.cpp"],
-    CPPFLAGS=env["CPPFLAGS"],
-    CPPPATH=env["CPPPATH"]+["../lib"],
-    LIBPATH=env["LIBPATH"]+["../lib"],
-    LIBS=["research_pacs", "boost_program_options"])
