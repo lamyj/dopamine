@@ -1,8 +1,0 @@
-Import("env")
-
-env.SharedLibrary("research_pacs", 
-    Glob("*.cpp"),
-    CPPFLAGS=env["CPPFLAGS"],
-    CPPPATH=env["CPPPATH"],
-    LIBS=["mongoclient", "boost_thread", "boost_filesystem", 
-          "gdcmCommon", "gdcmIOD", "gdcmMSFF", "magic"])
