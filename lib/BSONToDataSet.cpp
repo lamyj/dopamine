@@ -39,6 +39,8 @@ BSONToDataSet
 {
     std::string encoding;
 
+    // TODO : factorize code with DataSetToBSON
+
     // Tests files from dclunie
     // SCSARAB : ok
     // SCSFREN : ok
@@ -69,18 +71,18 @@ BSONToDataSet
     // of TIS-620), but we should get away with it.
     else if(specific_character_set == "ISO_IR 166") encoding = "CP-874";
     // Single-byte character sets with code extensions (PS 3.3, Table C.12-3)
-//                ISO 2022 IR 6
-//                ISO 2022 IR 100
-//                ISO 2022 IR 101
-//                ISO 2022 IR 109
-//                ISO 2022 IR 110
-//                ISO 2022 IR 144
-//                ISO 2022 IR 127
-//                ISO 2022 IR 126
-//                ISO 2022 IR 138
-//                ISO 2022 IR 148
-//                ISO 2022 IR 113
-//                ISO 2022 IR 166
+    else if(specific_character_set == "ISO 2022 IR 6 ") encoding = "ISO-IR-6";
+    else if(specific_character_set == "ISO 2022 IR 100 ") encoding = "ISO-IR-100";
+    else if(specific_character_set == "ISO 2022 IR 101 ") encoding = "ISO-IR-101";
+    else if(specific_character_set == "ISO 2022 IR 109 ") encoding = "ISO-IR-109";
+    else if(specific_character_set == "ISO 2022 IR 110 ") encoding = "ISO-IR-110";
+    else if(specific_character_set == "ISO 2022 IR 144 ") encoding = "ISO-IR-144";
+    else if(specific_character_set == "ISO 2022 IR 127 ") encoding = "ISO-IR-127";
+    else if(specific_character_set == "ISO 2022 IR 126 ") encoding = "ISO-IR-126";
+    else if(specific_character_set == "ISO 2022 IR 138 ") encoding = "ISO-IR-138";
+    else if(specific_character_set == "ISO 2022 IR 148 ") encoding = "ISO-IR-148";
+    else if(specific_character_set == "ISO 2022 IR 13") encoding = "ISO-2022-JP"; // TODO or JP-2 or JP-3 ? DICOM says: Katakana+Romaji
+    else if(specific_character_set == "ISO 2022 IR 166 ") encoding = "ISO-IR-166";
     // Multi-byte character sets with code extensions (PS 3.3, Table C.12-4)
 //                ISO 2022 IR 87
 //                ISO 2022 IR 159
