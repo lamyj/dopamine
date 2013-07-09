@@ -138,8 +138,7 @@ private:
   OFCondition getSCP(
     T_ASC_Association * assoc,
     T_DIMSE_C_GetRQ * request,
-    T_ASC_PresentationContextID presID,
-    DcmQueryRetrieveDatabaseHandle& dbHandle);
+    T_ASC_PresentationContextID presID);
 
   OFCondition moveSCP(
     T_ASC_Association * assoc,

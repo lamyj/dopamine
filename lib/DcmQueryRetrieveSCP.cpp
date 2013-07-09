@@ -162,14 +162,26 @@ static void getCallback(
         T_DIMSE_C_GetRSP *response, DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
-//    mongo::GridFile file = scp->get_grid_fs().findFile(id.str());
-//    std::cout << file.exists() << std::endl;
-//    std::cout << file.getContentLength() << std::endl;
-//    file.write("foo.dcm");
-    /*
-  DcmQueryRetrieveGetContext *context = OFstatic_cast(DcmQueryRetrieveGetContext *, callbackData);
-  context->callbackHandler(cancelled, request, requestIdentifiers, responseCount, response, stDetail, responseIdentifiers);
-    */
+    static FindResponseGenerator * generator = NULL;
+
+    OFCondition dbcond = EC_Normal;
+
+    DcmQueryRetrieveSCP * scp = reinterpret_cast<FindCallbackData*>(callbackData)->scp;
+    std::string const & ae_title = reinterpret_cast<FindCallbackData*>(callbackData)->ae_title;
+
+    if (responseCount == 1)
+    {
+        /* start the database search */
+        DCMQRDB_INFO("Get SCP Request Identifiers:" << OFendl << DcmObject::PrintHelper(*requestIdentifiers));
+
+        if(generator != NULL)
+        {
+            delete generator;
+        }
+        // Include the location field
+        //generator = new FindResponseGenerator(
+        //    *requestIdentifiers, scp->get_connection(), scp->get_db_name(), true);
+    }
 }
 
 
@@ -365,9 +377,9 @@ OFCondition DcmQueryRetrieveSCP::dispatch(T_ASC_Association *assoc, OFBool corre
 //                case DIMSE_C_MOVE_RQ:
 //                    cond = moveSCP(assoc, &msg.msg.CMoveRQ, presID, *dbHandle);
 //                    break;
-//                case DIMSE_C_GET_RQ:
-//                    cond = getSCP(assoc, &msg.msg.CGetRQ, presID, *dbHandle);
-//                    break;
+                case DIMSE_C_GET_RQ:
+                    cond = getSCP(assoc, &msg.msg.CGetRQ, presID);
+                    break;
                 case DIMSE_C_CANCEL_RQ:
                     /* This is a late cancel request, just ignore it */
                     DCMQRDB_INFO("dispatch: late C-CANCEL-RQ, ignoring");
@@ -481,24 +493,26 @@ OFCondition DcmQueryRetrieveSCP::findSCP(T_ASC_Association * assoc, T_DIMSE_C_Fi
 
 
 OFCondition DcmQueryRetrieveSCP::getSCP(T_ASC_Association * assoc, T_DIMSE_C_GetRQ * request,
-        T_ASC_PresentationContextID presID, DcmQueryRetrieveDatabaseHandle& dbHandle)
+        T_ASC_PresentationContextID presID)
 {
     OFCondition cond = EC_Normal;
-//    DcmQueryRetrieveGetContext context(dbHandle, options_, STATUS_Pending, assoc, request->MessageID, request->Priority, presID);
 
-//    DIC_AE aeTitle;
-//    aeTitle[0] = '\0';
-//    ASC_getAPTitles(assoc->params, NULL, aeTitle, NULL);
-//    context.setOurAETitle(aeTitle);
+    FindCallbackData data;
+    data.scp = this;
 
-//    OFString temp_str;
-//    DCMQRDB_INFO("Received Get SCP:" << OFendl << DIMSE_dumpMessage(temp_str, *request, DIMSE_INCOMING));
+    DIC_AE aeTitle;
+    aeTitle[0] = '\0';
+    ASC_getAPTitles(assoc->params, NULL, aeTitle, NULL);
+    data.ae_title = aeTitle;
 
-//    cond = DIMSE_getProvider(assoc, presID, request,
-//        getCallback, &context, options_.blockMode_, options_.dimse_timeout_);
-//    if (cond.bad()) {
-//        DCMQRDB_ERROR("Get SCP Failed: " << DimseCondition::dump(temp_str, cond));
-//    }
+    OFString temp_str;
+    DCMQRDB_INFO("Received Get SCP:" << OFendl << DIMSE_dumpMessage(temp_str, *request, DIMSE_INCOMING));
+
+    cond = DIMSE_getProvider(assoc, presID, request,
+        getCallback, &data, options_.blockMode_, options_.dimse_timeout_);
+    if (cond.bad()) {
+        DCMQRDB_ERROR("Get SCP Failed: " << DimseCondition::dump(temp_str, cond));
+    }
     return cond;
 }
 
