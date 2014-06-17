@@ -7,7 +7,7 @@ add_definitions(-DHAVE_CONFIG_H)
 add_library(libresearch_pacs SHARED
     "AlwaysTrue.cpp" "And.cpp" "IsPrivateTag.cpp" "Not.cpp" "Or.cpp" "TagMatch.cpp" "VRMatch.cpp"
     "DataSetToBSON.cpp" "BSONToDataSet.cpp"
-    "DcmQueryRetrieveSCP.cpp" "FindResponseGenerator.cpp")
+    "DcmQueryRetrieveSCP.cpp" "FindResponseGenerator.cpp" "AuthenticatorCSV.cpp")
 set_target_properties(libresearch_pacs PROPERTIES OUTPUT_NAME research_pacs)
 target_link_libraries(libresearch_pacs
     ${MONGO_DB_LIBRARIES} ${DCMTK_LIBRARIES}
