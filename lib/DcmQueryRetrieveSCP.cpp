@@ -219,7 +219,7 @@ static void storeCallback(
         // Check if we already have this dataset, based on its SOP Instance UID
         OFString sop_instance_uid;
         (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
-
+        
         mongo::auto_ptr<mongo::DBClientCursor> cursor =
             scp->get_connection().query(
                 scp->get_db_name()+"."+"datasets",
@@ -334,6 +334,8 @@ DcmQueryRetrieveSCP::DcmQueryRetrieveSCP(
         datasets, BSON("\"0020000d\"" << 1), false, "Study Instance UID");
     this->_connection.ensureIndex(
         datasets, BSON("\"00081030\"" << 1), false, "Study Description");
+        
+    this->_create_authenticator("CSV");
 }
 
 
@@ -360,6 +362,15 @@ OFCondition DcmQueryRetrieveSCP::dispatch(T_ASC_Association *assoc, OFBool corre
             firstLoop = OFFalse;
             cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
 
+            // Veriry user's rights
+            if (!checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,
+                                                    msg.CommandField))
+            {
+                cond = DIMSE_BADCOMMANDTYPE;
+                DCMQRDB_ERROR("Cannot handle command: 0x" << STD_NAMESPACE hex <<
+                            (unsigned)msg.CommandField);
+            }
+        
             /* did peer release, abort, or do we have a valid message ? */
             if (cond.good())
             {
@@ -1082,6 +1093,14 @@ OFCondition DcmQueryRetrieveSCP::waitForAssociation(T_ASC_Network * theNet)
             cond = refuseAssociation(&assoc, CTN_NoReason);
             go_cleanup = OFTrue;
         }
+        
+        // Authentication User / Password
+        if( ! (*this->_authenticator)(*assoc->params->DULparams.reqUserIdentNeg))
+        {
+            DCMQRDB_INFO("Refusing Association: Bad User/Password");
+            cond = refuseAssociation(&assoc, CTN_NoReason);
+            go_cleanup = OFTrue;
+        }
     }
 
     if (! go_cleanup)
@@ -1213,6 +1232,56 @@ OFCondition DcmQueryRetrieveSCP::waitForAssociation(T_ASC_Network * theNet)
 }
 
 
+bool DcmQueryRetrieveSCP::checkUserAuthorization(
+  UserIdentityNegotiationSubItemRQ & iUserIdentNeg,
+  T_DIMSE_Command iCommand)
+{
+    std::string lcurrentUser;
+    
+    // Only available for Identity Type: User/Pasword
+    if (iUserIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+    {
+        // Get user name
+        char * user; Uint16 user_length;
+        iUserIdentNeg.getPrimField(user, user_length);
+        // user is not NULL-terminated
+        lcurrentUser = std::string(user, user_length);
+        delete [] user;
+    }
+    
+    // Get authorization
+    mongo::auto_ptr< mongo::DBClientCursor> cursor = 
+        this->get_connection().query(this->get_db_name()+"."+"authorization",  mongo::BSONObj());
+
+    while (cursor->more())
+    {
+        mongo::BSONObj p = cursor->next();
+        
+        std::string lusername = p.getStringField("username");
+        
+        if (lusername == lcurrentUser)
+        {
+            std::vector<int> operations;
+            mongo::BSONObjIterator fields (p.getObjectField("authorizedAction"));
+            while(fields.more()) {
+                operations.push_back(fields.next().numberInt());
+            }
+            
+            for (int liter = 0 ; liter < operations.size() ; liter++)
+            {
+                // User authorized
+                if ((Uint32)iCommand == (Uint32)operations[liter])
+                {
+                    return true;
+                }
+            }
+        }
+    }
+            
+    return false;
+}
+
+
 void DcmQueryRetrieveSCP::cleanChildren()
 {
   processtable_.cleanChildren();
@@ -1260,4 +1329,18 @@ DcmQueryRetrieveSCP
 ::get_options() const
 {
     return this->options_;
+}
+
+void DcmQueryRetrieveSCP::_create_authenticator(std::string const & type)
+{
+    // Todo : create Factory
+    if(type == "CSV")
+    {
+        // Todo : get csv filepath from Configuration
+        this->_authenticator = new authenticator::AuthenticatorCSV("./authentest.csv");
+    }
+    else
+    {
+        throw std::runtime_error("Unknown authentication type "+type);
+    }
 }

@@ -33,6 +33,8 @@
 #include <mongo/client/dbclient.h>
 #include <mongo/client/gridfs.h>
 
+#include "AuthenticatorCSV.h"
+
 class DcmQueryRetrieveConfig;
 class DcmQueryRetrieveOptions;
 class DcmQueryRetrieveDatabaseHandle;
@@ -155,6 +157,10 @@ private:
   OFCondition dispatch(
     T_ASC_Association *assoc,
     OFBool correctUIDPadding);
+    
+  bool checkUserAuthorization(
+    UserIdentityNegotiationSubItemRQ & iUserIdentNeg,
+    T_DIMSE_Command iCommand);
 
   static void refuseAnyStorageContexts(T_ASC_Association *assoc);
 
@@ -176,6 +182,11 @@ private:
     std::string _db_name;
     mongo::DBClientConnection _connection;
     boost::filesystem::path _storage;
+    
+  void _create_authenticator(std::string const & type);
+  
+  authenticator::AuthenticatorBase * _authenticator;
+  
 };
 
 #endif
