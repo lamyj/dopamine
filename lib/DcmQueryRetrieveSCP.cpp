@@ -22,10 +22,9 @@
 #include <fstream>
 
 // MongoDb is still using boost::filesystem v2
-#define BOOST_FILESYSTEM_VERSION 2
+//#define BOOST_FILESYSTEM_VERSION 2
 
 #include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
 
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
@@ -1078,6 +1077,7 @@ OFCondition DcmQueryRetrieveSCP::waitForAssociation(T_ASC_Network * theNet)
         }
     } else return EC_Normal;
 
+    
     if (! go_cleanup)
     {
         time_t t = time(NULL);
