@@ -10,6 +10,8 @@
  
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+
 #include "AuthenticatorCSV.h"
 
 namespace authenticator
@@ -20,8 +22,13 @@ namespace authenticator
  * Parse a given CSV file and store User/Password as a map
  * @param ifileName : CSV file path
  */
-AuthenticatorCSV::AuthenticatorCSV(std::string ifileName)
+AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName)
 {
+    if ( ! boost::filesystem::exists(ifileName.c_str()))
+    {
+        throw std::runtime_error("Trying to parse non-existing file.");
+    }
+    
     // Open file
     std::ifstream stream(ifileName.c_str());
     while(!stream.eof())

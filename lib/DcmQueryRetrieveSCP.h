@@ -24,6 +24,8 @@
 
 #include <string>
 
+#include <boost/filesystem.hpp>
+
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include "dcmtk/ofstd/oftypes.h"
 #include "dcmtk/dcmnet/assoc.h"

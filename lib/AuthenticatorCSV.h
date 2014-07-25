@@ -37,7 +37,7 @@ public:
      * Constructor
      * @param ifileName : CSV file path
      */
-    AuthenticatorCSV(std::string ifileName);
+    AuthenticatorCSV(std::string const & ifileName);
     
     /**
      * Destructor
