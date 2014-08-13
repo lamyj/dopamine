@@ -26,7 +26,7 @@ public:
     /**
      * Operator ()
      */
-    virtual bool operator()(UserIdentityNegotiationSubItemRQ & identity) const =0;
+    virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const =0;
 };
 
 }

@@ -88,24 +88,15 @@ NetworkPACS
                 ASC_dumpParameters(temp_str, assoc->params, ASC_ASSOC_RQ);
                 
                 // process
-                bool isgetrequest = false;
                 
                 if (continue_)
                 {
-                    // Warning: error if ECHO Request => reqUserIdentNeg == NULL
-                    if (assoc->params->DULparams.reqUserIdentNeg == NULL)
+                    // Authentication User / Password
+                    if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
                     {
-                        isgetrequest = true;
-                    }
-                    else
-                    {
-                        // Authentication User / Password
-                        if( ! (*this->_authenticator)(*assoc->params->DULparams.reqUserIdentNeg))
-                        {
-                            std::cout << "Refusing Association: Bad User/Password" << std::endl;;
-                            refuseAssociation(&assoc, CTN_NoReason);
-                            continue_ = false;
-                        }
+                        std::cout << "Refusing Association: Bad User/Password" << std::endl;;
+                        refuseAssociation(&assoc, CTN_NoReason);
+                        continue_ = false;
                     }
                 }
                 
@@ -155,7 +146,7 @@ NetworkPACS
                 if (continue_)
                 {
                     // dispatch
-                    this->handleAssociation(assoc, isgetrequest);
+                    this->handleAssociation(assoc);
                 }
             }
             
@@ -585,7 +576,7 @@ NetworkPACS
 
 void
 NetworkPACS
-::handleAssociation(T_ASC_Association * assoc, bool getrequest)
+::handleAssociation(T_ASC_Association * assoc)
 {
     DIC_NODENAME        peerHostName;
     DIC_AE              peerAETitle;
@@ -605,12 +596,6 @@ NetworkPACS
         T_ASC_PresentationContextID presID;
         T_DIMSE_Message msg;
         cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
-
-        if (getrequest && msg.CommandField != DIMSE_C_ECHO_RQ)
-        {
-            // error: unknown User identity Negociation
-            throw ExceptionPACS("Bad User/Password");
-        }
 
         if (msg.CommandField != DIMSE_C_ECHO_RQ)
         {

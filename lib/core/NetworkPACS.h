@@ -53,7 +53,7 @@ protected:
   
     void refuseAssociation(T_ASC_Association ** assoc, CTN_RefuseReason reason);
     
-    void handleAssociation(T_ASC_Association * assoc, bool getrequest = false);
+    void handleAssociation(T_ASC_Association * assoc);
 
 private:
     boost::filesystem::path _storage;
