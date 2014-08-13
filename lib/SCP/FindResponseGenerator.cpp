@@ -1,24 +1,24 @@
-#include "FindResponseGenerator.h"
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
 
 #include <fstream>
 #include <set>
 #include <stdio.h>
-#include <string>
 #include <unistd.h>
-#include <vector>
 
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmnet/dicom.h>
-#include <dcmtk/dcmnet/dimse.h>
-#include <dcmtk/ofstd/ofcond.h>
+#include "ConverterBSON/BSONToDataSet.h"
+#include "ConverterBSON/DataSetToBSON.h"
+#include "ConverterBSON/TagMatch.h"
+#include "core/DBConnection.h"
+#include "FindResponseGenerator.h"
 
-#include <mongo/bson/bson.h>
-#include <mongo/client/dbclient.h>
-
-#include "BSONToDataSet.h"
-#include "DataSetToBSON.h"
-#include "TagMatch.h"
+namespace research_pacs
+{
 
 std::string replace(std::string const & value, std::string const & old, 
                     std::string const & new_)
@@ -179,9 +179,7 @@ FindResponseGenerator
 //   TODO
 
 FindResponseGenerator
-::FindResponseGenerator(DcmDataset /*const*/ & query, // DcmDataset is not const-correct
-                        mongo::DBClientConnection & connection,
-                        std::string const & db_name)
+::FindResponseGenerator(DcmDataset /*const*/ & query) // DcmDataset is not const-correct
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
@@ -306,7 +304,11 @@ FindResponseGenerator
         "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
         "$reduce" << reduce_function << "initial" << initial_builder.obj() 
     ));
-    connection.runCommand(db_name, group_command, this->_info, 0);
+    
+    DBConnection::get_instance().get_connection().runCommand
+        (DBConnection::get_instance().get_db_name(), 
+            group_command, this->_info, 0);
+            
     this->_results = this->_info["retval"].Array();
     this->_index = 0;
 
@@ -488,3 +490,5 @@ FindResponseGenerator
 
     return function;
 }
+
+} // namespace research_pacs

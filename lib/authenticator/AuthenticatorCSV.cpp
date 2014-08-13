@@ -13,6 +13,7 @@
 #include <boost/filesystem.hpp>
 
 #include "AuthenticatorCSV.h"
+#include "core/ExceptionPACS.h"
 
 namespace authenticator
 {
@@ -26,7 +27,7 @@ AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName)
 {
     if ( ! boost::filesystem::exists(ifileName.c_str()))
     {
-        throw std::runtime_error("Trying to parse non-existing file.");
+        throw research_pacs::ExceptionPACS("Trying to parse non-existing file.");
     }
     
     // Open file
@@ -62,7 +63,8 @@ bool AuthenticatorCSV::operator ()(UserIdentityNegotiationSubItemRQ & identity) 
     if (identity.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
     {
         // Get user
-        char * user; Uint16 user_length;
+        char * user; 
+        Uint16 user_length;
         identity.getPrimField(user, user_length);
         // user is not NULL-terminated
         std::string userstr = std::string(user, user_length);
