@@ -649,6 +649,20 @@ DataSetToBSON
         else if(vr == EVR_UN) this->_to_bson<EVR_UN>(element, value_builder);
         else if(vr == EVR_US) this->_to_bson<EVR_US>(element, value_builder);
         else if(vr == EVR_UT) this->_to_bson<EVR_UT>(element, value_builder);
+        
+        // US or SS: depending on context
+        else if (vr == EVR_xs)
+        {
+            if (std::string(DcmVR(vr).getValidVRName()) == "SS")
+            {
+                this->_to_bson<EVR_SS>(element, value_builder);
+            }
+            else // if (std::string(DcmVR(vr).getValidVRName()) == "US")
+            {
+                this->_to_bson<EVR_US>(element, value_builder);
+            }
+        }
+        
         else
         {
             throw std::runtime_error(std::string("Unhandled VR:") + DcmVR(vr).getValidVRName());

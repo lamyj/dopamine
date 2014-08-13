@@ -102,7 +102,7 @@ NetworkPACS
                         // Authentication User / Password
                         if( ! (*this->_authenticator)(*assoc->params->DULparams.reqUserIdentNeg))
                         {
-                            std::cout << "Refusing Association: Bad User/Password";
+                            std::cout << "Refusing Association: Bad User/Password" << std::endl;;
                             refuseAssociation(&assoc, CTN_NoReason);
                             continue_ = false;
                         }
@@ -214,7 +214,7 @@ NetworkPACS
           reason_string = "???";
           break;
     }
-    std::cout << "Refusing Association (" << reason_string << ")";
+    std::cout << "Refusing Association (" << reason_string << ")" << std::endl;;
 
     T_ASC_RejectParameters rej;
     switch (reason)
