@@ -650,6 +650,19 @@ DataSetToBSON
         else if(vr == EVR_US) this->_to_bson<EVR_US>(element, value_builder);
         else if(vr == EVR_UT) this->_to_bson<EVR_UT>(element, value_builder);
         
+        // OB or OW: depending on context
+        else if (vr == EVR_ox)
+        {
+            if (std::string(DcmVR(vr).getValidVRName()) == "OW")
+            {
+                this->_to_bson<EVR_OW>(element, value_builder);
+            }
+            else // if (std::string(DcmVR(vr).getValidVRName()) == "OB")
+            {
+                this->_to_bson<EVR_OB>(element, value_builder);
+            }
+        }
+        
         // US or SS: depending on context
         else if (vr == EVR_xs)
         {
@@ -663,6 +676,24 @@ DataSetToBSON
             }
         }
         
+        // US, SS or OW: depending on context
+        else if (vr == EVR_lt)
+        {
+            if (std::string(DcmVR(vr).getValidVRName()) == "OW")
+            {
+                this->_to_bson<EVR_OW>(element, value_builder);
+            }
+            else if (std::string(DcmVR(vr).getValidVRName()) == "SS")
+            {
+                this->_to_bson<EVR_SS>(element, value_builder);
+            }
+            else // if (std::string(DcmVR(vr).getValidVRName()) == "US")
+            {
+                this->_to_bson<EVR_US>(element, value_builder);
+            }
+        }
+        
+        // default
         else
         {
             throw std::runtime_error(std::string("Unhandled VR:") + DcmVR(vr).getValidVRName());

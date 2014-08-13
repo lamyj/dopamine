@@ -48,7 +48,7 @@ public:
      * Operator ()
      * @param identity : User identity
      */
-    virtual bool operator()(UserIdentityNegotiationSubItemRQ & identity) const;
+    virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const;
     
 private:
     std::map<std::string, std::string> _table;

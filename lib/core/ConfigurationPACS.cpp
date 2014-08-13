@@ -70,9 +70,14 @@ bool
 ConfigurationPACS
 ::peerInAETitle(std::string const & peer)
 {
-    if (this->_AETitles.size() == 1 && this->_AETitles[0] == "ANY")
+    // '*' => everybody allowed
+    if (std::find(this->_AETitles.begin(), this->_AETitles.end(), "*") 
+            != this->_AETitles.end())
+    {
         return true;
+    }
         
+    // search for specific AETitle
     return (std::find(this->_AETitles.begin(), 
                       this->_AETitles.end(), 
                       peer.c_str()) != this->_AETitles.end());

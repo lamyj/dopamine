@@ -5,7 +5,7 @@
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
-#include <inttypes.h>
+
 #include <boost/filesystem.hpp>
 
 #include "ConverterBSON/DataSetToBSON.h"
@@ -41,10 +41,11 @@ uint32_t hashCode(TString const & s)
 
 std::string hashToString(uint32_t hash)
 {
-    char temp[9]; // Use one more char for '\0'
-    memset(&temp[0], 0, sizeof(temp)); // Set all to '\0'
-    snprintf(&temp[0], sizeof(temp), "%08X" PRIX32, hash);
-    memset(&temp[8], 0, 1); // make sure last char is '\0'
+    const size_t bufferSize = 9; // Use one more char for '\0'
+    char temp[bufferSize]; 
+    memset(&temp[0], 0, bufferSize); // Set all to '\0'
+    snprintf(&temp[0], bufferSize, "%08X", hash);
+    memset(&temp[bufferSize-1], 0, 1); // make sure last char is '\0'
     return std::string(temp);
 }
 

@@ -468,6 +468,8 @@ BSONToDataSet
             else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(array[1], dataset, tag);
             else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(array[1], dataset, tag);
             else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(array[1], dataset, tag);
+            
+            // default
             else
             {
                 throw std::runtime_error(std::string("Unhandled VR:") + vr.getValidVRName());

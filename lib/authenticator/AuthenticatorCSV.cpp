@@ -55,39 +55,43 @@ AuthenticatorCSV::~AuthenticatorCSV()
  * @param identity : User identity
  * @return : true if User exist, false otherwise
  */
-bool AuthenticatorCSV::operator ()(UserIdentityNegotiationSubItemRQ & identity) const
+bool AuthenticatorCSV::operator ()(UserIdentityNegotiationSubItemRQ * identity) const
 {
     bool authorized = false;
     
-    // Only available for Identity type: User / Password
-    if (identity.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+    // Only available if Identity is defined
+    if (identity != NULL)
     {
-        // Get user
-        char * user; 
-        Uint16 user_length;
-        identity.getPrimField(user, user_length);
-        // user is not NULL-terminated
-        std::string userstr = std::string(user, user_length);
-        
-        // Search in map
-        std::map<std::string, std::string>::const_iterator const it = 
-            this->_table.find(userstr.c_str());
-        // If User exist
-        if(it != this->_table.end())
+        // Only available for Identity type: User / Password
+        if (identity->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
         {
-            // Get password
-            char * password; Uint16 password_length;
-            identity.getSecField(password, password_length);
+            // Get user
+            char * user; 
+            Uint16 user_length;
+            identity->getPrimField(user, user_length);
+            // user is not NULL-terminated
+            std::string userstr = std::string(user, user_length);
             
-            // password is not NULL-terminated
-            std::string passwordstr = std::string(password, password_length);
-        
-            authorized = it->second == passwordstr;
+            // Search in map
+            std::map<std::string, std::string>::const_iterator const it = 
+                this->_table.find(userstr.c_str());
+            // If User exist
+            if(it != this->_table.end())
+            {
+                // Get password
+                char * password; Uint16 password_length;
+                identity->getSecField(password, password_length);
+                
+                // password is not NULL-terminated
+                std::string passwordstr = std::string(password, password_length);
             
-            delete[] password;
+                authorized = it->second == passwordstr;
+                
+                delete[] password;
+            }
+            
+            delete[] user;
         }
-        
-        delete[] user;
     }
     return authorized;
 }
