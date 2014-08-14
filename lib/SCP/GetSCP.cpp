@@ -6,6 +6,13 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmqrdb/dcmqropt.h>
+#include <dcmtk/dcmdata/dcdeftag.h>
+#include <dcmtk/dcmnet/diutil.h>
+
+#include "FindResponseGenerator.h"
+#include "GetResponseGenerator.h"
 #include "GetSCP.h"
 
 namespace research_pacs
@@ -17,29 +24,14 @@ static void getCallback(
         OFBool cancelled, T_DIMSE_C_GetRQ *request,
         DcmDataset *requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_GetRSP *response, DcmDataset **stDetail,
+        T_DIMSE_C_GetRSP *response, 
+        DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
-    /*static FindResponseGenerator * generator = NULL;
-
-    OFCondition dbcond = EC_Normal;
-
-    GetSCP * scp = reinterpret_cast<GetCallbackData*>(callbackData)->scp;
-    std::string const & ae_title = reinterpret_cast<GetCallbackData*>(callbackData)->ae_title;
-
-    if (responseCount == 1)
-    {
-        /* start the database search */
-    /*    DCMQRDB_INFO("Get SCP Request Identifiers:" << OFendl << DcmObject::PrintHelper(*requestIdentifiers));
-
-        if(generator != NULL)
-        {
-            delete generator;
-        }
-        // Include the location field
-        //generator = new FindResponseGenerator(
-        //    *requestIdentifiers, scp->get_connection(), scp->get_db_name(), true);
-    }*/
+    GetResponseGenerator* context = reinterpret_cast<GetResponseGenerator*>(callbackData);
+    context->callBackHandler(cancelled, request, requestIdentifiers, 
+                             responseCount, response, responseIdentifiers, 
+                             stDetail);
 }
     
 GetSCP
@@ -63,17 +55,15 @@ GetSCP
 {
     std::cout << "Received Get SCP: MsgID " 
               << this->_request->MessageID << std::endl;
-              
-    GetCallbackData data;
-    data.scp = this;
 
     DIC_AE aeTitle;
     aeTitle[0] = '\0';
     ASC_getAPTitles(this->_association->params, NULL, aeTitle, NULL);
-    data.ae_title = aeTitle;
+    
+    GetResponseGenerator context(this, std::string(aeTitle));
     
     return DIMSE_getProvider(this->_association, this->_presentationID, 
-                             this->_request, getCallback, &data, 
+                             this->_request, getCallback, &context, 
                              DIMSE_BLOCKING, 0);
 }
 

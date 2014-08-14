@@ -25,6 +25,8 @@ public:
     /// Destroy the SCP.
     virtual ~SCP();
     
+    T_ASC_Association* get_association() const { return this->_association; }
+    
 protected:
     mutable T_ASC_Association * _association;
     T_ASC_PresentationContextID _presentationID;

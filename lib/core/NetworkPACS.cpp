@@ -89,7 +89,7 @@ NetworkPACS
                 
                 // process
                 
-                if (continue_)
+                if (!continue_)
                 {
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
@@ -597,7 +597,7 @@ NetworkPACS
         T_DIMSE_Message msg;
         cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
 
-        if (msg.CommandField != DIMSE_C_ECHO_RQ)
+        if (msg.CommandField == DIMSE_C_ECHO_RQ)
         {
             // Veriry user's rights
             if (!DBConnection::get_instance().checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,

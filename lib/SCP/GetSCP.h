@@ -32,12 +32,6 @@ private:
 
 };
     
-struct GetCallbackData
-{
-    GetSCP * scp;
-    std::string ae_title;
-};
-    
 } // namespace research_pacs
 
 #endif // _9514edbc_0abe_4f43_bf55_f064fb974d2e
