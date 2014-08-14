@@ -11,35 +11,44 @@
 #include "ConverterBSON/TagMatch.h"
 #include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
-#include "FindResponseGenerator.h"
+#include "GetResponseGenerator.h"
 
 namespace research_pacs
 {
-
-FindResponseGenerator
-::FindResponseGenerator(FindSCP* scp, std::string const & ouraetitle):
-    ResponseGenerator(scp, ouraetitle), _convert_modalities_in_study(false)
+    
+static void getSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
+                                  T_DIMSE_C_StoreRQ*)
 {
+    // Nothing to do
 }
-
-FindResponseGenerator
-::~FindResponseGenerator()
+    
+GetResponseGenerator
+::GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle):
+    ResponseGenerator(scp, ouraetitle)
 {
     // Nothing to do
 }
 
+GetResponseGenerator
+::~GetResponseGenerator()
+{
+    // Nothing to do
+}
+    
 void 
-FindResponseGenerator
+GetResponseGenerator
 ::callBackHandler(
     /* in */
-    OFBool cancelled, T_DIMSE_C_FindRQ* request,
+    OFBool cancelled, T_DIMSE_C_GetRQ* request,
     DcmDataset* requestIdentifiers, int responseCount,
     /* out */
-    T_DIMSE_C_FindRSP* response, DcmDataset** stDetail,
+    T_DIMSE_C_GetRSP* response, DcmDataset** stDetail,
     DcmDataset** responseIdentifiers)
 {
     if (responseCount == 1)
     {
+        /* Start the database search */
+        
         // Convert the dataset to BSON, excluding Query/Retrieve Level.
         DataSetToBSON dataset_to_bson;
 
@@ -63,9 +72,6 @@ FindResponseGenerator
             mongo::BSONElement const element = it.next();
             std::vector<mongo::BSONElement> const array = element.Array();
 
-            // Always include the field in the results
-            fields_builder << element.fieldName() << 1;
-
             std::string const vr = array[0].String();
             mongo::BSONElement const & value = array[1];
             Match::Type const match_type = this->_get_match_type(vr, value);
@@ -74,6 +80,9 @@ FindResponseGenerator
             // Match the array element containing the value
             (this->*function)(std::string(element.fieldName())+".1", vr, value, db_query);
         }
+        
+        // retrieve 'location' field
+        fields_builder << "location" << 1;
 
         // Always include Specific Character Set in results.
         if(!fields_builder.hasField("00080005"))
@@ -126,31 +135,10 @@ FindResponseGenerator
         {
             this->_instance_count_tag = DCM_UndefinedTagKey;
         }
-        if(this->_instance_count_tag!=DCM_UndefinedTagKey)
+        if (this->_instance_count_tag != DCM_UndefinedTagKey)
         {
             reduce_function += "result.instance_count+=1;";
             initial_builder << "instance_count" << 0;
-        }
-
-        // Modalities in Study (0008,0061)
-        if(query_dataset.hasField("00080061"))
-        {
-            // Use the Modality attribute
-            mongo::BSONElement modalities = query_dataset["00080061"];
-            Match::Type const match_type = 
-                this->_get_match_type("CS", modalities);
-            DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-            (this->*function)("00080060.1", "CS", modalities, db_query);
-            fields_builder << "00080060" << 1;
-            reduce_function += 
-                "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "
-                "{ result.modalities_in_study.push(current[\"00080060\"][1]); }";
-            initial_builder << "modalities_in_study" << mongo::BSONArrayBuilder().arr();
-            this->_convert_modalities_in_study = true;
-        }
-        else
-        {
-            this->_convert_modalities_in_study = false;
         }
 
         // Format the reduce function
@@ -191,8 +179,8 @@ FindResponseGenerator
     *stDetail = NULL;
 }
 
-void
-FindResponseGenerator
+void 
+GetResponseGenerator
 ::next(DcmDataset ** responseIdentifiers)
 {
     if(this->_index == this->_results.size())
@@ -204,42 +192,98 @@ FindResponseGenerator
     {
         BSONToDataSet bson_to_dataset;
         mongo::BSONObj item = this->_results[this->_index].Obj();
-
+        
+        if ( ! item.hasField("location"))
         {
-            DcmDataset dataset = bson_to_dataset(item);
-            (*responseIdentifiers) = new DcmDataset(dataset);
+            throw ExceptionPACS("Unable to retrieve location field.");
         }
         
-        (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
-                                          this->_query_retrieve_level.c_str());
-        if(item.hasField("instance_count"))
+        std::string const path = item.getField("location").String();
+        DcmFileFormat fileformat;
+        fileformat.loadFile(path.c_str());
+        DcmDataset* dataset = fileformat.getAndRemoveDataset();
+        
+        OFString sopclassuid;
+        OFCondition result = dataset->findAndGetOFString(DCM_SOPClassUID, sopclassuid);
+        if (result.bad())
         {
-            OFString count(12, '\0');
-            snprintf(&count[0], 12, "%i", int(item.getField("instance_count").Number()));
-            (*responseIdentifiers)->putAndInsertOFStringArray(this->_instance_count_tag,
-                                              count);
+            throw ExceptionPACS("Missing SOPClassUID field in dataset.");
         }
-        if(this->_convert_modalities_in_study)
+        OFString sopinstanceuid;
+        result = dataset->findAndGetOFString(DCM_SOPInstanceUID, sopinstanceuid);
+        if (result.bad())
         {
-            (*responseIdentifiers)->remove(DCM_Modality);
-            std::vector<mongo::BSONElement> const modalities = 
-                item.getField("modalities_in_study").Array();
-            std::string value;
-            for(unsigned int i=0; i<modalities.size(); ++i)
-            {
-                value += modalities[i].String();
-                if(i!=modalities.size()-1)
-                {
-                    value += "\\";
-                }
-            }
-            (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy, OFString(value.c_str()));
+            throw ExceptionPACS("Missing SOPInstanceUID field in dataset.");
         }
-                                              
+        
+        // Perform sub operation
+        result = this->performGetSubOperation(sopclassuid.c_str(), 
+                                              sopinstanceuid.c_str(), 
+                                              dataset);
+        if (result.bad())
+        {
+            std::cerr << "Get Sub-Op Failed: " << result.text() << std::endl;
+        }
+            
         ++this->_index;
 
         this->_status = STATUS_Pending;
     }
 }
 
+OFCondition 
+GetResponseGenerator
+::performGetSubOperation(const char* sopClassUID, const char* sopInstanceUID,
+                         DcmDataset* dataset)
+{
+    T_DIMSE_C_StoreRQ req;
+    DIC_US msgID = this->_scp->get_association()->nextMsgID++;
+    
+    /* which presentation context should be used */
+    T_ASC_PresentationContextID presID;
+    presID = ASC_findAcceptedPresentationContextID(this->_scp->get_association(), 
+                                                   sopClassUID);
+    if (presID == 0)
+    {
+        std::cerr << "No presentation context for: " 
+                  << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
+        return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
+    }
+    else
+    {
+        /* make sure that we can send images in this presentation context */
+        T_ASC_PresentationContext pc;
+        ASC_findAcceptedPresentationContext(this->_scp->get_association()->params,
+                                            presID, &pc);
+        if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
+            pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
+        {
+            std::cerr << "No presentation context with requestor SCP role for: " 
+                      << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
+            return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
+        }
+    }
+    
+    req.MessageID = msgID;
+    strcpy(req.AffectedSOPClassUID, sopClassUID);
+    strcpy(req.AffectedSOPInstanceUID, sopInstanceUID);
+    req.DataSetType = DIMSE_DATASET_PRESENT;
+    req.Priority = DIMSE_PRIORITY_MEDIUM;  // TODO RLA => recup priority
+    req.opts = 0;
+    
+    T_DIMSE_DetectedCancelParameters cancelParameters;
+    T_DIMSE_C_StoreRSP rsp;
+    DcmDataset* stdetail = NULL;
+    
+    std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
+    
+    OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 
+                                         presID, &req, NULL, dataset, 
+                                         getSubProcessCallback, this,
+                                         DIMSE_BLOCKING, 0, &rsp, 
+                                         &stdetail, &cancelParameters);
+        
+    return result;
+}
+    
 } // namespace research_pacs

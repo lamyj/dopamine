@@ -29,54 +29,10 @@ static void findCallback(
         DcmDataset **responseIdentifiers,
         DcmDataset **stDetail)
 {
-    static FindResponseGenerator * generator = NULL;
-
-    OFCondition dbcond = EC_Normal;
-
-    FindSCP * scp = reinterpret_cast<FindCallbackData*>(callbackData)->scp;
-    std::string const & ae_title = reinterpret_cast<FindCallbackData*>(callbackData)->ae_title;
-
-    if (responseCount == 1)
-    {
-        /* start the database search */
-        if(generator != NULL)
-        {
-            delete generator;
-        }
-        generator = new FindResponseGenerator(*requestIdentifiers);
-    }
-
-    /* only cancel if we have pending responses */
-    if (cancelled && DICOM_PENDING_STATUS(generator->status()))
-    {
-        generator->cancel();
-    }
-
-    if (DICOM_PENDING_STATUS(generator->status())) {
-        dbcond = generator->next(responseIdentifiers);
-        if (dbcond.bad())
-        {
-             DCMQRDB_ERROR("findSCP: Database: nextFindResponse Failed ("
-                     << DU_cfindStatusString(generator->status()) << "):");
-        }
-    }
-
-    if (*responseIdentifiers != NULL)
-    {
-
-        if (! DU_putStringDOElement(*responseIdentifiers, DCM_RetrieveAETitle, ae_title.c_str()))
-        {
-            DCMQRDB_ERROR("DO: adding Retrieve AE Title");
-        }
-    }
-
-    /* set response status */
-    response->DimseStatus = generator->status();
-    *stDetail = NULL; // TODO
-
-    OFString str;
-    DCMQRDB_INFO("Find SCP Response " << responseCount << " [status: "
-            << DU_cfindStatusString(generator->status()) << "]");
+    FindResponseGenerator* context = reinterpret_cast<FindResponseGenerator*>(callbackData);
+    context->callBackHandler(cancelled, request, requestIdentifiers, 
+                             responseCount, response, responseIdentifiers, 
+                             stDetail);
 }
     
 FindSCP
@@ -100,17 +56,15 @@ FindSCP
 {
     std::cout << "Received Find SCP: MsgID " 
               << this->_request->MessageID << std::endl;
-              
-    FindCallbackData data;
-    data.scp = this;
 
     DIC_AE aeTitle;
     aeTitle[0] = '\0';
     ASC_getAPTitles(this->_association->params, NULL, aeTitle, NULL);
-    data.ae_title = aeTitle;
+
+    FindResponseGenerator context(this, std::string(aeTitle));
     
     return DIMSE_findProvider(this->_association, this->_presentationID, 
-                              this->_request, findCallback, &data, 
+                              this->_request, findCallback, &context, 
                               DIMSE_BLOCKING, 0);
 }
 

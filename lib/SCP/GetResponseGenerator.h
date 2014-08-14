@@ -6,40 +6,43 @@
  * for details.
  ************************************************************************/
 
-#ifndef _ee9915a2_a504_4b21_8d43_7938c66c526e
-#define _ee9915a2_a504_4b21_8d43_7938c66c526e
+#ifndef _d93218f7_028e_49c7_a2e0_7f3d860331c5
+#define _d93218f7_028e_49c7_a2e0_7f3d860331c5
 
-#include "FindSCP.h"
+#include "GetSCP.h"
 #include "ResponseGenerator.h"
 
 namespace research_pacs
 {
-
-class FindResponseGenerator : public ResponseGenerator
-{
-public :
-    typedef FindResponseGenerator Self;
-
-    FindResponseGenerator(FindSCP* scp, std::string const & ouraetitle);
     
-    virtual ~FindResponseGenerator();
+class GetResponseGenerator : public ResponseGenerator
+{
+public:
+    typedef GetResponseGenerator Self;
+
+    GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle);
+    
+    virtual ~GetResponseGenerator();
     
     void callBackHandler(
         /* in */
-        OFBool cancelled, T_DIMSE_C_FindRQ* request,
+        OFBool cancelled, T_DIMSE_C_GetRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_FindRSP* response, DcmDataset** stDetail,
+        T_DIMSE_C_GetRSP* response, DcmDataset** stDetail,
         DcmDataset** responseIdentifiers);
-    
+
 protected:
     virtual void next(DcmDataset ** responseIdentifiers);
+    
+    OFCondition performGetSubOperation(const char* sopClassUID, 
+                                       const char* sopInstanceUID,
+                                       DcmDataset* dataset);
 
-private :
-    bool _convert_modalities_in_study;
+private:
     
 };
-
+    
 } // namespace research_pacs
 
-#endif // _ee9915a2_a504_4b21_8d43_7938c66c526e
+#endif // _d93218f7_028e_49c7_a2e0_7f3d860331c5

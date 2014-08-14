@@ -31,12 +31,6 @@ private:
     T_DIMSE_C_FindRQ * _request;
 
 };
-    
-struct FindCallbackData
-{
-    FindSCP * scp;
-    std::string ae_title;
-};
 
 } // namespace research_pacs
 
