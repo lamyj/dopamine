@@ -27,8 +27,7 @@ int main(int argc, char** argv)
     research_pacs::DBConnection::get_instance().connect();
     
     // Create and run Network listener
-    research_pacs::NetworkPACS network;
-    network.run();
+    research_pacs::NetworkPACS::get_instance().run();
     
     return EXIT_SUCCESS;
 }

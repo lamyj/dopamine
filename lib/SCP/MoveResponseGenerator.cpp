@@ -9,44 +9,48 @@
 #include "ConverterBSON/BSONToDataSet.h"
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/TagMatch.h"
+#include "core/ConfigurationPACS.h"
 #include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
-#include "GetResponseGenerator.h"
+#include "core/NetworkPACS.h"
+#include "MoveResponseGenerator.h"
 
 namespace research_pacs
 {
     
-static void getSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
-                                  T_DIMSE_C_StoreRQ*)
+static void moveSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
+                                   T_DIMSE_C_StoreRQ*)
 {
     // Nothing to do
 }
     
-GetResponseGenerator
-::GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle):
+MoveResponseGenerator
+::MoveResponseGenerator(MoveSCP * scp, std::string const & ouraetitle):
     ResponseGenerator(scp, ouraetitle)
 {
-    // Nothing to do
+    _origAETitle[0] = '\0';
 }
 
-GetResponseGenerator
-::~GetResponseGenerator()
+MoveResponseGenerator
+::~MoveResponseGenerator()
 {
-    // Nothing to do
+    //Nothing to do
 }
-    
+
 void 
-GetResponseGenerator
+MoveResponseGenerator
 ::callBackHandler(
-    /* in */
-    OFBool cancelled, T_DIMSE_C_GetRQ* request,
-    DcmDataset* requestIdentifiers, int responseCount,
-    /* out */
-    T_DIMSE_C_GetRSP* response, DcmDataset** stDetail,
-    DcmDataset** responseIdentifiers)
+        /* in */
+        OFBool cancelled, T_DIMSE_C_MoveRQ* request,
+        DcmDataset* requestIdentifiers, int responseCount,
+        /* out */
+        T_DIMSE_C_MoveRSP* response, DcmDataset** stDetail,
+        DcmDataset** responseIdentifiers)
 {
     if (responseCount == 1)
     {
+        _origMsgID = request->MessageID;
+        
         /* Start the database search */
         
         // Convert the dataset to BSON, excluding Query/Retrieve Level.
@@ -160,6 +164,13 @@ GetResponseGenerator
         this->_index = 0;
 
         this->_status = STATUS_Pending;
+        
+        // Build a new association to the move destination
+        OFCondition cond = this->buildSubAssociation(request);
+        if (cond.bad())
+        {
+            throw ExceptionPACS("Cannot create sub association: " + std::string(cond.text()));
+        }
     } // if (responseCount == 1)
     
     /* only cancel if we have pending responses */
@@ -181,7 +192,7 @@ GetResponseGenerator
 }
 
 void 
-GetResponseGenerator
+MoveResponseGenerator
 ::next(DcmDataset ** responseIdentifiers)
 {
     if(this->_index == this->_results.size())
@@ -218,9 +229,9 @@ GetResponseGenerator
         }
         
         // Perform sub operation
-        result = this->performGetSubOperation(sopclassuid.c_str(), 
-                                              sopinstanceuid.c_str(), 
-                                              dataset);
+        result = this->performMoveSubOperation(sopclassuid.c_str(), 
+                                               sopinstanceuid.c_str(), 
+                                               dataset);
         if (result.bad())
         {
             std::cerr << "Get Sub-Op Failed: " << result.text() << std::endl;
@@ -233,16 +244,14 @@ GetResponseGenerator
 }
 
 OFCondition 
-GetResponseGenerator
-::performGetSubOperation(const char* sopClassUID, const char* sopInstanceUID,
-                         DcmDataset* dataset)
+MoveResponseGenerator
+::performMoveSubOperation(const char* sopClassUID, 
+                          const char* sopInstanceUID,
+                          DcmDataset* dataset)
 {
-    T_DIMSE_C_StoreRQ req;
-    DIC_US msgID = this->_scp->get_association()->nextMsgID++;
-    
     /* which presentation context should be used */
     T_ASC_PresentationContextID presID;
-    presID = ASC_findAcceptedPresentationContextID(this->_scp->get_association(), 
+    presID = ASC_findAcceptedPresentationContextID(this->_subAssociation, 
                                                    sopClassUID);
     if (presID == 0)
     {
@@ -250,41 +259,126 @@ GetResponseGenerator
                   << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
-    else
-    {
-        /* make sure that we can send images in this presentation context */
-        T_ASC_PresentationContext pc;
-        ASC_findAcceptedPresentationContext(this->_scp->get_association()->params,
-                                            presID, &pc);
-        if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
-            pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
-        {
-            std::cerr << "No presentation context with requestor SCP role for: " 
-                      << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
-            return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
-        }
-    }
     
+    DIC_US msgID = this->_subAssociation->nextMsgID++;
+    
+    T_DIMSE_C_StoreRQ req;
     req.MessageID = msgID;
     strcpy(req.AffectedSOPClassUID, sopClassUID);
     strcpy(req.AffectedSOPInstanceUID, sopInstanceUID);
     req.DataSetType = DIMSE_DATASET_PRESENT;
     req.Priority = this->_priority;
-    req.opts = 0;
+    req.opts = O_STORE_MOVEORIGINATORAETITLE | O_STORE_MOVEORIGINATORID;
+    strcpy(req.MoveOriginatorApplicationEntityTitle, this->_origAETitle);
+    req.MoveOriginatorID = this->_origMsgID;
+    
+    std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
     
     T_DIMSE_DetectedCancelParameters cancelParameters;
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
-    
-    std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
-    
-    OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 
+    OFCondition result = DIMSE_storeUser(this->_subAssociation, 
                                          presID, &req, NULL, dataset, 
-                                         getSubProcessCallback, this,
+                                         moveSubProcessCallback, this,
                                          DIMSE_BLOCKING, 0, &rsp, 
                                          &stdetail, &cancelParameters);
         
     return result;
+}
+
+OFCondition 
+MoveResponseGenerator
+::buildSubAssociation(T_DIMSE_C_MoveRQ* request)
+{
+    DIC_AE dstAETitle;
+    dstAETitle[0] = '\0';
+    
+    strcpy(dstAETitle, request->MoveDestination);
+    
+    DIC_AE aeTitle;
+    aeTitle[0] = '\0';
+    ASC_getAPTitles(this->_scp->get_association()->params, 
+                    this->_origAETitle, aeTitle, NULL);
+    
+    std::string dstHostNamePort;
+    if (!ConfigurationPACS::get_instance().peerForAETitle(std::string(request->MoveDestination), 
+                                                          dstHostNamePort))
+    {
+        throw ExceptionPACS("Invalid Peer for move operation");
+    }
+    
+    T_ASC_Parameters* params;
+    OFCondition result = ASC_createAssociationParameters(&params, 
+                                                         ASC_DEFAULTMAXPDU);
+    if (result.bad())
+    {// Error
+        return result;
+    }
+    
+    DIC_NODENAME localHostName;
+    gethostname(localHostName, sizeof(localHostName) - 1);
+    
+    ASC_setPresentationAddresses(params, localHostName, dstHostNamePort.c_str());
+    
+    ASC_setAPTitles(params, this->_ourAETitle.c_str(), dstAETitle, NULL);
+    
+    result = this->addAllStoragePresentationContext(params);
+    if (result.bad())
+    {// Error
+        return result;
+    }
+    
+    // Create Association
+    result = ASC_requestAssociation(NetworkPACS::get_instance().get_network(), 
+                                    params, &this->_subAssociation);
+    
+    if(!result.good())
+    {
+        OFString empty;
+        
+        if(result == DUL_ASSOCIATIONREJECTED)
+        {
+            T_ASC_RejectParameters rej;
+            ASC_getRejectParameters(params, &rej);
+            
+            throw ExceptionPACS(ASC_printRejectParameters(empty, &rej).c_str());
+        } 
+        else 
+        {
+            throw ExceptionPACS(DimseCondition::dump(empty, result).c_str());
+        }
+    }
+        
+    return result;
+}
+
+OFCondition 
+MoveResponseGenerator
+::addAllStoragePresentationContext(T_ASC_Parameters* params)
+{
+    const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
+    int numTransferSyntaxes = 0;
+    if (gLocalByteOrder == EBO_LittleEndian)  /* defined in dcxfer.h */
+    {
+      transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
+      transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
+    } else {
+      transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
+      transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
+    }
+    transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
+    numTransferSyntaxes = 3;
+    
+    OFCondition cond = EC_Normal;
+    int pid = 1;
+    for (int i = 0; i < numberOfDcmLongSCUStorageSOPClassUIDs && cond.good(); i++)
+    {
+        cond = ASC_addPresentationContext(params, pid, dcmLongSCUStorageSOPClassUIDs[i], 
+                                          transferSyntaxes, numTransferSyntaxes);
+        pid += 2;
+    }
+    
+    return cond;
 }
     
 } // namespace research_pacs

@@ -46,8 +46,9 @@ public:
     
     virtual ~ResponseGenerator();
     
-    static std::string replace(std::string const & value, std::string const & old, 
-                    std::string const & new_);
+    static std::string replace(std::string const & value, 
+                               std::string const & old, 
+                               std::string const & new_);
 
 protected:
     SCP * _scp;
@@ -67,6 +68,9 @@ protected:
     mongo::BSONObj _info;
     
     DcmTagKey _instance_count_tag;
+    
+    /// Priority of request
+    T_DIMSE_Priority _priority;
     
     virtual void cancel();
     

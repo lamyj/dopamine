@@ -11,7 +11,6 @@
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/diutil.h>
 
-#include "FindResponseGenerator.h"
 #include "GetResponseGenerator.h"
 #include "GetSCP.h"
 

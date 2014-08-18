@@ -169,7 +169,8 @@ ResponseGenerator
 ResponseGenerator
 ::ResponseGenerator(SCP * scp, std::string const & ouraetitle):
     _scp(scp), _ourAETitle(ouraetitle), _status(STATUS_Pending),
-    _query_retrieve_level(""), _results({}), _index(0)
+    _query_retrieve_level(""), _results({}), _index(0), 
+    _priority(DIMSE_PRIORITY_MEDIUM)
 {
     // Nothing to do
 }
@@ -251,7 +252,6 @@ ResponseGenerator
         {
             type = Match::MultipleValues;
         }
-
     }
     
     return type;

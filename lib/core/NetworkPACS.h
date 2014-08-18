@@ -36,11 +36,13 @@ enum CTN_RefuseReason
 class NetworkPACS
 {
 public:
-    NetworkPACS();
+    static NetworkPACS & get_instance();
     
     virtual ~NetworkPACS();
     
     void run();
+    
+    T_ASC_Network* get_network() const { return this->_network; };
 
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
@@ -56,6 +58,10 @@ protected:
     void handleAssociation(T_ASC_Association * assoc);
 
 private:
+    NetworkPACS();
+    
+    static NetworkPACS * _instance;
+    
     boost::filesystem::path _storage;
     authenticator::AuthenticatorBase * _authenticator;
     
