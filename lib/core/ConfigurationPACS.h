@@ -9,6 +9,7 @@
 #ifndef _c086ddd9_5204_4bea_bb03_c4fbec6b16ea
 #define _c086ddd9_5204_4bea_bb03_c4fbec6b16ea
 
+#include <map>
 #include <vector>
 
 #include <boost/property_tree/ptree.hpp>
@@ -29,6 +30,8 @@ public:
     std::string GetValue(std::string const & section, std::string const & key);
     
     bool peerInAETitle(std::string const & peer);
+    
+    bool peerForAETitle(std::string const & AETitle, std::string & addressPort) const;
 
 protected:
 
@@ -40,6 +43,8 @@ private:
     boost::property_tree::ptree _confptree;
     
     std::vector<std::string> _AETitles;
+    
+    std::map<std::string, std::string> _addressPortList;
 
     // Purposely not implemented
     ConfigurationPACS(ConfigurationPACS const & other);

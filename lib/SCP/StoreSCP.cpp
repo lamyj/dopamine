@@ -62,8 +62,6 @@ static void storeCallback(
 {
     if(progress->state == DIMSE_StoreEnd)
     {
-        StoreSCP * scp = reinterpret_cast<StoreCallbackData*>(callbackData)->scp;
-
         // Check if we already have this dataset, based on its SOP Instance UID
         OFString sop_instance_uid;
         (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
@@ -169,7 +167,6 @@ StoreSCP
               << this->_request->MessageID << std::endl;
               
     StoreCallbackData data;
-    data.scp = this;
 
     if (!dcmIsaStorageSOPClassUID(this->_request->AffectedSOPClassUID))
     {

@@ -13,10 +13,24 @@
 #include "SCP/EchoSCP.h"
 #include "SCP/FindSCP.h"
 #include "SCP/GetSCP.h"
+#include "SCP/MoveSCP.h"
 #include "SCP/StoreSCP.h"
 
 namespace research_pacs
 {
+    
+NetworkPACS * NetworkPACS::_instance = NULL;
+
+NetworkPACS &
+NetworkPACS
+::get_instance()
+{
+    if(NetworkPACS::_instance == NULL)
+    {
+        NetworkPACS::_instance = new NetworkPACS();
+    }
+    return *NetworkPACS::_instance;
+}
     
 NetworkPACS
 ::NetworkPACS():
@@ -636,6 +650,12 @@ NetworkPACS
             {
                 GetSCP getscp(assoc, presID, &msg.msg.CGetRQ);
                 cond = getscp.process();
+                break;
+            }
+            case DIMSE_C_MOVE_RQ:
+            {
+                MoveSCP movescp(assoc, presID, &msg.msg.CMoveRQ);
+                cond = movescp.process();
                 break;
             }
             case DIMSE_C_CANCEL_RQ:

@@ -50,6 +50,17 @@ ConfigurationPACS
     this->_AETitles.clear();
     std::string value = this->GetValue("dicom.allowed_peers");
     boost::split(this->_AETitles, value, boost::is_any_of(","));
+    
+    // read list of addresses and ports
+    this->_addressPortList.clear();
+    std::vector<std::string> templist;
+    value = this->GetValue("listAddressPort.allowed");
+    boost::split(templist, value, boost::is_any_of(","));
+    for (auto aetitle : templist)
+    {
+        std::string addressport = this->GetValue("listAddressPort", aetitle);
+        this->_addressPortList.insert(std::pair<std::string, std::string>(aetitle, addressport));
+    }
 }
 
 std::string 
@@ -81,6 +92,21 @@ ConfigurationPACS
     return (std::find(this->_AETitles.begin(), 
                       this->_AETitles.end(), 
                       peer.c_str()) != this->_AETitles.end());
+}
+
+bool 
+ConfigurationPACS
+::peerForAETitle(std::string const & AETitle, std::string & addressPort) const
+{
+    auto item = this->_addressPortList.find(AETitle);
+    
+    if (item != this->_addressPortList.end())
+    {
+        addressPort = item->second;
+        return true;
+    }
+    addressPort = "";
+    return false;
 }
 
 } // namespace research_pacs

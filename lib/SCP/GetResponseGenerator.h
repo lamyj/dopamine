@@ -18,8 +18,6 @@ namespace research_pacs
 class GetResponseGenerator : public ResponseGenerator
 {
 public:
-    typedef GetResponseGenerator Self;
-
     GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle);
     
     virtual ~GetResponseGenerator();

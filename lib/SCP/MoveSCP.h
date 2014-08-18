@@ -6,38 +6,32 @@
  * for details.
  ************************************************************************/
 
-#ifndef _57ab17de_94cf_44f4_8311_2a22f7360f34
-#define _57ab17de_94cf_44f4_8311_2a22f7360f34
+#ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
+#define _7e2166a1_25b3_48eb_8226_abe9d64ba064
 
 #include "SCP.h"
 
 namespace research_pacs
 {
     
-class StoreSCP : public SCP
+class MoveSCP : public SCP
 {
 public:
-    StoreSCP(T_ASC_Association * assoc, 
+    MoveSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,
-            T_DIMSE_C_StoreRQ * req);
+            T_DIMSE_C_MoveRQ * req);
     
-    virtual ~StoreSCP();
+    virtual ~MoveSCP();
     
     OFCondition process();
 
 protected:
 
 private:
-    T_DIMSE_C_StoreRQ * _request;
+    T_DIMSE_C_MoveRQ * _request;
     
-};
-
-struct StoreCallbackData
-{
-    DIC_US status;
-    std::string source_application_entity_title;
 };
     
 } // namespace research_pacs
 
-#endif // _57ab17de_94cf_44f4_8311_2a22f7360f34
+#endif // _7e2166a1_25b3_48eb_8226_abe9d64ba064
