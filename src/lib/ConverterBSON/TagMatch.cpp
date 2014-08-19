@@ -22,6 +22,10 @@ bool
 TagMatch
 ::operator()(DcmElement * element) const
 {
+    if (element == NULL)
+    {
+        return false;
+    }
     return (DcmTagKey(element->getGTag(), element->getETag()) == this->tag);
 }
 

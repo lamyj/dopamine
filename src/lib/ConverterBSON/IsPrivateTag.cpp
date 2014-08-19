@@ -4,6 +4,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
+#include "core/ExceptionPACS.h"
+
 IsPrivateTag::Pointer
 IsPrivateTag
 ::New()
@@ -21,5 +23,9 @@ bool
 IsPrivateTag
 ::operator()(DcmElement * element) const
 {
+    if (element == NULL)
+    {
+        throw research_pacs::ExceptionPACS("IsPrivateTag: tested element cannot be NULL.");
+    }
     return (element->getGTag()%2 == 1);
 }

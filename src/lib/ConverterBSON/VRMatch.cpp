@@ -22,6 +22,11 @@ bool
 VRMatch
 ::operator()(DcmElement * element) const
 {
+    if (element == NULL)
+    {
+        return false;
+    }
+    
     bool match=false;
     if(element->getVR() == this->vr)
     {
