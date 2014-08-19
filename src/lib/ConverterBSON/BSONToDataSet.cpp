@@ -96,6 +96,8 @@ BSONToDataSet
         message << "Unkown specific character set: '" << specific_character_set << "'";
         throw std::runtime_error(message.str());
     }
+    
+    this->_specific_character_set = specific_character_set;
 
     if(this->_converter != 0)
     {
