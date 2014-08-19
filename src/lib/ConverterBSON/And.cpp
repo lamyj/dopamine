@@ -27,7 +27,7 @@ And
         it != this->conditions.end(); ++it)
     {
         value = value && (**it)(element);
-        if(value)
+        if(!value)
         {
             break;
         }
