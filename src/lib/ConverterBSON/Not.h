@@ -13,7 +13,7 @@ public :
     static Pointer New(Condition::Pointer const & condition);
 
     Not(Condition::Pointer const & condition);
-    virtual bool operator()(DcmElement * element) const;
+    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
     Condition::Pointer condition;
 };
 

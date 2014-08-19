@@ -42,13 +42,13 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
     delete element;
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST KO 01 *******************************/
 /**
- * Nominal test case: VR not Match => tested element is empty
+ * Error test case: Element is null
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_03)
+BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
     auto vrmatch = VRMatch::New(DcmVR("PN").getEVR());
     
-    BOOST_CHECK_EQUAL((*vrmatch)(NULL), false);
+    BOOST_REQUIRE_THROW((*vrmatch)(NULL), research_pacs::ExceptionPACS);
 }

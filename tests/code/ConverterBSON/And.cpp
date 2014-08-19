@@ -9,64 +9,94 @@
 #define BOOST_TEST_MODULE ModuleAnd
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dctk.h>
+
 #include "ConverterBSON/AlwaysFalse.h"
 #include "ConverterBSON/AlwaysTrue.h"
 #include "ConverterBSON/And.h"
+#include "core/ExceptionPACS.h"
+
+struct TestDataOK01
+{
+    DcmElement * element;
+    AlwaysTrue::Pointer alwaystrue;
+    AlwaysFalse::Pointer alwaysfalse;
+ 
+    TestDataOK01()
+    {
+        element = new DcmAttributeTag(DcmTag(0010,0010));
+        alwaystrue = AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
+        alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+    }
+ 
+    ~TestDataOK01()
+    {
+        delete element;
+    }
+};
 
 /*************************** TEST OK 01 *******************************/
 /**
  * Nominal test case: True And True => True
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto alwaystrue = AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
     auto and_ = And::New();
     and_->conditions.push_back(alwaystrue);
     and_->conditions.push_back(alwaystrue);
     
-    BOOST_CHECK_EQUAL((*and_)(NULL), true);
+    BOOST_CHECK_EQUAL((*and_)(element), true);
 }
 
 /*************************** TEST OK 02 *******************************/
 /**
  * Nominal test case: True And False => False
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto alwaystrue = AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
-    auto alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     auto and_ = And::New();
     and_->conditions.push_back(alwaystrue);
     and_->conditions.push_back(alwaysfalse);
     
-    BOOST_CHECK_EQUAL((*and_)(NULL), false);
+    BOOST_CHECK_EQUAL((*and_)(element), false);
 }
 
 /*************************** TEST OK 03 *******************************/
 /**
  * Nominal test case: False And True => False
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_03)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
-    auto alwaystrue = AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
-    auto alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     auto and_ = And::New();
     and_->conditions.push_back(alwaysfalse);
     and_->conditions.push_back(alwaystrue);
     
-    BOOST_CHECK_EQUAL((*and_)(NULL), false);
+    BOOST_CHECK_EQUAL((*and_)(element), false);
 }
 
 /*************************** TEST OK 04 *******************************/
 /**
  * Nominal test case: False And False => False
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_04)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 {
-    auto alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     auto and_ = And::New();
     and_->conditions.push_back(alwaysfalse);
     and_->conditions.push_back(alwaysfalse);
     
-    BOOST_CHECK_EQUAL((*and_)(NULL), false);
+    BOOST_CHECK_EQUAL((*and_)(element), false);
+}
+
+/*************************** TEST KO 01 *******************************/
+/**
+ * Error test case: Element is null
+ */
+BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
+{
+    auto and_ = And::New();
+    and_->conditions.push_back(alwaystrue);
+    and_->conditions.push_back(alwaystrue);
+    
+    BOOST_REQUIRE_THROW((*and_)(NULL), research_pacs::ExceptionPACS);
 }

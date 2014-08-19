@@ -21,11 +21,11 @@ IsPrivateTag
 
 bool
 IsPrivateTag
-::operator()(DcmElement * element) const
+::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
 {
     if (element == NULL)
     {
-        throw research_pacs::ExceptionPACS("IsPrivateTag: tested element cannot be NULL.");
+        throw research_pacs::ExceptionPACS("element is NULL.");
     }
     return (element->getGTag()%2 == 1);
 }

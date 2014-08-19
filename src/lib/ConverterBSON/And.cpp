@@ -5,6 +5,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
+#include "core/ExceptionPACS.h"
+
 And::Pointer
 And
 ::New()
@@ -20,8 +22,12 @@ And
 
 bool
 And
-::operator()(DcmElement * element) const
+::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
 {
+    if (element == NULL)
+    {
+        throw research_pacs::ExceptionPACS("element is NULL.");
+    }
     bool value=true;
     for(std::vector<boost::shared_ptr<Condition> >::const_iterator it=this->conditions.begin();
         it != this->conditions.end(); ++it)
