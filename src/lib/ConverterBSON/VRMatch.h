@@ -14,7 +14,7 @@ public :
     static Pointer New(DcmEVR vr);
 
     VRMatch(DcmEVR vr);
-    virtual bool operator()(DcmElement * element) const;
+    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
     DcmEVR vr;
 };
 

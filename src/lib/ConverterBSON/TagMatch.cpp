@@ -4,6 +4,8 @@
 #include <dcmtk/dcmdata/dcvr.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
+#include "core/ExceptionPACS.h"
+
 TagMatch::Pointer
 TagMatch
 ::New(DcmTagKey tag)
@@ -20,11 +22,11 @@ TagMatch
 
 bool
 TagMatch
-::operator()(DcmElement * element) const
+::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
 {
     if (element == NULL)
     {
-        return false;
+        throw research_pacs::ExceptionPACS("element is NULL.");
     }
     return (DcmTagKey(element->getGTag(), element->getETag()) == this->tag);
 }

@@ -56,13 +56,13 @@ BOOST_AUTO_TEST_CASE(TEST_OK_03)
     delete element;
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST KO 01 *******************************/
 /**
- * Nominal test case: Tag not Match => tested element is empty
+ * Error test case: Element is null
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_04)
+BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
     auto tagmatch = TagMatch::New(DcmTagKey(0x0010, 0x0010));
     
-    BOOST_CHECK_EQUAL((*tagmatch)(NULL), false);
+    BOOST_REQUIRE_THROW((*tagmatch)(NULL), research_pacs::ExceptionPACS);
 }

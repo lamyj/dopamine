@@ -11,7 +11,7 @@ AlwaysTrue
 
 bool
 AlwaysTrue
-::operator()(DcmElement * element) const
+::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
 {
     return true;
 }

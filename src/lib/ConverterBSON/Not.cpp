@@ -4,6 +4,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
+#include "core/ExceptionPACS.h"
+
 Not::Pointer
 Not
 ::New(Condition::Pointer const & condition)
@@ -20,8 +22,12 @@ Not
 
 bool
 Not
-::operator()(DcmElement * element) const
+::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
 {
+    if (element == NULL)
+    {
+        throw research_pacs::ExceptionPACS("element is NULL.");
+    }
     return !(*this->condition)(element);
 }
 

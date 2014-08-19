@@ -14,7 +14,7 @@ public :
     static Pointer New(DcmTagKey tag);
 
     TagMatch(DcmTagKey tag);
-    virtual bool operator()(DcmElement * element) const;
+    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
     DcmTagKey tag;
 };
 

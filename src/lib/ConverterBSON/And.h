@@ -14,7 +14,7 @@ public :
     static Pointer New();
 
     And();
-    virtual bool operator()(DcmElement * element) const;
+    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
     std::vector<boost::shared_ptr<Condition> > conditions;
 };
 

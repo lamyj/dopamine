@@ -11,7 +11,7 @@ public :
     typedef boost::shared_ptr<AlwaysFalse> Pointer;
     static Pointer New();
 
-    virtual bool operator()(DcmElement * element) const;
+    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
 };
 
 #endif // _4acc859b_9d30_43fe_843f_74eab7d3043c
