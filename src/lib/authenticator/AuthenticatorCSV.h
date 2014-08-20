@@ -50,6 +50,8 @@ public:
      */
     virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const;
     
+    unsigned int get_table_count() const;
+    
 private:
     std::map<std::string, std::string> _table;
     

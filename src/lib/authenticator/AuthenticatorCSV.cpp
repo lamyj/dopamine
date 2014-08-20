@@ -23,7 +23,8 @@ namespace authenticator
  * Parse a given CSV file and store User/Password as a map
  * @param ifileName : CSV file path
  */
-AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName)
+AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName):
+    AuthenticatorBase()
 {
     if ( ! boost::filesystem::exists(ifileName.c_str()))
     {
@@ -38,7 +39,15 @@ AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName)
         std::string user;
         std::string password;
         stream >> user >> password;
-        this->_table[user] = password;
+        if (user != "" && password != "")
+        {
+            if (this->_table.find(user) == this->_table.end())
+            {
+                this->_table[user] = password;
+            }
+            //else ignore duplicate key 
+        }
+        //else ignore empty line
     }
 }
 
@@ -94,6 +103,13 @@ bool AuthenticatorCSV::operator ()(UserIdentityNegotiationSubItemRQ * identity) 
         }
     }
     return authorized;
+}
+
+unsigned int 
+AuthenticatorCSV
+::get_table_count() const
+{
+    return this->_table.size();
 }
 
 }

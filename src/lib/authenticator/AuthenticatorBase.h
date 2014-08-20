@@ -18,6 +18,8 @@ namespace authenticator
 class AuthenticatorBase
 {
 public:
+    AuthenticatorBase() {};
+
     /**
      * Destructor
      */
