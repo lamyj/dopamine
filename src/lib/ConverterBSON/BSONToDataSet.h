@@ -9,6 +9,7 @@
 #include <iconv.h>
 
 #include <mongo/bson/bson.h>
+#include <mongo/db/json.h>
 
 /**
  * Convert a BSON object to a DCMTK DataSet.

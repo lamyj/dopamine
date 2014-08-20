@@ -99,13 +99,6 @@ DataSetToBSON
     this->_default_filter = action;
 }
 
-std::vector<DataSetToBSON::Filter> const &
-DataSetToBSON
-::get_filters() const
-{
-    return this->_filters;
-}
-
 std::vector<DataSetToBSON::Filter> &
 DataSetToBSON
 ::get_filters()

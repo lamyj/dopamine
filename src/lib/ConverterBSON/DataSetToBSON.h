@@ -51,7 +51,6 @@ public :
      * 
      * Processing stops after the first matching condition.
      */
-    std::vector<Filter> const & get_filters() const;
     std::vector<Filter> & get_filters();
     void set_filters(std::vector<Filter> const & filters);
 

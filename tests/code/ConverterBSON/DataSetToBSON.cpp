@@ -75,14 +75,33 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 
 /*************************** TEST OK 04 *******************************/
 /**
+ * Nominal test case: Set and Get Filters
+ */
+BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
+{
+    // Set Filter
+    std::vector<DataSetToBSON::Filter> filters;
+    filters.push_back(std::make_pair(TagMatch::New(DCM_PatientName),
+                      DataSetToBSON::FilterAction::INCLUDE));
+                      
+    datasettobson->set_filters(filters);
+    
+    std::vector<DataSetToBSON::Filter> const getfilters =
+        datasettobson->get_filters();
+    // check value
+    BOOST_CHECK_EQUAL(getfilters.size(), 1);
+}
+
+/*************************** TEST OK 05 *******************************/
+/**
  * Nominal test case: Operator ()
  */
- struct TestDataOK04
+ struct TestDataOK05
 {
     DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
-    TestDataOK04()
+    TestDataOK05()
     {
         datasettobson = new DataSetToBSON();
         dataset = new DcmDataset();
@@ -114,14 +133,14 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
         dataset->insertSequenceItem(DCM_OtherPatientIDsSequence, item);
     }
  
-    ~TestDataOK04()
+    ~TestDataOK05()
     {
         delete datasettobson;
         delete dataset;
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
 {
     mongo::BSONObjBuilder query_builder;
     (*datasettobson)(dataset, query_builder);
@@ -287,16 +306,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
     BOOST_CHECK_EQUAL(array[1].Double(), 42.5);
 }
 
-/*************************** TEST OK 05 *******************************/
+/*************************** TEST OK 06 *******************************/
 /**
  * Nominal test case: Matching Tag
  */
- struct TestDataOK05
+ struct TestDataOK06
 {
     DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
-    TestDataOK05()
+    TestDataOK06()
     {
         datasettobson = new DataSetToBSON();
         dataset = new DcmDataset();
@@ -304,14 +323,14 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
         dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
     }
  
-    ~TestDataOK05()
+    ~TestDataOK06()
     {
         delete datasettobson;
         delete dataset;
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 {
     datasettobson->get_filters().push_back(
         std::make_pair(TagMatch::New(DCM_PatientName),
@@ -340,6 +359,245 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
     BOOST_CHECK_EQUAL(it.more(), false);
 }
 
+/*************************** TEST OK 07 *******************************/
+/**
+ * Nominal test case: Insert empty value
+ */
+ struct TestDataOK07
+{
+    DataSetToBSON * datasettobson;
+    DcmDataset* dataset;
+ 
+    TestDataOK07()
+    {
+        datasettobson = new DataSetToBSON();
+        dataset = new DcmDataset();
+        dataset->putAndInsertOFStringArray(DCM_Modality, "");
+    }
+ 
+    ~TestDataOK07()
+    {
+        delete datasettobson;
+        delete dataset;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK07)
+{
+    mongo::BSONObjBuilder query_builder;
+    (*datasettobson)(dataset, query_builder);
+    
+    mongo::BSONObj const query_dataset = query_builder.obj();
+    
+    mongo::BSONObj::iterator it = query_dataset.begin();
+    
+    mongo::BSONElement element;
+    std::vector<mongo::BSONElement> array;
+    
+    // Testing TM
+    element = it.next();
+    array = element.Array();
+    BOOST_CHECK_EQUAL(element.fieldName(), "00080060");
+    BOOST_CHECK_EQUAL(array[0].String(), "CS");
+    BOOST_CHECK_EQUAL(array[1].isNull(), true);
+}
+
+/*************************** TEST OK 08 *******************************/
+/**
+ * Nominal test case: EVR depending on context (EVR_ox, EVR_xs, EVR_lt)
+ * WARNING: NOT IMPLEMENTED
+ */
+ struct TestDataOK08
+{
+    DataSetToBSON * datasettobson;
+    DcmDataset* dataset;
+ 
+    TestDataOK08()
+    {
+        datasettobson = new DataSetToBSON();
+        dataset = new DcmDataset();
+        
+        /*DcmElement* element = NULL;
+        
+        // Insert US or SS
+        element = new DcmUnsignedShort(DcmTag(0x9998,0x9998,DcmVR(EVR_xs)));
+        element->putUint16(5);
+        dataset->insert(element);
+        
+        // Insert US, SS or OW
+        element = new DcmOtherByteOtherWord(DcmTag(0x9998,0x9999,DcmVR(EVR_lt)));
+        Uint8 * temp;
+        element->createUint8Array(8, temp);
+        dataset->insert(element);
+        
+        // Insert OB or OW
+        element = new DcmOtherByteOtherWord(DcmTag(0x9998,0x999a,DcmVR(EVR_ox)));
+        element->createUint8Array(8, temp);
+        dataset->insert(element);*/
+    }
+ 
+    ~TestDataOK08()
+    {
+        delete datasettobson;
+        delete dataset;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_08, TestDataOK08)
+{
+    /*mongo::BSONObjBuilder query_builder;
+    (*datasettobson)(dataset, query_builder);
+    
+    mongo::BSONObj const query_dataset = query_builder.obj();
+    
+    mongo::BSONObj::iterator it = query_dataset.begin();
+    
+    mongo::BSONElement element;
+    std::vector<mongo::BSONElement> array;*/
+    
+    // Testing US or SS
+    
+    // Testing US, SS or OW
+    
+    // Testing OB or OW
+}
+
+/*************************** TEST OK 09 *******************************/
+/**
+ * Nominal test case: EVR OB, OF and OW
+ * WARNING: NOT IMPLEMENTED
+ */
+ struct TestDataOK09
+{
+    DataSetToBSON * datasettobson;
+    DcmDataset* dataset;
+ 
+    TestDataOK09()
+    {
+        datasettobson = new DataSetToBSON();
+        dataset = new DcmDataset();
+        
+        // Insert OB
+        
+        // Insert OW
+        
+        // Insert OF
+    }
+ 
+    ~TestDataOK09()
+    {
+        delete datasettobson;
+        delete dataset;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_09, TestDataOK09)
+{
+    /*mongo::BSONObjBuilder query_builder;
+    (*datasettobson)(dataset, query_builder);
+    
+    mongo::BSONObj const query_dataset = query_builder.obj();
+    
+    mongo::BSONObj::iterator it = query_dataset.begin();
+    
+    mongo::BSONElement element;
+    std::vector<mongo::BSONElement> array;*/
+    
+    // Testing OB
+    
+    // Testing OW
+    
+    // Testing OF
+}
+
+/*************************** TEST OK 10 *******************************/
+/**
+ * Nominal test case: Multi-valued (VM > 1)
+ */
+ struct TestDataOK10
+{
+    DataSetToBSON * datasettobson;
+    DcmDataset* dataset;
+ 
+    TestDataOK10()
+    {
+        datasettobson = new DataSetToBSON();
+        dataset = new DcmDataset();
+        
+        // Insert CS multi-valued
+        dataset->putAndInsertOFStringArray(DCM_Modality, "value1\\value2");
+        
+        // insert DS multi-valued
+        dataset->putAndInsertOFStringArray(DCM_PatientWeight, "60.5\\42.9");
+        
+        // insert IS multi-valued
+        dataset->putAndInsertOFStringArray(DCM_StageNumber, "12\\24");
+        
+        // insert US multi-valued
+        Uint16 tab[2];
+        tab[0] = 5;
+        tab[1] = 6;
+        dataset->putAndInsertUint16Array(DCM_FailureReason, tab, 2);
+    }
+ 
+    ~TestDataOK10()
+    {
+        delete datasettobson;
+        delete dataset;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_10, TestDataOK10)
+{
+    mongo::BSONObjBuilder query_builder;
+    (*datasettobson)(dataset, query_builder);
+    
+    mongo::BSONObj const query_dataset = query_builder.obj();
+    
+    mongo::BSONObj::iterator it = query_dataset.begin();
+    
+    mongo::BSONElement element;
+    std::vector<mongo::BSONElement> array;
+    std::cout << query_dataset.toString() << std::endl;
+    // Testing CS
+    element = it.next();
+    array = element.Array();
+    BOOST_CHECK_EQUAL(element.fieldName(), "00080060");
+    BOOST_CHECK_EQUAL(array[0].String(), "CS");
+    BOOST_CHECK_EQUAL(array[1].Array()[0].String(), "value1");
+    BOOST_CHECK_EQUAL(array[1].Array()[1].String(), "value2");
+    
+    // Testing US
+    element = it.next();
+    array = element.Array();
+    BOOST_CHECK_EQUAL(element.fieldName(), "00081197");
+    BOOST_CHECK_EQUAL(array[0].String(), "US");
+    BOOST_CHECK_EQUAL(array[1].Array()[0].Int(), 5);
+    BOOST_CHECK_EQUAL(array[1].Array()[1].Int(), 6);
+    
+    // Testing IS
+    element = it.next();
+    array = element.Array();
+    BOOST_CHECK_EQUAL(element.fieldName(), "00082122");
+    BOOST_CHECK_EQUAL(array[0].String(), "IS");
+    BOOST_CHECK_EQUAL(array[1].Array()[0].Int(), 12);
+    BOOST_CHECK_EQUAL(array[1].Array()[1].Int(), 24);
+    
+    // Testing DS
+    element = it.next();
+    array = element.Array();
+    BOOST_CHECK_EQUAL(element.fieldName(), "00101030");
+    BOOST_CHECK_EQUAL(array[0].String(), "DS");
+    BOOST_CHECK_EQUAL(array[1].Array()[0].Double(), 60.5);
+    BOOST_CHECK_EQUAL(array[1].Array()[1].Double(), 42.9);
+}
+ 
+/*************************** TEST OK XX *******************************/
+/**
+ * Nominal test case: EVR UN
+ * WARNING: NOT IMPLEMENTED
+ */
+
 /*************************** TEST KO 01 *******************************/
 /**
  * Error test case: set_specific_character_set => bad value
@@ -359,5 +617,22 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
 {
     // set_specific_character_set
     BOOST_REQUIRE_THROW(datasettobson->set_specific_character_set("ISO_IR 192\\GB18030"),
+                        std::runtime_error);
+}
+
+/*************************** TEST KO 03 *******************************/
+/**
+ * Error test case: Throw Unhandled VR
+ */
+BOOST_FIXTURE_TEST_CASE(TEST_KO_03, TestDataOK06)
+{
+    DcmAttributeTag* element = new DcmAttributeTag(DcmTag(0x9998,0x9998,DcmVR(EVR_na)));
+    std::string test = "(0008,0020)\(0008,0030)";
+    OFCondition cond = element->putString(test.c_str());
+    dataset->insert(element);
+    
+    mongo::BSONObjBuilder query_builder;
+    
+    BOOST_REQUIRE_THROW((*datasettobson)(dataset, query_builder);,
                         std::runtime_error);
 }

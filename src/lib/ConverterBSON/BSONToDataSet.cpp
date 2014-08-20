@@ -424,21 +424,32 @@ BSONToDataSet
 
     // Get the VR : first item of value
     DcmVR const vr(array[0].String().c_str());
-    DcmEVR const evr(vr.getValidEVR());
+    DcmEVR const evr(vr.getEVR());
 
     if(!array[1].isNull())
     {
         if(evr == EVR_SQ)
         {
-            std::vector<mongo::BSONElement> elements = array[1].Array();
-            for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-                it != elements.end(); ++it)
+            if (array[1].isABSONObj())
             {
                 BSONToDataSet converter;
                 converter.set_specific_character_set(this->get_specific_character_set());
 
-                DcmDataset * item = new DcmDataset(converter(it->Obj()));
+                DcmItem * item = new DcmItem(converter(array[1].Obj()));
                 dataset.insertSequenceItem(tag, item);
+            }
+            else
+            {
+                std::vector<mongo::BSONElement> elements = array[1].Array();
+                for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+                    it != elements.end(); ++it)
+                {
+                    BSONToDataSet converter;
+                    converter.set_specific_character_set(this->get_specific_character_set());
+
+                    DcmDataset * item = new DcmDataset(converter(it->Obj()));
+                    dataset.insertSequenceItem(tag, item);
+                }
             }
         }
         else

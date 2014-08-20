@@ -9,6 +9,9 @@
 #define BOOST_TEST_MODULE ModuleBSONToDataSet
 #include <boost/test/unit_test.hpp>
 
+#include <mongo/bson/bson.h>
+#include <mongo/db/json.h>
+
 #include "ConverterBSON/BSONToDataSet.h"
 
 /*************************** TEST OK 01 *******************************/
@@ -417,6 +420,193 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK03)
     }
 }
 
+/*************************** TEST OK 04 *******************************/
+/**
+ * Nominal test case: Insert empty value
+ */
+ struct TestDataOK04
+{
+    BSONToDataSet * bsontodataset;
+    mongo::BSONObjBuilder * bsonobjectbuilder;
+ 
+    TestDataOK04()
+    {
+        bsontodataset = new BSONToDataSet();
+        bsonobjectbuilder = new mongo::BSONObjBuilder();
+        
+        static char buffer[9];
+        
+        // Insert CS
+        {
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("CS");
+        value_builder.appendNull();
+        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
+        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        }
+    }
+ 
+    ~TestDataOK04()
+    {
+        delete bsontodataset;
+        delete bsonobjectbuilder;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
+{
+    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
+    
+    // Testing CS
+    {
+    OFString value;
+    dataset.findAndGetOFString(DCM_Modality, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "");
+    }
+}
+
+/*************************** TEST OK 05 *******************************/
+/**
+ * Nominal test case: Sequence (SQ) Element
+ */
+ struct TestDataOK05
+{
+    BSONToDataSet * bsontodataset;
+    mongo::BSONObjBuilder * bsonobjectbuilder;
+ 
+    TestDataOK05()
+    {
+        bsontodataset = new BSONToDataSet();
+        bsonobjectbuilder = new mongo::BSONObjBuilder();
+        
+        static char buffer[9];
+        
+        mongo::BSONObjBuilder* objectcs = new mongo::BSONObjBuilder();
+        // Insert CS
+        {
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("CS");
+        value_builder.append("value1");
+        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
+        (*objectcs) << buffer << value_builder.arr();
+        }
+        // Insert LO
+        {
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("LO");
+        value_builder.append("MyManufacturer");
+        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0070);
+        (*objectcs) << buffer << value_builder.arr();
+        }
+        
+        // Insert SQ
+        {
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("SQ");
+        value_builder.append(objectcs->obj());
+        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x1002);
+        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        }
+    }
+ 
+    ~TestDataOK05()
+    {
+        delete bsontodataset;
+        delete bsonobjectbuilder;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
+{
+    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
+    
+    // Testing SQ
+    BOOST_CHECK_EQUAL(dataset.tagExists(DCM_OtherPatientIDsSequence), true);
+    
+    DcmItem* item = NULL;
+    dataset.findOrCreateSequenceItem(DCM_OtherPatientIDsSequence, item);
+
+    // Testing CS
+    {
+    OFString value;
+    item->findAndGetOFString(DCM_Modality, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    }
+    
+    // Testing LO
+    {
+    OFString value;
+    item->findAndGetOFString(DCM_Manufacturer, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "MyManufacturer");
+    }
+}
+
+/*************************** TEST OK 06 *******************************/
+/**
+ * Nominal test case: Multi-valued (VM > 1)
+ */
+ struct TestDataOK06
+{
+    BSONToDataSet * bsontodataset;
+    mongo::BSONObjBuilder * bsonobjectbuilder;
+ 
+    TestDataOK06()
+    {
+        bsontodataset = new BSONToDataSet();
+        bsonobjectbuilder = new mongo::BSONObjBuilder();
+        
+        static char buffer[9];
+        
+        // Insert CS
+        {
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("CS");
+        mongo::BSONArrayBuilder value_builder2;
+        value_builder2.append("value1");
+        value_builder2.append("value2");
+        value_builder.append(value_builder2.arr());
+        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
+        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        }
+    }
+ 
+    ~TestDataOK06()
+    {
+        delete bsontodataset;
+        delete bsonobjectbuilder;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
+{
+    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
+    
+    // Testing CS
+    {
+    OFString value;
+    dataset.findAndGetOFStringArray(DCM_Modality, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
+    }
+}
+
+/*************************** TEST OK XX *******************************/
+/**
+ * Nominal test case: EVR depending on context (EVR_ox, EVR_xs, EVR_lt)
+ * WARNING: NOT IMPLEMENTED
+ */
+ 
+/*************************** TEST OK XX *******************************/
+/**
+ * Nominal test case: EVR OB, OF and OW
+ * WARNING: NOT IMPLEMENTED
+ */
+ 
+/*************************** TEST OK XX *******************************/
+/**
+ * Nominal test case: EVR UN
+ * WARNING: NOT IMPLEMENTED
+ */
+
 /*************************** TEST KO 01 *******************************/
 /**
  * Error test case: set_specific_character_set => bad value
@@ -425,5 +615,41 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
     // set_specific_character_set
     BOOST_REQUIRE_THROW(bsontodataset->set_specific_character_set("badvalue"),
+                        std::runtime_error);
+}
+
+/*************************** TEST KO 02 *******************************/
+/**
+ * Error test case: Throw Unhandled VR
+ */
+ struct TestDataKO02
+{
+    BSONToDataSet * bsontodataset;
+    mongo::BSONObjBuilder * bsonobjectbuilder;
+ 
+    TestDataKO02()
+    {
+        bsontodataset = new BSONToDataSet();
+        bsonobjectbuilder = new mongo::BSONObjBuilder();
+        
+        static char buffer[9];
+        
+        mongo::BSONArrayBuilder value_builder;
+        value_builder.append("an");
+        value_builder.append("temp");
+        snprintf(buffer, 9, "%04x%04x", 0x9998, 0x9998);
+        (*bsonobjectbuilder) << buffer << value_builder.arr();
+    }
+ 
+    ~TestDataKO02()
+    {
+        delete bsontodataset;
+        delete bsonobjectbuilder;
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
+{
+    BOOST_REQUIRE_THROW((*bsontodataset)(bsonobjectbuilder->obj()),
                         std::runtime_error);
 }
