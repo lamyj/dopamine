@@ -45,7 +45,6 @@ NetworkPACS
     
 NetworkPACS
 ::NetworkPACS():
-    _storage(""),
     _authenticator(NULL),
     _network(NULL),
     _forceStop(false),

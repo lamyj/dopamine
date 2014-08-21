@@ -87,7 +87,8 @@ DBConnection
     
     // Get authorization
     mongo::auto_ptr< mongo::DBClientCursor> cursor = 
-        this->_connection.query(this->_db_name+"."+"authorization",  mongo::BSONObj());
+        this->_connection.query(this->_db_name+"."+"authorization",  
+                                mongo::BSONObj());
 
     while (cursor->more())
     {
@@ -98,7 +99,7 @@ DBConnection
         if (lusername == lcurrentUser)
         {
             std::vector<int> operations;
-            mongo::BSONObjIterator fields (p.getObjectField("authorizedAction"));
+            mongo::BSONObjIterator fields(p.getObjectField("authorizedAction"));
             while(fields.more()) {
                 operations.push_back(fields.next().numberInt());
             }
