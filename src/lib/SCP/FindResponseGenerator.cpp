@@ -18,7 +18,8 @@ namespace research_pacs
 
 FindResponseGenerator
 ::FindResponseGenerator(FindSCP* scp, std::string const & ouraetitle):
-    ResponseGenerator(scp, ouraetitle), _convert_modalities_in_study(false)
+    ResponseGenerator(scp, ouraetitle), // base class initialisation
+    _convert_modalities_in_study(false)
 {
 }
 
@@ -90,13 +91,13 @@ FindResponseGenerator
             fields_builder << "00100020" << 1;
         }
         if((this->_query_retrieve_level=="STUDY" ||
-                 this->_query_retrieve_level=="SERIES" ||
-                 this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
+            this->_query_retrieve_level=="SERIES" ||
+            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
         {
             fields_builder << "0020000d" << 1;
         }
         if((this->_query_retrieve_level=="SERIES" ||
-                 this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
         {
             fields_builder << "0020000e" << 1;
         }
@@ -233,7 +234,8 @@ FindResponseGenerator
                     value += "\\";
                 }
             }
-            (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy, OFString(value.c_str()));
+            (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy, 
+                                                              OFString(value.c_str()));
         }
                                               
         ++this->_index;

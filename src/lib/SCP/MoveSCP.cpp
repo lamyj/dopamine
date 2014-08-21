@@ -12,6 +12,17 @@
 namespace research_pacs
 {
     
+/**
+ * Callback handler called by the DIMSE_moveProvider callback function
+ * @param callbackdata: Callback context (in)
+ * @param cancelled: flag indicating wheter a C-CANCEL was received (in)
+ * @param request: original move request (in)
+ * @param requestIdentifiers: original move request identifiers (in)
+ * @param responseCount: move response count (in)
+ * @param response: final move response (out)
+ * @param stDetail: status detail for move response (out)
+ * @param responseIdentifiers: move response identifiers (out)
+ */
 static void moveCallback(
         /* in */
         void *callbackData,
@@ -31,7 +42,7 @@ MoveSCP
 ::MoveSCP(T_ASC_Association * assoc, 
           T_ASC_PresentationContextID presID,
           T_DIMSE_C_MoveRQ * req):
-    SCP(assoc, presID), _request(req)
+    SCP(assoc, presID), _request(req) // base class initialisation
 {
     // Nothing to do
 }

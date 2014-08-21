@@ -14,20 +14,35 @@
 namespace research_pacs
 {
     
+/**
+ * @brief SCP for C-GET services
+ */
 class GetSCP : public SCP
 {
 public:
+    /**
+     * Create a default GetSCP
+     * @param assoc: linked association
+     * @param presID: linked presentation context
+     * @param req: C-GET request
+     */
     GetSCP(T_ASC_Association * assoc, 
            T_ASC_PresentationContextID presID,
            T_DIMSE_C_GetRQ * req);
     
+    /// Destroy the SCP
     virtual ~GetSCP();
     
+    /**
+     * Send the C-GET response
+     * @return EC_Normal if successful, an error code otherwise 
+     */
     OFCondition process();
 
 protected:
 
 private:
+    /// Associated C-GET request
     T_DIMSE_C_GetRQ * _request;
 
 };

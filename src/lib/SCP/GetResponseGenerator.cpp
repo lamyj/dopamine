@@ -16,15 +16,20 @@
 namespace research_pacs
 {
     
+/**
+ * Callback handler called by the DIMSE_storeProvider callback function
+ * @param progress: progress state (in)
+ * @param request: original store request (in)
+ */
 static void getSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
-                                  T_DIMSE_C_StoreRQ*)
+                                  T_DIMSE_C_StoreRQ* request)
 {
     // Nothing to do
 }
     
 GetResponseGenerator
 ::GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle):
-    ResponseGenerator(scp, ouraetitle)
+    ResponseGenerator(scp, ouraetitle) // base class initialisation
 {
     // Nothing to do
 }
@@ -237,7 +242,6 @@ GetResponseGenerator
 ::performGetSubOperation(const char* sopClassUID, const char* sopInstanceUID,
                          DcmDataset* dataset)
 {
-    T_DIMSE_C_StoreRQ req;
     DIC_US msgID = this->_scp->get_association()->nextMsgID++;
     
     /* which presentation context should be used */
@@ -265,6 +269,8 @@ GetResponseGenerator
         }
     }
     
+    // Create a C-Store request
+    T_DIMSE_C_StoreRQ req;
     req.MessageID = msgID;
     strcpy(req.AffectedSOPClassUID, sopClassUID);
     strcpy(req.AffectedSOPInstanceUID, sopInstanceUID);
@@ -278,6 +284,7 @@ GetResponseGenerator
     
     std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
     
+    // Send the C-Store request
     OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 
                                          presID, &req, NULL, dataset, 
                                          getSubProcessCallback, this,

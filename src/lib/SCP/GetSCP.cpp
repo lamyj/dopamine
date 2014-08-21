@@ -17,6 +17,17 @@
 namespace research_pacs
 {
 
+/**
+ * Callback handler called by the DIMSE_getProvider callback function
+ * @param callbackdata: Callback context (in)
+ * @param cancelled: flag indicating wheter a C-CANCEL was received (in)
+ * @param request: original get request (in)
+ * @param requestIdentifiers: original get request identifiers (in)
+ * @param responseCount: get response count (in)
+ * @param response: final get response (out)
+ * @param stDetail: status detail for get response (out)
+ * @param responseIdentifiers: get response identifiers (out)
+ */
 static void getCallback(
         /* in */
         void *callbackData,
@@ -37,7 +48,7 @@ GetSCP
 ::GetSCP(T_ASC_Association * assoc, 
          T_ASC_PresentationContextID presID, 
          T_DIMSE_C_GetRQ * req):
-    SCP(assoc, presID), _request(req)
+    SCP(assoc, presID), _request(req) // base class initialisation
 {
     // nothing to do
 }

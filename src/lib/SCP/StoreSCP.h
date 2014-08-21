@@ -14,24 +14,42 @@
 namespace research_pacs
 {
     
+/**
+ * @brief SCP for C-STORE services
+ */
 class StoreSCP : public SCP
 {
 public:
+    /**
+     * Create a default StoreSCP
+     * @param assoc: linked association
+     * @param presID: linked presentation context
+     * @param req: C-STORE request
+     */
     StoreSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,
             T_DIMSE_C_StoreRQ * req);
     
+    /// Destroy the SCP
     virtual ~StoreSCP();
     
+    /**
+     * Send the C-STORE response
+     * @return EC_Normal if successful, an error code otherwise 
+     */
     OFCondition process();
 
 protected:
 
 private:
+    /// Associated C-STORE request
     T_DIMSE_C_StoreRQ * _request;
     
 };
 
+/**
+ * @brief Context for the Store callback
+ */
 struct StoreCallbackData
 {
     DIC_US status;

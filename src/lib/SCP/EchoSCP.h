@@ -14,20 +14,35 @@
 namespace research_pacs
 {
     
+/**
+ * @brief SCP for C-ECHO services
+ */
 class EchoSCP : public SCP
 {
 public:
+    /**
+     * Create a default EchoSCP
+     * @param assoc: linked association
+     * @param presID: linked presentation context
+     * @param req: C-ECHO request
+     */
     EchoSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,
             T_DIMSE_C_EchoRQ * req);
     
+    /// Destroy the SCP
     virtual ~EchoSCP();
     
+    /**
+     * Send the C-ECHO response
+     * @return EC_Normal if successful, an error code otherwise 
+     */
     OFCondition process();
 
 protected:
 
 private:
+    /// Associated C-ECHO request
     T_DIMSE_C_EchoRQ * _request;
 
 };

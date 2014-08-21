@@ -15,7 +15,7 @@ EchoSCP
 ::EchoSCP(T_ASC_Association * assoc, 
           T_ASC_PresentationContextID presID, 
           T_DIMSE_C_EchoRQ * req):
-    SCP(assoc, presID), _request(req)
+    SCP(assoc, presID), _request(req) // base class initialisation
 {
     // nothing to do
 }

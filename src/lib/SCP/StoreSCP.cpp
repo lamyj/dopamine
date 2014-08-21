@@ -18,6 +18,12 @@
 namespace research_pacs
 {
     
+/**
+ * Return hashcode for a given iterator
+ * @param begin: iterator's begin
+ * @param end: iterator's end
+ * @return hashcode
+ */
 template<typename TIterator>
 uint32_t hashCode(TIterator begin, TIterator end)
 {
@@ -31,6 +37,11 @@ uint32_t hashCode(TIterator begin, TIterator end)
     return hash;
 }
 
+/**
+ * Return hashcode for a given string
+ * @param s: string value
+ * @return hashcode
+ */
 template<typename TString>
 uint32_t hashCode(TString const & s)
 {
@@ -39,6 +50,11 @@ uint32_t hashCode(TString const & s)
     return hashCode(begin, end);
 }
 
+/**
+ * Convert hashcode to string value
+ * @param hash: hashcode
+ * @return corresponding string
+ */
 std::string hashToString(uint32_t hash)
 {
     const size_t bufferSize = 9; // Use one more char for '\0'
@@ -49,6 +65,16 @@ std::string hashToString(uint32_t hash)
     return std::string(temp);
 }
 
+/**
+ * Callback handler called by the DIMSE_storeProvider callback function
+ * @param callbackdata: Callback context (in)
+ * @param progress: progress state (in)
+ * @param req: original store request (in)
+ * @param imageFileName: being received into (in)
+ * @param imageDataSet: being received into (in)
+ * @param rsp: final store response (out)
+ * @param stDetail: status detail for find response (out)
+ */
 static void storeCallback(
     /* in */
     void *callbackData,
@@ -111,7 +137,8 @@ static void storeCallback(
             //   /(32-bits hash of Study Instance UID
             //   /(32-bits hash of Series Instance UID)
             //   /(32-bits hash of SOP Instance UID)
-            // The 32-bits hash is based on String.hashCode (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html#hashCode%28%29)
+            // The 32-bits hash is based on String.hashCode 
+            //   (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html#hashCode%28%29)
 
             boost::gregorian::date const today(
                 boost::gregorian::day_clock::universal_day());
@@ -128,7 +155,8 @@ static void storeCallback(
             std::string const sop_instance_hash = hashToString(hashCode(sop_instance_uid));
 
             boost::filesystem::path const destination =
-                boost::filesystem::path(ConfigurationPACS::get_instance().GetValue("dicom.storage_path"))
+                boost::filesystem::path(
+                    ConfigurationPACS::get_instance().GetValue("dicom.storage_path"))
                     /boost::lexical_cast<std::string>(today.year())
                     /boost::lexical_cast<std::string>(today.month().as_number())
                     /boost::lexical_cast<std::string>(today.day())
@@ -136,10 +164,13 @@ static void storeCallback(
 
             // Store the dataset in DB and in filesystem
             builder << "location" << destination.string();
-            DBConnection::get_instance().get_connection().insert(DBConnection::get_instance().get_db_name()+".datasets", builder.obj());
+            DBConnection::get_instance().get_connection().insert(
+                DBConnection::get_instance().get_db_name()+".datasets", 
+                builder.obj());
             boost::filesystem::create_directories(destination.parent_path());
             
-            file_format.saveFile(destination.string().c_str(), EXS_LittleEndianExplicit);
+            file_format.saveFile(destination.string().c_str(), 
+                                 EXS_LittleEndianExplicit);
         }
     }
 }
@@ -148,7 +179,7 @@ StoreSCP
 ::StoreSCP(T_ASC_Association * assoc, 
            T_ASC_PresentationContextID presID, 
            T_DIMSE_C_StoreRQ * req):
-    SCP(assoc, presID), _request(req)
+    SCP(assoc, presID), _request(req) // base class initialisation
 {
     // nothing to do
 }
@@ -180,7 +211,8 @@ StoreSCP
         char const * aet = this->_association->params->DULparams.callingAPTitle;
         if(aet != NULL)
         {
-            data.source_application_entity_title = this->_association->params->DULparams.callingAPTitle;
+            data.source_application_entity_title = 
+                this->_association->params->DULparams.callingAPTitle;
         }
     }
 
