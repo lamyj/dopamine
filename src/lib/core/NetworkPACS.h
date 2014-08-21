@@ -38,11 +38,17 @@ class NetworkPACS
 public:
     static NetworkPACS & get_instance();
     
+    static void delete_instance();
+    
     virtual ~NetworkPACS();
     
     void run();
     
     T_ASC_Network* get_network() const { return this->_network; };
+    
+    void force_stop();
+    
+    void set_timeout(int const & timeout) { this->_timeout = timeout; }
 
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
@@ -66,6 +72,10 @@ private:
     authenticator::AuthenticatorBase * _authenticator;
     
     T_ASC_Network * _network;
+    
+    bool _forceStop;
+    
+    int _timeout;
     
     void create_authenticator();
 

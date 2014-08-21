@@ -59,7 +59,7 @@ ConfigurationPACS
 {
     if ( ! boost::filesystem::exists(file.c_str()))
     {
-        throw ExceptionPACS("Trying to parse non-existing file.");
+        throw ExceptionPACS("Trying to parse non-existing file: " + file);
     }
     
     boost::property_tree::ini_parser::read_ini(file, this->_confptree);

@@ -1,0 +1,210 @@
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
+#include <fstream>
+
+#define BOOST_TEST_MODULE ModuleNetworkPACS
+#include <boost/test/unit_test.hpp>
+
+#include "core/ConfigurationPACS.h"
+#include "core/ExceptionPACS.h"
+#include "core/NetworkPACS.h"
+
+/**
+ * Pre-conditions: 
+ *     - we assume that ConfigurationPACS works correctly
+ *     - we assume that AuthenticatorCSV works correctly
+ */
+
+/*************************** TEST OK 01 *******************************/
+/**
+ * Nominal test case: Constructor
+ */
+ struct TestDataOK01
+{
+    std::string conffile;
+    std::string authfile;
+ 
+    TestDataOK01()
+    {
+        // Create authenticator file
+        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
+        std::ofstream myauthfile;
+        myauthfile.open(authfile);
+        myauthfile << "user1\tpassword1\n";
+        myauthfile << "user2\tpassword2\n";
+        myauthfile.close();
+        
+        // Create Configuration file
+        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
+        std::ofstream myfile;
+        myfile.open(conffile);
+        myfile << "[dicom]\n";
+        myfile << "storage_path=./temp_dir\n";
+        myfile << "allowed_peers=*\n";
+        myfile << "port=11112\n";
+        myfile << "[database]\n";
+        myfile << "hostname=localhost\n";
+        myfile << "port=27017\n";
+        myfile << "dbname=pacs\n";
+        myfile << "[authenticator]\n";
+        myfile << "type=CSV\n";
+        myfile << "filepath=" << authfile << "\n";
+        myfile << "[listAddressPort]\n";
+        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "LANGUEDOC=languedoc:11113\n";
+        myfile << "LOCAL=vexin:11112\n";
+        myfile.close();
+    }
+ 
+    ~TestDataOK01()
+    {
+        remove(conffile.c_str());
+        remove(authfile.c_str());
+        research_pacs::ConfigurationPACS::delete_instance();
+        research_pacs::NetworkPACS::delete_instance();
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+{
+    research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
+    research_pacs::NetworkPACS& networkpacs = research_pacs::NetworkPACS::get_instance();
+    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+}
+
+/*************************** TEST OK 02 *******************************/
+/**
+ * Nominal test case: Run
+ */
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+{
+    research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
+    research_pacs::NetworkPACS& networkpacs = research_pacs::NetworkPACS::get_instance();
+    networkpacs.force_stop();
+    networkpacs.set_timeout(1);
+    networkpacs.run();
+    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+}
+
+/*************************** TEST KO 01 *******************************/
+/**
+ * Error test case: Bad authenticator type
+ */
+ struct TestDataKO01
+{
+    std::string conffile;
+    std::string authfile;
+ 
+    TestDataKO01()
+    {
+        // Create authenticator file
+        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
+        std::ofstream myauthfile;
+        myauthfile.open(authfile);
+        myauthfile << "user1\tpassword1\n";
+        myauthfile << "user2\tpassword2\n";
+        myauthfile.close();
+        
+        // Create Configuration file
+        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
+        std::ofstream myfile;
+        myfile.open(conffile);
+        myfile << "[dicom]\n";
+        myfile << "storage_path=./temp_dir\n";
+        myfile << "allowed_peers=*\n";
+        myfile << "port=11112\n";
+        myfile << "[database]\n";
+        myfile << "hostname=localhost\n";
+        myfile << "port=27017\n";
+        myfile << "dbname=pacs\n";
+        myfile << "[authenticator]\n";
+        myfile << "type=BADVALUE\n";
+        myfile << "filepath=" << authfile << "\n";
+        myfile << "[listAddressPort]\n";
+        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "LANGUEDOC=languedoc:11113\n";
+        myfile << "LOCAL=vexin:11112\n";
+        myfile.close();
+        
+        research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
+    }
+ 
+    ~TestDataKO01()
+    {
+        remove(conffile.c_str());
+        remove(authfile.c_str());
+        research_pacs::ConfigurationPACS::delete_instance();
+        research_pacs::NetworkPACS::delete_instance();
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
+{
+    BOOST_REQUIRE_THROW(research_pacs::NetworkPACS::get_instance(), 
+                        research_pacs::ExceptionPACS);
+}
+
+/*************************** TEST KO 01 *******************************/
+/**
+ * Error test case: Bad Port
+ */
+ struct TestDataKO02
+{
+    std::string conffile;
+    std::string authfile;
+ 
+    TestDataKO02()
+    {
+        // Create authenticator file
+        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
+        std::ofstream myauthfile;
+        myauthfile.open(authfile);
+        myauthfile << "user1\tpassword1\n";
+        myauthfile << "user2\tpassword2\n";
+        myauthfile.close();
+        
+        // Create Configuration file
+        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
+        std::ofstream myfile;
+        myfile.open(conffile);
+        myfile << "[dicom]\n";
+        myfile << "storage_path=./temp_dir\n";
+        myfile << "allowed_peers=*\n";
+        myfile << "port=1\n";               // WARNING: this port should be used
+        myfile << "[database]\n";
+        myfile << "hostname=localhost\n";
+        myfile << "port=27017\n";
+        myfile << "dbname=pacs\n";
+        myfile << "[authenticator]\n";
+        myfile << "type=CSV\n";
+        myfile << "filepath=" << authfile << "\n";
+        myfile << "[listAddressPort]\n";
+        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "LANGUEDOC=languedoc:11113\n";
+        myfile << "LOCAL=vexin:11112\n";
+        myfile.close();
+        
+        research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
+    }
+ 
+    ~TestDataKO02()
+    {
+        remove(conffile.c_str());
+        remove(authfile.c_str());
+        research_pacs::ConfigurationPACS::delete_instance();
+        research_pacs::NetworkPACS::delete_instance();
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
+{
+    BOOST_REQUIRE_THROW(research_pacs::NetworkPACS::get_instance(), 
+                        research_pacs::ExceptionPACS);
+}

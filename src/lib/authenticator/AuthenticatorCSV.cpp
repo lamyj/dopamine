@@ -28,7 +28,7 @@ AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName):
 {
     if ( ! boost::filesystem::exists(ifileName.c_str()))
     {
-        throw research_pacs::ExceptionPACS("Trying to parse non-existing file.");
+        throw research_pacs::ExceptionPACS("Trying to parse non-existing file: " + ifileName);
     }
     
     // Open file

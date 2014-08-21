@@ -31,12 +31,25 @@ NetworkPACS
     }
     return *NetworkPACS::_instance;
 }
+
+void
+NetworkPACS
+::delete_instance()
+{
+    if (NetworkPACS::_instance != NULL)
+    {
+        delete NetworkPACS::_instance;
+    }
+    NetworkPACS::_instance = NULL;
+}
     
 NetworkPACS
 ::NetworkPACS():
     _storage(""),
     _authenticator(NULL),
-    _network(NULL)
+    _network(NULL),
+    _forceStop(false),
+    _timeout(1000)
 {
     this->create_authenticator();
     
@@ -79,10 +92,10 @@ void
 NetworkPACS
 ::run()
 {
-    int timeout = 1000; // todo multiprocess
+    // todo multiprocess
     while (true)
     {
-        if (ASC_associationWaiting(this->_network, timeout))
+        if (ASC_associationWaiting(this->_network, this->_timeout))
         {
             bool continue_ = true;
             T_ASC_Association * assoc;
@@ -184,6 +197,10 @@ NetworkPACS
                 // shutdown
                 break;
             }
+        }
+        else if (this->_forceStop)
+        {
+            break;
         }
         // else continue
     }
@@ -708,6 +725,13 @@ NetworkPACS
     {
         DCMQRDB_ERROR("Cannot Destroy Association: " << DimseCondition::dump(temp_str, cond));
     }
+}
+
+void 
+NetworkPACS
+::force_stop()
+{
+    this->_forceStop = true;
 }
 
 } // namespace research_pacs
