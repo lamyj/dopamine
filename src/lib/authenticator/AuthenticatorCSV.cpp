@@ -1,13 +1,11 @@
-/*
- *
- *  Module:  Authenticator
- *
- *  Author:  ICUBE Strasbourg
- *
- *  Purpose: class AuthenticatorCSV
- *
- */
- 
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #include <fstream>
 
 #include <boost/filesystem.hpp>
@@ -18,17 +16,14 @@
 namespace authenticator
 {
     
-/**
- * Constructor
- * Parse a given CSV file and store User/Password as a map
- * @param ifileName : CSV file path
- */
-AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName):
-    AuthenticatorBase()
+AuthenticatorCSV
+::AuthenticatorCSV(std::string const & ifileName):
+    AuthenticatorBase() // base class initialisation
 {
     if ( ! boost::filesystem::exists(ifileName.c_str()))
     {
-        throw research_pacs::ExceptionPACS("Trying to parse non-existing file: " + ifileName);
+        throw research_pacs::ExceptionPACS("Trying to parse non-existing file: " + 
+                                           ifileName);
     }
     
     // Open file
@@ -51,20 +46,14 @@ AuthenticatorCSV::AuthenticatorCSV(std::string const & ifileName):
     }
 }
 
-/**
- * Destructor
- */
-AuthenticatorCSV::~AuthenticatorCSV()
+AuthenticatorCSV
+::~AuthenticatorCSV()
 {
 }
 
-/**
- * Operator ()
- * Search a given User/Password in authorized users map
- * @param identity : User identity
- * @return : true if User exist, false otherwise
- */
-bool AuthenticatorCSV::operator ()(UserIdentityNegotiationSubItemRQ * identity) const
+bool 
+AuthenticatorCSV
+::operator ()(UserIdentityNegotiationSubItemRQ * identity) const
 {
     bool authorized = false;
     
