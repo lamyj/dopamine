@@ -33,21 +33,44 @@ enum CTN_RefuseReason
     CTN_NoReason
 };
 
+/**
+ * @brief Class to create and manage a Network
+ */
 class NetworkPACS
 {
 public:
+    /**
+     * Create (if not exist) and return an unique instance of NetworkPACS
+     * @return unique instance of NetworkPACS
+     */
     static NetworkPACS & get_instance();
     
+    /**
+     * Remove the unique instance of NetworkPACS
+     */
     static void delete_instance();
     
+    /// Destroy the Network
     virtual ~NetworkPACS();
     
+    /// While loop to listen the network
     void run();
     
+    /**
+     * Get the created network
+     * @return current network
+     */
     T_ASC_Network* get_network() const { return this->_network; };
     
+    /**
+     * Stop running after the next received association or time out
+     */
     void force_stop();
     
+    /**
+     * Set the waiting time out
+     * @param new time-out value (in second)
+     */
     void set_timeout(int const & timeout) { this->_timeout = timeout; }
 
 protected:
@@ -64,19 +87,25 @@ protected:
     void handleAssociation(T_ASC_Association * assoc);
 
 private:
+    /// Create an instance of NetworkPACS and initialize the network
     NetworkPACS();
     
+    /// Unique Instance
     static NetworkPACS * _instance;
     
-    boost::filesystem::path _storage;
+    /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;
     
+    /// Network for listening/sending Requests and Responses
     T_ASC_Network * _network;
     
+    /// flag indicating if while loop should be Stop
     bool _forceStop;
     
+    /// Waiting time-out
     int _timeout;
     
+    /// Initialize the authenticator manager
     void create_authenticator();
 
 };

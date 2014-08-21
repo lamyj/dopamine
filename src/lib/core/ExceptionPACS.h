@@ -15,20 +15,33 @@
 namespace research_pacs
 {
     
+/**
+ * @brief Base class for PACS Exception
+ */
 class ExceptionPACS: public std::exception
 {
 public:
+    /**
+     * Create an exception
+     * @param message: content of the exception
+     */
     ExceptionPACS(const std::string& message):
         m_message(message) {}
 
+    /// Destroy the exception
     ~ExceptionPACS() throw() {}
     
+    /**
+     * Get exception description
+     * @return message
+     */
     virtual const char* what() const throw() {
         return m_message.c_str();
     }
     
 protected:
-   std::string m_message;
+    /// Exception description
+    std::string m_message;
 
 private:
 
