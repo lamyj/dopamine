@@ -21,6 +21,9 @@
 namespace research_pacs
 {
     
+/**
+ * @brief Base class for all Response Generator.
+ */
 class ResponseGenerator
 {
 public:
@@ -42,17 +45,32 @@ public:
     
     typedef ResponseGenerator Self;
 
+    /**
+     * Create default Response generator
+     * @param scp: associated SCP
+     * @param ouraetitle: Local AETitle
+     */
     ResponseGenerator(SCP * scp, std::string const & ouraetitle);
     
+    /// Destroy the response generator
     virtual ~ResponseGenerator();
     
+    /**
+     * Replace all given pattern by another
+     * @param value: given input string
+     * @param old: search pattern to be replaced
+     * @param new_: new pattern
+     * @return string
+     */
     static std::string replace(std::string const & value, 
                                std::string const & old, 
                                std::string const & new_);
 
 protected:
+    /// Associated SCP
     SCP * _scp;
     
+    /// Local AETitle
     std::string _ourAETitle;
     
     DIC_US _status;
@@ -72,8 +90,16 @@ protected:
     /// Priority of request
     T_DIMSE_Priority _priority;
     
+    /**
+     * Cancel response generation
+     * NOT IMPLEMENTED YET
+     */
     virtual void cancel();
     
+    /**
+     * Process next response
+     * @param responseIdentifiers: service response identifiers
+     */
     virtual void next(DcmDataset ** responseIdentifiers) = 0;
     
     /// @brief Return the DICOM Match Type of an element in BSON form.

@@ -19,6 +19,17 @@
 namespace research_pacs
 {
     
+/**
+ * Callback handler called by the DIMSE_findProvider callback function
+ * @param callbackdata: Callback context (in)
+ * @param cancelled: flag indicating wheter a C-CANCEL was received (in)
+ * @param request: original find request (in)
+ * @param requestIdentifiers: original find request identifiers (in)
+ * @param responseCount: find response count (in)
+ * @param response: final find response (out)
+ * @param responseIdentifiers: find response identifiers (out)
+ * @param stDetail: status detail for find response (out)
+ */
 static void findCallback(
         /* in */
         void *callbackData,
@@ -39,7 +50,7 @@ FindSCP
 ::FindSCP(T_ASC_Association * assoc, 
           T_ASC_PresentationContextID presID, 
           T_DIMSE_C_FindRQ * req):
-    SCP(assoc, presID), _request(req)
+    SCP(assoc, presID), _request(req) // base class initialisation
 {
     // nothing to do
 }

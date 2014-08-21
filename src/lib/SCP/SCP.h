@@ -9,13 +9,16 @@
 #ifndef _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 #define _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 
-#include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
+#include "dcmtk/config/osconfig.h" /* make sure OS specific configuration is included first */
 #include "dcmtk/dcmnet/assoc.h"
 #include "dcmtk/dcmnet/dimse.h"
 
 namespace research_pacs
 {
     
+/**
+ * @brief Base class for all SCP.
+ */
 class SCP
 {
 public:
@@ -25,10 +28,16 @@ public:
     /// Destroy the SCP.
     virtual ~SCP();
     
+    /**
+     * Return current association
+     * @return association
+     */
     T_ASC_Association* get_association() const { return this->_association; }
     
 protected:
+    /// Linked association
     mutable T_ASC_Association * _association;
+    /// Linked presentation context
     T_ASC_PresentationContextID _presentationID;
 
 private:

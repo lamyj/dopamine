@@ -94,6 +94,7 @@ ResponseGenerator
     // \^$.[]()+{}
     //
     std::string regex = value.String();
+    // Escape "\\" first since we're using it to replace "."
     regex = ResponseGenerator::replace(regex, "\\", "\\\\");
     // Escape "." first since we're using it to replace "*"
     regex = ResponseGenerator::replace(regex, ".", "\\.");

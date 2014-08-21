@@ -14,20 +14,35 @@
 namespace research_pacs
 {
     
+/**
+ * @brief SCP for C-MOVE services
+ */
 class MoveSCP : public SCP
 {
 public:
+    /**
+     * Create a default MoveSCP
+     * @param assoc: linked association
+     * @param presID: linked presentation context
+     * @param req: C-STORE request
+     */
     MoveSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,
             T_DIMSE_C_MoveRQ * req);
     
+    /// Destroy the SCP
     virtual ~MoveSCP();
     
+    /**
+     * Send the C-MOVE response
+     * @return EC_Normal if successful, an error code otherwise 
+     */
     OFCondition process();
 
 protected:
 
 private:
+    /// Associated C-MOVE request
     T_DIMSE_C_MoveRQ * _request;
     
 };

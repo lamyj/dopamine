@@ -18,6 +18,11 @@
 namespace research_pacs
 {
     
+/**
+ * Callback handler called by the DIMSE_storeProvider callback function
+ * @param progress: progress state (in)
+ * @param request: original store request (in)
+ */
 static void moveSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
                                    T_DIMSE_C_StoreRQ*)
 {
@@ -26,7 +31,7 @@ static void moveSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
     
 MoveResponseGenerator
 ::MoveResponseGenerator(MoveSCP * scp, std::string const & ouraetitle):
-    ResponseGenerator(scp, ouraetitle)
+    ResponseGenerator(scp, ouraetitle) // base class initialisation
 {
     _origAETitle[0] = '\0';
 }
@@ -82,7 +87,8 @@ MoveResponseGenerator
 
             DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
             // Match the array element containing the value
-            (this->*function)(std::string(element.fieldName())+".1", vr, value, db_query);
+            (this->*function)(std::string(element.fieldName())+".1", vr, 
+                                          value, db_query);
         }
         
         // retrieve 'location' field
@@ -103,13 +109,13 @@ MoveResponseGenerator
             fields_builder << "00100020" << 1;
         }
         if((this->_query_retrieve_level=="STUDY" ||
-                 this->_query_retrieve_level=="SERIES" ||
-                 this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
+            this->_query_retrieve_level=="SERIES" ||
+            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
         {
             fields_builder << "0020000d" << 1;
         }
         if((this->_query_retrieve_level=="SERIES" ||
-                 this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
         {
             fields_builder << "0020000e" << 1;
         }
@@ -169,7 +175,8 @@ MoveResponseGenerator
         OFCondition cond = this->buildSubAssociation(request);
         if (cond.bad())
         {
-            throw ExceptionPACS("Cannot create sub association: " + std::string(cond.text()));
+            throw ExceptionPACS("Cannot create sub association: " + 
+                                std::string(cond.text()));
         }
     } // if (responseCount == 1)
     
@@ -216,13 +223,15 @@ MoveResponseGenerator
         DcmDataset* dataset = fileformat.getAndRemoveDataset();
         
         OFString sopclassuid;
-        OFCondition result = dataset->findAndGetOFString(DCM_SOPClassUID, sopclassuid);
+        OFCondition result = dataset->findAndGetOFString(DCM_SOPClassUID, 
+                                                         sopclassuid);
         if (result.bad())
         {
             throw ExceptionPACS("Missing SOPClassUID field in dataset.");
         }
         OFString sopinstanceuid;
-        result = dataset->findAndGetOFString(DCM_SOPInstanceUID, sopinstanceuid);
+        result = dataset->findAndGetOFString(DCM_SOPInstanceUID, 
+                                             sopinstanceuid);
         if (result.bad())
         {
             throw ExceptionPACS("Missing SOPInstanceUID field in dataset.");
@@ -234,7 +243,8 @@ MoveResponseGenerator
                                                dataset);
         if (result.bad())
         {
-            std::cerr << "Get Sub-Op Failed: " << result.text() << std::endl;
+            std::cerr << "Get Sub-Op Failed: " << result.text() 
+                      << std::endl;
         }
             
         ++this->_index;
@@ -256,7 +266,8 @@ MoveResponseGenerator
     if (presID == 0)
     {
         std::cerr << "No presentation context for: " 
-                  << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
+                  << dcmSOPClassUIDToModality(sopClassUID, "OT") 
+                  << std::endl;
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     
