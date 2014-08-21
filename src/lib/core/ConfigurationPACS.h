@@ -22,12 +22,17 @@ class ConfigurationPACS
 public:
     static ConfigurationPACS & get_instance();
     
+    static void delete_instance();
+    
     virtual ~ConfigurationPACS();
     
     void Parse(std::string const & file);
     
     std::string GetValue(std::string const & key);
     std::string GetValue(std::string const & section, std::string const & key);
+    
+    bool HasValue(std::string const & key);
+    bool HasValue(std::string const & section, std::string const & key);
     
     bool peerInAETitle(std::string const & peer);
     
