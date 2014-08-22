@@ -1,10 +1,16 @@
-#include "VRMatch.h"
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
 
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcvr.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
 #include "core/ExceptionPACS.h"
+#include "VRMatch.h"
 
 VRMatch::Pointer
 VRMatch
@@ -14,10 +20,16 @@ VRMatch
 }
 
 VRMatch
-::VRMatch(DcmEVR vr)
-: vr(vr)
+::VRMatch(DcmEVR vr):
+    Condition(), _vr(vr)
 {
     // Nothing else.
+}
+
+VRMatch
+::~VRMatch()
+{
+    // Nothing to do
 }
 
 bool
@@ -30,14 +42,14 @@ VRMatch
     }
     
     bool match=false;
-    if(element->getVR() == this->vr)
+    if(element->getVR() == this->_vr)
     {
         match = true;
     }
     else
     {
         // Try using DMCTK interval VRs
-        if(DcmVR(element->getVR()).getValidEVR() == this->vr)
+        if(DcmVR(element->getVR()).getValidEVR() == this->_vr)
         {
             match = true;
         }

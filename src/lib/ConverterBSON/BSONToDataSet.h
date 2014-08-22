@@ -1,34 +1,46 @@
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #ifndef _a97264d3_b54b_494b_93a8_1a595dd06f8a
 #define _a97264d3_b54b_494b_93a8_1a595dd06f8a
-
-#include <string>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include <iconv.h>
-
 #include <mongo/bson/bson.h>
 #include <mongo/db/json.h>
 
+#include "ConverterBSONDataSet.h"
+
 /**
- * Convert a BSON object to a DCMTK DataSet.
+ * @brief Convert a BSON object to a DCMTK DataSet.
  */
-class BSONToDataSet
+class BSONToDataSet : public ConverterBSONDataSet
 {
 public :
-
+    /// Create an instance of BSONToDataSet
     BSONToDataSet();
+    
+    /// Destroy the instance of BSONDataSet
     ~BSONToDataSet();
 
-    std::string get_specific_character_set() const;
-    void set_specific_character_set(std::string const & specific_character_set);
-
+    /**
+     * Operator ()
+     * @param bson: BSON object to convert
+     * @return converted DICOM dataset
+     */
     DcmDataset operator()(mongo::BSONObj const & bson);
+    
+    virtual void set_specific_character_set(std::string const & specific_character_set);
+    
+protected:
+    
 private :
-    std::string _specific_character_set;
-    iconv_t _converter;
-
     void _add_element(mongo::BSONElement const & bson,
                       DcmDataset & dataset);
 

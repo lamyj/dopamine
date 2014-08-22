@@ -1,19 +1,46 @@
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #ifndef _361310be_d429_4f49_9d0d_19bd01316dff
 #define _361310be_d429_4f49_9d0d_19bd01316dff
 
-#include <boost/shared_ptr.hpp>
 #include "Condition.h"
 
 class DcmElement;
 
+/**
+ * @brief IsPrivateTag Condition
+ */
 class IsPrivateTag : public Condition
 {
 public :
     typedef boost::shared_ptr<IsPrivateTag> Pointer;
+    
+    /// Create pointer to new instance of IsPrivateTag
     static Pointer New();
 
-    IsPrivateTag();
+    /// Destroy the instance of IsPrivateTag
+    virtual ~IsPrivateTag();
+
+    /**
+     * Operator ()
+     * @param element: tested element
+     * @return true if element is Private, false otherwise
+     * @throw ExceptionPACS if element is null
+     */
     virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
+    
+protected:
+
+private:
+    /// Create an instance of IsPrivateTag
+    IsPrivateTag();
+
 };
 
 #endif // _361310be_d429_4f49_9d0d_19bd01316dff

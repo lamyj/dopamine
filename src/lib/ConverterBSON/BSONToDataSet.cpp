@@ -1,18 +1,20 @@
-#include "BSONToDataSet.h"
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
 
 #include <locale>
-#include <sstream>
-#include <stdexcept>
 
 #include <errno.h>
-#include <iconv.h>
 
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctk.h>
+#include "BSONToDataSet.h"
 
 BSONToDataSet
 ::BSONToDataSet()
-: _specific_character_set(""), _converter(0)
+: ConverterBSONDataSet()
 {
     this->set_specific_character_set("");
 }
@@ -20,17 +22,62 @@ BSONToDataSet
 BSONToDataSet
 ::~BSONToDataSet()
 {
-    if(this->_converter != 0)
-    {
-        iconv_close(this->_converter);
-    }
+    // Nothing to do
 }
 
-std::string
+DcmDataset
 BSONToDataSet
-::get_specific_character_set() const
+::operator()(mongo::BSONObj const & bson)
 {
-    return this->_specific_character_set;
+    if(bson.hasField("00080005") && !bson["00080005"].isNull())
+    {
+        // Specific Character Set: map to iconv encoding
+        std::string value = bson["00080005"].Array()[1].String();
+        if(value.size()%2 != 0)
+        {
+            value += ' ';
+        }
+        // TODO : multi-valued Specific Character Set
+        this->set_specific_character_set(value);
+    }
+
+    DcmDataset dataset;
+    for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
+    {
+        mongo::BSONElement const element_bson = it.next();
+
+        if(element_bson.isNull())
+        {
+            // Skip null elements (might happen when bson is a query result)
+            continue;
+        }
+
+        // Skip elements that do not look like DICOM tags
+        std::string const field_name = element_bson.fieldName();
+        bool skip_field = (field_name.size()!=8);
+        if(!skip_field)
+        {
+            for(std::string::const_iterator field_name_it=field_name.begin();
+                field_name_it!=field_name.end(); ++field_name_it)
+            {
+                if(!((*field_name_it>='0' && *field_name_it<='9') ||
+                     (*field_name_it>='a' && *field_name_it<='f') ||
+                     (*field_name_it>='A' && *field_name_it<='F')))
+                {
+                    skip_field = true;
+                    break;
+                }
+            }
+        }
+
+        if(skip_field)
+        {
+            continue;
+        }
+        this->_add_element(element_bson, dataset);
+    }
+
+    return dataset;
 }
 
 void
@@ -99,66 +146,11 @@ BSONToDataSet
     
     this->_specific_character_set = specific_character_set;
 
-    if(this->_converter != 0)
+    if(this->get_converter() != 0)
     {
-        iconv_close(this->_converter);
+        iconv_close(this->get_converter());
     }
-    this->_converter = iconv_open(encoding.c_str(), "UTF-8");
-}
-
-DcmDataset
-BSONToDataSet
-::operator()(mongo::BSONObj const & bson)
-{
-    if(bson.hasField("00080005") && !bson["00080005"].isNull())
-    {
-        // Specific Character Set: map to iconv encoding
-        std::string value = bson["00080005"].Array()[1].String();
-        if(value.size()%2 != 0)
-        {
-            value += ' ';
-        }
-        // TODO : multi-valued Specific Character Set
-        this->set_specific_character_set(value);
-    }
-
-    DcmDataset dataset;
-    for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
-    {
-        mongo::BSONElement const element_bson = it.next();
-
-        if(element_bson.isNull())
-        {
-            // Skip null elements (might happen when bson is a query result)
-            continue;
-        }
-
-        // Skip elements that do not look like DICOM tags
-        std::string const field_name = element_bson.fieldName();
-        bool skip_field = (field_name.size()!=8);
-        if(!skip_field)
-        {
-            for(std::string::const_iterator field_name_it=field_name.begin();
-                field_name_it!=field_name.end(); ++field_name_it)
-            {
-                if(!((*field_name_it>='0' && *field_name_it<='9') ||
-                     (*field_name_it>='a' && *field_name_it<='f') ||
-                     (*field_name_it>='A' && *field_name_it<='F')))
-                {
-                    skip_field = true;
-                    break;
-                }
-            }
-        }
-
-        if(skip_field)
-        {
-            continue;
-        }
-        this->_add_element(element_bson, dataset);
-    }
-
-    return dataset;
+    this->set_converter(iconv_open(encoding.c_str(), "UTF-8"));
 }
 
 /*******************************************************************************
@@ -531,11 +523,12 @@ BSONToDataSet
             char* inbuf = const_cast<char*>(&element[0]);
             char* outbuf = buffer;
 
-            size_t const result = iconv(this->_converter,
+            size_t const result = iconv(this->get_converter(),
                 &inbuf, &inbytesleft, &outbuf, &outbytesleft);
             if(result == size_t(-1))
             {
-                throw std::runtime_error(std::string("iconv error ")+strerror(errno));
+                throw std::runtime_error(std::string("iconv error ") +
+                                         strerror(errno));
             }
 
             value += OFString(buffer, buffer_size-outbytesleft);
