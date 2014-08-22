@@ -1,11 +1,16 @@
-#include "Or.h"
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
 #include "core/ExceptionPACS.h"
+#include "Or.h"
 
 Or::Pointer
 Or
@@ -15,9 +20,16 @@ Or
 }
 
 Or
-::Or()
+::Or():
+    Condition()
 {
     // Nothing else
+}
+
+Or
+::~Or()
+{
+    // Nothing to do
 }
 
 bool
@@ -30,8 +42,7 @@ Or
     }
     
     bool value=false;
-    for(std::vector<boost::shared_ptr<Condition> >::const_iterator it=this->conditions.begin();
-        it != this->conditions.end(); ++it)
+    for(auto it=this->_conditions.begin(); it != this->_conditions.end(); ++it)
     {
         value = value || (**it)(element);
         if(value)
@@ -41,4 +52,11 @@ Or
     }
 
     return value;
+}
+
+void 
+Or
+::insert_condition(Condition::Pointer condition)
+{
+    this->_conditions.push_back(condition);
 }

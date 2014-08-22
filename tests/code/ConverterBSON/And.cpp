@@ -43,8 +43,8 @@ struct TestDataOK01
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
     auto and_ = And::New();
-    and_->conditions.push_back(alwaystrue);
-    and_->conditions.push_back(alwaystrue);
+    and_->insert_condition(alwaystrue);
+    and_->insert_condition(alwaystrue);
     
     BOOST_CHECK_EQUAL((*and_)(element), true);
 }
@@ -56,8 +56,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
     auto and_ = And::New();
-    and_->conditions.push_back(alwaystrue);
-    and_->conditions.push_back(alwaysfalse);
+    and_->insert_condition(alwaystrue);
+    and_->insert_condition(alwaysfalse);
     
     BOOST_CHECK_EQUAL((*and_)(element), false);
 }
@@ -69,8 +69,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
     auto and_ = And::New();
-    and_->conditions.push_back(alwaysfalse);
-    and_->conditions.push_back(alwaystrue);
+    and_->insert_condition(alwaysfalse);
+    and_->insert_condition(alwaystrue);
     
     BOOST_CHECK_EQUAL((*and_)(element), false);
 }
@@ -82,8 +82,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 {
     auto and_ = And::New();
-    and_->conditions.push_back(alwaysfalse);
-    and_->conditions.push_back(alwaysfalse);
+    and_->insert_condition(alwaysfalse);
+    and_->insert_condition(alwaysfalse);
     
     BOOST_CHECK_EQUAL((*and_)(element), false);
 }
@@ -95,8 +95,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
     auto and_ = And::New();
-    and_->conditions.push_back(alwaystrue);
-    and_->conditions.push_back(alwaystrue);
+    and_->insert_condition(alwaystrue);
+    and_->insert_condition(alwaystrue);
     
     BOOST_REQUIRE_THROW((*and_)(NULL), research_pacs::ExceptionPACS);
 }

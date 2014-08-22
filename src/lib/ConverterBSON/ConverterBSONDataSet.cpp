@@ -6,33 +6,27 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
+#include "ConverterBSONDataSet.h"
 
-#include "AlwaysTrue.h"
-
-AlwaysTrue::Pointer
-AlwaysTrue
-::New()
-{
-    return Pointer(new AlwaysTrue());
-}
-
-AlwaysTrue
-::AlwaysTrue():
-    Condition()
+ConverterBSONDataSet
+::ConverterBSONDataSet():
+    _specific_character_set(""), _converter(0)
 {
     // Nothing to do
 }
 
-AlwaysTrue
-::~AlwaysTrue()
+ConverterBSONDataSet
+::~ConverterBSONDataSet()
 {
-    // Nothing to do
+    if(this->_converter != 0)
+    {
+        iconv_close(this->_converter);
+    }
 }
 
-bool
-AlwaysTrue
-::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
+std::string
+ConverterBSONDataSet
+::get_specific_character_set() const
 {
-    return true;
+    return this->_specific_character_set;
 }

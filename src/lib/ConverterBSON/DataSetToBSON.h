@@ -1,26 +1,32 @@
+/*************************************************************************
+ * Research_pacs - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #ifndef _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 #define _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 
 #include <map>
-#include <string>
 #include <utility>
 #include <vector>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include <iconv.h>
-
 // We should only include mongo/bson/bson.h, but this might cause compile-time
 // errors, cf. https://jira.mongodb.org/browse/SERVER-1273
 #include <mongo/db/jsobj.h>
 
 #include "Condition.h"
+#include "ConverterBSONDataSet.h"
 
 /**
  * @brief Convert a DCMTK DataSet to a BSON object.
  */
-class DataSetToBSON
+class DataSetToBSON : public ConverterBSONDataSet
 {
 public :
 
@@ -39,12 +45,11 @@ public :
     DataSetToBSON();
     ~DataSetToBSON();
 
-    std::string get_specific_character_set() const;
-    void set_specific_character_set(std::string const & specific_character_set);
-
     /// @brief Filter action applied if no filter matches, defaults to include.
     FilterAction::Type const & get_default_filter() const;
     void set_default_filter(FilterAction::Type const & action);
+
+    virtual void set_specific_character_set(std::string const & specific_character_set);
 
     /**
      * @brief Filters to specify which elements are converted.
@@ -58,8 +63,6 @@ public :
 
 private :
     static const std::map<std::string, std::string> _dicom_to_iconv;
-    std::string _specific_character_set;
-    iconv_t _converter;
 
     std::vector<Filter> _filters;
     FilterAction::Type _default_filter;
