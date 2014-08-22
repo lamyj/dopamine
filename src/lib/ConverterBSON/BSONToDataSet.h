@@ -36,8 +36,6 @@ public :
      */
     DcmDataset operator()(mongo::BSONObj const & bson);
     
-    virtual void set_specific_character_set(std::string const & specific_character_set);
-    
 protected:
     
 private :

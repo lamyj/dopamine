@@ -9,10 +9,6 @@
 #ifndef _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 #define _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09
 
-#include <map>
-#include <utility>
-#include <vector>
-
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
@@ -49,8 +45,6 @@ public :
     FilterAction::Type const & get_default_filter() const;
     void set_default_filter(FilterAction::Type const & action);
 
-    virtual void set_specific_character_set(std::string const & specific_character_set);
-
     /**
      * @brief Filters to specify which elements are converted.
      * 
@@ -62,13 +56,8 @@ public :
     void operator()(DcmObject * dataset, mongo::BSONObjBuilder & builder);
 
 private :
-    static const std::map<std::string, std::string> _dicom_to_iconv;
-
     std::vector<Filter> _filters;
     FilterAction::Type _default_filter;
-
-    /// @brief Generate a map from DICOM encoding to IConv encoding
-    static std::map<std::string, std::string> _create_encoding_map();
 
     /// @brief Convert binary data from a DICOM element to BSON.
     template<DcmEVR VVR>

@@ -14,7 +14,7 @@
 
 BSONToDataSet
 ::BSONToDataSet()
-: ConverterBSONDataSet()
+: ConverterBSONDataSet(false)
 {
     this->set_specific_character_set("");
 }
@@ -78,79 +78,6 @@ BSONToDataSet
     }
 
     return dataset;
-}
-
-void
-BSONToDataSet
-::set_specific_character_set(std::string const & specific_character_set)
-{
-    std::string encoding;
-
-    // TODO : factorize code with DataSetToBSON
-
-    // Tests files from dclunie
-    // SCSARAB : ok
-    // SCSFREN : ok
-    // SCSGERM : ok
-    // SCSGREEK : ok
-    // SCSH31 : ?
-    // SCSH32 : fail ('ISO 2022 IR 13')
-    // SCSHBRW : ok
-    // SCSI2 : fail (Invalid or incomplete multibyte or wide character, ISO 2022 IR 149)
-    // SCSRUSS : ok
-    // SCSX1 : ok
-    // SCSX2 : ok
-
-    if(specific_character_set == "") { encoding = "ASCII"; }
-    // Single-byte character sets without code extensions (PS 3.3, Table C.12-2)
-    else if(specific_character_set == "ISO_IR 100") { encoding = "ISO-8859-1"; }
-    else if(specific_character_set == "ISO_IR 101") encoding = "ISO-8859-2";
-    else if(specific_character_set == "ISO_IR 109") encoding = "ISO-8859-3";
-    else if(specific_character_set == "ISO_IR 110") encoding = "ISO-8859-4";
-    else if(specific_character_set == "ISO_IR 144") encoding = "ISO-8859-5";
-    else if(specific_character_set == "ISO_IR 127") encoding = "ISO-8859-6";
-    else if(specific_character_set == "ISO_IR 126") encoding = "ISO-8859-7";
-    else if(specific_character_set == "ISO_IR 138") encoding = "ISO-8859-8";
-    else if(specific_character_set == "ISO_IR 148") encoding = "ISO-8859-9";
-    else if(specific_character_set == "ISO_IR 13") encoding = "ISO−2022−JP";
-    // CP874 seems to be a superset of TIS-620/ISO-IR-166 (e.g.
-    // presence of the euro sign in the CP874 at an unassigned place
-    // of TIS-620), but we should get away with it.
-    else if(specific_character_set == "ISO_IR 166") encoding = "CP-874";
-    // Single-byte character sets with code extensions (PS 3.3, Table C.12-3)
-    else if(specific_character_set == "ISO 2022 IR 6 ") encoding = "ISO-IR-6";
-    else if(specific_character_set == "ISO 2022 IR 100 ") encoding = "ISO-IR-100";
-    else if(specific_character_set == "ISO 2022 IR 101 ") encoding = "ISO-IR-101";
-    else if(specific_character_set == "ISO 2022 IR 109 ") encoding = "ISO-IR-109";
-    else if(specific_character_set == "ISO 2022 IR 110 ") encoding = "ISO-IR-110";
-    else if(specific_character_set == "ISO 2022 IR 144 ") encoding = "ISO-IR-144";
-    else if(specific_character_set == "ISO 2022 IR 127 ") encoding = "ISO-IR-127";
-    else if(specific_character_set == "ISO 2022 IR 126 ") encoding = "ISO-IR-126";
-    else if(specific_character_set == "ISO 2022 IR 138 ") encoding = "ISO-IR-138";
-    else if(specific_character_set == "ISO 2022 IR 148 ") encoding = "ISO-IR-148";
-    else if(specific_character_set == "ISO 2022 IR 13") encoding = "ISO-2022-JP"; // TODO or JP-2 or JP-3 ? DICOM says: Katakana+Romaji
-    else if(specific_character_set == "ISO 2022 IR 166 ") encoding = "ISO-IR-166";
-    // Multi-byte character sets with code extensions (PS 3.3, Table C.12-4)
-//                ISO 2022 IR 87
-//                ISO 2022 IR 159
-//                ISO 2022 IR 149
-    // Multi-byte character sets without code extensions (PS 3.3, Table C.12-5)
-    else if(specific_character_set == "ISO_IR 192") encoding = "UTF-8";
-    else if(specific_character_set == "GB18030 ") encoding = "GB18030";
-    else
-    {
-        std::ostringstream message;
-        message << "Unkown specific character set: '" << specific_character_set << "'";
-        throw std::runtime_error(message.str());
-    }
-    
-    this->_specific_character_set = specific_character_set;
-
-    if(this->get_converter() != 0)
-    {
-        iconv_close(this->get_converter());
-    }
-    this->set_converter(iconv_open(encoding.c_str(), "UTF-8"));
 }
 
 /*******************************************************************************
