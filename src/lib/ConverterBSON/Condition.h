@@ -24,7 +24,7 @@ public :
     typedef boost::shared_ptr<Condition> Pointer;
     
     /// Destroy the instance of Condition
-    virtual ~Condition() {};
+    virtual ~Condition() {}
     
     /**
      * Operator (), function should be implement in derived classes
@@ -36,7 +36,7 @@ public :
     
 protected:
     /// Create an instance of Condition
-    Condition() {};
+    Condition() {}
     
 private:
 
