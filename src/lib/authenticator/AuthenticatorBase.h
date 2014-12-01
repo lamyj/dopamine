@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#ifndef AUTHENTICATORBASE_H
-#define AUTHENTICATORBASE_H
+#ifndef _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
+#define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
@@ -22,7 +22,7 @@ public:
     /**
      * Create a default Authenticator
      */
-    AuthenticatorBase() {};
+    AuthenticatorBase() {}
 
     /**
      * Destroy the authenticator
@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif //AUTHENTICATORBASE_H
+#endif // _e0761b8c_9889_4e7c_bcf9_8bac78cc353b

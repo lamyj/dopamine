@@ -60,7 +60,7 @@ public:
      * Get the created network
      * @return current network
      */
-    T_ASC_Network* get_network() const { return this->_network; };
+    T_ASC_Network* get_network() const { return this->_network; }
     
     /**
      * Stop running after the next received association or time out
