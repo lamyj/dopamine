@@ -81,6 +81,10 @@ NetworkPACS
         this->_authenticator = new authenticator::AuthenticatorCSV
             (ConfigurationPACS::get_instance().GetValue("authenticator.filepath"));
     }
+    else if (type == "LDAP")
+    {
+        this->_authenticator = new authenticator::AuthenticatorLDAP();
+    }
     else
     {
         throw ExceptionPACS("Unknown authentication type "+type);
@@ -115,7 +119,7 @@ NetworkPACS
                 
                 // process
                 
-                if (!continue_)
+                if (!continue_) // TODO RLA Modify (continue_)
                 {
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
@@ -627,7 +631,7 @@ NetworkPACS
         T_DIMSE_Message msg;
         cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
 
-        if (msg.CommandField == DIMSE_C_ECHO_RQ)
+        if (msg.CommandField == DIMSE_C_ECHO_RQ) // TODO RLA Modify (msg.CommandField != DIMSE_C_ECHO_RQ)
         {
             // Veriry user's rights
             if (!DBConnection::get_instance().checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,

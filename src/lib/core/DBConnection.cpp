@@ -43,8 +43,8 @@ DBConnection
 ::connect()
 {
     this->_db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
-    std::string hostname = ConfigurationPACS::get_instance().GetValue("database.hostname");
-    std::string port = ConfigurationPACS::get_instance().GetValue("database.port");
+    std::string const hostname = ConfigurationPACS::get_instance().GetValue("database.hostname");
+    std::string const port = ConfigurationPACS::get_instance().GetValue("database.port");
     
     this->_connection.connect(hostname + ":" + port);
     
