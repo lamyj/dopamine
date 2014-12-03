@@ -12,6 +12,7 @@
 #include <boost/filesystem.hpp>
 
 #include "authenticator/AuthenticatorCSV.h"
+#include "authenticator/AuthenticatorLDAP.h"
 
 namespace research_pacs
 {
