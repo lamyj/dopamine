@@ -20,14 +20,14 @@
 struct TestDataOK01
 {
     DcmElement * element;
-    AlwaysTrue::Pointer alwaystrue;
-    AlwaysFalse::Pointer alwaysfalse;
+    research_pacs::AlwaysTrue::Pointer alwaystrue;
+    research_pacs::AlwaysFalse::Pointer alwaysfalse;
  
     TestDataOK01()
     {
         element = new DcmAttributeTag(DcmTag(0010,0010));
-        alwaystrue = AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
-        alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+        alwaystrue = research_pacs::AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
+        alwaysfalse = research_pacs::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ struct TestDataOK01
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto and_ = And::New();
+    auto and_ = research_pacs::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaystrue);
     
@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto and_ = And::New();
+    auto and_ = research_pacs::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaysfalse);
     
@@ -68,7 +68,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
-    auto and_ = And::New();
+    auto and_ = research_pacs::And::New();
     and_->insert_condition(alwaysfalse);
     and_->insert_condition(alwaystrue);
     
@@ -81,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 {
-    auto and_ = And::New();
+    auto and_ = research_pacs::And::New();
     and_->insert_condition(alwaysfalse);
     and_->insert_condition(alwaysfalse);
     
@@ -94,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
-    auto and_ = And::New();
+    auto and_ = research_pacs::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaystrue);
     

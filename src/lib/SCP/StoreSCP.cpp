@@ -13,6 +13,7 @@
 #include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
 #include "core/DBConnection.h"
+#include "core/LoggerPACS.h"
 #include "StoreSCP.h"
 
 namespace research_pacs
@@ -194,8 +195,8 @@ OFCondition
 StoreSCP
 ::process()
 {
-    std::cout << "Received Store SCP: MsgID " 
-              << this->_request->MessageID << std::endl;
+    research_pacs::loggerInfo() << "Received Store SCP: MsgID "
+                                << this->_request->MessageID;
               
     StoreCallbackData data;
 

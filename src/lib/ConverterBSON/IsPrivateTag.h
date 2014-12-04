@@ -13,6 +13,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief IsPrivateTag Condition
  */
@@ -42,5 +45,7 @@ private:
     IsPrivateTag();
 
 };
+
+} // namespace research_pacs
 
 #endif // _361310be_d429_4f49_9d0d_19bd01316dff

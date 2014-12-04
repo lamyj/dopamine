@@ -12,6 +12,9 @@
 #include "core/ExceptionPACS.h"
 #include "IsPrivateTag.h"
 
+namespace research_pacs
+{
+
 IsPrivateTag::Pointer
 IsPrivateTag
 ::New()
@@ -42,3 +45,5 @@ IsPrivateTag
     }
     return (element->getGTag()%2 == 1);
 }
+
+} // namespace research_pacs

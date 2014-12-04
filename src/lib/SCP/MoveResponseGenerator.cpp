@@ -12,6 +12,7 @@
 #include "core/ConfigurationPACS.h"
 #include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
+#include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "MoveResponseGenerator.h"
 
@@ -283,7 +284,7 @@ MoveResponseGenerator
     strcpy(req.MoveOriginatorApplicationEntityTitle, this->_origAETitle);
     req.MoveOriginatorID = this->_origMsgID;
     
-    std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
+    research_pacs::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
     
     T_DIMSE_DetectedCancelParameters cancelParameters;
     T_DIMSE_C_StoreRSP rsp;

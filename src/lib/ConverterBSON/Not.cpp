@@ -12,6 +12,9 @@
 #include "core/ExceptionPACS.h"
 #include "Not.h"
 
+namespace research_pacs
+{
+
 Not::Pointer
 Not
 ::New(Condition::Pointer const & condition)
@@ -43,3 +46,4 @@ Not
     return !(*this->_condition)(element);
 }
 
+} // namespace research_pacs

@@ -17,6 +17,9 @@
 
 #include "ConverterBSONDataSet.h"
 
+namespace research_pacs
+{
+
 /**
  * @brief Convert a BSON object to a DCMTK DataSet.
  */
@@ -60,5 +63,7 @@ private :
     void _to_number_string(mongo::BSONElement const & bson, 
                            DcmDataset & dataset, DcmTag const & tag) const;
 };
+
+} // namespace research_pacs
 
 #endif // _a97264d3_b54b_494b_93a8_1a595dd06f8a

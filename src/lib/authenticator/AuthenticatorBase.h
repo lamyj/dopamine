@@ -12,6 +12,9 @@
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
 
+namespace research_pacs
+{
+
 namespace authenticator
 {
 
@@ -37,6 +40,8 @@ public:
     virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const =0;
 };
 
-}
+} // namespace authenticator
+
+} // namespace research_pacs
 
 #endif // _e0761b8c_9889_4e7c_bcf9_8bac78cc353b

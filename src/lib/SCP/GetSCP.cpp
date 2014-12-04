@@ -11,6 +11,7 @@
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/diutil.h>
 
+#include "core/LoggerPACS.h"
 #include "GetResponseGenerator.h"
 #include "GetSCP.h"
 
@@ -63,8 +64,8 @@ OFCondition
 GetSCP
 ::process()
 {
-    std::cout << "Received Get SCP: MsgID " 
-              << this->_request->MessageID << std::endl;
+    research_pacs::loggerInfo() << "Received Get SCP: MsgID "
+                                << this->_request->MessageID;
 
     DIC_AE aeTitle;
     aeTitle[0] = '\0';

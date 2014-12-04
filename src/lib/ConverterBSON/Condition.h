@@ -15,6 +15,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief Base class condition
  */
@@ -41,5 +44,7 @@ protected:
 private:
 
 };
+
+} // namespace research_pacs
 
 #endif // _8eb0f4c7_a820_49ad_9035_8ac5d025d133

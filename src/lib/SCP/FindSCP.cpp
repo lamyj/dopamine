@@ -6,13 +6,12 @@
  * for details.
  ************************************************************************/
 
-#include <fstream>
-
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/diutil.h>
 
+#include "core/LoggerPACS.h"
 #include "FindResponseGenerator.h"
 #include "FindSCP.h"
 
@@ -65,8 +64,8 @@ OFCondition
 FindSCP
 ::process()
 {
-    std::cout << "Received Find SCP: MsgID " 
-              << this->_request->MessageID << std::endl;
+    research_pacs::loggerInfo() << "Received Find SCP: MsgID "
+                                << this->_request->MessageID;
 
     DIC_AE aeTitle;
     aeTitle[0] = '\0';

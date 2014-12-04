@@ -9,7 +9,12 @@
 #ifndef _933cb005_91e0_4ba0_a8e6_3f4fb0612d19
 #define _933cb005_91e0_4ba0_a8e6_3f4fb0612d19
 
+#include <string>
+
 #include "AuthenticatorBase.h"
+
+namespace research_pacs
+{
 
 namespace authenticator
 {
@@ -20,8 +25,17 @@ namespace authenticator
 class AuthenticatorLDAP : public AuthenticatorBase
 {
 public:
-    /// Create an instance of AuthenticatorLDAP
-    AuthenticatorLDAP();
+    /**
+     * @brief Create an instance of AuthenticatorLDAP
+     * @param ldap_server
+     * @param ldap_bind_user
+     * @param ldap_base
+     * @param ldap_filter
+     */
+    AuthenticatorLDAP(std::string const & ldap_server,
+                      std::string const & ldap_bind_user,
+                      std::string const & ldap_base,
+                      std::string const & ldap_filter);
 
     /// Destroy the instance of AuthenticatorLDAP
     virtual ~AuthenticatorLDAP();
@@ -34,16 +48,22 @@ public:
     virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const;
 
 private:
+    ///
     std::string _ldap_server;
 
+    ///
     std::string _ldap_bind_user;
 
+    ///
     std::string _ldap_base;
 
+    ///
     std::string _ldap_filter;
 
 };
 
 } // namespace authenticator
+
+} // namespace research_pacs
 
 #endif // _933cb005_91e0_4ba0_a8e6_3f4fb0612d19

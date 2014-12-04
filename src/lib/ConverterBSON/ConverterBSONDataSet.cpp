@@ -8,6 +8,9 @@
 
 #include "ConverterBSONDataSet.h"
 
+namespace research_pacs
+{
+
 std::map<std::string, std::string> const
 ConverterBSONDataSet
 ::_dicom_to_iconv = ConverterBSONDataSet::_create_encoding_map();
@@ -132,3 +135,5 @@ ConverterBSONDataSet
 
     return result;
 }
+
+} // namespace research_pacs

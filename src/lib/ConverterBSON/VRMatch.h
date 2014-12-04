@@ -16,6 +16,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief VRMatch Condition
  */
@@ -46,6 +49,9 @@ private:
     
     /// Compared VR
     DcmEVR _vr;
+
 };
+
+} // namespace research_pacs
 
 #endif // _01db2e6d_df7c_4b7a_ae0e_e04d2896413b

@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <sstream>
+
 #include <boost/algorithm/string/replace.hpp>
 
 #include <ldap.h>
@@ -14,23 +16,22 @@
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 
+namespace research_pacs
+{
+
 namespace authenticator
 {
 
 AuthenticatorLDAP
-::AuthenticatorLDAP():
+::AuthenticatorLDAP(const std::string &ldap_server,
+                    const std::string &ldap_bind_user,
+                    const std::string &ldap_base,
+                    const std::string &ldap_filter):
     AuthenticatorBase(),
-    _ldap_server(""), _ldap_bind_user(""),
-    _ldap_base(""), _ldap_filter("")
+    _ldap_server(ldap_server), _ldap_bind_user(ldap_bind_user),
+    _ldap_base(ldap_base), _ldap_filter(ldap_filter)
 {
-    this->_ldap_server = research_pacs::ConfigurationPACS::
-            get_instance().GetValue("authenticator.ldap_server");
-    this->_ldap_bind_user = research_pacs::ConfigurationPACS::
-            get_instance().GetValue("authenticator.ldap_bind_user");
-    this->_ldap_base = research_pacs::ConfigurationPACS::
-            get_instance().GetValue("authenticator.ldap_base");
-    this->_ldap_filter = research_pacs::ConfigurationPACS::
-            get_instance().GetValue("authenticator.ldap_filter");
+    // Nothing to do
 }
 
 AuthenticatorLDAP
@@ -60,8 +61,9 @@ AuthenticatorLDAP
         int rc = ldap_initialize( &ld, this->_ldap_server.c_str() );
         if( rc != LDAP_SUCCESS )
         {
-            throw research_pacs::ExceptionPACS("ldap_initialize error: " +
-                                               std::string(ldap_err2string(rc)));
+            std::stringstream stream;
+            stream << "ldap_initialize error: " << ldap_err2string(rc);
+            throw ExceptionPACS(stream.str());
         }
 
         // Get user
@@ -91,8 +93,10 @@ AuthenticatorLDAP
         {
             // Remove connection
             ldap_destroy(ld);
-            throw research_pacs::ExceptionPACS("ldap_sasl_bind_s error: " +
-                                               std::string(ldap_err2string(rc)));
+
+            std::stringstream stream;
+            stream << "ldap_sasl_bind_s error: " << ldap_err2string(rc);
+            throw ExceptionPACS(stream.str());
         }
 
         std::string filter = this->_ldap_filter;
@@ -105,8 +109,9 @@ AuthenticatorLDAP
                                NULL, NULL, NULL, 1024, &msg);
         if (rc != LDAP_SUCCESS)
         {
-            throw research_pacs::ExceptionPACS("ldap_search_ext_s error: " +
-                                               std::string(ldap_err2string(rc)));
+            std::stringstream stream;
+            stream << "ldap_search_ext_s error: " << ldap_err2string(rc);
+            throw ExceptionPACS(stream.str());
         }
         else
         {
@@ -117,11 +122,14 @@ AuthenticatorLDAP
         rc = ldap_unbind_ext_s( ld, NULL, NULL);
         if (rc != LDAP_SUCCESS)
         {
-            throw research_pacs::ExceptionPACS("ldap_unbind_ext_s error: " +
-                                               std::string(ldap_err2string(rc)));
+            std::stringstream stream;
+            stream << "ldap_unbind_ext_s error: " << ldap_err2string(rc);
+            throw ExceptionPACS(stream.str());
         }
     }
     return return_;
 }
 
 } // namespace authenticator
+
+} // namespace research_pacs

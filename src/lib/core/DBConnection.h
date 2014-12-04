@@ -31,6 +31,9 @@ public:
     
     /// Destroy the DBConnection
     virtual ~DBConnection();
+
+    void Initialize(std::string const & db_name, std::string const & db_host,
+                    std::string const & db_port);
     
     /**
      * Get the connection with database
@@ -80,6 +83,12 @@ private:
     
     /// Database name
     std::string _db_name;
+
+    /// Database host
+    std::string _db_host;
+
+    /// Database port
+    std::string _db_port;
     
     // Purposely not implemented
     DBConnection(DBConnection const & other);

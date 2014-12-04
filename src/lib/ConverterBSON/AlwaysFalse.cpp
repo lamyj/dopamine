@@ -10,6 +10,9 @@
 
 #include "AlwaysFalse.h"
 
+namespace research_pacs
+{
+
 AlwaysFalse::Pointer
 AlwaysFalse
 ::New()
@@ -37,3 +40,4 @@ AlwaysFalse
     return false;
 }
 
+} // namespace research_pacs

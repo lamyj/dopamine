@@ -13,6 +13,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief Always True Condition
  */
@@ -41,5 +44,7 @@ private:
     AlwaysTrue();
 
 };
+
+} // namespace research_pacs
 
 #endif // _0df310f1_c98d_4b26_a02f_be846908e094

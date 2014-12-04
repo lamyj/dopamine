@@ -6,6 +6,7 @@
  * for details.
  ************************************************************************/
 
+#include "core/LoggerPACS.h"
 #include "MoveResponseGenerator.h"
 #include "MoveSCP.h"
 
@@ -57,8 +58,8 @@ OFCondition
 MoveSCP
 ::process()
 {
-    std::cout << "Received Move SCP: MsgID " 
-              << this->_request->MessageID << std::endl;
+   research_pacs::loggerInfo() << "Received Move SCP: MsgID "
+                               << this->_request->MessageID;
 
     DIC_AE aeTitle;
     aeTitle[0] = '\0';

@@ -33,7 +33,13 @@ public:
      * @return association
      */
     T_ASC_Association* get_association() const { return this->_association; }
-    
+
+    /**
+     * Send response
+     * @return EC_Normal if successful, an error code otherwise
+     */
+    virtual OFCondition process() = 0;
+
 protected:
     /// Linked association
     mutable T_ASC_Association * _association;

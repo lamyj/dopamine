@@ -19,6 +19,9 @@
 #include "Condition.h"
 #include "ConverterBSONDataSet.h"
 
+namespace research_pacs
+{
+
 /**
  * @brief Convert a DCMTK DataSet to a BSON object.
  */
@@ -94,5 +97,7 @@ private :
     void _add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const;
 
 };
+
+} // namespace research_pacs
 
 #endif // _737cc322_0e2e_4fbb_aac6_b7df5e4f2d09

@@ -39,7 +39,8 @@
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    authenticator::AuthenticatorCSV* authenticatorcsv = new authenticator::AuthenticatorCSV(filename);
+    research_pacs::authenticator::AuthenticatorCSV* authenticatorcsv =
+            new research_pacs::authenticator::AuthenticatorCSV(filename);
     
     BOOST_CHECK_EQUAL(authenticatorcsv->get_table_count(), 2);
     
@@ -53,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  struct TestDataOK02
 {
     std::string filename;
-    authenticator::AuthenticatorCSV* authenticatorcsv;
+    research_pacs::authenticator::AuthenticatorCSV* authenticatorcsv;
  
     TestDataOK02()
     {
@@ -65,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
         myfile << "user2\tpassword2\n";
         myfile.close();
         
-        authenticatorcsv = new authenticator::AuthenticatorCSV(filename);
+        authenticatorcsv = new research_pacs::authenticator::AuthenticatorCSV(filename);
     }
  
     ~TestDataOK02()
@@ -150,6 +151,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK02)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    BOOST_REQUIRE_THROW(new authenticator::AuthenticatorCSV("badfilename"), 
+    BOOST_REQUIRE_THROW(new research_pacs::authenticator::AuthenticatorCSV("badfilename"),
                         research_pacs::ExceptionPACS);
 }

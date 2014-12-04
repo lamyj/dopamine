@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include "ConfigurationPACS.h"
 #include "DBConnection.h"
+#include "ExceptionPACS.h"
 
 namespace research_pacs
 {
@@ -27,7 +27,7 @@ DBConnection
 
 DBConnection
 ::DBConnection():
-    _db_name("")
+    _db_name(""), _db_host(""), _db_port("")
 {
     // nothing to do
 }
@@ -40,13 +40,25 @@ DBConnection
 
 void
 DBConnection
+::Initialize(const std::string &db_name,
+             const std::string &db_host,
+             const std::string &db_port)
+{
+    this->_db_name = db_name;
+    this->_db_host = db_host;
+    this->_db_port = db_port;
+}
+
+void
+DBConnection
 ::connect()
 {
-    this->_db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
-    std::string const hostname = ConfigurationPACS::get_instance().GetValue("database.hostname");
-    std::string const port = ConfigurationPACS::get_instance().GetValue("database.port");
-    
-    this->_connection.connect(hostname + ":" + port);
+    if (this->_db_name == "" || this->_db_host == "" || this->_db_port == "")
+    {
+        throw ExceptionPACS("DBConnection not initialize.");
+    }
+
+    this->_connection.connect(this->_db_host + ":" + this->_db_port);
     
     std::string const datasets = this->_db_name + ".datasets";
     this->_connection.ensureIndex(
@@ -72,10 +84,11 @@ DBConnection
 ::checkUserAuthorization(UserIdentityNegotiationSubItemRQ & userIdentNeg,
                          T_DIMSE_Command command)
 {
-    std::string lcurrentUser;
+    std::string lcurrentUser = "";
     
-    // Only available for Identity Type: User/Pasword
-    if (userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+    // Only available for Identity Type: User or User/Pasword
+    if (userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER ||
+        userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
     {
         // Get user name
         char * user; Uint16 user_length;
@@ -107,7 +120,7 @@ DBConnection
             for (int liter = 0 ; liter < operations.size() ; liter++)
             {
                 // User authorized
-                if ((Uint32)command == (Uint32)operations[liter])
+                if (command == T_DIMSE_Command(operations[liter]))
                 {
                     return true;
                 }

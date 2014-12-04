@@ -20,11 +20,11 @@
  */
  struct TestDataOK01
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
  
     TestDataOK01()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
     }
  
     ~TestDataOK01()
@@ -61,12 +61,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
  struct TestDataOK03
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
     mongo::BSONObjBuilder * bsonobjectbuilder;
  
     TestDataOK03()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
         bsonobjectbuilder = new mongo::BSONObjBuilder();
         
         static char buffer[9];
@@ -426,12 +426,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK03)
  */
  struct TestDataOK04
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
     mongo::BSONObjBuilder * bsonobjectbuilder;
  
     TestDataOK04()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
         bsonobjectbuilder = new mongo::BSONObjBuilder();
         
         static char buffer[9];
@@ -471,12 +471,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
  */
  struct TestDataOK05
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
     mongo::BSONObjBuilder * bsonobjectbuilder;
  
     TestDataOK05()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
         bsonobjectbuilder = new mongo::BSONObjBuilder();
         
         static char buffer[9];
@@ -547,12 +547,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
  */
  struct TestDataOK06
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
     mongo::BSONObjBuilder * bsonobjectbuilder;
  
     TestDataOK06()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
         bsonobjectbuilder = new mongo::BSONObjBuilder();
         
         static char buffer[9];
@@ -624,12 +624,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
  */
  struct TestDataKO02
 {
-    BSONToDataSet * bsontodataset;
+    research_pacs::BSONToDataSet * bsontodataset;
     mongo::BSONObjBuilder * bsonobjectbuilder;
  
     TestDataKO02()
     {
-        bsontodataset = new BSONToDataSet();
+        bsontodataset = new research_pacs::BSONToDataSet();
         bsonobjectbuilder = new mongo::BSONObjBuilder();
         
         static char buffer[9];
