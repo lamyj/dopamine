@@ -20,14 +20,14 @@
 struct TestDataOK01
 {
     DcmElement * element;
-    AlwaysTrue::Pointer alwaystrue;
-    AlwaysFalse::Pointer alwaysfalse;
+    research_pacs::AlwaysTrue::Pointer alwaystrue;
+    research_pacs::AlwaysFalse::Pointer alwaysfalse;
  
     TestDataOK01()
     {
         element     = new DcmAttributeTag(DcmTag(0010,0010));
-        alwaystrue  = AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
-        alwaysfalse = AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+        alwaystrue  = research_pacs::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
+        alwaysfalse = research_pacs::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ struct TestDataOK01
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto not_ = Not::New(alwaystrue);
+    auto not_ = research_pacs::Not::New(alwaystrue);
     
     BOOST_CHECK_EQUAL((*not_)(element), false);
 }
@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto not_ = Not::New(alwaysfalse);
+    auto not_ = research_pacs::Not::New(alwaysfalse);
     
     BOOST_CHECK_EQUAL((*not_)(element), true);
 }
@@ -64,7 +64,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
-    auto not_ = Not::New(alwaystrue);
+    auto not_ = research_pacs::Not::New(alwaystrue);
     
     BOOST_REQUIRE_THROW((*not_)(NULL), research_pacs::ExceptionPACS);
 }

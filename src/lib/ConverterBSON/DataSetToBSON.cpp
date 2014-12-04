@@ -10,6 +10,9 @@
 
 #include "DataSetToBSON.h"
 
+namespace research_pacs
+{
+
 DataSetToBSON
 ::DataSetToBSON()
 : ConverterBSONDataSet(true),
@@ -593,3 +596,5 @@ DataSetToBSON
 
     builder << buffer << value_builder.arr();
 }
+
+} // namespace research_pacs

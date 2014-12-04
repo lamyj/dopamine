@@ -6,7 +6,10 @@
  * for details.
  ************************************************************************/
 
+#include <sstream>
+
 #include "ConfigurationPACS.h"
+#include "core/LoggerPACS.h"
 #include "DBConnection.h"
 #include "ExceptionPACS.h"
 #include "NetworkPACS.h"
@@ -57,7 +60,9 @@ NetworkPACS
     OFCondition cond = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR, (int)port, 30, &this->_network);
     if (cond.bad()) 
     {
-        throw ExceptionPACS("cannot initialize network: " + std::string(cond.text()));
+        std::stringstream stream;
+        stream << "cannot initialize network: " << cond.text();
+        throw ExceptionPACS(stream.str());
     }
 }
 
@@ -67,7 +72,9 @@ NetworkPACS
     OFCondition cond = ASC_dropNetwork(&this->_network);
     if (cond.bad()) 
     {
-        throw ExceptionPACS("cannot drop network: " + std::string(cond.text()));
+        std::stringstream stream;
+        stream << "cannot drop network: " << cond.text();
+        throw ExceptionPACS(stream.str());
     }
 }
 
@@ -83,11 +90,19 @@ NetworkPACS
     }
     else if (type == "LDAP")
     {
-        this->_authenticator = new authenticator::AuthenticatorLDAP();
+        this->_authenticator = new authenticator::AuthenticatorLDAP
+            (
+                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_server"),
+                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_bind_user"),
+                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_base"),
+                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_filter")
+            );
     }
     else
     {
-        throw ExceptionPACS("Unknown authentication type "+type);
+        std::stringstream stream;
+        stream << "Unknown authentication type " << type;
+        throw ExceptionPACS(stream.str());
     }
 }
 
@@ -96,7 +111,7 @@ NetworkPACS
 ::run()
 {
     // todo multiprocess
-    while (true)
+    while (!this->_forceStop)
     {
         if (ASC_associationWaiting(this->_network, this->_timeout))
         {
@@ -105,15 +120,17 @@ NetworkPACS
             OFCondition cond = ASC_receiveAssociation(this->_network, &assoc, ASC_DEFAULTMAXPDU);
             if (cond.bad())
             {
-                std::cout << "Failed to receive association: " << cond.text();
+                research_pacs::loggerError() << "Failed to receive association: "
+                                             << cond.text();
             }
             else
             {
                 time_t t = time(NULL);
-                std::cout << "Association Received (" << assoc->params->DULparams.callingPresentationAddress
-                          << ":" << assoc->params->DULparams.callingAPTitle << " -> "
-                          << assoc->params->DULparams.calledAPTitle << ") " << ctime(&t);
-                          
+                research_pacs::loggerInfo() << "Association Received ("
+                                            << assoc->params->DULparams.callingPresentationAddress
+                                            << ":" << assoc->params->DULparams.callingAPTitle << " -> "
+                                            << assoc->params->DULparams.calledAPTitle << ") " << ctime(&t);
+
                 OFString temp_str;
                 ASC_dumpParameters(temp_str, assoc->params, ASC_ASSOC_RQ);
                 
@@ -124,8 +141,8 @@ NetworkPACS
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
                     {
-                        std::cout << "Refusing Association: Bad User/Password" << std::endl;;
-                        refuseAssociation(&assoc, CTN_NoReason);
+                        research_pacs::loggerWarning() << "Refusing Association: Bad User/Password";
+                        this->refuseAssociation(&assoc, CTN_NoReason);
                         continue_ = false;
                     }
                 }
@@ -135,11 +152,12 @@ NetworkPACS
                     /* Application Context Name */
                     char buf[BUFSIZ];
                     cond = ASC_getApplicationContextName(assoc->params, buf);
-                    if (cond.bad() || strcmp(buf, DICOM_STDAPPLICATIONCONTEXT) != 0)
+                    if (cond.bad() || std::string(buf) != DICOM_STDAPPLICATIONCONTEXT)
                     {
                         /* reject: the application context name is not supported */
-                        std::cout << "Bad AppContextName: " << buf;
-                        refuseAssociation(&assoc, CTN_BadAppContext);
+                        research_pacs::loggerWarning() << "Bad AppContextName: "
+                                                                          << buf;
+                        this->refuseAssociation(&assoc, CTN_BadAppContext);
                         continue_ = false;
                     }
                 }
@@ -148,35 +166,34 @@ NetworkPACS
                 {
                     /* Does peer AE have access to required service ?? */
                     if (! ConfigurationPACS::get_instance().peerInAETitle
-                                (//assoc->params->DULparams.calledAPTitle,
-                                 assoc->params->DULparams.callingAPTitle))
-                                 //assoc->params->DULparams.callingPresentationAddress))
+                                (assoc->params->DULparams.callingAPTitle))
                     {
-                        refuseAssociation(&assoc, CTN_BadAEService);
+                        research_pacs::loggerWarning() << "Bad AE Service";
+                        this->refuseAssociation(&assoc, CTN_BadAEService);
                         continue_ = false;
                     }
                 }
                 
                 if (continue_)
                 {
-                    cond = negotiateAssociation(assoc);
-                    if (cond.bad()) continue_ = false;
-                }
-                
-                if (continue_)
-                {
-                    cond = ASC_acknowledgeAssociation(assoc);
+                    cond = this->negotiateAssociation(assoc);
+                    if (cond.good())
+                    {
+                        cond = ASC_acknowledgeAssociation(assoc);
+                        if (cond.good())
+                        {
+                            // dispatch
+                            this->handleAssociation(assoc);
+                        }
+                    }
+
                     if (cond.bad())
                     {
-                        std::cout << cond.text();
-                        continue_ = false;
+                        research_pacs::loggerWarning() << "Association error: "
+                                                       << cond.text();
                     }
-                }
-                
-                if (continue_)
-                {
-                    // dispatch
-                    this->handleAssociation(assoc);
+
+                    continue_ = cond.good();
                 }
             }
             
@@ -187,12 +204,16 @@ NetworkPACS
                 cond = ASC_dropAssociation(assoc);
                 if (cond.bad())
                 {
-                    throw ExceptionPACS("Cannot Drop Association: " + std::string(cond.text()));
+                    std::stringstream stream;
+                    stream << "Cannot Drop Association: " << cond.text();
+                    throw ExceptionPACS(stream.str());
                 }
                 cond = ASC_destroyAssociation(&assoc);
                 if (cond.bad())
                 {
-                    throw ExceptionPACS("Cannot Destroy Association: " + std::string(cond.text()));
+                    std::stringstream stream;
+                    stream << "Cannot Destroy Association: " << cond.text();
+                    throw ExceptionPACS(stream.str());
                 }
             }
             else if (cond == ASC_SHUTDOWNAPPLICATION)
@@ -201,11 +222,6 @@ NetworkPACS
                 break;
             }
         }
-        else if (this->_forceStop)
-        {
-            break;
-        }
-        // else continue
     }
 }
 
@@ -239,7 +255,8 @@ NetworkPACS
           reason_string = "???";
           break;
     }
-    std::cout << "Refusing Association (" << reason_string << ")" << std::endl;;
+    research_pacs::loggerError() << "Refusing Association ("
+                                 << reason_string << ")";
 
     T_ASC_RejectParameters rej;
     switch (reason)
@@ -280,178 +297,60 @@ NetworkPACS
     OFCondition cond = ASC_rejectAssociation(*assoc, &rej);
     if (cond.bad())
     {
-        throw ExceptionPACS("Association Reject Failed: " + std::string(cond.text()));
+        std::stringstream stream;
+        stream << "Association Reject Failed: " << cond.text();
+        throw ExceptionPACS(stream.str());
     }
 
     cond = ASC_dropAssociation(*assoc);
     if (cond.bad())
     {
-        throw ExceptionPACS("Cannot Drop Association: " + std::string(cond.text()));
+        std::stringstream stream;
+        stream << "Cannot Drop Association: " << cond.text();
+        throw ExceptionPACS(stream.str());
     }
     cond = ASC_destroyAssociation(assoc);
     if (cond.bad())
     {
-        throw ExceptionPACS("Cannot Destroy Association: " + std::string(cond.text()));
+        std::stringstream stream;
+        stream << "Cannot Destroy Association: " << cond.text();
+        throw ExceptionPACS(stream.str());
     }
 }
-    
-OFCondition 
+
+OFCondition
 NetworkPACS
 ::negotiateAssociation(T_ASC_Association * assoc)
 {
     OFCondition cond = EC_Normal;
-    int i;
-    T_ASC_PresentationContextID movepid, findpid;
-    OFString temp_str;
-    struct { const char *moveSyntax, *findSyntax; } queryRetrievePairs[] =
-    {
-      { UID_MOVEPatientRootQueryRetrieveInformationModel,
-        UID_FINDPatientRootQueryRetrieveInformationModel },
-      { UID_MOVEStudyRootQueryRetrieveInformationModel,
-        UID_FINDStudyRootQueryRetrieveInformationModel },
-      { UID_RETIRED_MOVEPatientStudyOnlyQueryRetrieveInformationModel,
-        UID_RETIRED_FINDPatientStudyOnlyQueryRetrieveInformationModel }
-    };
 
     DIC_AE calledAETitle;
-    ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
+    cond = ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
+    if (cond.bad())
+    {
+        research_pacs::loggerError() << "Cannot retrieve AP Titles";
+    }
 
     const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
-    int numTransferSyntaxes = 0;
 
-    // TODO mettre en conf network_transfer_syntax
-/*    switch (options_.networkTransferSyntax_)
+    /* We prefer explicit transfer syntaxes.
+     * If we are running on a Little Endian machine we prefer
+     * LittleEndianExplicitTransferSyntax to BigEndianTransferSyntax.
+     */
+    if (gLocalByteOrder == EBO_LittleEndian)  /* defined in dcxfer.h */
     {
-      case EXS_LittleEndianImplicit:
-        /* we only support Little Endian Implicit *
-        transferSyntaxes[0]  = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 1;
-        break;
-      case EXS_LittleEndianExplicit:
-        /* we prefer Little Endian Explicit *
-        transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[2]  = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 3;
-        break;
-      case EXS_BigEndianExplicit:
-        /* we prefer Big Endian Explicit *
-        transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2]  = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 3;
-        break;
-#ifndef DISABLE_COMPRESSION_EXTENSION
-      case EXS_JPEGProcess14SV1TransferSyntax:
-        /* we prefer JPEGLossless:Hierarchical-1stOrderPrediction (default lossless) *
-        transferSyntaxes[0] = UID_JPEGProcess14SV1TransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEGProcess1TransferSyntax:
-        /* we prefer JPEGBaseline (default lossy for 8 bit images) *
-        transferSyntaxes[0] = UID_JPEGProcess1TransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEGProcess2_4TransferSyntax:
-        /* we prefer JPEGExtended (default lossy for 12 bit images) *
-        transferSyntaxes[0] = UID_JPEGProcess2_4TransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEG2000LosslessOnly:
-        /* we prefer JPEG 2000 lossless *
-        transferSyntaxes[0] = UID_JPEG2000LosslessOnlyTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEG2000:
-        /* we prefer JPEG 2000 lossy or lossless *
-        transferSyntaxes[0] = UID_JPEG2000TransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEGLSLossless:
-        /* we prefer JPEG-LS Lossless *
-        transferSyntaxes[0] = UID_JPEGLSLosslessTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_JPEGLSLossy:
-        /* we prefer JPEG-LS Lossy *
-        transferSyntaxes[0] = UID_JPEGLSLossyTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_MPEG2MainProfileAtMainLevel:
-        /* we prefer MPEG2 MP@ML *
-        transferSyntaxes[0] = UID_MPEG2MainProfileAtMainLevelTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_MPEG2MainProfileAtHighLevel:
-        /* we prefer MPEG2 MP@HL *
-        transferSyntaxes[0] = UID_MPEG2MainProfileAtHighLevelTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-      case EXS_RLELossless:
-        /* we prefer RLE Lossless *
-        transferSyntaxes[0] = UID_RLELosslessTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-#ifdef WITH_ZLIB
-      case EXS_DeflatedLittleEndianExplicit:
-        /* we prefer deflated transmission *
-        transferSyntaxes[0] = UID_DeflatedExplicitVRLittleEndianTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[2] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[3] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 4;
-        break;
-#endif
-#endif
-      default:
-        /* We prefer explicit transfer syntaxes.
-         * If we are running on a Little Endian machine we prefer
-         * LittleEndianExplicitTransferSyntax to BigEndianTransferSyntax.
-         */
-        if (gLocalByteOrder == EBO_LittleEndian)  /* defined in dcxfer.h */
-        {
-          transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
-          transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
-        } else {
-          transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
-          transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-        }
-        transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
-        numTransferSyntaxes = 3;
-        //break;
-    //}
+      transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
+      transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
+    }
+    else //(gLocalByteOrder == EBO_BigEndian)
+    {
+      transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
+      transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
+    }
+    transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
+    int numTransferSyntaxes = 3;
 
-    const char * const nonStorageSyntaxes[] =
+    std::vector<const char*> nonStorageSyntaxes =
     {
         UID_VerificationSOPClass,
         UID_FINDPatientRootQueryRetrieveInformationModel,
@@ -468,72 +367,24 @@ NetworkPACS
         UID_PrivateShutdownSOPClass
     };
 
-    const int numberOfNonStorageSyntaxes = DIM_OF(nonStorageSyntaxes);
-    const char *selectedNonStorageSyntaxes[DIM_OF(nonStorageSyntaxes)];
-    int numberOfSelectedNonStorageSyntaxes = 0;
-    for (i = 0; i < numberOfNonStorageSyntaxes; i++)
-    {
-        if (0 == strcmp(nonStorageSyntaxes[i], UID_FINDPatientRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_MOVEPatientRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_GETPatientRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_RETIRED_FINDPatientStudyOnlyQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_RETIRED_MOVEPatientStudyOnlyQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_RETIRED_GETPatientStudyOnlyQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_FINDStudyRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_MOVEStudyRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_GETStudyRootQueryRetrieveInformationModel))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-        else if (0 == strcmp(nonStorageSyntaxes[i], UID_PrivateShutdownSOPClass))
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        } 
-        else 
-        {
-            selectedNonStorageSyntaxes[numberOfSelectedNonStorageSyntaxes++] = nonStorageSyntaxes[i];
-        }
-    }
-
     /*  accept any of the non-storage syntaxes */
-    cond = ASC_acceptContextsWithPreferredTransferSyntaxes(
-    assoc->params,
-    (const char**)selectedNonStorageSyntaxes, numberOfSelectedNonStorageSyntaxes,
-    (const char**)transferSyntaxes, numTransferSyntaxes);
-    if (cond.bad()) {
-        DCMQRDB_ERROR("Cannot accept presentation contexts: " << DimseCondition::dump(temp_str, cond));
+    cond = ASC_acceptContextsWithPreferredTransferSyntaxes(assoc->params,
+                                                           (const char**)nonStorageSyntaxes[0],
+                                                           nonStorageSyntaxes.size(),
+                                                           (const char**)transferSyntaxes,
+                                                           numTransferSyntaxes);
+    if (cond.bad())
+    {
+        OFString temp_str;
+        research_pacs::loggerInfo() << "Cannot accept presentation contexts: "
+                                    << DimseCondition::dump(temp_str, cond);
     }
 
     /* accept storage syntaxes with proposed role */
-    T_ASC_PresentationContext pc;
-    T_ASC_SC_ROLE role;
     int npc = ASC_countPresentationContexts(assoc->params);
-    for (i = 0; i < npc; i++)
+    for (int i = 0; i < npc; i++)
     {
+        T_ASC_PresentationContext pc;
         ASC_getPresentationContext(assoc->params, i, &pc);
         if (dcmIsaStorageSOPClassUID(pc.abstractSyntax))
         {
@@ -542,7 +393,7 @@ NetworkPACS
             ** Normally we can be the SCP of the Storage Service Class.
             ** When processing the C-GET operation we can be the SCU of the Storage Service Class.
             */
-            role = pc.proposedRole;
+            T_ASC_SC_ROLE role = pc.proposedRole;
 
             /*
             ** Accept in the order "least wanted" to "most wanted" transfer
@@ -572,26 +423,28 @@ NetworkPACS
      */
     if (0 != ASC_findAcceptedPresentationContextID(assoc, UID_PrivateShutdownSOPClass))
     {
-        std::cout << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
+        research_pacs::loggerInfo() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
         refuseAssociation(&assoc, CTN_NoReason);
         return ASC_SHUTDOWNAPPLICATION;
     }
 
     /*
-     * Refuse any "Storage" presentation contexts to non-writable
-     * storage areas.
-     */
-    /*if (!config_->writableStorageArea(calledAETitle))
-    {
-        refuseAnyStorageContexts(assoc);
-    }*/
-
-    /*
      * Enforce RSNA'93 Demonstration Requirements about only
      * accepting a context for MOVE if a context for FIND is also present.
      */
+    struct { const char *moveSyntax, *findSyntax; } queryRetrievePairs[] =
+    {
+      { UID_MOVEPatientRootQueryRetrieveInformationModel,
+        UID_FINDPatientRootQueryRetrieveInformationModel },
+      { UID_MOVEStudyRootQueryRetrieveInformationModel,
+        UID_FINDStudyRootQueryRetrieveInformationModel },
+      { UID_RETIRED_MOVEPatientStudyOnlyQueryRetrieveInformationModel,
+        UID_RETIRED_FINDPatientStudyOnlyQueryRetrieveInformationModel }
+    };
 
-    for (i = 0; i < (int)DIM_OF(queryRetrievePairs); i++) {
+    T_ASC_PresentationContextID movepid, findpid;
+
+    for (int i = 0; i < (int)DIM_OF(queryRetrievePairs); i++) {
         movepid = ASC_findAcceptedPresentationContextID(assoc,
                             queryRetrievePairs[i].moveSyntax);
         if (movepid != 0) 
@@ -600,7 +453,7 @@ NetworkPACS
                             queryRetrievePairs[i].findSyntax);
             if (findpid == 0) 
             {
-                DCMQRDB_ERROR("Move Presentation Context but no Find (accepting for now)");
+                research_pacs::loggerInfo() << "Move Presentation Context but no Find (accepting for now)";
             }
         }
     }
@@ -615,7 +468,6 @@ NetworkPACS
     DIC_NODENAME        peerHostName;
     DIC_AE              peerAETitle;
     DIC_AE              myAETitle;
-    OFString            temp_str;
 
     ASC_getPresentationAddresses(assoc->params, peerHostName, NULL);
     ASC_getAPTitles(assoc->params, peerAETitle, myAETitle, NULL);
@@ -638,8 +490,9 @@ NetworkPACS
                                                                      msg.CommandField))
             {
                 cond = DIMSE_BADCOMMANDTYPE;
-                DCMQRDB_ERROR("Cannot handle command: 0x" << STD_NAMESPACE hex <<
-                            (unsigned)msg.CommandField);
+                research_pacs::loggerError() << "Cannot handle command: 0x"
+                                             << STD_NAMESPACE hex
+                                             << (unsigned)msg.CommandField;
             }
         }
     
@@ -680,13 +533,14 @@ NetworkPACS
             }
             case DIMSE_C_CANCEL_RQ:
                 /* This is a late cancel request, just ignore it */
-                DCMQRDB_INFO("dispatch: late C-CANCEL-RQ, ignoring");
+                research_pacs::loggerInfo() << "dispatch: late C-CANCEL-RQ, ignoring";
                 break;
             default:
                 /* we cannot handle this kind of message */
                 cond = DIMSE_BADCOMMANDTYPE;
-                DCMQRDB_ERROR("Cannot handle command: 0x" << STD_NAMESPACE hex <<
-                        (unsigned)msg.CommandField);
+                research_pacs::loggerError() << "Cannot handle command: 0x"
+                                             << STD_NAMESPACE hex
+                                             << (unsigned)msg.CommandField;
                 /* the condition will be returned, the caller will abort the association. */
             }
         }
@@ -703,17 +557,19 @@ NetworkPACS
     /* clean up on association termination */
     if (cond == DUL_PEERREQUESTEDRELEASE) 
     {
-        DCMQRDB_INFO("Association Release");
+        research_pacs::loggerInfo() << "Association Release";
         cond = ASC_acknowledgeRelease(assoc);
         ASC_dropSCPAssociation(assoc);
     } 
     else if (cond == DUL_PEERABORTEDASSOCIATION) 
     {
-        DCMQRDB_INFO("Association Aborted");
+        research_pacs::loggerInfo() << "Association Aborted";
     } 
     else 
     {
-        DCMQRDB_ERROR("DIMSE Failure (aborting association): " << DimseCondition::dump(temp_str, cond));
+        OFString temp_str;
+        research_pacs::loggerError() << "DIMSE Failure (aborting association): "
+                                     << DimseCondition::dump(temp_str, cond);
         /* some kind of error so abort the association */
         cond = ASC_abortAssociation(assoc);
     }
@@ -721,12 +577,16 @@ NetworkPACS
     cond = ASC_dropAssociation(assoc);
     if (cond.bad()) 
     {
-        DCMQRDB_ERROR("Cannot Drop Association: " << DimseCondition::dump(temp_str, cond));
+        OFString temp_str;
+        research_pacs::loggerError() << "Cannot Drop Association: "
+                                     << DimseCondition::dump(temp_str, cond);
     }
     cond = ASC_destroyAssociation(&assoc);
     if (cond.bad()) 
     {
-        DCMQRDB_ERROR("Cannot Destroy Association: " << DimseCondition::dump(temp_str, cond));
+        OFString temp_str;
+        research_pacs::loggerError() << "Cannot Destroy Association: "
+                                     << DimseCondition::dump(temp_str, cond);
     }
 }
 

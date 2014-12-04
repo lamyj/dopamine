@@ -37,7 +37,7 @@ public:
      * Send the C-MOVE response
      * @return EC_Normal if successful, an error code otherwise 
      */
-    OFCondition process();
+    virtual OFCondition process();
 
 protected:
 

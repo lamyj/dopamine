@@ -6,6 +6,7 @@
  * for details.
  ************************************************************************/
 
+#include "core/LoggerPACS.h"
 #include "ResponseGenerator.h"
 
 namespace research_pacs
@@ -186,7 +187,7 @@ void
 ResponseGenerator
 ::cancel()
 {
-    std::cout << "Not implemented function : ResponseGenerator::cancel()" << std::endl;
+    research_pacs::loggerWarning() << "Function Not implemented: ResponseGenerator::cancel()";
 }
 
 ResponseGenerator::Match::Type 

@@ -12,6 +12,9 @@
 
 #include "BSONToDataSet.h"
 
+namespace research_pacs
+{
+
 BSONToDataSet
 ::BSONToDataSet()
 : ConverterBSONDataSet(false)
@@ -566,3 +569,5 @@ BSONToDataSet
     }
     dataset.putAndInsertOFStringArray(tag, value);
 }
+
+} // namespace research_pacs

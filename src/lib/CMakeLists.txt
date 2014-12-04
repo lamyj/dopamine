@@ -14,7 +14,7 @@ add_library(libresearch_pacs SHARED ${files})
 set_target_properties(libresearch_pacs PROPERTIES OUTPUT_NAME research_pacs)
 target_link_libraries(libresearch_pacs ${MONGO_DB_LIBRARIES}
                                        ${DCMTK_LIBRARIES}
-                                       ldap dcmtls ssl
+                                       log4cpp ldap dcmtls ssl
                                        wrap pthread)
 
 # deploy the library

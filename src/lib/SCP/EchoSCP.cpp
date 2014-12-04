@@ -6,6 +6,7 @@
  * for details.
  ************************************************************************/
 
+#include "core/LoggerPACS.h"
 #include "EchoSCP.h"
 
 namespace research_pacs
@@ -30,9 +31,9 @@ OFCondition
 EchoSCP
 ::process()
 {
-    std::cout << "Received Echo SCP RQ: MsgID " 
-              << this->_request->MessageID << std::endl;
-    
+    research_pacs::loggerInfo() << "Received Echo SCP RQ: MsgID "
+                                << this->_request->MessageID;
+
     return DIMSE_sendEchoResponse(this->_association,
                                   this->_presentationID, 
                                   this->_request, 

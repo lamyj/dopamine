@@ -6,11 +6,12 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
+#include "TagMatch.h"
+
 #include <dcmtk/dcmdata/dcelem.h>
 
-#include "core/ExceptionPACS.h"
-#include "TagMatch.h"
+namespace research_pacs
+{
 
 TagMatch::Pointer
 TagMatch
@@ -43,3 +44,4 @@ TagMatch
     return (DcmTagKey(element->getGTag(), element->getETag()) == this->_tag);
 }
 
+} // namespace research_pacs

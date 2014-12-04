@@ -6,13 +6,13 @@
  * for details.
  ************************************************************************/
 
-#include <vector>
-
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcelem.h>
 
 #include "And.h"
-#include "core/ExceptionPACS.h"
+
+namespace research_pacs
+{
 
 And::Pointer
 And
@@ -61,3 +61,5 @@ And
 {
     this->_conditions.push_back(condition);
 }
+
+} // namespace research_pacs

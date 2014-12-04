@@ -6,11 +6,12 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
+#include "VRMatch.h"
+
 #include <dcmtk/dcmdata/dcelem.h>
 
-#include "core/ExceptionPACS.h"
-#include "VRMatch.h"
+namespace research_pacs
+{
 
 VRMatch::Pointer
 VRMatch
@@ -56,3 +57,5 @@ VRMatch
     }
     return match;
 }
+
+} // namespace research_pacs

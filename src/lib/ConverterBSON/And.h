@@ -15,6 +15,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief And condition
  */
@@ -53,5 +56,7 @@ private:
     std::vector<Condition::Pointer> _conditions;
 
 };
+
+} // namespace research_pacs
 
 #endif // _8a4c809c_65e2_494d_8c80_8186a778dd92

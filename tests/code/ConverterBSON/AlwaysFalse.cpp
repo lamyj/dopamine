@@ -17,7 +17,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto alwaysfalse = AlwaysFalse::New();
+    auto alwaysfalse = research_pacs::AlwaysFalse::New();
     
     BOOST_CHECK_EQUAL((*alwaysfalse)(NULL), false);
 }

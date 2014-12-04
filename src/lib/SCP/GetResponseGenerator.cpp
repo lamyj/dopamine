@@ -11,6 +11,7 @@
 #include "ConverterBSON/TagMatch.h"
 #include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
+#include "core/LoggerPACS.h"
 #include "GetResponseGenerator.h"
 
 namespace research_pacs
@@ -228,7 +229,8 @@ GetResponseGenerator
                                               dataset);
         if (result.bad())
         {
-            std::cerr << "Get Sub-Op Failed: " << result.text() << std::endl;
+            research_pacs::loggerError() << "Get Sub-Op Failed: "
+                                         << result.text();
         }
             
         ++this->_index;
@@ -250,8 +252,8 @@ GetResponseGenerator
                                                    sopClassUID);
     if (presID == 0)
     {
-        std::cerr << "No presentation context for: " 
-                  << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
+        research_pacs::loggerError() << "No presentation context for: "
+                                     << dcmSOPClassUIDToModality(sopClassUID, "OT");
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     else
@@ -263,8 +265,8 @@ GetResponseGenerator
         if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
             pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
         {
-            std::cerr << "No presentation context with requestor SCP role for: " 
-                      << dcmSOPClassUIDToModality(sopClassUID, "OT") << std::endl;
+            research_pacs::loggerError() << "No presentation context with requestor SCP role for: "
+                                         << dcmSOPClassUIDToModality(sopClassUID, "OT");
             return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
         }
     }
@@ -282,7 +284,7 @@ GetResponseGenerator
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
     
-    std::cout << "Store SCU RQ: MsgID " << msgID << std::endl;
+    research_pacs::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
     
     // Send the C-Store request
     OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 

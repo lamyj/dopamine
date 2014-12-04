@@ -9,10 +9,13 @@
 #ifndef _cd33d64f_50b1_40a7_9288_e90b85b9a576
 #define _cd33d64f_50b1_40a7_9288_e90b85b9a576
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "AuthenticatorBase.h"
+
+namespace research_pacs
+{
 
 namespace authenticator
 {
@@ -54,7 +57,9 @@ private:
     
 };
 
-}
+} // namespace authenticator
+
+} // namespace research_pacs
 
 #endif // _cd33d64f_50b1_40a7_9288_e90b85b9a576
 

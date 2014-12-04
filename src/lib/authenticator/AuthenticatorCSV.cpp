@@ -6,12 +6,15 @@
  * for details.
  ************************************************************************/
 
-#include <fstream>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
 #include "AuthenticatorCSV.h"
 #include "core/ExceptionPACS.h"
+
+namespace research_pacs
+{
 
 namespace authenticator
 {
@@ -22,8 +25,9 @@ AuthenticatorCSV
 {
     if ( ! boost::filesystem::exists(ifileName.c_str()))
     {
-        throw research_pacs::ExceptionPACS("Trying to parse non-existing file: " + 
-                                           ifileName);
+        std::stringstream stream;
+        stream << "Trying to parse non-existing file: " << ifileName;
+        throw ExceptionPACS(stream.str());
     }
     
     // Open file
@@ -101,4 +105,6 @@ AuthenticatorCSV
     return this->_table.size();
 }
 
-}
+} // namespace authenticator
+
+} // namespace research_pacs

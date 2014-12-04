@@ -12,7 +12,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "authenticator/AuthenticatorLDAP.h"
-#include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 
 /*************************** TEST OK 01 *******************************/
@@ -21,40 +20,30 @@
  */
 struct TestDataOK01
 {
-    std::string filename;
     UserIdentityNegotiationSubItemRQ * identity = NULL;
-
-    bool couldbepassed;
+    std::string ldap_server;
+    std::string ldap_bind_user;
+    std::string ldap_base;
+    std::string ldap_filter;
 
     TestDataOK01()
     {
-        filename = "./tmp_test_moduleAuthenticatorLDAP.ini";
-
         std::string ldapserver(getenv("TEST_LDAP_SERVER"));
         std::string ldapbase(getenv("TEST_LDAP_BASE"));
         std::string bind(getenv("TEST_LDAP_BIND"));
         std::string user(getenv("TEST_LDAP_USER"));
         std::string password(getenv("TEST_LDAP_PASSWORD"));
 
-        couldbepassed = (ldapserver != "" && ldapbase != "" && bind != "" && user != "" && password != "");
+        if (ldapserver == "" || ldapbase == "" || bind == "" ||
+            user == "" || password == "")
+        {
+            throw research_pacs::ExceptionPACS("Missing Environment Variables");
+        }
 
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=LDAP\n";
-        myfile << "ldap_server=" << ldapserver << "\n";
-        myfile << "ldap_base=" << ldapbase << "\n";
-        myfile << "ldap_bind_user=" << bind << "\n";
-        myfile << "ldap_filter=(cn=%user)\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=\n";
-        myfile.close();
-
-        research_pacs::ConfigurationPACS::get_instance().Parse(filename);
+        ldap_server = ldapserver;
+        ldap_base = ldapbase;
+        ldap_bind_user = bind;
+        ldap_filter = "(cn=%user)";
 
         identity = new UserIdentityNegotiationSubItemRQ();
         identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
@@ -64,10 +53,6 @@ struct TestDataOK01
 
     ~TestDataOK01()
     {
-        remove(filename.c_str());
-
-        research_pacs::ConfigurationPACS::delete_instance();
-
         if (identity != NULL)
             delete identity;
     }
@@ -75,28 +60,28 @@ struct TestDataOK01
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    if (couldbepassed)
-    {
-        authenticator::AuthenticatorLDAP* authenticatorldap =
-                new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
-        BOOST_CHECK_EQUAL((*authenticatorldap)(identity), true);
+    BOOST_CHECK_EQUAL((*authenticatorldap)(identity), true);
 
-        delete authenticatorldap;
-    }
-    else
-    {
-        throw research_pacs::ExceptionPACS("Missing Environment Variables");
-    }
+    delete authenticatorldap;
 }
 
 /*************************** TEST OK 02 *******************************/
 /**
  * Nominal test case: Get authorization => false (No Identity)
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    authenticator::AuthenticatorLDAP* authenticatorldap = new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
     BOOST_CHECK_EQUAL((*authenticatorldap)(NULL), false);
 
@@ -109,7 +94,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
-    authenticator::AuthenticatorLDAP* authenticatorldap = new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
     identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
     BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
@@ -123,40 +112,30 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
  */
 struct TestDataOK04
 {
-    std::string filename;
     UserIdentityNegotiationSubItemRQ * identity = NULL;
-
-    bool couldbepassed;
+    std::string ldap_server;
+    std::string ldap_bind_user;
+    std::string ldap_base;
+    std::string ldap_filter;
 
     TestDataOK04()
     {
-        filename = "./tmp_test_moduleAuthenticatorLDAP.ini";
-
         std::string ldapserver(getenv("TEST_LDAP_SERVER"));
         std::string ldapbase(getenv("TEST_LDAP_BASE"));
         std::string bind(getenv("TEST_LDAP_BIND"));
         std::string user(getenv("TEST_LDAP_USER"));
         std::string password(getenv("TEST_LDAP_PASSWORD"));
 
-        couldbepassed = (ldapserver != "" && ldapbase != "" && bind != "" && user != "" && password != "");
+        if (ldapserver == "" || ldapbase == "" || bind == "" ||
+            user == "" || password == "")
+        {
+            throw research_pacs::ExceptionPACS("Missing Environment Variables");
+        }
 
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=LDAP\n";
-        myfile << "ldap_server=" << ldapserver << "\n";
-        myfile << "ldap_base=" << ldapbase << "\n";
-        myfile << "ldap_bind_user=" << bind << "\n";
-        myfile << "ldap_filter=(uid=UnkownValue)\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=\n";
-        myfile.close();
-
-        research_pacs::ConfigurationPACS::get_instance().Parse(filename);
+        ldap_server = ldapserver;
+        ldap_base = ldapbase;
+        ldap_bind_user = bind;
+        ldap_filter = "(uid=UnkownValue)";
 
         identity = new UserIdentityNegotiationSubItemRQ();
         identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
@@ -166,10 +145,6 @@ struct TestDataOK04
 
     ~TestDataOK04()
     {
-        remove(filename.c_str());
-
-        research_pacs::ConfigurationPACS::delete_instance();
-
         if (identity != NULL)
             delete identity;
     }
@@ -177,19 +152,15 @@ struct TestDataOK04
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 {
-    if (couldbepassed)
-    {
-        authenticator::AuthenticatorLDAP* authenticatorldap =
-                new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
-        BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
+    BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
 
-        delete authenticatorldap;
-    }
-    else
-    {
-        throw research_pacs::ExceptionPACS("Missing Environment Variables");
-    }
+    delete authenticatorldap;
 }
 
 /*************************** TEST KO 01 *******************************/
@@ -198,40 +169,30 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
  */
 struct TestDataKO01
 {
-   std::string filename;
-   UserIdentityNegotiationSubItemRQ * identity = NULL;
-
-   bool couldbepassed;
+    UserIdentityNegotiationSubItemRQ * identity = NULL;
+    std::string ldap_server;
+    std::string ldap_bind_user;
+    std::string ldap_base;
+    std::string ldap_filter;
 
    TestDataKO01()
    {
-       filename = "./tmp_test_moduleAuthenticatorLDAP.ini";
-
        std::string ldapserver(getenv("TEST_LDAP_SERVER"));
        std::string ldapbase(getenv("TEST_LDAP_BASE"));
        std::string bind(getenv("TEST_LDAP_BIND"));
        std::string user(getenv("TEST_LDAP_USER"));
        std::string password(getenv("TEST_LDAP_PASSWORD"));
 
-       couldbepassed = (ldapserver != "" && ldapbase != "" && bind != "" && user != "" && password != "");
+       if (ldapserver == "" || ldapbase == "" || bind == "" ||
+           user == "" || password == "")
+       {
+           throw research_pacs::ExceptionPACS("Missing Environment Variables");
+       }
 
-       std::ofstream myfile;
-       myfile.open(filename);
-       myfile << "[dicom]\n";
-       myfile << "storage_path=./temp_dir\n";
-       myfile << "allowed_peers=*\n";
-       myfile << "port=11112\n";
-       myfile << "[authenticator]\n";
-       myfile << "type=LDAP\n";
-       myfile << "ldap_server=bad_value\n";
-       myfile << "ldap_base=" << ldapbase << "\n";
-       myfile << "ldap_bind_user=" << bind << "\n";
-       myfile << "ldap_filter=(cn=%user)\n";
-       myfile << "[listAddressPort]\n";
-       myfile << "allowed=\n";
-       myfile.close();
-
-       research_pacs::ConfigurationPACS::get_instance().Parse(filename);
+       ldap_server = "bad_value";
+       ldap_base = ldapbase;
+       ldap_bind_user = bind;
+       ldap_filter = "(cn=%user)";
 
        identity = new UserIdentityNegotiationSubItemRQ();
        identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
@@ -241,10 +202,6 @@ struct TestDataKO01
 
    ~TestDataKO01()
    {
-       remove(filename.c_str());
-
-       research_pacs::ConfigurationPACS::delete_instance();
-
        if (identity != NULL)
            delete identity;
    }
@@ -252,7 +209,11 @@ struct TestDataKO01
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
 {
-    authenticator::AuthenticatorLDAP* authenticatorldap = new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
                         research_pacs::ExceptionPACS);
@@ -266,7 +227,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
 {
-    authenticator::AuthenticatorLDAP* authenticatorldap = new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
     identity->setPrimField("bad_user", 8);
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
@@ -281,40 +246,30 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
  */
 struct TestDataKO03
 {
-   std::string filename;
-   UserIdentityNegotiationSubItemRQ * identity = NULL;
-
-   bool couldbepassed;
+    UserIdentityNegotiationSubItemRQ * identity = NULL;
+    std::string ldap_server;
+    std::string ldap_bind_user;
+    std::string ldap_base;
+    std::string ldap_filter;
 
    TestDataKO03()
    {
-       filename = "./tmp_test_moduleAuthenticatorLDAP.ini";
-
        std::string ldapserver(getenv("TEST_LDAP_SERVER"));
        std::string ldapbase(getenv("TEST_LDAP_BASE"));
        std::string bind(getenv("TEST_LDAP_BIND"));
        std::string user(getenv("TEST_LDAP_USER"));
        std::string password(getenv("TEST_LDAP_PASSWORD"));
 
-       couldbepassed = (ldapserver != "" && ldapbase != "" && bind != "" && user != "" && password != "");
+       if (ldapserver == "" || ldapbase == "" || bind == "" ||
+           user == "" || password == "")
+       {
+           throw research_pacs::ExceptionPACS("Missing Environment Variables");
+       }
 
-       std::ofstream myfile;
-       myfile.open(filename);
-       myfile << "[dicom]\n";
-       myfile << "storage_path=./temp_dir\n";
-       myfile << "allowed_peers=*\n";
-       myfile << "port=11112\n";
-       myfile << "[authenticator]\n";
-       myfile << "type=LDAP\n";
-       myfile << "ldap_server=" << ldapserver << "\n";
-       myfile << "ldap_base=" << ldapbase << "\n";
-       myfile << "ldap_bind_user=" << bind << "\n";
-       myfile << "ldap_filter=(cbad=%user\n";
-       myfile << "[listAddressPort]\n";
-       myfile << "allowed=\n";
-       myfile.close();
-
-       research_pacs::ConfigurationPACS::get_instance().Parse(filename);
+       ldap_server = ldapserver;
+       ldap_base = ldapbase;
+       ldap_bind_user = bind;
+       ldap_filter = "(cbad=%user";
 
        identity = new UserIdentityNegotiationSubItemRQ();
        identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
@@ -324,10 +279,6 @@ struct TestDataKO03
 
    ~TestDataKO03()
    {
-       remove(filename.c_str());
-
-       research_pacs::ConfigurationPACS::delete_instance();
-
        if (identity != NULL)
            delete identity;
    }
@@ -335,7 +286,11 @@ struct TestDataKO03
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_03, TestDataKO03)
 {
-    authenticator::AuthenticatorLDAP* authenticatorldap = new authenticator::AuthenticatorLDAP();
+    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+                                                                ldap_bind_user,
+                                                                ldap_base,
+                                                                ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
                         research_pacs::ExceptionPACS);

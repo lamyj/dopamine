@@ -13,6 +13,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief Not Condition
  */
@@ -52,5 +55,7 @@ private:
     Condition::Pointer _condition;
 
 };
+
+} // namespace research_pacs
 
 #endif // _542f8cac_93b1_458b_a6a5_6671301a7196

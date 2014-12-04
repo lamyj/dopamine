@@ -16,6 +16,9 @@
 
 class DcmElement;
 
+namespace research_pacs
+{
+
 /**
  * @brief TagMatch Condition
  */
@@ -48,5 +51,7 @@ private:
     DcmTagKey _tag;
 
 };
+
+} // namespace research_pacs
 
 #endif // _a9036539_65b5_4e6b_acc6_ac598bc2275c

@@ -10,6 +10,9 @@
 
 #include "AlwaysTrue.h"
 
+namespace research_pacs
+{
+
 AlwaysTrue::Pointer
 AlwaysTrue
 ::New()
@@ -36,3 +39,5 @@ AlwaysTrue
 {
     return true;
 }
+
+} // namespace research_pacs

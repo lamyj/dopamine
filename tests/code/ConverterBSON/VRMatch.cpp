@@ -20,7 +20,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto vrmatch = VRMatch::New(DcmVR("PN").getEVR());
+    auto vrmatch = research_pacs::VRMatch::New(DcmVR("PN").getEVR());
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0010));
     BOOST_CHECK_EQUAL((*vrmatch)(element), true);
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    auto vrmatch = VRMatch::New(DcmVR("PN").getEVR());
+    auto vrmatch = research_pacs::VRMatch::New(DcmVR("PN").getEVR());
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0020));
     BOOST_CHECK_EQUAL((*vrmatch)(element), false);
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    auto vrmatch = VRMatch::New(DcmVR("PN").getEVR());
+    auto vrmatch = research_pacs::VRMatch::New(DcmVR("PN").getEVR());
     
     BOOST_REQUIRE_THROW((*vrmatch)(NULL), research_pacs::ExceptionPACS);
 }

@@ -17,6 +17,9 @@
 
 #include <iconv.h>
 
+namespace research_pacs
+{
+
 /**
  * @brief Base class to Convert Bson to Dataset or Dataset to Bson
  */
@@ -70,5 +73,7 @@ private:
     static std::map<std::string, std::string> _create_encoding_map();
 
 };
+
+} // namespace research_pacs
 
 #endif // _36bbbced_f7c3_45e7_aa64_89253348c949

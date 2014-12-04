@@ -12,6 +12,9 @@
 #include "core/ExceptionPACS.h"
 #include "Or.h"
 
+namespace research_pacs
+{
+
 Or::Pointer
 Or
 ::New()
@@ -60,3 +63,5 @@ Or
 {
     this->_conditions.push_back(condition);
 }
+
+} // namespace research_pacs
