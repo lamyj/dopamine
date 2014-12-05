@@ -145,6 +145,7 @@ NetworkPACS
                         this->refuseAssociation(&assoc, CTN_NoReason);
                         continue_ = false;
                     }
+                    research_pacs::loggerDebug() << "Authentication Status: " << continue_;
                 }
                 
                 if (continue_)
@@ -159,6 +160,7 @@ NetworkPACS
                         this->refuseAssociation(&assoc, CTN_BadAppContext);
                         continue_ = false;
                     }
+                    research_pacs::loggerDebug() << "Application Context Name Status: " << continue_;
                 }
                 
                 if (continue_)
@@ -171,18 +173,25 @@ NetworkPACS
                         this->refuseAssociation(&assoc, CTN_BadAEService);
                         continue_ = false;
                     }
+                    research_pacs::loggerDebug() << "AE Service Status: " << continue_;
                 }
                 
                 if (continue_)
                 {
                     cond = this->negotiateAssociation(assoc);
-                    if (cond.good())
+                    if (cond.good() || cond == ASC_SHUTDOWNAPPLICATION)
                     {
+                        bool shutdown = cond == ASC_SHUTDOWNAPPLICATION;
                         cond = ASC_acknowledgeAssociation(assoc);
                         if (cond.good())
                         {
                             // dispatch
                             this->handleAssociation(assoc);
+                        }
+                        if (shutdown)
+                        {
+                            // shutdown
+                            break;
                         }
                     }
 
@@ -195,7 +204,7 @@ NetworkPACS
                     continue_ = cond.good();
                 }
             }
-            
+
             // cleanup code
             if (!continue_)
             {
@@ -214,11 +223,6 @@ NetworkPACS
                     stream << "Cannot Destroy Association: " << cond.text();
                     throw ExceptionPACS(stream.str());
                 }
-            }
-            else if (cond == ASC_SHUTDOWNAPPLICATION)
-            {
-                // shutdown
-                break;
             }
         }
     }
@@ -349,7 +353,7 @@ NetworkPACS
     transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
     int numTransferSyntaxes = 3;
 
-    std::vector<const char*> nonStorageSyntaxes =
+    const char* nonStorageSyntaxes[] =
     {
         UID_VerificationSOPClass,
         UID_FINDPatientRootQueryRetrieveInformationModel,
@@ -366,10 +370,11 @@ NetworkPACS
         UID_PrivateShutdownSOPClass
     };
 
+    const int numberOfNonStorageSyntaxes = DIM_OF(nonStorageSyntaxes);
     /*  accept any of the non-storage syntaxes */
     cond = ASC_acceptContextsWithPreferredTransferSyntaxes(assoc->params,
-                                                           (const char**)nonStorageSyntaxes[0],
-                                                           nonStorageSyntaxes.size(),
+                                                           (const char**)nonStorageSyntaxes,
+                                                           numberOfNonStorageSyntaxes,
                                                            (const char**)transferSyntaxes,
                                                            numTransferSyntaxes);
     if (cond.bad())
@@ -423,7 +428,6 @@ NetworkPACS
     if (0 != ASC_findAcceptedPresentationContextID(assoc, UID_PrivateShutdownSOPClass))
     {
         research_pacs::loggerInfo() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
-        refuseAssociation(&assoc, CTN_NoReason);
         return ASC_SHUTDOWNAPPLICATION;
     }
 
