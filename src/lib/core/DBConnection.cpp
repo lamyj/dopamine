@@ -8,6 +8,7 @@
 
 #include "DBConnection.h"
 #include "ExceptionPACS.h"
+#include "LoggerPACS.h"
 
 namespace research_pacs
 {
@@ -42,11 +43,13 @@ void
 DBConnection
 ::Initialize(const std::string &db_name,
              const std::string &db_host,
-             const std::string &db_port)
+             const std::string &db_port,
+             std::vector<DatabaseIndex> indexeslist)
 {
     this->_db_name = db_name;
     this->_db_host = db_host;
     this->_db_port = db_port;
+    this->_indexeslist = indexeslist;
 }
 
 void
@@ -58,25 +61,33 @@ DBConnection
         throw ExceptionPACS("DBConnection not initialize.");
     }
 
-    this->_connection.connect(this->_db_host + ":" + this->_db_port);
+    // Try to connect database
+    // Disconnect is automatic when it calls the destructors
+    std::string errormsg = "";
+    if ( ! this->_connection.connect(mongo::HostAndPort(this->_db_host + ":" + this->_db_port),
+                                     errormsg) )
+    {
+        std::stringstream stream;
+        stream << "DBConnection::connect error: " << errormsg;
+        throw ExceptionPACS(stream.str());
+    }
+    research_pacs::loggerDebug() << "DBconnection::connect OK";
     
+    // Create indexes
     std::string const datasets = this->_db_name + ".datasets";
-    this->_connection.ensureIndex(
-        datasets, BSON("\"00080018\"" << 1), false, "SOP Instance UID");
-    this->_connection.ensureIndex(
-        datasets, BSON("\"00100010\"" << 1), false, "Patient's Name");
-    this->_connection.ensureIndex(
-        datasets, BSON("\"00100020\"" << 1), false, "Patient ID");
 
-    this->_connection.ensureIndex(
-        datasets, BSON("\"0020000e\"" << 1), false, "Series Instance UID");
-    this->_connection.ensureIndex(
-        datasets, BSON("\"0008103e\"" << 1), false, "Series Description");
-
-    this->_connection.ensureIndex(
-        datasets, BSON("\"0020000d\"" << 1), false, "Study Instance UID");
-    this->_connection.ensureIndex(
-        datasets, BSON("\"00081030\"" << 1), false, "Study Description");
+    for (auto currentIndex : this->_indexeslist)
+    {
+        std::stringstream stream;
+        stream << "\"" << currentIndex._key << "\"";
+        this->_connection.ensureIndex
+            (
+                datasets,
+                BSON(stream.str() << 1),
+                currentIndex._unique,
+                currentIndex._name
+            );
+    }
 }
 
 bool 
@@ -109,7 +120,7 @@ DBConnection
         
         std::string lusername = p.getStringField("username");
         
-        if (lusername == lcurrentUser)
+        if (lusername == lcurrentUser || lusername == "*")
         {
             std::vector<int> operations;
             mongo::BSONObjIterator fields(p.getObjectField("authorizedAction"));

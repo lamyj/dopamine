@@ -155,8 +155,7 @@ NetworkPACS
                     if (cond.bad() || std::string(buf) != DICOM_STDAPPLICATIONCONTEXT)
                     {
                         /* reject: the application context name is not supported */
-                        research_pacs::loggerWarning() << "Bad AppContextName: "
-                                                                          << buf;
+                        research_pacs::loggerWarning() << "Bad AppContextName: " << buf;
                         this->refuseAssociation(&assoc, CTN_BadAppContext);
                         continue_ = false;
                     }
@@ -407,7 +406,7 @@ NetworkPACS
                     /* if the transfer syntax was proposed then we can accept it
                     * appears in our supported list of transfer syntaxes
                     */
-                    if (strcmp(pc.proposedTransferSyntaxes[j], transferSyntaxes[k]) == 0)
+                    if (std::string(pc.proposedTransferSyntaxes[j]) == std::string(transferSyntaxes[k]))
                     {
                         cond = ASC_acceptPresentationContext(
                         assoc->params, pc.presentationContextID, transferSyntaxes[k], role);
