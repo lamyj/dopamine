@@ -6,10 +6,14 @@
  * for details.
  ************************************************************************/
 
+#include <qt4/Qt/qstring.h>
+#include <qt4/Qt/qstringlist.h>
+#include <qt4/Qt/qprocess.h>
 #include <fstream>
 
 #define BOOST_TEST_MODULE ModuleNetworkPACS
 #include <boost/test/unit_test.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
@@ -60,6 +64,8 @@
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
+
+        research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
     }
  
     ~TestDataOK01()
@@ -73,7 +79,6 @@
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
     research_pacs::NetworkPACS& networkpacs = research_pacs::NetworkPACS::get_instance();
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
@@ -85,10 +90,40 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    research_pacs::ConfigurationPACS::get_instance().Parse(conffile);
     research_pacs::NetworkPACS& networkpacs = research_pacs::NetworkPACS::get_instance();
     networkpacs.force_stop();
     networkpacs.set_timeout(1);
+    networkpacs.run();
+    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+}
+
+/*************************** TEST OK 03 *******************************/
+/**
+ * Nominal test case: Run and send Shutdown request
+ */
+void processTerminate()
+{
+    // Wait until Networkpacs started
+    sleep(1);
+
+    // Call Terminate SCU
+    QString command = "termscu";
+    QStringList args;
+    args << "localhost" << "11112";
+
+    QProcess *myProcess = new QProcess();
+    myProcess->start(command, args);
+}
+
+BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
+{
+    research_pacs::NetworkPACS& networkpacs = research_pacs::NetworkPACS::get_instance();
+
+    // Stop NetworkPACS after 1second
+    boost::thread stopThread(processTerminate);
+    stopThread.join();
+
+    // Start NetworkPACS (stopped by another thread)
     networkpacs.run();
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
