@@ -33,23 +33,9 @@ int main(int argc, char** argv)
         );
     
     // Get all indexes
-    std::vector<research_pacs::DBConnection::DatabaseIndex> indexes;
     std::string indexlist = research_pacs::ConfigurationPACS::get_instance().GetValue("database.indexlist");
     std::vector<std::string> indexlistvect;
-    boost::split(indexlistvect, indexlist, boost::is_any_of(","));
-
-    for (auto currentIndex : indexlistvect)
-    {
-        indexes.push_back
-            (
-                research_pacs::DBConnection::DatabaseIndex
-                    (
-                        research_pacs::ConfigurationPACS::get_instance().GetValue(currentIndex, "keys"),
-                        research_pacs::ConfigurationPACS::get_instance().GetValue(currentIndex, "unique") == "true" ? true:false,
-                        research_pacs::ConfigurationPACS::get_instance().GetValue(currentIndex, "name")
-                    )
-            );
-    }
+    boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
 
     // Create and Initialize DB connection
     research_pacs::DBConnection::get_instance().Initialize
@@ -57,7 +43,7 @@ int main(int argc, char** argv)
             research_pacs::ConfigurationPACS::get_instance().GetValue("database.dbname"),
             research_pacs::ConfigurationPACS::get_instance().GetValue("database.hostname"),
             research_pacs::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexes
+            indexlistvect
         );
 
     // Connect Database

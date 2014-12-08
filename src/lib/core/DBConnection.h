@@ -23,17 +23,6 @@ namespace research_pacs
 class DBConnection
 {
 public:
-
-    struct DatabaseIndex
-    {
-        std::string _key;
-        bool _unique;
-        std::string _name;
-
-        DatabaseIndex(std::string const & key, bool unique, std::string const & name):
-            _key(key), _unique(unique), _name(name) {}
-    };
-
     /**
      * Create (if not exist) and return an unique instance of DBConnection
      * @return unique instance of DBConnection
@@ -44,7 +33,7 @@ public:
     virtual ~DBConnection();
 
     void Initialize(std::string const & db_name, std::string const & db_host,
-                    std::string const & db_port, std::vector<DatabaseIndex> indexeslist);
+                    std::string const & db_port, std::vector<std::string> indexeslist);
     
     /**
      * Get the connection with database
@@ -101,7 +90,7 @@ private:
     /// Database port
     std::string _db_port;
 
-    std::vector<DatabaseIndex> _indexeslist;
+    std::vector<DcmTag> _indexeslist;
     
     // Purposely not implemented
     DBConnection(DBConnection const & other);
