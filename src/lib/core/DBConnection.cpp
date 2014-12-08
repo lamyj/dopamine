@@ -44,12 +44,23 @@ DBConnection
 ::Initialize(const std::string &db_name,
              const std::string &db_host,
              const std::string &db_port,
-             std::vector<DatabaseIndex> indexeslist)
+             std::vector<std::string> indexeslist)
 {
     this->_db_name = db_name;
     this->_db_host = db_host;
     this->_db_port = db_port;
-    this->_indexeslist = indexeslist;
+    this->_indexeslist.clear();
+
+    for (auto currentIndex : indexeslist)
+    {
+        DcmTag dcmtag;
+        OFCondition ret = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
+
+        if (ret.good())
+        {
+            this->_indexeslist.push_back(dcmtag);
+        }
+    }
 }
 
 void
@@ -76,16 +87,21 @@ DBConnection
     // Create indexes
     std::string const datasets = this->_db_name + ".datasets";
 
-    for (auto currentIndex : this->_indexeslist)
+    for (DcmTag currentIndex : this->_indexeslist)
     {
+        // convert Uint16 => string XXXXYYYY
+        char buffer[9];
+        snprintf(buffer, 9, "%04x%04x", currentIndex.getGroup(), currentIndex.getElement());
+
         std::stringstream stream;
-        stream << "\"" << currentIndex._key << "\"";
+        stream << "\"" << buffer << "\"";
+
         this->_connection.ensureIndex
             (
                 datasets,
                 BSON(stream.str() << 1),
-                currentIndex._unique,
-                currentIndex._name
+                false,
+                std::string(currentIndex.getTagName())
             );
     }
 }
