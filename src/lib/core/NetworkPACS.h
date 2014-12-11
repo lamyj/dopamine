@@ -13,6 +13,8 @@
 
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
+#include "authenticator/AuthenticatorNone.h"
+
 
 namespace research_pacs
 {

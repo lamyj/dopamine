@@ -98,6 +98,10 @@ NetworkPACS
                 ConfigurationPACS::get_instance().GetValue("authenticator.ldap_filter")
             );
     }
+    else if (type == "None")
+    {
+        this->_authenticator = new authenticator::AuthenticatorNone();
+    }
     else
     {
         std::stringstream stream;
@@ -136,12 +140,12 @@ NetworkPACS
                 
                 // process
                 
-                if (!continue_) // TODO RLA Modify (continue_)
+                if (continue_)
                 {
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
                     {
-                        research_pacs::loggerWarning() << "Refusing Association: Bad User/Password";
+                        research_pacs::loggerWarning() << "Refusing Association: Bad Authentication";
                         this->refuseAssociation(&assoc, CTN_NoReason);
                         continue_ = false;
                     }
@@ -486,7 +490,8 @@ NetworkPACS
         T_DIMSE_Message msg;
         cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
 
-        if (msg.CommandField == DIMSE_C_ECHO_RQ) // TODO RLA Modify (msg.CommandField != DIMSE_C_ECHO_RQ)
+        if (cond.good() &&
+            msg.CommandField != DIMSE_C_ECHO_RQ)
         {
             // Veriry user's rights
             if (!DBConnection::get_instance().checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,
@@ -498,7 +503,7 @@ NetworkPACS
                                              << (unsigned)msg.CommandField;
             }
         }
-    
+
         /* did peer release, abort, or do we have a valid message ? */
         if (cond.good())
         {
