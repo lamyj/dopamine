@@ -32,18 +32,9 @@
  struct TestDataOK01
 {
     std::string conffile;
-    std::string authfile;
  
     TestDataOK01()
     {
-        // Create authenticator file
-        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
-        std::ofstream myauthfile;
-        myauthfile.open(authfile);
-        myauthfile << "user1\tpassword1\n";
-        myauthfile << "user2\tpassword2\n";
-        myauthfile.close();
-        
         // Create Configuration file
         conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
         std::ofstream myfile;
@@ -57,8 +48,7 @@
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
         myfile << "[authenticator]\n";
-        myfile << "type=CSV\n";
-        myfile << "filepath=" << authfile << "\n";
+        myfile << "type=None\n";
         myfile << "[listAddressPort]\n";
         myfile << "allowed=LANGUEDOC,LOCAL\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
@@ -71,7 +61,6 @@
     ~TestDataOK01()
     {
         remove(conffile.c_str());
-        remove(authfile.c_str());
         research_pacs::ConfigurationPACS::delete_instance();
         research_pacs::NetworkPACS::delete_instance();
     }
@@ -121,7 +110,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 
     // Stop NetworkPACS after 1second
     boost::thread stopThread(processTerminate);
-    stopThread.join();
 
     // Start NetworkPACS (stopped by another thread)
     networkpacs.run();
@@ -135,18 +123,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
  struct TestDataKO01
 {
     std::string conffile;
-    std::string authfile;
  
     TestDataKO01()
     {
-        // Create authenticator file
-        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
-        std::ofstream myauthfile;
-        myauthfile.open(authfile);
-        myauthfile << "user1\tpassword1\n";
-        myauthfile << "user2\tpassword2\n";
-        myauthfile.close();
-        
         // Create Configuration file
         conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
         std::ofstream myfile;
@@ -161,7 +140,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
         myfile << "dbname=pacs\n";
         myfile << "[authenticator]\n";
         myfile << "type=BADVALUE\n";
-        myfile << "filepath=" << authfile << "\n";
         myfile << "[listAddressPort]\n";
         myfile << "allowed=LANGUEDOC,LOCAL\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
@@ -174,7 +152,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
     ~TestDataKO01()
     {
         remove(conffile.c_str());
-        remove(authfile.c_str());
         research_pacs::ConfigurationPACS::delete_instance();
         research_pacs::NetworkPACS::delete_instance();
     }
@@ -186,25 +163,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
                         research_pacs::ExceptionPACS);
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST KO 02 *******************************/
 /**
  * Error test case: Bad Port
  */
  struct TestDataKO02
 {
     std::string conffile;
-    std::string authfile;
  
     TestDataKO02()
     {
-        // Create authenticator file
-        authfile = "./tmp_test_moduleNetworkPACS_auth.ini";
-        std::ofstream myauthfile;
-        myauthfile.open(authfile);
-        myauthfile << "user1\tpassword1\n";
-        myauthfile << "user2\tpassword2\n";
-        myauthfile.close();
-        
         // Create Configuration file
         conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
         std::ofstream myfile;
@@ -218,8 +186,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
         myfile << "[authenticator]\n";
-        myfile << "type=CSV\n";
-        myfile << "filepath=" << authfile << "\n";
+        myfile << "type=None\n";
         myfile << "[listAddressPort]\n";
         myfile << "allowed=LANGUEDOC,LOCAL\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
@@ -232,7 +199,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
     ~TestDataKO02()
     {
         remove(conffile.c_str());
-        remove(authfile.c_str());
         research_pacs::ConfigurationPACS::delete_instance();
         research_pacs::NetworkPACS::delete_instance();
     }

@@ -18,7 +18,7 @@
 namespace research_pacs
 {
 
-void InitializeLogger(const std::string &priority);
+void InitializeLogger(std::string const & priority);
 
 log4cpp::CategoryStream getLogger(log4cpp::Priority::PriorityLevel const & level);
 
