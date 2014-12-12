@@ -22,7 +22,7 @@
 /**
  * Pre-conditions: 
  *     - we assume that ConfigurationPACS works correctly
- *     - we assume that AuthenticatorCSV works correctly
+ *     - we assume that AuthenticatorNone works correctly
  */
 
 /*************************** TEST OK 01 *******************************/

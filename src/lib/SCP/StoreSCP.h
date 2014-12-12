@@ -27,8 +27,8 @@ public:
      * @param req: C-STORE request
      */
     StoreSCP(T_ASC_Association * assoc, 
-            T_ASC_PresentationContextID presID,
-            T_DIMSE_C_StoreRQ * req);
+             T_ASC_PresentationContextID presID,
+             T_DIMSE_C_StoreRQ * req);
     
     /// Destroy the SCP
     virtual ~StoreSCP();
