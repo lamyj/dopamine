@@ -24,7 +24,7 @@ public:
      * Create a default FindSCP
      * @param assoc: linked association
      * @param presID: linked presentation context
-     * @param req: C-ECHO request
+     * @param req: C-FIND request
      */
     FindSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,

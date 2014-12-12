@@ -8,7 +8,7 @@
 
 #include <fstream>
 
-#define BOOST_TEST_MODULE ModuleStoreSCP
+#define BOOST_TEST_MODULE ModuleFindSCP
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
@@ -26,7 +26,7 @@
 #include "core/DBConnection.h"
 #include "core/NetworkPACS.h"
 
-#include "SCP/StoreSCP.h"
+#include "SCP/FindSCP.h"
 
 /**
  * Pre-conditions:
@@ -35,7 +35,7 @@
  *     - we assume that DBConnection works correctly
  */
 
-const std::string NetworkConfFILE = "./tmp_test_ModuleStoreSCP_conf.ini";
+const std::string NetworkConfFILE = "./tmp_test_ModuleFindSCP_conf.ini";
 
 void launchNetwork()
 {
@@ -85,17 +85,17 @@ void terminateNetwork()
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    research_pacs::StoreSCP * storescp =
-            new research_pacs::StoreSCP(NULL, T_ASC_PresentationContextID(), NULL);
+    research_pacs::FindSCP * findscp =
+            new research_pacs::FindSCP(NULL, T_ASC_PresentationContextID(), NULL);
 
-    BOOST_REQUIRE_EQUAL(storescp != NULL, true);
+    BOOST_REQUIRE_EQUAL(findscp != NULL, true);
 
-    delete storescp;
+    delete findscp;
 }
 
 /*************************** TEST OK 02 *******************************/
 /**
- * Nominal test case: Execute Store
+ * Nominal test case: Execute Find
  */
 struct TestDataOK02
 {
@@ -127,14 +127,10 @@ struct TestDataOK02
         boost::thread networkThread(launchNetwork);
         sleep(1); // Wait network initialisation
 
-        // Create Dataset To store
+        // Create Dataset To Find
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
-        dataset->putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.840.10008.5.1.4.1.1.4");
-        dataset->putAndInsertOFStringArray(DCM_Modality, "MR");
-        dataset->putAndInsertOFStringArray(DCM_ImageType, "ORIGINAL\\PRIMARY\\OTHER");
-        dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                           "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
+        dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
     }
 
     ~TestDataOK02()
@@ -178,8 +174,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 
     typedef std::pair<std::string, std::vector<std::string> > PresentationContext;
     std::vector<PresentationContext> presentation_contexts;
-    std::vector<std::string> tempvect = { UID_LittleEndianExplicitTransferSyntax,
-                                          UID_LittleEndianImplicitTransferSyntax,
+    std::vector<std::string> tempvect = { UID_LittleEndianImplicitTransferSyntax,
+                                          UID_LittleEndianExplicitTransferSyntax,
                                           UID_BigEndianExplicitTransferSyntax};
     presentation_contexts.push_back(std::make_pair(UID_MRImageStorage,
                                                    tempvect));
@@ -218,27 +214,24 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 
     DIC_US const message_id = association->nextMsgID++;
 
-    T_DIMSE_C_StoreRQ * request = new T_DIMSE_C_StoreRQ();
+    T_DIMSE_C_FindRQ * request = new T_DIMSE_C_FindRQ();
     memset(request, 0, sizeof(*request));
     request->MessageID = message_id;
     strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
 
-    OFString sop_instance_uid;
-    const_cast<DcmDataset*>(dataset)->findAndGetOFString(DCM_SOPInstanceUID,
-                                                         sop_instance_uid);
-    strcpy(request->AffectedSOPInstanceUID, sop_instance_uid.c_str());
-    BOOST_CHECK_EQUAL(sop_instance_uid.size() != 0, true);
-
     request->DataSetType = DIMSE_DATASET_PRESENT;
     request->Priority = DIMSE_PRIORITY_MEDIUM;
 
-    T_DIMSE_C_StoreRSP response;
+    T_DIMSE_C_FindRSP response;
     DcmDataset *detail = NULL;
 
-    condition = DIMSE_storeUser(association, presentation_id, request,
-                                NULL, dataset, NULL, NULL, DIMSE_NONBLOCKING,
-                                30, &response, &detail, NULL, 0);
+    condition = DIMSE_findUser(association, presentation_id, request, dataset,
+        NULL, NULL, DIMSE_BLOCKING, 30,
+        &response, &detail);
+
     BOOST_CHECK_EQUAL(condition.good(), true);
+    BOOST_CHECK_EQUAL(detail == NULL, true);
+    BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_Success);
 
     condition = ASC_releaseAssociation(association);
     BOOST_CHECK_EQUAL(condition.good(), true);

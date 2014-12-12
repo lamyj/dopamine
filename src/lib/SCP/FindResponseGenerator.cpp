@@ -11,6 +11,7 @@
 #include "ConverterBSON/TagMatch.h"
 #include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
+#include "core/LoggerPACS.h"
 #include "FindResponseGenerator.h"
 
 namespace research_pacs
@@ -84,7 +85,15 @@ FindResponseGenerator
 
         // Always include the keys for the query level and its higher levels
         OFString ofstring;
-        requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel, ofstring);
+        OFCondition condition = requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel,
+                                                                       ofstring);
+        if (condition.bad())
+        {
+            std::stringstream stream;
+            stream << "Cannot find DCM_QueryRetrieveLevel: " << condition .text();
+            throw research_pacs::ExceptionPACS(stream.str());
+        }
+
         this->_query_retrieve_level = std::string(ofstring.c_str());
         if(!fields_builder.hasField("00100020"))
         {
@@ -164,7 +173,7 @@ FindResponseGenerator
             "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
             "$reduce" << reduce_function << "initial" << initial_builder.obj() 
         ));
-        
+
         DBConnection::get_instance().get_connection().runCommand
             (DBConnection::get_instance().get_db_name(), 
                 group_command, this->_info, 0);
@@ -211,14 +220,31 @@ FindResponseGenerator
             (*responseIdentifiers) = new DcmDataset(dataset);
         }
         
-        (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
+        OFCondition condition =
+                (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
                                           this->_query_retrieve_level.c_str());
+
+        if (condition.bad())
+        {
+            std::stringstream stream;
+            stream << "Cannot insert DCM_QueryRetrieveLevel: " << condition .text();
+            throw research_pacs::ExceptionPACS(stream.str());
+        }
+
         if(item.hasField("instance_count"))
         {
             OFString count(12, '\0');
             snprintf(&count[0], 12, "%i", int(item.getField("instance_count").Number()));
-            (*responseIdentifiers)->putAndInsertOFStringArray(this->_instance_count_tag,
+            condition = (*responseIdentifiers)->putAndInsertOFStringArray(this->_instance_count_tag,
                                               count);
+
+            if (condition.bad())
+            {
+                std::stringstream stream;
+                stream << "Cannot insert " << this->_instance_count_tag.getGroup() << ","
+                       << this->_instance_count_tag.getElement() << ": " << condition .text();
+                throw research_pacs::ExceptionPACS(stream.str());
+            }
         }
         if(this->_convert_modalities_in_study)
         {
@@ -234,10 +260,17 @@ FindResponseGenerator
                     value += "\\";
                 }
             }
-            (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy, 
+            condition = (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy,
                                                               OFString(value.c_str()));
+
+            if (condition.bad())
+            {
+                std::stringstream stream;
+                stream << "Cannot insert DCM_ModalitiesInStudy: " << condition .text();
+                throw research_pacs::ExceptionPACS(stream.str());
+            }
         }
-                                              
+
         ++this->_index;
 
         this->_status = STATUS_Pending;
