@@ -55,7 +55,7 @@ void terminateNetwork()
 
 /*************************** TEST OK 01 *******************************/
 /**
- * Nominal test case: 
+ * Nominal test case: Execute Echo
  */
  struct TestDataOK01
 {

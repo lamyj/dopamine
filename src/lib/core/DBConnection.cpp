@@ -114,8 +114,9 @@ DBConnection
     std::string lcurrentUser = "";
     
     // Only available for Identity Type: User or User/Pasword
-    if (userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER ||
-        userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+    if ((&userIdentNeg != NULL) &&
+        (userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER ||
+         userIdentNeg.getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD))
     {
         // Get user name
         char * user; Uint16 user_length;
@@ -124,7 +125,7 @@ DBConnection
         lcurrentUser = std::string(user, user_length);
         delete [] user;
     }
-    
+
     // Get authorization
     mongo::auto_ptr< mongo::DBClientCursor> cursor = 
         this->_connection.query(this->_db_name+"."+"authorization",  
