@@ -90,7 +90,13 @@ DataSetToBSON
             DcmCodeString * specific_character_set = 
                 dynamic_cast<DcmCodeString*>(it);
             char* value;
-            specific_character_set->getString(value);
+            OFCondition condition = specific_character_set->getString(value);
+            if (condition.bad())
+            {
+                std::stringstream stream;
+                stream << "Cannot find specific character set: " << condition.text();
+                throw research_pacs::ExceptionPACS(stream.str());
+            }
             this->set_specific_character_set(value);
         }
 

@@ -41,8 +41,7 @@ static void findCallback(
 {
     FindResponseGenerator* context = reinterpret_cast<FindResponseGenerator*>(callbackData);
     context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, responseIdentifiers, 
-                             stDetail);
+                             responseCount, response, stDetail, responseIdentifiers);
 }
     
 FindSCP
@@ -73,7 +72,7 @@ FindSCP
 
     FindResponseGenerator context(this, std::string(aeTitle));
     
-    return DIMSE_findProvider(this->_association, this->_presentationID, 
+    return DIMSE_findProvider(this->_association, this->_presentationID,
                               this->_request, findCallback, &context, 
                               DIMSE_BLOCKING, 0);
 }

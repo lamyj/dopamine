@@ -182,15 +182,15 @@ NetworkPACS
                 
                 if (continue_)
                 {
-                    cond = this->negotiateAssociation(assoc);research_pacs::loggerDebug() << "DEBUG RLA negociation ok";
+                    cond = this->negotiateAssociation(assoc);
                     if (cond.good() || cond == ASC_SHUTDOWNAPPLICATION)
                     {
                         bool shutdown = cond == ASC_SHUTDOWNAPPLICATION;
-                        cond = ASC_acknowledgeAssociation(assoc);research_pacs::loggerDebug() << "DEBUG RLA ack ok";
+                        cond = ASC_acknowledgeAssociation(assoc);
                         if (cond.good())
                         {
                             // dispatch
-                            this->handleAssociation(assoc);research_pacs::loggerDebug() << "DEBUG RLA handle ok";
+                            this->handleAssociation(assoc);
                         }
                         if (shutdown)
                         {
@@ -478,7 +478,7 @@ NetworkPACS
 
     ASC_getPresentationAddresses(assoc->params, peerHostName, NULL);
     ASC_getAPTitles(assoc->params, peerAETitle, myAETitle, NULL);
-research_pacs::loggerDebug() << "DEBUG RLA aptitle ok";
+
     // this while loop is executed exactly once unless the "keepDBHandleDuringAssociation_"
     // flag is not set, in which case the inner loop is executed only once and this loop
     // repeats for each incoming DIMSE command. In this case, the DB handle is created
