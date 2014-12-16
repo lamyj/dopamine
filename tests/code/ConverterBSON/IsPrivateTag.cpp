@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -21,7 +21,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto isprivatetag = research_pacs::IsPrivateTag::New();
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0023,1001));
     BOOST_CHECK_EQUAL((*isprivatetag)(element), true);
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    auto isprivatetag = research_pacs::IsPrivateTag::New();
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0010,0010));
     BOOST_CHECK_EQUAL((*isprivatetag)(element), false);
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    auto isprivatetag = research_pacs::IsPrivateTag::New();
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
-    BOOST_REQUIRE_THROW((*isprivatetag)(NULL), research_pacs::ExceptionPACS);
+    BOOST_REQUIRE_THROW((*isprivatetag)(NULL), dopamine::ExceptionPACS);
 }

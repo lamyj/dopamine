@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -19,7 +19,7 @@
 #include "SCP/MoveSCP.h"
 #include "SCP/StoreSCP.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 NetworkPACS * NetworkPACS::_instance = NULL;
@@ -124,13 +124,13 @@ NetworkPACS
             OFCondition cond = ASC_receiveAssociation(this->_network, &assoc, ASC_DEFAULTMAXPDU);
             if (cond.bad())
             {
-                research_pacs::loggerError() << "Failed to receive association: "
+                dopamine::loggerError() << "Failed to receive association: "
                                              << cond.text();
             }
             else
             {
                 time_t t = time(NULL);
-                research_pacs::loggerInfo() << "Association Received ("
+                dopamine::loggerInfo() << "Association Received ("
                                             << assoc->params->DULparams.callingPresentationAddress
                                             << ":" << assoc->params->DULparams.callingAPTitle << " -> "
                                             << assoc->params->DULparams.calledAPTitle << ") " << ctime(&t);
@@ -145,11 +145,11 @@ NetworkPACS
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
                     {
-                        research_pacs::loggerWarning() << "Refusing Association: Bad Authentication";
+                        dopamine::loggerWarning() << "Refusing Association: Bad Authentication";
                         this->refuseAssociation(&assoc, CTN_NoReason);
                         continue_ = false;
                     }
-                    research_pacs::loggerDebug() << "Authentication Status: " << continue_;
+                    dopamine::loggerDebug() << "Authentication Status: " << continue_;
                 }
                 
                 if (continue_)
@@ -160,11 +160,11 @@ NetworkPACS
                     if (cond.bad() || std::string(buf) != DICOM_STDAPPLICATIONCONTEXT)
                     {
                         /* reject: the application context name is not supported */
-                        research_pacs::loggerWarning() << "Bad AppContextName: " << buf;
+                        dopamine::loggerWarning() << "Bad AppContextName: " << buf;
                         this->refuseAssociation(&assoc, CTN_BadAppContext);
                         continue_ = false;
                     }
-                    research_pacs::loggerDebug() << "Application Context Name Status: " << continue_;
+                    dopamine::loggerDebug() << "Application Context Name Status: " << continue_;
                 }
                 
                 if (continue_)
@@ -173,11 +173,11 @@ NetworkPACS
                     if (! ConfigurationPACS::get_instance().peerInAETitle
                                 (assoc->params->DULparams.callingAPTitle))
                     {
-                        research_pacs::loggerWarning() << "Bad AE Service";
+                        dopamine::loggerWarning() << "Bad AE Service";
                         this->refuseAssociation(&assoc, CTN_BadAEService);
                         continue_ = false;
                     }
-                    research_pacs::loggerDebug() << "AE Service Status: " << continue_;
+                    dopamine::loggerDebug() << "AE Service Status: " << continue_;
                 }
                 
                 if (continue_)
@@ -201,7 +201,7 @@ NetworkPACS
 
                     if (cond.bad())
                     {
-                        research_pacs::loggerWarning() << "Association error: "
+                        dopamine::loggerWarning() << "Association error: "
                                                        << cond.text();
                     }
 
@@ -262,7 +262,7 @@ NetworkPACS
           reason_string = "???";
           break;
     }
-    research_pacs::loggerError() << "Refusing Association ("
+    dopamine::loggerError() << "Refusing Association ("
                                  << reason_string << ")";
 
     T_ASC_RejectParameters rej;
@@ -335,7 +335,7 @@ NetworkPACS
     cond = ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
     if (cond.bad())
     {
-        research_pacs::loggerError() << "Cannot retrieve AP Titles";
+        dopamine::loggerError() << "Cannot retrieve AP Titles";
     }
 
     const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
@@ -384,7 +384,7 @@ NetworkPACS
     if (cond.bad())
     {
         OFString temp_str;
-        research_pacs::loggerInfo() << "Cannot accept presentation contexts: "
+        dopamine::loggerInfo() << "Cannot accept presentation contexts: "
                                     << DimseCondition::dump(temp_str, cond);
     }
 
@@ -431,7 +431,7 @@ NetworkPACS
      */
     if (0 != ASC_findAcceptedPresentationContextID(assoc, UID_PrivateShutdownSOPClass))
     {
-        research_pacs::loggerInfo() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
+        dopamine::loggerInfo() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
         return ASC_SHUTDOWNAPPLICATION;
     }
 
@@ -460,7 +460,7 @@ NetworkPACS
                             queryRetrievePairs[i].findSyntax);
             if (findpid == 0) 
             {
-                research_pacs::loggerInfo() << "Move Presentation Context but no Find (accepting for now)";
+                dopamine::loggerInfo() << "Move Presentation Context but no Find (accepting for now)";
             }
         }
     }
@@ -498,7 +498,7 @@ NetworkPACS
                                                                      msg.CommandField))
             {
                 cond = DIMSE_BADCOMMANDTYPE;
-                research_pacs::loggerError() << "User not authorized for command: 0x"
+                dopamine::loggerError() << "User not authorized for command: 0x"
                                              << STD_NAMESPACE hex
                                              << (unsigned)msg.CommandField;
             }
@@ -541,12 +541,12 @@ NetworkPACS
             }
             case DIMSE_C_CANCEL_RQ:
                 /* This is a late cancel request, just ignore it */
-                research_pacs::loggerInfo() << "dispatch: late C-CANCEL-RQ, ignoring";
+                dopamine::loggerInfo() << "dispatch: late C-CANCEL-RQ, ignoring";
                 break;
             default:
                 /* we cannot handle this kind of message */
                 cond = DIMSE_BADCOMMANDTYPE;
-                research_pacs::loggerError() << "Cannot handle command: 0x"
+                dopamine::loggerError() << "Cannot handle command: 0x"
                                              << STD_NAMESPACE hex
                                              << (unsigned)msg.CommandField;
                 /* the condition will be returned, the caller will abort the association. */
@@ -565,18 +565,18 @@ NetworkPACS
     /* clean up on association termination */
     if (cond == DUL_PEERREQUESTEDRELEASE) 
     {
-        research_pacs::loggerInfo() << "Association Release";
+        dopamine::loggerInfo() << "Association Release";
         cond = ASC_acknowledgeRelease(assoc);
         ASC_dropSCPAssociation(assoc);
     } 
     else if (cond == DUL_PEERABORTEDASSOCIATION) 
     {
-        research_pacs::loggerInfo() << "Association Aborted";
+        dopamine::loggerInfo() << "Association Aborted";
     } 
     else 
     {
         OFString temp_str;
-        research_pacs::loggerError() << "DIMSE Failure (aborting association): "
+        dopamine::loggerError() << "DIMSE Failure (aborting association): "
                                      << DimseCondition::dump(temp_str, cond);
         /* some kind of error so abort the association */
         cond = ASC_abortAssociation(assoc);
@@ -586,14 +586,14 @@ NetworkPACS
     if (cond.bad()) 
     {
         OFString temp_str;
-        research_pacs::loggerError() << "Cannot Drop Association: "
+        dopamine::loggerError() << "Cannot Drop Association: "
                                      << DimseCondition::dump(temp_str, cond);
     }
     cond = ASC_destroyAssociation(&assoc);
     if (cond.bad()) 
     {
         OFString temp_str;
-        research_pacs::loggerError() << "Cannot Destroy Association: "
+        dopamine::loggerError() << "Cannot Destroy Association: "
                                      << DimseCondition::dump(temp_str, cond);
     }
 }
@@ -605,4 +605,4 @@ NetworkPACS
     this->_forceStop = true;
 }
 
-} // namespace research_pacs
+} // namespace dopamine

@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -16,7 +16,7 @@
 
 class DcmElement;
 
-namespace research_pacs
+namespace dopamine
 {
 
 /**
@@ -39,7 +39,7 @@ public :
      * @return true if element's tag match with Searched Tag, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS);
+    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
 
 protected:
     
@@ -52,6 +52,6 @@ private:
 
 };
 
-} // namespace research_pacs
+} // namespace dopamine
 
 #endif // _a9036539_65b5_4e6b_acc6_ac598bc2275c

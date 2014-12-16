@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,7 +11,7 @@
 
 #include "And.h"
 
-namespace research_pacs
+namespace dopamine
 {
 
 And::Pointer
@@ -36,11 +36,11 @@ And
 
 bool
 And
-::operator()(DcmElement * element) const throw(research_pacs::ExceptionPACS)
+::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
 {
     if (element == NULL)
     {
-        throw research_pacs::ExceptionPACS("element is NULL.");
+        throw dopamine::ExceptionPACS("element is NULL.");
     }
     bool value=true;
     for(auto it = this->_conditions.begin(); it != this->_conditions.end(); ++it)
@@ -62,4 +62,4 @@ And
     this->_conditions.push_back(condition);
 }
 
-} // namespace research_pacs
+} // namespace dopamine

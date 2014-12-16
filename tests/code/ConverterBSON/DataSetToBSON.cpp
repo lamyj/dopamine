@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -21,11 +21,11 @@
  */
  struct TestDataOK01
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
  
     TestDataOK01()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
     // Default value
     BOOST_CHECK_EQUAL(datasettobson->get_specific_character_set() == "", true);
     BOOST_CHECK_EQUAL(datasettobson->get_default_filter() == 
-                      research_pacs::DataSetToBSON::FilterAction::INCLUDE, true);
+                      dopamine::DataSetToBSON::FilterAction::INCLUDE, true);
     BOOST_CHECK_EQUAL(datasettobson->get_filters().size() == 0, true);
 }
 
@@ -66,11 +66,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
     // set_default_filter
-    datasettobson->set_default_filter(research_pacs::DataSetToBSON::FilterAction::EXCLUDE);
+    datasettobson->set_default_filter(dopamine::DataSetToBSON::FilterAction::EXCLUDE);
     
     // check value
     BOOST_CHECK_EQUAL(datasettobson->get_default_filter() == 
-                      research_pacs::DataSetToBSON::FilterAction::EXCLUDE, true);
+                      dopamine::DataSetToBSON::FilterAction::EXCLUDE, true);
 }
 
 /*************************** TEST OK 04 *******************************/
@@ -80,13 +80,13 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 {
     // Set Filter
-    std::vector<research_pacs::DataSetToBSON::Filter> filters;
-    filters.push_back(std::make_pair(research_pacs::TagMatch::New(DCM_PatientName),
-                      research_pacs::DataSetToBSON::FilterAction::INCLUDE));
+    std::vector<dopamine::DataSetToBSON::Filter> filters;
+    filters.push_back(std::make_pair(dopamine::TagMatch::New(DCM_PatientName),
+                      dopamine::DataSetToBSON::FilterAction::INCLUDE));
                       
     datasettobson->set_filters(filters);
     
-    std::vector<research_pacs::DataSetToBSON::Filter> const getfilters =
+    std::vector<dopamine::DataSetToBSON::Filter> const getfilters =
         datasettobson->get_filters();
     // check value
     BOOST_CHECK_EQUAL(getfilters.size(), 1);
@@ -98,12 +98,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
  */
  struct TestDataOK05
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK05()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "test_AE");                         // insert AE
         dataset->putAndInsertOFStringArray(DCM_PatientAge, "test_AS");                              // insert AS
@@ -312,12 +312,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
  */
  struct TestDataOK06
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK06()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_Modality, "value1");     
         dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
@@ -333,11 +333,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 {
     datasettobson->get_filters().push_back(
-        std::make_pair(research_pacs::TagMatch::New(DCM_PatientName),
-                       research_pacs::DataSetToBSON::FilterAction::INCLUDE));
+        std::make_pair(dopamine::TagMatch::New(DCM_PatientName),
+                       dopamine::DataSetToBSON::FilterAction::INCLUDE));
     datasettobson->get_filters().push_back(
-        std::make_pair(research_pacs::TagMatch::New(DCM_Modality),
-                       research_pacs::DataSetToBSON::FilterAction::EXCLUDE));
+        std::make_pair(dopamine::TagMatch::New(DCM_Modality),
+                       dopamine::DataSetToBSON::FilterAction::EXCLUDE));
                            
     mongo::BSONObjBuilder query_builder;
     (*datasettobson)(dataset, query_builder);
@@ -365,12 +365,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
  */
  struct TestDataOK07
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK07()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_Modality, "");
     }
@@ -409,12 +409,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK07)
  */
  struct TestDataOK08
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK08()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         
         /*DcmElement* element = NULL;
@@ -469,12 +469,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_08, TestDataOK08)
  */
  struct TestDataOK09
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK09()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         
         // Insert OB
@@ -516,12 +516,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_09, TestDataOK09)
  */
  struct TestDataOK10
 {
-    research_pacs::DataSetToBSON * datasettobson;
+    dopamine::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK10()
     {
-        datasettobson = new research_pacs::DataSetToBSON();
+        datasettobson = new dopamine::DataSetToBSON();
         dataset = new DcmDataset();
         
         // Insert CS multi-valued

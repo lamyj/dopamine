@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -39,8 +39,8 @@
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    research_pacs::authenticator::AuthenticatorCSV* authenticatorcsv =
-            new research_pacs::authenticator::AuthenticatorCSV(filename);
+    dopamine::authenticator::AuthenticatorCSV* authenticatorcsv =
+            new dopamine::authenticator::AuthenticatorCSV(filename);
     
     BOOST_CHECK_EQUAL(authenticatorcsv->get_table_count(), 2);
     
@@ -54,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  struct TestDataOK02
 {
     std::string filename;
-    research_pacs::authenticator::AuthenticatorCSV* authenticatorcsv;
+    dopamine::authenticator::AuthenticatorCSV* authenticatorcsv;
  
     TestDataOK02()
     {
@@ -66,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
         myfile << "user2\tpassword2\n";
         myfile.close();
         
-        authenticatorcsv = new research_pacs::authenticator::AuthenticatorCSV(filename);
+        authenticatorcsv = new dopamine::authenticator::AuthenticatorCSV(filename);
     }
  
     ~TestDataOK02()
@@ -151,6 +151,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK02)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    BOOST_REQUIRE_THROW(new research_pacs::authenticator::AuthenticatorCSV("badfilename"),
-                        research_pacs::ExceptionPACS);
+    BOOST_REQUIRE_THROW(new dopamine::authenticator::AuthenticatorCSV("badfilename"),
+                        dopamine::ExceptionPACS);
 }

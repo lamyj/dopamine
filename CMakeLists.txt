@@ -1,4 +1,4 @@
-project(research_pacs)
+project(dopamine)
 cmake_minimum_required(VERSION 2.6.0)
 
 include(CTest)
@@ -9,8 +9,8 @@ add_subdirectory(configuration)
 
 
 # installation
-set(CPACK_PACKAGE_NAME "Research_pacs")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Research_pacs")
+set(CPACK_PACKAGE_NAME "Dopamine")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dopamine")
 set(CPACK_PACKAGE_VERSION "0.1.0")
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
 set(CPACK_PACKAGE_VERSION_MINOR "1")

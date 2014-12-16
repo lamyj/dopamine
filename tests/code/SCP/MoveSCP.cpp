@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -61,7 +61,7 @@ storeSCP(T_ASC_Association *assoc,
     {
         std::stringstream stream;
         stream << "Cannot store dataset: " << cond.text();
-        throw research_pacs::ExceptionPACS(stream.str());
+        throw dopamine::ExceptionPACS(stream.str());
     }
 
     return cond;
@@ -158,7 +158,7 @@ subOpCallback(void * /*subOpCallbackData*/ ,
             std::stringstream stream;
             stream << "DIMSE failure (aborting sub-association): " << cond.text();
             cond = ASC_abortAssociation(*subAssoc);
-            throw research_pacs::ExceptionPACS(stream.str());
+            throw dopamine::ExceptionPACS(stream.str());
         }
 
         if (cond != EC_Normal)
@@ -175,8 +175,8 @@ subOpCallback(void * /*subOpCallbackData*/ ,
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    research_pacs::MoveSCP * movescp =
-            new research_pacs::MoveSCP(NULL, T_ASC_PresentationContextID(), NULL);
+    dopamine::MoveSCP * movescp =
+            new dopamine::MoveSCP(NULL, T_ASC_PresentationContextID(), NULL);
 
     BOOST_REQUIRE_EQUAL(movescp != NULL, true);
 
@@ -317,8 +317,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     DcmDataset *rspIds = NULL;
 
     condition = DIMSE_moveUser(association, presentation_id, request, dataset,
-                               NULL, NULL, DIMSE_BLOCKING, 30, networkSCU, subOpCallback,
-                               NULL, &response, &detail, &rspIds, OFTrue);
+                               NULL, NULL, DIMSE_BLOCKING, 30, networkSCU,
+                               subOpCallback, NULL, &response, &detail,
+                               &rspIds, OFTrue);
     BOOST_CHECK_EQUAL(condition.good(), true);
     BOOST_CHECK_EQUAL(detail == NULL, true);
     BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_Success);

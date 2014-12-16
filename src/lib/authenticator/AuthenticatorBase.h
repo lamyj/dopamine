@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -12,7 +12,7 @@
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmqrdb/dcmqropt.h>
 
-namespace research_pacs
+namespace dopamine
 {
 
 namespace authenticator
@@ -42,6 +42,6 @@ public:
 
 } // namespace authenticator
 
-} // namespace research_pacs
+} // namespace dopamine
 
 #endif // _e0761b8c_9889_4e7c_bcf9_8bac78cc353b

@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -10,7 +10,7 @@
 
 #include "DataSetToBSON.h"
 
-namespace research_pacs
+namespace dopamine
 {
 
 DataSetToBSON
@@ -95,7 +95,7 @@ DataSetToBSON
             {
                 std::stringstream stream;
                 stream << "Cannot find specific character set: " << condition.text();
-                throw research_pacs::ExceptionPACS(stream.str());
+                throw dopamine::ExceptionPACS(stream.str());
             }
             this->set_specific_character_set(value);
         }
@@ -603,4 +603,4 @@ DataSetToBSON
     builder << buffer << value_builder.arr();
 }
 
-} // namespace research_pacs
+} // namespace dopamine

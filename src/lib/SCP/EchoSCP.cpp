@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -9,7 +9,7 @@
 #include "core/LoggerPACS.h"
 #include "EchoSCP.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 EchoSCP
@@ -31,7 +31,7 @@ OFCondition
 EchoSCP
 ::process()
 {
-    research_pacs::loggerInfo() << "Received Echo SCP RQ: MsgID "
+    dopamine::loggerInfo() << "Received Echo SCP RQ: MsgID "
                                 << this->_request->MessageID;
 
     return DIMSE_sendEchoResponse(this->_association,
@@ -40,4 +40,4 @@ EchoSCP
                                   STATUS_Success, NULL);
 }
     
-} // namespace research_pacs
+} // namespace dopamine
