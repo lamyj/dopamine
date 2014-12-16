@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -10,7 +10,7 @@
 #include "MoveResponseGenerator.h"
 #include "MoveSCP.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 /**
@@ -57,7 +57,7 @@ OFCondition
 MoveSCP
 ::process()
 {
-   research_pacs::loggerInfo() << "Received Move SCP: MsgID "
+   dopamine::loggerInfo() << "Received Move SCP: MsgID "
                                << this->_request->MessageID;
 
     DIC_AE aeTitle;
@@ -71,4 +71,4 @@ MoveSCP
                               DIMSE_BLOCKING, 0);
 }
     
-} // namespace research_pacs
+} // namespace dopamine

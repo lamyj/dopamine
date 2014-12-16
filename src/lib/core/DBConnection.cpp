@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -10,7 +10,7 @@
 #include "ExceptionPACS.h"
 #include "LoggerPACS.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 DBConnection * DBConnection::_instance = NULL;
@@ -82,7 +82,7 @@ DBConnection
         stream << "DBConnection::connect error: " << errormsg;
         throw ExceptionPACS(stream.str());
     }
-    research_pacs::loggerDebug() << "DBconnection::connect OK";
+    dopamine::loggerDebug() << "DBconnection::connect OK";
     
     // Create indexes
     std::string const datasets = this->_db_name + ".datasets";
@@ -159,4 +159,4 @@ DBConnection
     return false;
 }
     
-} // namespace research_pacs
+} // namespace dopamine

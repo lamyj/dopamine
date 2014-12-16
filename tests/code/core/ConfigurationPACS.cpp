@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -20,8 +20,8 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    research_pacs::ConfigurationPACS::get_instance();
-    research_pacs::ConfigurationPACS::delete_instance();
+    dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS::delete_instance();
 }
 
 /*************************** TEST OK 02 *******************************/
@@ -59,13 +59,13 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
     ~TestDataOK02()
     {
         remove(filename.c_str());
-        research_pacs::ConfigurationPACS::delete_instance();
+        dopamine::ConfigurationPACS::delete_instance();
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.GetValue("dicom.port"), "11112");
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.GetValue("dicom.port"), "11112");
@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK02)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.HasValue("dicom.port"), true);
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK02)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK02)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.peerInAETitle("VALUE"), true);
@@ -153,13 +153,13 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK02)
     ~TestDataOK06()
     {
         remove(filename.c_str());
-        research_pacs::ConfigurationPACS::delete_instance();
+        dopamine::ConfigurationPACS::delete_instance();
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.peerInAETitle("USER1"), true);
@@ -175,7 +175,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK06)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     confpacs.Parse(filename);
     
     std::string address;
@@ -197,10 +197,10 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK06)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     BOOST_REQUIRE_THROW(confpacs.Parse("badfilename"), 
-                        research_pacs::ExceptionPACS);
-    research_pacs::ConfigurationPACS::delete_instance();
+                        dopamine::ExceptionPACS);
+    dopamine::ConfigurationPACS::delete_instance();
 }
  
 /*************************** TEST KO 02 *******************************/
@@ -237,13 +237,13 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
     ~TestDataKO02()
     {
         remove(filename.c_str());
-        research_pacs::ConfigurationPACS::delete_instance();
+        dopamine::ConfigurationPACS::delete_instance();
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
-    research_pacs::ConfigurationPACS& confpacs = research_pacs::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
     BOOST_REQUIRE_THROW(confpacs.Parse(filename), 
-                        research_pacs::ExceptionPACS);
+                        dopamine::ExceptionPACS);
 }

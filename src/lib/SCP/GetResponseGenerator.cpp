@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -14,7 +14,7 @@
 #include "core/LoggerPACS.h"
 #include "GetResponseGenerator.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 /**
@@ -229,7 +229,7 @@ GetResponseGenerator
                                               dataset);
         if (result.bad())
         {
-            research_pacs::loggerError() << "Get Sub-Op Failed: "
+            dopamine::loggerError() << "Get Sub-Op Failed: "
                                          << result.text();
         }
             
@@ -252,7 +252,7 @@ GetResponseGenerator
                                                    sopClassUID);
     if (presID == 0)
     {
-        research_pacs::loggerError() << "No presentation context for: "
+        dopamine::loggerError() << "No presentation context for: "
                                      << dcmSOPClassUIDToModality(sopClassUID, "OT");
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
@@ -265,7 +265,7 @@ GetResponseGenerator
         if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
             pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
         {
-            research_pacs::loggerError() << "No presentation context with requestor SCP role for: "
+            dopamine::loggerError() << "No presentation context with requestor SCP role for: "
                                          << dcmSOPClassUIDToModality(sopClassUID, "OT");
             return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
         }
@@ -284,7 +284,7 @@ GetResponseGenerator
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
     
-    research_pacs::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
+    dopamine::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
     
     // Send the C-Store request
     OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 
@@ -296,4 +296,4 @@ GetResponseGenerator
     return result;
 }
     
-} // namespace research_pacs
+} // namespace dopamine

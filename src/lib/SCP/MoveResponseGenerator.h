@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -12,7 +12,7 @@
 #include "MoveSCP.h"
 #include "ResponseGenerator.h"
 
-namespace research_pacs
+namespace dopamine
 {
     
 /**
@@ -93,6 +93,6 @@ private:
 
 };
     
-} // namespace research_pacs
+} // namespace dopamine
 
 #endif // _79e7aec7_0b07_42b9_b3a0_5086f1595af9

@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -17,8 +17,8 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    research_pacs::authenticator::AuthenticatorNone* authenticatorNone =
-            new research_pacs::authenticator::AuthenticatorNone();
+    dopamine::authenticator::AuthenticatorNone* authenticatorNone =
+            new dopamine::authenticator::AuthenticatorNone();
 
     BOOST_REQUIRE_EQUAL(authenticatorNone != NULL, true);
 
@@ -31,8 +31,8 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    research_pacs::authenticator::AuthenticatorNone* authenticatorNone =
-            new research_pacs::authenticator::AuthenticatorNone();
+    dopamine::authenticator::AuthenticatorNone* authenticatorNone =
+            new dopamine::authenticator::AuthenticatorNone();
 
     BOOST_REQUIRE_EQUAL((*authenticatorNone)(NULL), true);
 
@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_03)
 {
-    research_pacs::authenticator::AuthenticatorNone* authenticatorNone =
-            new research_pacs::authenticator::AuthenticatorNone();
+    dopamine::authenticator::AuthenticatorNone* authenticatorNone =
+            new dopamine::authenticator::AuthenticatorNone();
 
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_NONE);
@@ -63,8 +63,8 @@ BOOST_AUTO_TEST_CASE(TEST_OK_03)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_04)
 {
-    research_pacs::authenticator::AuthenticatorNone* authenticatorNone =
-            new research_pacs::authenticator::AuthenticatorNone();
+    dopamine::authenticator::AuthenticatorNone* authenticatorNone =
+            new dopamine::authenticator::AuthenticatorNone();
 
     // ASC_USER_IDENTITY_UNKNOWN
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();

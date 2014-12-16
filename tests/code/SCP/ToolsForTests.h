@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -25,32 +25,32 @@ const std::string NetworkConfFILE = "./tmp_test_ModuleSCP_conf.ini";
 
 void launchNetwork()
 {
-    research_pacs::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
+    dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
 
     // Get all indexes
     std::string indexlist =
-        research_pacs::ConfigurationPACS::get_instance().GetValue("database.indexlist");
+        dopamine::ConfigurationPACS::get_instance().GetValue("database.indexlist");
     std::vector<std::string> indexlistvect;
     boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
 
     // Create and Initialize DB connection
-    research_pacs::DBConnection::get_instance().Initialize
+    dopamine::DBConnection::get_instance().Initialize
         (
-            research_pacs::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            research_pacs::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            research_pacs::ConfigurationPACS::get_instance().GetValue("database.port"),
+            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
+            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
+            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
             indexlistvect
         );
 
     // Connect Database
-    research_pacs::DBConnection::get_instance().connect();
+    dopamine::DBConnection::get_instance().connect();
 
-    research_pacs::NetworkPACS& networkpacs =
-            research_pacs::NetworkPACS::get_instance();
+    dopamine::NetworkPACS& networkpacs =
+            dopamine::NetworkPACS::get_instance();
     networkpacs.run();
 
-    research_pacs::ConfigurationPACS::delete_instance();
-    research_pacs::NetworkPACS::delete_instance();
+    dopamine::ConfigurationPACS::delete_instance();
+    dopamine::NetworkPACS::delete_instance();
 }
 
 void terminateNetwork()

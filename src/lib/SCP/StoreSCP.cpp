@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -17,7 +17,7 @@
 #include "core/LoggerPACS.h"
 #include "StoreSCP.h"
 
-namespace research_pacs
+namespace dopamine
 {
 
 /**
@@ -55,7 +55,7 @@ static void storeCallback(
         if(cursor->more())
         {
             // We already have this SOP Instance UID, do not store it
-            research_pacs::loggerWarning() << "Store: SOP Instance UID already register";
+            dopamine::loggerWarning() << "Store: SOP Instance UID already register";
         }
         else
         {
@@ -106,12 +106,12 @@ static void storeCallback(
             OFString sop_instance_uid;
             (*imageDataSet)->findAndGetOFStringArray(DCM_SOPInstanceUID, sop_instance_uid);
 
-            std::string const study_hash = research_pacs::hashcode::hashToString
-                    (research_pacs::hashcode::hashCode(study_instance_uid));
-            std::string const series_hash = research_pacs::hashcode::hashToString
-                    (research_pacs::hashcode::hashCode(series_instance_uid));
-            std::string const sop_instance_hash = research_pacs::hashcode::hashToString
-                    (research_pacs::hashcode::hashCode(sop_instance_uid));
+            std::string const study_hash = dopamine::hashcode::hashToString
+                    (dopamine::hashcode::hashCode(study_instance_uid));
+            std::string const series_hash = dopamine::hashcode::hashToString
+                    (dopamine::hashcode::hashCode(series_instance_uid));
+            std::string const sop_instance_hash = dopamine::hashcode::hashToString
+                    (dopamine::hashcode::hashCode(sop_instance_uid));
 
             boost::filesystem::path const destination =
                 boost::filesystem::path(
@@ -153,7 +153,7 @@ OFCondition
 StoreSCP
 ::process()
 {
-    research_pacs::loggerInfo() << "Received Store SCP: MsgID "
+    dopamine::loggerInfo() << "Received Store SCP: MsgID "
                                 << this->_request->MessageID;
               
     StoreCallbackData data;
@@ -184,4 +184,4 @@ StoreSCP
                                DIMSE_BLOCKING, 0);
 }
 
-} // namespace research_pacs
+} // namespace dopamine

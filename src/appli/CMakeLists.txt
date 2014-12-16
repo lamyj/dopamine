@@ -5,10 +5,10 @@ include_directories(${DCMTK_INCLUDE_DIRS}
 
 add_definitions(-DHAVE_CONFIG_H)
 
-add_executable(research_pacs "research_pacs.cpp")
-target_link_libraries(research_pacs libresearch_pacs log4cpp ssl crypt ${DCMTK_LIBRARIES} oflog z )
+add_executable(dopamine "dopamine.cpp")
+target_link_libraries(dopamine libdopamine log4cpp ssl crypt ${DCMTK_LIBRARIES} oflog z )
 
-install(TARGETS research_pacs
+install(TARGETS dopamine
         RUNTIME DESTINATION /usr/bin/
         COMPONENT applications)
 
@@ -16,5 +16,5 @@ install(TARGETS research_pacs
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DESTINATION /usr/include/research_pacs/
+        DESTINATION /usr/include/dopamine/
         FILES_MATCHING PATTERN "*.h")

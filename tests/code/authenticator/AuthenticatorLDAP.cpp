@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -37,7 +37,7 @@ struct TestDataOK01
         if (ldapserver == "" || ldapbase == "" || bind == "" ||
             user == "" || password == "")
         {
-            throw research_pacs::ExceptionPACS("Missing Environment Variables");
+            throw dopamine::ExceptionPACS("Missing Environment Variables");
         }
 
         ldap_server = ldapserver;
@@ -60,8 +60,8 @@ struct TestDataOK01
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
@@ -77,8 +77,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
@@ -94,8 +94,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
@@ -129,7 +129,7 @@ struct TestDataOK04
         if (ldapserver == "" || ldapbase == "" || bind == "" ||
             user == "" || password == "")
         {
-            throw research_pacs::ExceptionPACS("Missing Environment Variables");
+            throw dopamine::ExceptionPACS("Missing Environment Variables");
         }
 
         ldap_server = ldapserver;
@@ -152,8 +152,8 @@ struct TestDataOK04
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
@@ -186,7 +186,7 @@ struct TestDataKO01
        if (ldapserver == "" || ldapbase == "" || bind == "" ||
            user == "" || password == "")
        {
-           throw research_pacs::ExceptionPACS("Missing Environment Variables");
+           throw dopamine::ExceptionPACS("Missing Environment Variables");
        }
 
        ldap_server = "bad_value";
@@ -209,14 +209,14 @@ struct TestDataKO01
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
-                        research_pacs::ExceptionPACS);
+                        dopamine::ExceptionPACS);
 
     delete authenticatorldap;
 }
@@ -227,15 +227,15 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
 
     identity->setPrimField("bad_user", 8);
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
-                        research_pacs::ExceptionPACS);
+                        dopamine::ExceptionPACS);
 
     delete authenticatorldap;
 }
@@ -263,7 +263,7 @@ struct TestDataKO03
        if (ldapserver == "" || ldapbase == "" || bind == "" ||
            user == "" || password == "")
        {
-           throw research_pacs::ExceptionPACS("Missing Environment Variables");
+           throw dopamine::ExceptionPACS("Missing Environment Variables");
        }
 
        ldap_server = ldapserver;
@@ -286,14 +286,14 @@ struct TestDataKO03
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_03, TestDataKO03)
 {
-    research_pacs::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new research_pacs::authenticator::AuthenticatorLDAP(ldap_server,
+    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
+            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                                 ldap_bind_user,
                                                                 ldap_base,
                                                                 ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
-                        research_pacs::ExceptionPACS);
+                        dopamine::ExceptionPACS);
 
     delete authenticatorldap;
 }

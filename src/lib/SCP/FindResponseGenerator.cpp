@@ -1,5 +1,5 @@
 /*************************************************************************
- * Research_pacs - Copyright (C) Universite de Strasbourg
+ * dopamine - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -14,7 +14,7 @@
 #include "core/LoggerPACS.h"
 #include "FindResponseGenerator.h"
 
-namespace research_pacs
+namespace dopamine
 {
 
 FindResponseGenerator
@@ -91,7 +91,7 @@ FindResponseGenerator
         {
             std::stringstream stream;
             stream << "Cannot find DCM_QueryRetrieveLevel: " << condition .text();
-            throw research_pacs::ExceptionPACS(stream.str());
+            throw dopamine::ExceptionPACS(stream.str());
         }
 
         this->_query_retrieve_level = std::string(ofstring.c_str());
@@ -228,7 +228,7 @@ FindResponseGenerator
         {
             std::stringstream stream;
             stream << "Cannot insert DCM_QueryRetrieveLevel: " << condition .text();
-            throw research_pacs::ExceptionPACS(stream.str());
+            throw dopamine::ExceptionPACS(stream.str());
         }
 
         if(item.hasField("instance_count"))
@@ -243,7 +243,7 @@ FindResponseGenerator
                 std::stringstream stream;
                 stream << "Cannot insert " << this->_instance_count_tag.getGroup() << ","
                        << this->_instance_count_tag.getElement() << ": " << condition .text();
-                throw research_pacs::ExceptionPACS(stream.str());
+                throw dopamine::ExceptionPACS(stream.str());
             }
         }
         if(this->_convert_modalities_in_study)
@@ -267,7 +267,7 @@ FindResponseGenerator
             {
                 std::stringstream stream;
                 stream << "Cannot insert DCM_ModalitiesInStudy: " << condition .text();
-                throw research_pacs::ExceptionPACS(stream.str());
+                throw dopamine::ExceptionPACS(stream.str());
             }
         }
 
@@ -277,4 +277,4 @@ FindResponseGenerator
     }
 }
 
-} // namespace research_pacs
+} // namespace dopamine
