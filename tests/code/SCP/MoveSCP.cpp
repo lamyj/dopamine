@@ -243,6 +243,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     addressport << "localhost:" << listeningport;
     condition = ASC_setPresentationAddresses(params, localhost.c_str(),
                                              addressport.str().c_str());
+    BOOST_CHECK_EQUAL(condition.good(), true);
 
     typedef std::pair<std::string, std::vector<std::string> > PresentationContext;
     std::vector<PresentationContext> presentation_contexts;
