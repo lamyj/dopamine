@@ -498,7 +498,7 @@ NetworkPACS
                                                                      msg.CommandField))
             {
                 cond = DIMSE_BADCOMMANDTYPE;
-                research_pacs::loggerError() << "Cannot handle command: 0x"
+                research_pacs::loggerError() << "User not authorized for command: 0x"
                                              << STD_NAMESPACE hex
                                              << (unsigned)msg.CommandField;
             }
