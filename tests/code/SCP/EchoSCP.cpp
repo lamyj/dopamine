@@ -19,6 +19,11 @@
  * Pre-conditions:
  *     - we assume that ConfigurationPACS works correctly
  *     - we assume that AuthenticatorCSV works correctly
+ *
+ *     - Following Environment variables should be defined
+ *          * DOPAMINE_TEST_LISTENINGPORT
+ *          * DOPAMINE_TEST_WRITINGPORT
+ *          * DOPAMINE_TEST_CONFIG
  */
 
 /*************************** TEST OK 01 *******************************/
@@ -29,25 +34,6 @@
 {
     TestDataOK01()
     {
-        // Create Configuration file
-        std::ofstream myfile;
-        myfile.open(NetworkConfFILE);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[database]\n";
-        myfile << "hostname=localhost\n";
-        myfile << "port=27017\n";
-        myfile << "dbname=pacs\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=None\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
-        myfile << "LANGUEDOC=languedoc:11113\n";
-        myfile << "LOCAL=vexin:11112\n";
-        myfile.close();
-
         // Start NetworkPACS (create and launch thread)
         boost::thread networkThread(launchNetwork);
         sleep(1); // Wait network initialisation
@@ -55,8 +41,6 @@
  
     ~TestDataOK01()
     {
-        remove(NetworkConfFILE.c_str());
-
         sleep(1);
         terminateNetwork();
     }
@@ -64,9 +48,12 @@
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
+    std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
+
     T_ASC_Network * networkSCU;
     OFCondition condition = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR,
-                                                  11113, 30, &networkSCU);
+                                                  atoi(writingport.c_str()),
+                                                  30, &networkSCU);
     BOOST_CHECK_EQUAL(condition.good(), true);
 
     T_ASC_Parameters * params;
@@ -76,7 +63,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
     condition = ASC_setAPTitles(params, "LOCAL", "REMOTE", NULL);
     BOOST_CHECK_EQUAL(condition.good(), true);
 
-    condition = ASC_setPresentationAddresses(params, "localhost", "localhost:11112");
+    std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+
+    std::stringstream addressport;
+    addressport << "localhost:" << listeningport;
+    condition = ASC_setPresentationAddresses(params, "localhost",
+                                             addressport.str().c_str());
     BOOST_CHECK_EQUAL(condition.good(), true);
 
     typedef std::pair<std::string, std::vector<std::string> > PresentationContext;

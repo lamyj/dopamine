@@ -14,6 +14,16 @@
 #include "authenticator/AuthenticatorLDAP.h"
 #include "core/ExceptionPACS.h"
 
+/**
+ * Pre-conditions:
+ *     - Following Environment variables should be defined
+ *          * TEST_LDAP_SERVER
+ *          * TEST_LDAP_BASE
+ *          * TEST_LDAP_BIND
+ *          * TEST_LDAP_USER
+ *          * TEST_LDAP_PASSWORD
+ */
+
 /*************************** TEST OK 01 *******************************/
 /**
  * Nominal test case: Get authorization => true

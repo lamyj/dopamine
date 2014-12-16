@@ -9,6 +9,8 @@
 #ifndef _1ea946b5_2d78_4999_b8a2_10d7dea75b25
 #define _1ea946b5_2d78_4999_b8a2_10d7dea75b25
 
+#include <cstdlib>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -21,10 +23,10 @@
 #include "core/ExceptionPACS.h"
 #include "core/NetworkPACS.h"
 
-const std::string NetworkConfFILE = "./tmp_test_ModuleSCP_conf.ini";
-
 void launchNetwork()
 {
+    std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
+
     dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
 
     // Get all indexes
@@ -55,10 +57,12 @@ void launchNetwork()
 
 void terminateNetwork()
 {
+    std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+
     // Call Terminate SCU
     QString command = "termscu";
     QStringList args;
-    args << "localhost" << "11112";
+    args << "localhost" << listeningport.c_str();
 
     QProcess *myProcess = new QProcess();
     myProcess->start(command, args);
