@@ -55,6 +55,7 @@ static void storeCallback(
         if(cursor->more())
         {
             // We already have this SOP Instance UID, do not store it
+            research_pacs::loggerWarning() << "Store: SOP Instance UID already register";
         }
         else
         {

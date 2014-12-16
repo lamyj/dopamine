@@ -30,13 +30,12 @@ static void moveCallback(
         OFBool cancelled, T_DIMSE_C_MoveRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_MoveRSP* response, DcmDataset** stDetail,
-        DcmDataset** responseIdentifiers)
+        T_DIMSE_C_MoveRSP* response,
+        DcmDataset** responseIdentifiers, DcmDataset** stDetail)
 {
     MoveResponseGenerator* context = reinterpret_cast<MoveResponseGenerator*>(callbackData);
     context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, responseIdentifiers, 
-                             stDetail);
+                             responseCount, response, stDetail, responseIdentifiers);
 }
     
 MoveSCP

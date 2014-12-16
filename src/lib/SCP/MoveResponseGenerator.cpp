@@ -207,6 +207,21 @@ MoveResponseGenerator
     {
         // We're done.
         this->_status = STATUS_Success;
+
+        OFCondition cond = ASC_releaseAssociation(this->_subAssociation);
+        if (cond.bad())
+        {
+            OFString temp_str;
+            research_pacs::loggerError() << "Cannot Release Association: "
+                                         << DimseCondition::dump(temp_str, cond);
+        }
+        cond = ASC_destroyAssociation(&this->_subAssociation);
+        if (cond.bad())
+        {
+            OFString temp_str;
+            research_pacs::loggerError() << "Cannot Destroy Association: "
+                                         << DimseCondition::dump(temp_str, cond);
+        }
     }
     else
     {
@@ -220,22 +235,32 @@ MoveResponseGenerator
         
         std::string const path = item.getField("location").String();
         DcmFileFormat fileformat;
-        fileformat.loadFile(path.c_str());
+        OFCondition result = fileformat.loadFile(path.c_str());
+        if (result.bad())
+        {
+            std::stringstream stream;
+            stream << "Cannot load dataset " << path << " : " << result.text();
+            throw ExceptionPACS(stream.str());
+        }
         DcmDataset* dataset = fileformat.getAndRemoveDataset();
         
         OFString sopclassuid;
-        OFCondition result = dataset->findAndGetOFString(DCM_SOPClassUID, 
+        result = dataset->findAndGetOFString(DCM_SOPClassUID,
                                                          sopclassuid);
         if (result.bad())
         {
-            throw ExceptionPACS("Missing SOPClassUID field in dataset.");
+            std::stringstream stream;
+            stream << "Cannot retrieve SOPClassUID in dataset: " << result.text();
+            throw ExceptionPACS(stream.str());
         }
         OFString sopinstanceuid;
         result = dataset->findAndGetOFString(DCM_SOPInstanceUID, 
                                              sopinstanceuid);
         if (result.bad())
         {
-            throw ExceptionPACS("Missing SOPInstanceUID field in dataset.");
+            std::stringstream stream;
+            stream << "Cannot retrieve SOPInstanceUID in dataset: " << result.text();
+            throw ExceptionPACS(stream.str());
         }
         
         // Perform sub operation
@@ -244,7 +269,7 @@ MoveResponseGenerator
                                                dataset);
         if (result.bad())
         {
-            std::cerr << "Get Sub-Op Failed: " << result.text() 
+            std::cerr << "Move Sub-Op Failed: " << result.text()
                       << std::endl;
         }
             
@@ -318,7 +343,7 @@ MoveResponseGenerator
     {
         throw ExceptionPACS("Invalid Peer for move operation");
     }
-    
+
     T_ASC_Parameters* params;
     OFCondition result = ASC_createAssociationParameters(&params, 
                                                          ASC_DEFAULTMAXPDU);
@@ -344,7 +369,7 @@ MoveResponseGenerator
     result = ASC_requestAssociation(NetworkPACS::get_instance().get_network(), 
                                     params, &this->_subAssociation);
     
-    if(!result.good())
+    if(result.bad())
     {
         OFString empty;
         
@@ -360,7 +385,7 @@ MoveResponseGenerator
             throw ExceptionPACS(DimseCondition::dump(empty, result).c_str());
         }
     }
-        
+
     return result;
 }
 

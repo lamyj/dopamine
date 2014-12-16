@@ -12,46 +12,14 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
 
-#include <qt4/Qt/qstring.h>
-#include <qt4/Qt/qstringlist.h>
-#include <qt4/Qt/qprocess.h>
-
-#include "core/ConfigurationPACS.h"
-#include "core/NetworkPACS.h"
-
 #include "SCP/EchoSCP.h"
+#include "ToolsForTests.h"
 
 /**
  * Pre-conditions:
  *     - we assume that ConfigurationPACS works correctly
  *     - we assume that AuthenticatorCSV works correctly
  */
-
-const std::string NetworkConfFILE = "./tmp_test_moduleNetworkPACS_conf.ini";
-
-void launchNetwork()
-{
-    research_pacs::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
-
-    research_pacs::NetworkPACS& networkpacs =
-            research_pacs::NetworkPACS::get_instance();
-    networkpacs.run();
-
-    research_pacs::ConfigurationPACS::delete_instance();
-    research_pacs::NetworkPACS::delete_instance();
-}
-
-void terminateNetwork()
-{
-    // Call Terminate SCU
-    QString command = "termscu";
-    QStringList args;
-    args << "localhost" << "11112";
-
-    QProcess *myProcess = new QProcess();
-    myProcess->start(command, args);
-    myProcess->waitForFinished(5000);
-}
 
 /*************************** TEST OK 01 *******************************/
 /**
