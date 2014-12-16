@@ -24,6 +24,11 @@
  *     - we assume that ConfigurationPACS works correctly
  *     - we assume that AuthenticatorNone works correctly
  *     - we assume that DBConnection works correctly
+ *
+ *     - Following Environment variables should be defined
+ *          * DOPAMINE_TEST_LISTENINGPORT
+ *          * DOPAMINE_TEST_WRITINGPORT
+ *          * DOPAMINE_TEST_CONFIG
  */
 
 /*************************** Tools functions **************************/
@@ -193,33 +198,13 @@ struct TestDataOK02
 
     TestDataOK02()
     {
-        // Create Configuration file
-        std::ofstream myfile;
-        myfile.open(NetworkConfFILE);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[database]\n";
-        myfile << "hostname=localhost\n";
-        myfile << "port=27017\n";
-        myfile << "dbname=pacs\n";
-        myfile << "indexlist=SOPInstanceUID\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=None\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=REMOTE,LOCAL\n";
-        myfile << "REMOTE=localhost:11112\n";
-        myfile << "LOCAL=localhost:11113\n";
-        myfile.close();
-
         // Start NetworkPACS (create and launch thread)
         boost::thread networkThread(launchNetwork);
         sleep(1); // Wait network initialisation
 
         // Create Dataset To Move
         dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Auto*");
+        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
         dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
     }
 
@@ -227,22 +212,19 @@ struct TestDataOK02
     {
         delete dataset;
 
-        remove(NetworkConfFILE.c_str());
-
         sleep(1);
-        boost::filesystem::remove_all("./temp_dir");
-
         terminateNetwork();
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 {
-    OFCondition condition;
+    std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
-    condition = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR, 11113, 30,
-                                      &networkSCU);
+    OFCondition condition = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR,
+                                                  atoi(writingport.c_str()),
+                                                  30, &networkSCU);
     BOOST_CHECK_EQUAL(condition.good(), true);
 
     T_ASC_Parameters * params;
@@ -255,8 +237,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     std::string localhost(128, '\0');
     gethostname(&localhost[0], localhost.size()-1);
 
+    std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+
+    std::stringstream addressport;
+    addressport << "localhost:" << listeningport;
     condition = ASC_setPresentationAddresses(params, localhost.c_str(),
-                                             "localhost:11112");
+                                             addressport.str().c_str());
 
     typedef std::pair<std::string, std::vector<std::string> > PresentationContext;
     std::vector<PresentationContext> presentation_contexts;

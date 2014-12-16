@@ -15,8 +15,9 @@ file(GLOB_RECURSE tests *.cpp)
 foreach(test_file ${tests})
     get_filename_component(test ${test_file} NAME_WE)
     add_executable(${test} ${test_file})
-    target_link_libraries(${test} libdopamine ${Boost_LIBRARIES} ${MONGO_DB_LIBRARIES}
-                                       ${QT_LIBRARIES})
+    target_link_libraries(${test} libdopamine ${Boost_LIBRARIES} 
+                                              ${MONGO_DB_LIBRARIES}
+                                              ${QT_LIBRARIES})
     file(READ ${test_file} content)
     
     set(pattern "BOOST_(AUTO|FIXTURE)_TEST_CASE\\(([^),]+)")

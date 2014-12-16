@@ -24,6 +24,11 @@
  *     - we assume that ConfigurationPACS works correctly
  *     - we assume that AuthenticatorNone works correctly
  *     - we assume that DBConnection works correctly
+ *
+ *     - Following Environment variables should be defined
+ *          * DOPAMINE_TEST_LISTENINGPORT
+ *          * DOPAMINE_TEST_WRITINGPORT
+ *          * DOPAMINE_TEST_CONFIG
  */
 
 /*************************** TEST OK 01 *******************************/
