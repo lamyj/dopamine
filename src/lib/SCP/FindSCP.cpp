@@ -74,7 +74,7 @@ FindSCP
     
     return DIMSE_findProvider(this->_association, this->_presentationID,
                               this->_request, findCallback, &context, 
-                              DIMSE_BLOCKING, 0);
+                              DIMSE_BLOCKING, 30);
 }
 
 } // namespace dopamine

@@ -178,7 +178,7 @@ GetResponseGenerator
     if (this->_status == STATUS_Pending)
     {
         this->_priority = request->Priority;
-        this->next(responseIdentifiers);
+        this->next(responseIdentifiers, stDetail);
     }
     
     /* set response status */
@@ -188,7 +188,7 @@ GetResponseGenerator
 
 void 
 GetResponseGenerator
-::next(DcmDataset ** responseIdentifiers)
+::next(DcmDataset ** responseIdentifiers, DcmDataset **details)
 {
     if(this->_index == this->_results.size())
     {

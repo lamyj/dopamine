@@ -42,6 +42,8 @@ FindResponseGenerator
 {
     if (responseCount == 1)
     {
+        this->_status = STATUS_Pending;
+
         // Convert the dataset to BSON, excluding Query/Retrieve Level.
         DataSetToBSON dataset_to_bson;
 
@@ -89,9 +91,34 @@ FindResponseGenerator
                                                                        ofstring);
         if (condition.bad())
         {
-            std::stringstream stream;
-            stream << "Cannot find DCM_QueryRetrieveLevel: " << condition .text();
-            throw dopamine::ExceptionPACS(stream.str());
+            dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
+                                    << condition .text();
+
+            this->_status = STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass;
+            response->DimseStatus = STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass;
+
+            DcmElement * element;
+            std::vector<Uint16> vect;
+            OFCondition cond;
+
+            (*stDetail) = new DcmDataset();
+
+            cond = (*stDetail)->insertEmptyElement(DCM_Status);
+            cond = (*stDetail)->findAndGetElement(DCM_Status, element);
+            vect.clear();
+            vect.push_back(STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass);
+            cond = element->putUint16Array(&vect[0], vect.size());
+
+            cond = (*stDetail)->insertEmptyElement(DCM_OffendingElement);
+            cond = (*stDetail)->findAndGetElement(DCM_OffendingElement, element);
+            vect.clear();
+            vect.push_back(DCM_QueryRetrieveLevel.getGroup());
+            vect.push_back(DCM_QueryRetrieveLevel.getElement());
+            cond = element->putUint16Array(&vect[0], vect.size()/2);
+
+            cond = (*stDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                          OFString(condition.text()));
+            return;
         }
 
         this->_query_retrieve_level = std::string(ofstring.c_str());
@@ -147,12 +174,12 @@ FindResponseGenerator
         {
             // Use the Modality attribute
             mongo::BSONElement modalities = query_dataset["00080061"];
-            Match::Type const match_type = 
+            Match::Type const match_type =
                 this->_get_match_type("CS", modalities);
             DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
             (this->*function)("00080060.1", "CS", modalities, db_query);
             fields_builder << "00080060" << 1;
-            reduce_function += 
+            reduce_function +=
                 "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "
                 "{ result.modalities_in_study.push(current[\"00080060\"][1]); }";
             initial_builder << "modalities_in_study" << mongo::BSONArrayBuilder().arr();
@@ -171,17 +198,16 @@ FindResponseGenerator
 
         mongo::BSONObj group_command = BSON("group" << BSON(
             "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
-            "$reduce" << reduce_function << "initial" << initial_builder.obj() 
+            "$reduce" << reduce_function << "initial" << initial_builder.obj()
         ));
 
         DBConnection::get_instance().get_connection().runCommand
-            (DBConnection::get_instance().get_db_name(), 
+            (DBConnection::get_instance().get_db_name(),
                 group_command, this->_info, 0);
-                
-        this->_results = this->_info["retval"].Array();
-        this->_index = 0;
 
-        this->_status = STATUS_Pending;
+        this->_results = this->_info["retval"].Array();
+
+        this->_index = 0;
     } // if (responseCount == 1)
     
     /* only cancel if we have pending responses */
@@ -193,18 +219,22 @@ FindResponseGenerator
     /* Process next result */
     if (this->_status == STATUS_Pending)
     {
-        this->next(responseIdentifiers);
+        this->next(responseIdentifiers, stDetail);
     }
     
     /* set response status */
     response->DimseStatus = this->_status;
-    *stDetail = NULL;
+    if (this->_status == STATUS_Pending || this->_status == STATUS_Success)
+    {
+        *stDetail = NULL;
+    }
 }
 
 void
 FindResponseGenerator
-::next(DcmDataset ** responseIdentifiers)
+::next(DcmDataset ** responseIdentifiers, DcmDataset ** details)
 {
+    *details = NULL;
     if(this->_index == this->_results.size())
     {
         // We're done.
@@ -226,9 +256,32 @@ FindResponseGenerator
 
         if (condition.bad())
         {
-            std::stringstream stream;
-            stream << "Cannot insert DCM_QueryRetrieveLevel: " << condition .text();
-            throw dopamine::ExceptionPACS(stream.str());
+            dopamine::loggerError() << "Cannot insert DCM_QueryRetrieveLevel: "
+                                    << condition .text();
+            DcmElement * element;
+            std::vector<Uint16> vect;
+            OFCondition cond;
+
+            (*details) = new DcmDataset();
+
+            cond = (*details)->insertEmptyElement(DCM_Status);
+            cond = (*details)->findAndGetElement(DCM_Status, element);
+            vect.clear();
+            vect.push_back(STATUS_FIND_Failed_UnableToProcess);
+            cond = element->putUint16Array(&vect[0], vect.size());
+
+            cond = (*details)->insertEmptyElement(DCM_OffendingElement);
+            cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
+            vect.clear();
+            vect.push_back(DCM_QueryRetrieveLevel.getGroup());
+            vect.push_back(DCM_QueryRetrieveLevel.getElement());
+            cond = element->putUint16Array(&vect[0], vect.size()/2);
+
+            cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                         OFString(condition.text()));
+
+            this->_status = STATUS_FIND_Failed_UnableToProcess;
+            return;
         }
 
         if(item.hasField("instance_count"))
@@ -240,10 +293,33 @@ FindResponseGenerator
 
             if (condition.bad())
             {
-                std::stringstream stream;
-                stream << "Cannot insert " << this->_instance_count_tag.getGroup() << ","
-                       << this->_instance_count_tag.getElement() << ": " << condition .text();
-                throw dopamine::ExceptionPACS(stream.str());
+                dopamine::loggerError() << "Cannot insert "
+                                        << this->_instance_count_tag.getGroup() << ","
+                                        << this->_instance_count_tag.getElement() << ": "
+                                        << condition .text();
+                this->_status = STATUS_FIND_Failed_UnableToProcess;
+                DcmElement * element;
+                std::vector<Uint16> vect;
+                OFCondition cond;
+
+                (*details) = new DcmDataset();
+
+                cond = (*details)->insertEmptyElement(DCM_Status);
+                cond = (*details)->findAndGetElement(DCM_Status, element);
+                vect.clear();
+                vect.push_back(STATUS_FIND_Failed_UnableToProcess);
+                cond = element->putUint16Array(&vect[0], vect.size());
+
+                cond = (*details)->insertEmptyElement(DCM_OffendingElement);
+                cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
+                vect.clear();
+                vect.push_back(this->_instance_count_tag.getGroup());
+                vect.push_back(this->_instance_count_tag.getElement());
+                cond = element->putUint16Array(&vect[0], vect.size()/2);
+
+                cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                             OFString(condition.text()));
+                return;
             }
         }
         if(this->_convert_modalities_in_study)
@@ -265,9 +341,31 @@ FindResponseGenerator
 
             if (condition.bad())
             {
-                std::stringstream stream;
-                stream << "Cannot insert DCM_ModalitiesInStudy: " << condition .text();
-                throw dopamine::ExceptionPACS(stream.str());
+                dopamine::loggerError() << "Cannot insert DCM_ModalitiesInStudy: "
+                                        << condition .text();
+                this->_status = STATUS_FIND_Failed_UnableToProcess;
+                DcmElement * element;
+                std::vector<Uint16> vect;
+                OFCondition cond;
+
+                (*details) = new DcmDataset();
+
+                cond = (*details)->insertEmptyElement(DCM_Status);
+                cond = (*details)->findAndGetElement(DCM_Status, element);
+                vect.clear();
+                vect.push_back(STATUS_FIND_Failed_UnableToProcess);
+                cond = element->putUint16Array(&vect[0], vect.size());
+
+                cond = (*details)->insertEmptyElement(DCM_OffendingElement);
+                cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
+                vect.clear();
+                vect.push_back(DCM_ModalitiesInStudy.getGroup());
+                vect.push_back(DCM_ModalitiesInStudy.getElement());
+                cond = element->putUint16Array(&vect[0], vect.size()/2);
+
+                cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                             OFString(condition.text()));
+                return;
             }
         }
 
