@@ -56,7 +56,7 @@ protected:
      * Process next response
      * @param responseIdentifiers: find response identifiers (out)
      */
-    virtual void next(DcmDataset ** responseIdentifiers);
+    virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details);
 
 private :
     /// flag indicating if modalities should be convert

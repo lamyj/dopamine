@@ -100,7 +100,7 @@ protected:
      * Process next response
      * @param responseIdentifiers: service response identifiers
      */
-    virtual void next(DcmDataset ** responseIdentifiers) = 0;
+    virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details) = 0;
     
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr, 

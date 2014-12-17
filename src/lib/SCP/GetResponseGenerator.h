@@ -54,7 +54,7 @@ protected:
      * Process next response
      * @param responseIdentifiers: get response identifiers (out)
      */
-    virtual void next(DcmDataset ** responseIdentifiers);
+    virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details);
     
     /**
      * Send a C-Store request with matching Dataset
