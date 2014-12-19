@@ -39,10 +39,11 @@ static void getCallback(
         DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
-    GetResponseGenerator* context = reinterpret_cast<GetResponseGenerator*>(callbackData);
+    GetResponseGenerator* context =
+            reinterpret_cast<GetResponseGenerator*>(callbackData);
     context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, responseIdentifiers, 
-                             stDetail);
+                             responseCount, response, stDetail,
+                             responseIdentifiers);
 }
     
 GetSCP

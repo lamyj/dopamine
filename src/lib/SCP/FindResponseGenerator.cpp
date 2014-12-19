@@ -37,8 +37,8 @@ FindResponseGenerator
     OFBool cancelled, T_DIMSE_C_FindRQ* request,
     DcmDataset* requestIdentifiers, int responseCount,
     /* out */
-    T_DIMSE_C_FindRSP* response, DcmDataset** stDetail,
-    DcmDataset** responseIdentifiers)
+    T_DIMSE_C_FindRSP* response, DcmDataset** responseIdentifiers,
+    DcmDataset** stDetail)
 {
     if (responseCount == 1)
     {
@@ -97,27 +97,8 @@ FindResponseGenerator
             this->_status = STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass;
             response->DimseStatus = STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass;
 
-            DcmElement * element;
-            std::vector<Uint16> vect;
-            OFCondition cond;
-
-            (*stDetail) = new DcmDataset();
-
-            cond = (*stDetail)->insertEmptyElement(DCM_Status);
-            cond = (*stDetail)->findAndGetElement(DCM_Status, element);
-            vect.clear();
-            vect.push_back(STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass);
-            cond = element->putUint16Array(&vect[0], vect.size());
-
-            cond = (*stDetail)->insertEmptyElement(DCM_OffendingElement);
-            cond = (*stDetail)->findAndGetElement(DCM_OffendingElement, element);
-            vect.clear();
-            vect.push_back(DCM_QueryRetrieveLevel.getGroup());
-            vect.push_back(DCM_QueryRetrieveLevel.getElement());
-            cond = element->putUint16Array(&vect[0], vect.size()/2);
-
-            cond = (*stDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                          OFString(condition.text()));
+            this->createStatusDetail(STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass,
+                                     DCM_QueryRetrieveLevel, condition, stDetail);
             return;
         }
 
@@ -258,29 +239,11 @@ FindResponseGenerator
         {
             dopamine::loggerError() << "Cannot insert DCM_QueryRetrieveLevel: "
                                     << condition .text();
-            DcmElement * element;
-            std::vector<Uint16> vect;
-            OFCondition cond;
-
-            (*details) = new DcmDataset();
-
-            cond = (*details)->insertEmptyElement(DCM_Status);
-            cond = (*details)->findAndGetElement(DCM_Status, element);
-            vect.clear();
-            vect.push_back(STATUS_FIND_Failed_UnableToProcess);
-            cond = element->putUint16Array(&vect[0], vect.size());
-
-            cond = (*details)->insertEmptyElement(DCM_OffendingElement);
-            cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
-            vect.clear();
-            vect.push_back(DCM_QueryRetrieveLevel.getGroup());
-            vect.push_back(DCM_QueryRetrieveLevel.getElement());
-            cond = element->putUint16Array(&vect[0], vect.size()/2);
-
-            cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                         OFString(condition.text()));
 
             this->_status = STATUS_FIND_Failed_UnableToProcess;
+
+            this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
+                                     DCM_QueryRetrieveLevel, condition, details);
             return;
         }
 
@@ -297,28 +260,11 @@ FindResponseGenerator
                                         << this->_instance_count_tag.getGroup() << ","
                                         << this->_instance_count_tag.getElement() << ": "
                                         << condition .text();
+
                 this->_status = STATUS_FIND_Failed_UnableToProcess;
-                DcmElement * element;
-                std::vector<Uint16> vect;
-                OFCondition cond;
 
-                (*details) = new DcmDataset();
-
-                cond = (*details)->insertEmptyElement(DCM_Status);
-                cond = (*details)->findAndGetElement(DCM_Status, element);
-                vect.clear();
-                vect.push_back(STATUS_FIND_Failed_UnableToProcess);
-                cond = element->putUint16Array(&vect[0], vect.size());
-
-                cond = (*details)->insertEmptyElement(DCM_OffendingElement);
-                cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
-                vect.clear();
-                vect.push_back(this->_instance_count_tag.getGroup());
-                vect.push_back(this->_instance_count_tag.getElement());
-                cond = element->putUint16Array(&vect[0], vect.size()/2);
-
-                cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                             OFString(condition.text()));
+                this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
+                                         this->_instance_count_tag, condition, details);
                 return;
             }
         }
@@ -343,28 +289,11 @@ FindResponseGenerator
             {
                 dopamine::loggerError() << "Cannot insert DCM_ModalitiesInStudy: "
                                         << condition .text();
+
                 this->_status = STATUS_FIND_Failed_UnableToProcess;
-                DcmElement * element;
-                std::vector<Uint16> vect;
-                OFCondition cond;
 
-                (*details) = new DcmDataset();
-
-                cond = (*details)->insertEmptyElement(DCM_Status);
-                cond = (*details)->findAndGetElement(DCM_Status, element);
-                vect.clear();
-                vect.push_back(STATUS_FIND_Failed_UnableToProcess);
-                cond = element->putUint16Array(&vect[0], vect.size());
-
-                cond = (*details)->insertEmptyElement(DCM_OffendingElement);
-                cond = (*details)->findAndGetElement(DCM_OffendingElement, element);
-                vect.clear();
-                vect.push_back(DCM_ModalitiesInStudy.getGroup());
-                vect.push_back(DCM_ModalitiesInStudy.getElement());
-                cond = element->putUint16Array(&vect[0], vect.size()/2);
-
-                cond = (*details)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                             OFString(condition.text()));
+                this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
+                                         DCM_ModalitiesInStudy, condition, details);
                 return;
             }
         }

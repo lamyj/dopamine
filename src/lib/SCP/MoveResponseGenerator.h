@@ -72,7 +72,8 @@ protected:
      * @param request: original move request (in)
      * @return EC_Normal if successful, an error code otherwise 
      */
-    OFCondition buildSubAssociation(T_DIMSE_C_MoveRQ* request);
+    OFCondition buildSubAssociation(T_DIMSE_C_MoveRQ* request,
+                                    DcmDataset **details);
                             
     /**
      * Add the presentation context

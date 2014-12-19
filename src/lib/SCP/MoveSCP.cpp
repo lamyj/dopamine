@@ -12,7 +12,7 @@
 
 namespace dopamine
 {
-    
+
 /**
  * Callback handler called by the DIMSE_moveProvider callback function
  * @param callbackdata: Callback context (in)
@@ -31,11 +31,13 @@ static void moveCallback(
         DcmDataset* requestIdentifiers, int responseCount,
         /* out */
         T_DIMSE_C_MoveRSP* response,
-        DcmDataset** responseIdentifiers, DcmDataset** stDetail)
+        DcmDataset** stDetail, DcmDataset** responseIdentifiers)
 {
-    MoveResponseGenerator* context = reinterpret_cast<MoveResponseGenerator*>(callbackData);
+    MoveResponseGenerator* context =
+            reinterpret_cast<MoveResponseGenerator*>(callbackData);
     context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, stDetail, responseIdentifiers);
+                             responseCount, response, stDetail,
+                             responseIdentifiers);
 }
     
 MoveSCP

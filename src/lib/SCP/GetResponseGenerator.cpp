@@ -98,7 +98,21 @@ GetResponseGenerator
 
         // Always include the keys for the query level and its higher levels
         OFString ofstring;
-        requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel, ofstring);
+        OFCondition condition = requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel,
+                                                                       ofstring);
+        if (condition.bad())
+        {
+            dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
+                                    << condition .text();
+
+            this->_status = STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass;
+            response->DimseStatus = STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass;
+
+            this->createStatusDetail(STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass,
+                                     DCM_QueryRetrieveLevel, condition, stDetail);
+            return;
+        }
+
         this->_query_retrieve_level = std::string(ofstring.c_str());
         if(!fields_builder.hasField("00100020"))
         {
@@ -183,7 +197,10 @@ GetResponseGenerator
     
     /* set response status */
     response->DimseStatus = this->_status;
-    *stDetail = NULL;
+    if (this->_status == STATUS_Pending || this->_status == STATUS_Success)
+    {
+        (*stDetail) = NULL;
+    }
 }
 
 void 
@@ -197,40 +214,75 @@ GetResponseGenerator
     }
     else
     {
-        BSONToDataSet bson_to_dataset;
         mongo::BSONObj item = this->_results[this->_index].Obj();
         
         if ( ! item.hasField("location"))
         {
-            throw ExceptionPACS("Unable to retrieve location field.");
+            dopamine::loggerError() << "Unable to retrieve location field.";
+
+            this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, EC_CorruptedData, details);
+
+            this->_status = STATUS_GET_Failed_UnableToProcess;
+            return;
         }
         
         std::string const path = item.getField("location").String();
         DcmFileFormat fileformat;
-        fileformat.loadFile(path.c_str());
+        OFCondition condition = fileformat.loadFile(path.c_str());
+        if (condition.bad())
+        {
+            dopamine::loggerError() << "Unable to load file: " << condition.text();
+
+            this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, condition, details);
+
+            this->_status = STATUS_GET_Failed_UnableToProcess;
+            return;
+        }
         DcmDataset* dataset = fileformat.getAndRemoveDataset();
         
         OFString sopclassuid;
-        OFCondition result = dataset->findAndGetOFString(DCM_SOPClassUID, sopclassuid);
-        if (result.bad())
+        condition = dataset->findAndGetOFString(DCM_SOPClassUID, sopclassuid);
+        if (condition.bad())
         {
-            throw ExceptionPACS("Missing SOPClassUID field in dataset.");
+            dopamine::loggerError() << "Missing SOPClassUID field in dataset: "
+                                    << condition.text();
+
+            this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
+                                     DCM_SOPClassUID, condition, details);
+
+            this->_status = STATUS_GET_Failed_UnableToProcess;
+            return;
         }
         OFString sopinstanceuid;
-        result = dataset->findAndGetOFString(DCM_SOPInstanceUID, sopinstanceuid);
-        if (result.bad())
+        condition = dataset->findAndGetOFString(DCM_SOPInstanceUID, sopinstanceuid);
+        if (condition.bad())
         {
-            throw ExceptionPACS("Missing SOPInstanceUID field in dataset.");
+            dopamine::loggerError() << "Missing DCM_SOPInstanceUID field in dataset: "
+                                    << condition.text();
+
+            this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
+                                     DCM_SOPInstanceUID, condition, details);
+
+            this->_status = STATUS_GET_Failed_UnableToProcess;
+            return;
         }
         
         // Perform sub operation
-        result = this->performGetSubOperation(sopclassuid.c_str(), 
+        condition = this->performGetSubOperation(sopclassuid.c_str(),
                                               sopinstanceuid.c_str(), 
                                               dataset);
-        if (result.bad())
+        if (condition.bad())
         {
             dopamine::loggerError() << "Get Sub-Op Failed: "
-                                         << result.text();
+                                         << condition.text();
+
+            this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, condition, details);
+
+            this->_status = STATUS_GET_Failed_UnableToProcess;
+            return;
         }
             
         ++this->_index;
@@ -253,20 +305,26 @@ GetResponseGenerator
     if (presID == 0)
     {
         dopamine::loggerError() << "No presentation context for: "
-                                     << dcmSOPClassUIDToModality(sopClassUID, "OT");
+                                << dcmSOPClassUIDToModality(sopClassUID, "OT");
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     else
     {
         /* make sure that we can send images in this presentation context */
         T_ASC_PresentationContext pc;
-        ASC_findAcceptedPresentationContext(this->_scp->get_association()->params,
-                                            presID, &pc);
+        OFCondition condition =
+                ASC_findAcceptedPresentationContext(this->_scp->get_association()->params,
+                                                    presID, &pc);
+        if (condition.bad())
+        {
+            return condition;
+        }
+
         if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
             pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
         {
             dopamine::loggerError() << "No presentation context with requestor SCP role for: "
-                                         << dcmSOPClassUIDToModality(sopClassUID, "OT");
+                                    << dcmSOPClassUIDToModality(sopClassUID, "OT");
             return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
         }
     }
@@ -287,13 +345,10 @@ GetResponseGenerator
     dopamine::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
     
     // Send the C-Store request
-    OFCondition result = DIMSE_storeUser(this->_scp->get_association(), 
-                                         presID, &req, NULL, dataset, 
-                                         getSubProcessCallback, this,
-                                         DIMSE_BLOCKING, 0, &rsp, 
-                                         &stdetail, &cancelParameters);
-        
-    return result;
+    return DIMSE_storeUser(this->_scp->get_association(), presID, &req, NULL,
+                           dataset, getSubProcessCallback, this,
+                           DIMSE_BLOCKING, 30, &rsp, &stdetail,
+                           &cancelParameters);
 }
     
 } // namespace dopamine
