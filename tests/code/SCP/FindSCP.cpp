@@ -158,9 +158,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     T_DIMSE_C_FindRSP response;
     DcmDataset *detail = NULL;
 
-    condition = DIMSE_findUser(association, presentation_id, request, dataset,
-        NULL, NULL, DIMSE_BLOCKING, 30,
-        &response, &detail);
+    condition = DIMSE_findUser(association, presentation_id, request,
+                               dataset, NULL, NULL, DIMSE_BLOCKING, 30,
+                               &response, &detail);
 
     BOOST_CHECK_EQUAL(condition.good(), true);
     BOOST_CHECK_EQUAL(detail == NULL, true);
@@ -293,7 +293,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
                                &response, &detail);
 
     BOOST_CHECK_EQUAL(condition.good(), true);
-    BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass);
+    BOOST_CHECK_EQUAL(response.DimseStatus,
+                      STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass);
     BOOST_CHECK_EQUAL(detail != NULL, true);
 
     condition = ASC_releaseAssociation(association);

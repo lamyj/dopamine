@@ -103,7 +103,21 @@ MoveResponseGenerator
 
         // Always include the keys for the query level and its higher levels
         OFString ofstring;
-        requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel, ofstring);
+        OFCondition condition = requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel,
+                                                                       ofstring);
+        if (condition.bad())
+        {
+            dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
+                                    << condition .text();
+
+            this->_status = STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
+            response->DimseStatus = STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
+
+            this->createStatusDetail(STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass,
+                                     DCM_QueryRetrieveLevel, condition, stDetail);
+            return;
+        }
+
         this->_query_retrieve_level = std::string(ofstring.c_str());
         if(!fields_builder.hasField("00100020"))
         {
@@ -173,11 +187,11 @@ MoveResponseGenerator
         this->_status = STATUS_Pending;
         
         // Build a new association to the move destination
-        OFCondition cond = this->buildSubAssociation(request);
-        if (cond.bad())
+        condition = this->buildSubAssociation(request, stDetail);
+        if (condition.bad())
         {
-            throw ExceptionPACS("Cannot create sub association: " + 
-                                std::string(cond.text()));
+            dopamine::loggerError() << "Cannot create sub association: "
+                                    << condition.text();
         }
     } // if (responseCount == 1)
     
@@ -196,7 +210,10 @@ MoveResponseGenerator
     
     /* set response status */
     response->DimseStatus = this->_status;
-    *stDetail = NULL;
+    if (this->_status == STATUS_Pending || this->_status == STATUS_Success)
+    {
+        (*stDetail) = NULL;
+    }
 }
 
 void 
@@ -225,12 +242,17 @@ MoveResponseGenerator
     }
     else
     {
-        BSONToDataSet bson_to_dataset;
         mongo::BSONObj item = this->_results[this->_index].Obj();
         
         if ( ! item.hasField("location"))
         {
-            throw ExceptionPACS("Unable to retrieve location field.");
+            dopamine::loggerError() << "Unable to retrieve location field";
+
+            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, EC_CorruptedData, details);
+
+            this->_status = STATUS_MOVE_Failed_UnableToProcess;
+            return;
         }
         
         std::string const path = item.getField("location").String();
@@ -238,9 +260,14 @@ MoveResponseGenerator
         OFCondition result = fileformat.loadFile(path.c_str());
         if (result.bad())
         {
-            std::stringstream stream;
-            stream << "Cannot load dataset " << path << " : " << result.text();
-            throw ExceptionPACS(stream.str());
+            dopamine::loggerError() << "Cannot load dataset " << path << " : "
+                                    << result.text();
+
+            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, result, details);
+
+            this->_status = STATUS_MOVE_Failed_UnableToProcess;
+            return;
         }
         DcmDataset* dataset = fileformat.getAndRemoveDataset();
         
@@ -249,18 +276,28 @@ MoveResponseGenerator
                                                          sopclassuid);
         if (result.bad())
         {
-            std::stringstream stream;
-            stream << "Cannot retrieve SOPClassUID in dataset: " << result.text();
-            throw ExceptionPACS(stream.str());
+            dopamine::loggerError() << "Cannot retrieve SOPClassUID in dataset: "
+                                    << result.text();
+
+            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                     DCM_SOPClassUID, result, details);
+
+            this->_status = STATUS_MOVE_Failed_UnableToProcess;
+            return;
         }
         OFString sopinstanceuid;
         result = dataset->findAndGetOFString(DCM_SOPInstanceUID, 
                                              sopinstanceuid);
         if (result.bad())
         {
-            std::stringstream stream;
-            stream << "Cannot retrieve SOPInstanceUID in dataset: " << result.text();
-            throw ExceptionPACS(stream.str());
+            dopamine::loggerError() << "Cannot retrieve SOPInstanceUID in dataset: "
+                                    << result.text();
+
+            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                     DCM_SOPInstanceUID, result, details);
+
+            this->_status = STATUS_MOVE_Failed_UnableToProcess;
+            return;
         }
         
         // Perform sub operation
@@ -269,8 +306,14 @@ MoveResponseGenerator
                                                dataset);
         if (result.bad())
         {
-            std::cerr << "Move Sub-Op Failed: " << result.text()
-                      << std::endl;
+            dopamine::loggerError() << "Move Sub-Op Failed: " << result.text();
+
+            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                     DCM_UndefinedTagKey, result, details);
+
+            this->_status = STATUS_MOVE_Failed_UnableToProcess;
+
+            return;
         }
             
         ++this->_index;
@@ -291,9 +334,8 @@ MoveResponseGenerator
                                                    sopClassUID);
     if (presID == 0)
     {
-        std::cerr << "No presentation context for: " 
-                  << dcmSOPClassUIDToModality(sopClassUID, "OT") 
-                  << std::endl;
+        dopamine::loggerError() << "No presentation context for: "
+                                << dcmSOPClassUIDToModality(sopClassUID, "OT");
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     
@@ -314,18 +356,15 @@ MoveResponseGenerator
     T_DIMSE_DetectedCancelParameters cancelParameters;
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
-    OFCondition result = DIMSE_storeUser(this->_subAssociation, 
-                                         presID, &req, NULL, dataset, 
-                                         moveSubProcessCallback, this,
-                                         DIMSE_BLOCKING, 0, &rsp, 
-                                         &stdetail, &cancelParameters);
-        
-    return result;
+    return DIMSE_storeUser(this->_subAssociation, presID, &req, NULL,
+                           dataset, moveSubProcessCallback, this,
+                           DIMSE_BLOCKING, 0, &rsp, &stdetail,
+                           &cancelParameters);
 }
 
 OFCondition 
 MoveResponseGenerator
-::buildSubAssociation(T_DIMSE_C_MoveRQ* request)
+::buildSubAssociation(T_DIMSE_C_MoveRQ* request, DcmDataset **details)
 {
     DIC_AE dstAETitle;
     dstAETitle[0] = '\0';
@@ -341,14 +380,24 @@ MoveResponseGenerator
     if (!ConfigurationPACS::get_instance().peerForAETitle(std::string(request->MoveDestination), 
                                                           dstHostNamePort))
     {
-        throw ExceptionPACS("Invalid Peer for move operation");
+        dopamine::loggerError() << "Invalid Peer for move operation";
+
+        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                 DCM_UndefinedTagKey, EC_IllegalParameter, details);
+
+        this->_status = STATUS_MOVE_Failed_UnableToProcess;
+        return EC_IllegalParameter;
     }
 
     T_ASC_Parameters* params;
     OFCondition result = ASC_createAssociationParameters(&params, 
                                                          ASC_DEFAULTMAXPDU);
     if (result.bad())
-    {// Error
+    {
+        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                 DCM_UndefinedTagKey, result, details);
+
+        this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
     }
     
@@ -361,7 +410,11 @@ MoveResponseGenerator
     
     result = this->addAllStoragePresentationContext(params);
     if (result.bad())
-    {// Error
+    {
+        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                 DCM_UndefinedTagKey, result, details);
+
+        this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
     }
     
@@ -378,12 +431,18 @@ MoveResponseGenerator
             T_ASC_RejectParameters rej;
             ASC_getRejectParameters(params, &rej);
             
-            throw ExceptionPACS(ASC_printRejectParameters(empty, &rej).c_str());
+            dopamine::loggerError() << ASC_printRejectParameters(empty, &rej).c_str();
         } 
         else 
         {
-            throw ExceptionPACS(DimseCondition::dump(empty, result).c_str());
+            dopamine::loggerError() << DimseCondition::dump(empty, result).c_str();
         }
+
+        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                                 DCM_UndefinedTagKey, result, details);
+
+        this->_status = STATUS_MOVE_Failed_UnableToProcess;
+        return result;
     }
 
     return result;

@@ -17,7 +17,7 @@
 
 namespace dopamine
 {
-    
+
 /**
  * Callback handler called by the DIMSE_findProvider callback function
  * @param callbackdata: Callback context (in)
@@ -31,17 +31,17 @@ namespace dopamine
  */
 static void findCallback(
         /* in */
-        void *callbackData,
-        OFBool cancelled, T_DIMSE_C_FindRQ *request,
+        void *callbackData, OFBool cancelled, T_DIMSE_C_FindRQ *request,
         DcmDataset *requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_FindRSP *response,
-        DcmDataset **responseIdentifiers,
+        T_DIMSE_C_FindRSP *response, DcmDataset **responseIdentifiers,
         DcmDataset **stDetail)
 {
-    FindResponseGenerator* context = reinterpret_cast<FindResponseGenerator*>(callbackData);
+    FindResponseGenerator* context =
+            reinterpret_cast<FindResponseGenerator*>(callbackData);
     context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, stDetail, responseIdentifiers);
+                             responseCount, response, responseIdentifiers,
+                             stDetail);
 }
     
 FindSCP

@@ -299,5 +299,33 @@ ResponseGenerator
 
     return function;
 }
+
+void
+ResponseGenerator
+::createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
+                     const OFCondition &comment, DcmDataset **statusDetail)
+{
+    DcmElement * element;
+    std::vector<Uint16> vect;
+    OFCondition cond;
+
+    (*statusDetail) = new DcmDataset();
+
+    cond = (*statusDetail)->insertEmptyElement(DCM_Status);
+    cond = (*statusDetail)->findAndGetElement(DCM_Status, element);
+    vect.clear();
+    vect.push_back(errorCode);
+    cond = element->putUint16Array(&vect[0], vect.size());
+
+    cond = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
+    cond = (*statusDetail)->findAndGetElement(DCM_OffendingElement, element);
+    vect.clear();
+    vect.push_back(key.getGroup());
+    vect.push_back(key.getElement());
+    cond = element->putUint16Array(&vect[0], vect.size()/2);
+
+    cond = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                 OFString(comment.text()));
+}
     
 } // namespace dopamine

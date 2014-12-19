@@ -40,17 +40,17 @@ public :
      * @param requestIdentifiers: original find request identifiers (in)
      * @param responseCount: find response count (in)
      * @param response: final find response (out)
-     * @param stDetail: status detail for find response (out)
      * @param responseIdentifiers: find response identifiers (out)
+     * @param stDetail: status detail for find response (out)
      */
     void callBackHandler(
         /* in */
         OFBool cancelled, T_DIMSE_C_FindRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_FindRSP* response, DcmDataset** stDetail,
-        DcmDataset** responseIdentifiers);
-    
+        T_DIMSE_C_FindRSP* response,
+        DcmDataset** responseIdentifiers, DcmDataset** stDetail);
+
 protected:
     /**
      * Process next response
