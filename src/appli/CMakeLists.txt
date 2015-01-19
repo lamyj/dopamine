@@ -3,10 +3,13 @@ find_package(DCMTK REQUIRED)
 include_directories(${DCMTK_INCLUDE_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 
-add_definitions(-DHAVE_CONFIG_H)
 
 add_executable(dopamine "dopamine.cpp")
 target_link_libraries(dopamine libdopamine log4cpp ssl crypt ${DCMTK_LIBRARIES} oflog z )
+set_target_properties(dopamine PROPERTIES COMPILE_DEFINITIONS HAVE_CONFIG_H)
+
+add_executable(wado-uri "wado-uri.cpp")
+target_link_libraries(wado-uri cgicc libdopamine ssl crypt oflog z )
 
 install(TARGETS dopamine
         RUNTIME DESTINATION /usr/bin/
