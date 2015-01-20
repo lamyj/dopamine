@@ -48,7 +48,7 @@ std::string wado_rs(std::string const & pathinfo, std::string &filename)
     // look for Study Instance UID
     if (vartemp[0] == "studies")
     {
-        if (vartemp.size() < 2)
+        if (vartemp.size() < 2 || vartemp[1] == "")
         {
             throw WebServiceException(400, "Bad Request", "Missing study instance uid");
         }
@@ -63,7 +63,7 @@ std::string wado_rs(std::string const & pathinfo, std::string &filename)
                 throw WebServiceException(400, "Bad Request", "second parameter should be series");
             }
 
-            if (vartemp.size() < 4)
+            if (vartemp.size() < 4 || vartemp[3] == "")
             {
                 throw WebServiceException(400, "Bad Request", "Missing series instance uid");
             }
@@ -78,7 +78,7 @@ std::string wado_rs(std::string const & pathinfo, std::string &filename)
                     throw WebServiceException(400, "Bad Request", "third parameter should be instances");
                 }
 
-                if (vartemp.size() < 6)
+                if (vartemp.size() < 6 || vartemp[5] == "")
                 {
                     throw WebServiceException(400, "Bad Request", "Missing SOP instance uid");
                 }
@@ -168,7 +168,9 @@ std::string wado_rs(std::string const & pathinfo, std::string &filename)
     }
 
     mongo::BSONObj bsonobject = results[0].Obj();
-    if(bsonobject.hasField("location") && !bsonobject["location"].isNull())
+    if (bsonobject.hasField("location") &&
+        !bsonobject["location"].isNull() &&
+        bsonobject["location"].String() != "")
     {
         std::string value = bsonobject["location"].String();
 

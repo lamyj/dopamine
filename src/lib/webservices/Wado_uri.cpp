@@ -146,9 +146,9 @@ std::string wado_uri(std::string const & querystring, std::string &filename)
     }
 
     mongo::BSONObj bsonobject = results[0].Obj();
-    if(bsonobject.hasField("location") &&
-       !bsonobject["location"].isNull() &&
-       bsonobject["location"].String() != "")
+    if (bsonobject.hasField("location") &&
+        !bsonobject["location"].isNull() &&
+        bsonobject["location"].String() != "")
     {
         std::string value = bsonobject["location"].String();
 
