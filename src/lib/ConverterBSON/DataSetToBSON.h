@@ -87,9 +87,9 @@ private :
      *
      * This is used for FD, FL, SL, SS, UL, US
      */
-    template<typename TValue>
+    template<typename TDICOMValue, typename TBSONValue>
     void _to_bson_number(DcmElement * element, 
-        OFCondition (DcmElement::*getter)(TValue &, unsigned long),
+        OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
         mongo::BSONArrayBuilder & builder) const;
 
     // Since _to_bson is specialized and instantiated in _add_element,
