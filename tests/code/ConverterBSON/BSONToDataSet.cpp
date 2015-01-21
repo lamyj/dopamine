@@ -147,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
         {
         mongo::BSONArrayBuilder value_builder;
         value_builder.append("IS");
-        value_builder.append((Sint32)12);
+        value_builder.append<int>((Sint32)12);
         snprintf(buffer, 9, "%04x%04x", 0x0008, 0x2122);
         (*bsonobjectbuilder) << buffer << value_builder.arr();
         }
@@ -192,7 +192,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
         {
         mongo::BSONArrayBuilder value_builder;
         value_builder.append("SL");
-        value_builder.append((Sint32)10);
+        value_builder.append<int>((Sint32)10);
         snprintf(buffer, 9, "%04x%04x", 0x0018, 0x6020);
         (*bsonobjectbuilder) << buffer << value_builder.arr();
         }
@@ -201,7 +201,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
         {
         mongo::BSONArrayBuilder value_builder;
         value_builder.append("SS");
-        value_builder.append((Sint16)11);
+        value_builder.append<int>((Sint16)11);
         snprintf(buffer, 9, "%04x%04x", 0x0018, 0x9219);
         (*bsonobjectbuilder) << buffer << value_builder.arr();
         }
@@ -237,7 +237,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
         {
         mongo::BSONArrayBuilder value_builder;
         value_builder.append("UL");
-        value_builder.append((Uint32)6);
+        value_builder.append<unsigned>((Uint32)6);
         snprintf(buffer, 9, "%04x%04x", 0x0008, 0x1161);
         (*bsonobjectbuilder) << buffer << value_builder.arr();
         }
@@ -246,7 +246,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
         {
         mongo::BSONArrayBuilder value_builder;
         value_builder.append("US");
-        value_builder.append((Uint16)5);
+        value_builder.append<unsigned>((Uint16)5);
         snprintf(buffer, 9, "%04x%04x", 0x0008, 0x1197);
         (*bsonobjectbuilder) << buffer << value_builder.arr();
         }

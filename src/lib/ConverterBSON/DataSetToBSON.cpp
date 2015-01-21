@@ -137,8 +137,8 @@ void
 DataSetToBSON::_to_bson<EVR_AT>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getUint32, builder);
+    this->_to_bson_number<Uint32, unsigned>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getUint32, builder);
 }
 
 template<>
@@ -199,8 +199,8 @@ void
 DataSetToBSON::_to_bson<EVR_FD>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getFloat64, builder);
+    this->_to_bson_number<Float64, double>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getFloat64, builder);
 }
 
 template<>
@@ -208,8 +208,8 @@ void
 DataSetToBSON::_to_bson<EVR_FL>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getFloat32, builder);
+    this->_to_bson_number<Float32, double>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getFloat32, builder);
 }
 
 template<>
@@ -228,7 +228,7 @@ DataSetToBSON::_to_bson<EVR_IS>(DcmObject * element,
         {
             Sint32 value;
             is->getSint32(value, i);
-            sub_builder.append(value);
+            sub_builder.append<int>(value);
         }
 
         builder.append(sub_builder.arr());
@@ -237,7 +237,7 @@ DataSetToBSON::_to_bson<EVR_IS>(DcmObject * element,
     {
         Sint32 value;
         is->getSint32(value, 0);
-        builder.append(value);
+        builder.append<int>(value);
     }
 }
 
@@ -302,8 +302,8 @@ void
 DataSetToBSON::_to_bson<EVR_SL>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getSint32, builder);
+    this->_to_bson_number<Sint32, int>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getSint32, builder);
 }
 
 // SQ is not processed here
@@ -313,8 +313,8 @@ void
 DataSetToBSON::_to_bson<EVR_SS>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getSint16, builder);
+    this->_to_bson_number<Sint16, int>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getSint16, builder);
 }
 
 template<>
@@ -346,8 +346,8 @@ void
 DataSetToBSON::_to_bson<EVR_UL>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getUint32, builder);
+    this->_to_bson_number<Uint32, unsigned>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getUint32, builder);
 }
 
 template<>
@@ -363,8 +363,8 @@ void
 DataSetToBSON::_to_bson<EVR_US>(DcmObject * element,
                                 mongo::BSONArrayBuilder & builder) const
 {
-    this->_to_bson_number(dynamic_cast<DcmElement*>(element),
-                          &DcmElement::getUint16, builder);
+    this->_to_bson_number<Uint16, unsigned>(
+        dynamic_cast<DcmElement*>(element), &DcmElement::getUint16, builder);
 }
 
 template<>
@@ -432,10 +432,10 @@ DataSetToBSON::_to_bson_text(
     }
 }
 
-template<typename TValue>
+template<typename TDICOMValue, typename TBSONValue>
 void
 DataSetToBSON::_to_bson_number(DcmElement * element,
-    OFCondition (DcmElement::*getter)(TValue &, unsigned long),
+    OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
     mongo::BSONArrayBuilder & builder) const
 {
     unsigned long count = element->getVM();
@@ -444,17 +444,17 @@ DataSetToBSON::_to_bson_number(DcmElement * element,
         mongo::BSONArrayBuilder sub_builder;
         for(unsigned long i=0; i<count; ++i)
         {
-            TValue value;
+            TDICOMValue value;
             (element->*getter)(value, i);
-            sub_builder.append(value);
+            sub_builder.append<TBSONValue>(value);
         }
         builder.append(sub_builder.arr());
     }   
     else
     {   
-        TValue value;
+        TDICOMValue value;
         (element->*getter)(value, 0);
-        builder.append(value);
+        builder.append<TBSONValue>(value);
     }   
 }
 
