@@ -1,9 +1,11 @@
 find_package(DCMTK REQUIRED)
 find_package(MongoDB REQUIRED)
+find_package(Boost COMPONENTS filesystem system regex random REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} 
                     ${DCMTK_INCLUDE_DIRS} 
-                    ${MONGO_DB_INCLUDE_DIRS})
+                    ${MONGO_DB_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS})
 
 add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
 add_definitions(-DHAVE_CONFIG_H)
@@ -13,9 +15,10 @@ add_library(libdopamine SHARED ${files})
 
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
 target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
-                                       ${DCMTK_LIBRARIES}
-                                       log4cpp ldap dcmtls ssl
-                                       wrap pthread)
+                                  ${DCMTK_LIBRARIES}
+                                  ${Boost_LIBRARIES}
+                                  log4cpp ldap dcmtls ssl
+                                  wrap pthread)
 
 # deploy the library
 install(TARGETS libdopamine
