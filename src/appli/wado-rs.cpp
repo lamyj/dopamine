@@ -40,17 +40,19 @@ int main(int argc, char** argv)
         // Get the Environment Variables
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
-        std::string filename = "";
-
         // Create the response
-        std::string data = dopamine::webservices::wado_rs(environment.getPathInfo(), filename);
+        dopamine::webservices::Wado_rs wadors(environment.getPathInfo());
 
         // send response
-        std::stringstream headerstream;
-        headerstream << dopamine::webservices::MIME_TYPE_DICOM << std::endl
-                     << "Content-Disposition: attachment; filename=" << filename;
-        std::cout << cgicc::HTTPContentHeader(headerstream.str());
-        std::cout << data << std::endl;
+        std::ostringstream headerstream;
+        headerstream << dopamine::webservices::MIME_VERSION << "\n"
+                     << dopamine::webservices::CONTENT_TYPE
+                     << dopamine::webservices::MIME_TYPE_MULTIPART_RELATED << "; "
+                     << dopamine::webservices::ATTRIBUT_BOUNDARY
+                     << wadors.get_boundary() << "\n";
+
+        std::cout << headerstream.str() << "\n";
+        std::cout << wadors.get_response() << "\n";
     }
     catch (dopamine::webservices::WebServiceException &exc)
     {
