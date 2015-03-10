@@ -53,7 +53,7 @@ struct TestDataOK01
         ldap_server = ldapserver;
         ldap_base = ldapbase;
         ldap_bind_user = bind;
-        ldap_filter = "(cn=%user)";
+        ldap_filter = "samaccountname=%user";
 
         identity = new UserIdentityNegotiationSubItemRQ();
         identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
@@ -72,9 +72,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     BOOST_CHECK_EQUAL((*authenticatorldap)(identity), true);
 
@@ -89,9 +89,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     BOOST_CHECK_EQUAL((*authenticatorldap)(NULL), false);
 
@@ -106,9 +106,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
     BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
@@ -164,9 +164,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
 
@@ -221,9 +221,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
                         dopamine::ExceptionPACS);
@@ -239,9 +239,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     identity->setPrimField("bad_user", 8);
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
@@ -298,9 +298,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_03, TestDataKO03)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                                ldap_bind_user,
-                                                                ldap_base,
-                                                                ldap_filter);
+                                                           ldap_bind_user,
+                                                           ldap_base,
+                                                           ldap_filter);
 
     BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
                         dopamine::ExceptionPACS);
