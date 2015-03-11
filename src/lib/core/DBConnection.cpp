@@ -26,6 +26,17 @@ DBConnection
     return *DBConnection::_instance;
 }
 
+void
+DBConnection
+::delete_instance()
+{
+    if(DBConnection::_instance != NULL)
+    {
+        delete DBConnection::_instance;
+    }
+    DBConnection::_instance = NULL;
+}
+
 DBConnection
 ::DBConnection():
     _db_name(""), _db_host(""), _db_port("")

@@ -28,6 +28,10 @@ public:
      * @return unique instance of DBConnection
      */
     static DBConnection & get_instance();
+    /**
+     * Remove the unique instance of DBConnection
+     */
+    static void delete_instance();
     
     /// Destroy the DBConnection
     virtual ~DBConnection();

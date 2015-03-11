@@ -18,6 +18,7 @@
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 #include "core/NetworkPACS.h"
+#include "../SCP/ToolsForTests.h"
 
 /**
  * Pre-conditions: 
@@ -25,48 +26,65 @@
  *     - we assume that AuthenticatorNone works correctly
  */
 
+std::string const configfile = "./tmp_test_moduleNetworkPACS_conf.ini";
+
+void create_configuration_file(std::string const & authenticatortype)
+{
+    std::string server(getenv("TEST_LDAP_SERVER"));
+    std::string base(getenv("TEST_LDAP_BASE"));
+    std::string bind(getenv("TEST_LDAP_BIND"));
+
+    // Create Configuration file
+    std::ofstream myfile;
+    myfile.open(configfile);
+    myfile << "[dicom]\n";
+    myfile << "storage_path=./temp_dir\n";
+    myfile << "allowed_peers=*\n";
+    myfile << "port=11112\n";
+    myfile << "[database]\n";
+    myfile << "hostname=localhost\n";
+    myfile << "port=27017\n";
+    myfile << "dbname=pacs\n";
+    myfile << "[authenticator]\n";
+    myfile << "type=" << authenticatortype << "\n";
+    myfile << "# path of the authenticator file (only for type = CSV)\n";
+    myfile << "filepath=./authentest.csv\n";
+    myfile << "# LDAP Server Address (only for type = LDAP)\n";
+    myfile << "ldap_server=" << server << "\n";
+    myfile << "# User name for LDAP binding (only for type = LDAP)\n";
+    myfile << "ldap_bind_user=" << bind << "\n";
+    myfile << "# Base of search (only for type = LDAP)\n";
+    myfile << "ldap_base=" << base << "\n";
+    myfile << "# Request filter (only for type = LDAP)\n";
+    myfile << "ldap_filter=(&(uid=%user)(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
+    myfile << "[listAddressPort]\n";
+    myfile << "allowed=LANGUEDOC,LOCAL\n";
+    myfile << "LANGUEDOC=languedoc:11113\n";
+    myfile << "LOCAL=vexin:11112\n";
+    myfile.close();
+}
+
 /*************************** TEST OK 01 *******************************/
 /**
- * Nominal test case: Constructor
+ * Nominal test case: Constructor (None)
  */
  struct TestDataOK01
 {
-    std::string conffile;
- 
     TestDataOK01()
     {
-        // Create Configuration file
-        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
-        std::ofstream myfile;
-        myfile.open(conffile);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[database]\n";
-        myfile << "hostname=localhost\n";
-        myfile << "port=27017\n";
-        myfile << "dbname=pacs\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=None\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
-        myfile << "LANGUEDOC=languedoc:11113\n";
-        myfile << "LOCAL=vexin:11112\n";
-        myfile.close();
-
-        dopamine::ConfigurationPACS::get_instance().Parse(conffile);
+        create_configuration_file("None");
+        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
     }
  
     ~TestDataOK01()
     {
-        remove(conffile.c_str());
+        remove(configfile.c_str());
         dopamine::ConfigurationPACS::delete_instance();
         dopamine::NetworkPACS::delete_instance();
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(Constructor_None, TestDataOK01)
 {
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
@@ -74,10 +92,73 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 
 /*************************** TEST OK 02 *******************************/
 /**
+ * Nominal test case: Constructor (CSV)
+ */
+ struct TestDataOK02
+{
+    std::string csvfile;
+
+    TestDataOK02()
+    {
+        create_configuration_file("CSV");
+        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+
+        csvfile = "./authentest.csv";
+
+        std::ofstream myfile;
+        myfile.open(csvfile);
+        myfile << "user1 password1\n";
+        myfile << "user2 password2\n";
+        myfile.close();
+    }
+
+    ~TestDataOK02()
+    {
+        remove(configfile.c_str());
+        remove(csvfile.c_str());
+        dopamine::ConfigurationPACS::delete_instance();
+        dopamine::NetworkPACS::delete_instance();
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(Constructor_CSV, TestDataOK02)
+{
+    dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
+    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+}
+
+/*************************** TEST OK 03 *******************************/
+/**
+ * Nominal test case: Constructor (LDAP)
+ */
+ struct TestDataOK03
+{
+    TestDataOK03()
+    {
+        create_configuration_file("LDAP");
+        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+    }
+
+    ~TestDataOK03()
+    {
+        remove(configfile.c_str());
+        dopamine::ConfigurationPACS::delete_instance();
+        dopamine::NetworkPACS::delete_instance();
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(Constructor_LDAP, TestDataOK03)
+{
+    dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
+    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+}
+
+/*************************** TEST OK 04 *******************************/
+/**
  * Nominal test case: Run
  */
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(Run_forceStop, TestDataOK01)
 {
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
     networkpacs.force_stop();
@@ -86,34 +167,27 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST OK 05 *******************************/
 /**
  * Nominal test case: Run and send Shutdown request
  */
-void processTerminate()
+
+BOOST_AUTO_TEST_CASE(Shutdown_Request)
 {
-    // Wait until Networkpacs started
-    sleep(1);
+    std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
+    dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
 
-    // Call Terminate SCU
-    QString command = "termscu";
-    QStringList args;
-    args << "localhost" << "11112";
-
-    QProcess *myProcess = new QProcess();
-    myProcess->start(command, args);
-}
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
-{
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
 
     // Stop NetworkPACS after 1second
-    boost::thread stopThread(processTerminate);
+    boost::thread stopThread(terminateNetwork);
 
     // Start NetworkPACS (stopped by another thread)
     networkpacs.run();
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+
+    dopamine::ConfigurationPACS::delete_instance();
+    dopamine::NetworkPACS::delete_instance();
 }
 
 /*************************** TEST KO 01 *******************************/
@@ -122,36 +196,15 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
  */
  struct TestDataKO01
 {
-    std::string conffile;
- 
     TestDataKO01()
     {
-        // Create Configuration file
-        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
-        std::ofstream myfile;
-        myfile.open(conffile);
-        myfile << "[dicom]\n";
-        myfile << "storage_path=./temp_dir\n";
-        myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";
-        myfile << "[database]\n";
-        myfile << "hostname=localhost\n";
-        myfile << "port=27017\n";
-        myfile << "dbname=pacs\n";
-        myfile << "[authenticator]\n";
-        myfile << "type=BADVALUE\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
-        myfile << "LANGUEDOC=languedoc:11113\n";
-        myfile << "LOCAL=vexin:11112\n";
-        myfile.close();
-        
-        dopamine::ConfigurationPACS::get_instance().Parse(conffile);
+        create_configuration_file("BADVALUE");
+        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
     }
  
     ~TestDataKO01()
     {
-        remove(conffile.c_str());
+        remove(configfile.c_str());
         dopamine::ConfigurationPACS::delete_instance();
         dopamine::NetworkPACS::delete_instance();
     }
@@ -169,14 +222,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
  */
  struct TestDataKO02
 {
-    std::string conffile;
- 
     TestDataKO02()
     {
         // Create Configuration file
-        conffile = "./tmp_test_moduleNetworkPACS_conf.ini";
         std::ofstream myfile;
-        myfile.open(conffile);
+        myfile.open(configfile);
         myfile << "[dicom]\n";
         myfile << "storage_path=./temp_dir\n";
         myfile << "allowed_peers=*\n";
@@ -193,12 +243,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
         
-        dopamine::ConfigurationPACS::get_instance().Parse(conffile);
+        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
     }
  
     ~TestDataKO02()
     {
-        remove(conffile.c_str());
+        remove(configfile.c_str());
         dopamine::ConfigurationPACS::delete_instance();
         dopamine::NetworkPACS::delete_instance();
     }
