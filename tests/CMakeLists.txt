@@ -1,3 +1,6 @@
+
+add_subdirectory(tools)
+
 find_package(DCMTK REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 find_package(Qt4 REQUIRED QtGui)
