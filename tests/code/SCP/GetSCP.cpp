@@ -32,6 +32,12 @@
  */
 
 /*************************** Tools functions **************************/
+void getUserCallback(void *callbackData,
+                     T_DIMSE_C_GetRQ *request,
+                     int responseCount, T_DIMSE_C_GetRSP *response)
+{
+}
+
 void
 storeSCPCallback(
     /* in */
@@ -82,7 +88,9 @@ subOpCallback(void * /*subOpCallbackData*/ ,
     {
         const char* knownAbstractSyntaxes[] =
         {
-            UID_VerificationSOPClass
+            UID_VerificationSOPClass,
+            UID_MRImageStorage,
+            UID_GETPatientRootQueryRetrieveInformationModel
         };
 
         OFCondition cond = ASC_receiveAssociation(aNet, subAssoc, ASC_DEFAULTMAXPDU);
@@ -107,7 +115,8 @@ subOpCallback(void * /*subOpCallbackData*/ ,
             cond = ASC_acceptContextsWithPreferredTransferSyntaxes(
                         (*subAssoc)->params, knownAbstractSyntaxes,
                         DIM_OF(knownAbstractSyntaxes),
-                        transferSyntaxes, numTransferSyntaxes);
+                        transferSyntaxes, numTransferSyntaxes,
+                        ASC_SC_ROLE_SCUSCP);
 
             if (cond.good())
             {
@@ -115,7 +124,8 @@ subOpCallback(void * /*subOpCallbackData*/ ,
                 cond = ASC_acceptContextsWithPreferredTransferSyntaxes(
                             (*subAssoc)->params, dcmAllStorageSOPClassUIDs,
                             numberOfAllDcmStorageSOPClassUIDs,
-                            transferSyntaxes, numTransferSyntaxes);
+                            transferSyntaxes, numTransferSyntaxes,
+                            ASC_SC_ROLE_SCUSCP);
             }
         }
         if (cond.good()) cond = ASC_acknowledgeAssociation(*subAssoc);
@@ -223,7 +233,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 
     /* initialize network, i.e. create an instance of T_ASC_Network*. */
     T_ASC_Network * networkSCU;
-    OFCondition condition = ASC_initializeNetwork(NET_REQUESTOR,
+    OFCondition condition = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR,
                                                   atoi(writingport.c_str()),
                                                   30, &networkSCU);
     BOOST_CHECK_EQUAL(condition.good(), true);
@@ -258,6 +268,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
                                           UID_BigEndianExplicitTransferSyntax};
     presentation_contexts.push_back(std::make_pair(UID_MRImageStorage,
                                                    tempvect));
+    presentation_contexts.push_back(std::make_pair(UID_GETPatientRootQueryRetrieveInformationModel,
+                                                   tempvect));
 
     unsigned int context_id = 1;
     for(auto const & context: presentation_contexts)
@@ -271,7 +283,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
         condition = ASC_addPresentationContext(params, context_id,
                                                context.first.c_str(),
                                                transfer_syntaxes,
-                                               context.second.size());
+                                               context.second.size(),
+                                               ASC_SC_ROLE_SCUSCP);
         BOOST_CHECK_EQUAL(condition.good(), true);
 
         context_id += 2;
@@ -286,7 +299,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     /* find usable presentation context ID */
     T_ASC_PresentationContextID const presentation_id =
         ASC_findAcceptedPresentationContextID(association,
-                                              UID_MRImageStorage);
+                                              UID_GETPatientRootQueryRetrieveInformationModel);
     BOOST_CHECK_EQUAL(presentation_id != 0, true);
 
     T_ASC_PresentationContext pc;
@@ -300,7 +313,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     T_DIMSE_C_GetRQ * request = new T_DIMSE_C_GetRQ();
     memset(request, 0, sizeof(*request));
     request->MessageID = message_id;
-    strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
+    strcpy(request->AffectedSOPClassUID, UID_GETPatientRootQueryRetrieveInformationModel);
 
     request->DataSetType = DIMSE_DATASET_PRESENT;
     request->Priority = DIMSE_PRIORITY_MEDIUM;
@@ -310,10 +323,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     DcmDataset *rspIds = NULL;
 
     condition = DIMSE_getUser(association, presentation_id, request, dataset,
-                              NULL /* callback */, NULL /* callbackData */,
+                              getUserCallback /* callback */, NULL /* callbackData */,
                               DIMSE_BLOCKING, 30, networkSCU,
                               subOpCallback, NULL /* subopcallbackdata*/,
                               &response, &detail, &rspIds);
+
     BOOST_CHECK_EQUAL(condition.good(), true);
     BOOST_CHECK_EQUAL(detail == NULL, true);
     BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_Success);
