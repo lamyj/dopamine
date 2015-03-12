@@ -380,7 +380,8 @@ NetworkPACS
                                                            (const char**)nonStorageSyntaxes,
                                                            numberOfNonStorageSyntaxes,
                                                            (const char**)transferSyntaxes,
-                                                           numTransferSyntaxes);
+                                                           numTransferSyntaxes,
+                                                           ASC_SC_ROLE_SCUSCP);
     if (cond.bad())
     {
         OFString temp_str;

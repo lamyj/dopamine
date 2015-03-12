@@ -268,11 +268,11 @@ GetResponseGenerator
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;
         }
-        
+
         // Perform sub operation
         condition = this->performGetSubOperation(sopclassuid.c_str(),
-                                              sopinstanceuid.c_str(), 
-                                              dataset);
+                                                 sopinstanceuid.c_str(),
+                                                 dataset);
         if (condition.bad())
         {
             dopamine::loggerError() << "Get Sub-Op Failed: "
@@ -343,7 +343,7 @@ GetResponseGenerator
     DcmDataset* stdetail = NULL;
     
     dopamine::loggerInfo() << "Store SCU RQ: MsgID " << msgID;
-    
+
     // Send the C-Store request
     return DIMSE_storeUser(this->_scp->get_association(), presID, &req, NULL,
                            dataset, getSubProcessCallback, this,
