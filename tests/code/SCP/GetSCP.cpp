@@ -60,19 +60,14 @@ BOOST_AUTO_TEST_CASE(Run_GetSCU)
     // Check if getscu binary file exists
     BOOST_CHECK_EQUAL(boost::filesystem::exists(boost::filesystem::path("./tools/getscu")), true);
 
-    QString command = "./getscu";
-    QStringList args;
-    args << "-aet" << "LOCAL"
-         << "-aec" << "REMOTE"
-         << "-P"
-         << "-k" << "0010,0010=\"Doe^Jane\""
-         << "-k" << "0008,0052=\"PATIENT\""
-         << "-od" << outputdir.c_str()
-         << "localhost" << listeningport.c_str();
+    std::stringstream com_string;
+    com_string << "./getscu -aet LOCAL -aec REMOTE -P -k 0010,0010=\"Doe^Jane\" -k 0008,0052=\"PATIENT\" -od "
+               << outputdir << " localhost " << listeningport;
+    QString command_(com_string.str().c_str());
 
     QProcess *myProcess = new QProcess();
     myProcess->setWorkingDirectory(QString("./tools"));
-    myProcess->start(command, args);
+    myProcess->start(command_);
     myProcess->waitForFinished(5000);
 
     // Check results
@@ -81,6 +76,7 @@ BOOST_AUTO_TEST_CASE(Run_GetSCU)
     BOOST_CHECK_EQUAL(myProcess->readAllStandardOutput().length(), 0);
     BOOST_CHECK_EQUAL(myProcess->readAllStandardError().length(), 0);
 
+    bool filecreate = false;
     // Check dataset
     typedef boost::filesystem::directory_iterator Iterator;
     for(Iterator it(outputdir); it != Iterator(); ++it)
@@ -97,6 +93,68 @@ BOOST_AUTO_TEST_CASE(Run_GetSCU)
             condition = dataset->findAndGetOFStringArray(DCM_PatientName, patient_name);
             BOOST_CHECK_EQUAL(condition == EC_Normal, true);
             BOOST_CHECK_EQUAL(std::string(patient_name.c_str()), "Doe^Jane");
+
+            filecreate = true;
         }
     }
+    BOOST_CHECK_EQUAL(filecreate, true);
+}
+
+/*************************** TEST KO 01 *******************************/
+/**
+ * Error test case: No QueryRetrieveLevel
+ */
+BOOST_AUTO_TEST_CASE(Missing_QueryRetrieveLevel)
+{
+    std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+    std::string outputdir(getenv("DOPAMINE_TEST_OUTPUTDIR"));
+
+    // Check if getscu binary file exists
+    BOOST_CHECK_EQUAL(boost::filesystem::exists(boost::filesystem::path("./tools/getscu")), true);
+
+    std::stringstream com_string;
+    com_string << "./getscu -aet LOCAL -aec REMOTE -P -k 0010,0010=\"Doe^Jane\" -od "
+               << outputdir << " localhost " << listeningport;
+    QString command_(com_string.str().c_str());
+
+    QProcess *myProcess = new QProcess();
+    myProcess->setWorkingDirectory(QString("./tools"));
+    myProcess->start(command_);
+    myProcess->waitForFinished(5000);
+
+    // Check results
+    BOOST_CHECK_EQUAL(myProcess->exitCode(), 0);
+    BOOST_CHECK_EQUAL(myProcess->exitStatus(), QProcess::NormalExit);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardOutput().length(), 0);
+    BOOST_CHECK_GT(myProcess->readAllStandardError().length(), 0);
+}
+
+/*************************** TEST KO 02 *******************************/
+/**
+ * Error test case: No image location file
+ */
+BOOST_AUTO_TEST_CASE(No_PixelData)
+{
+    std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+    std::string outputdir(getenv("DOPAMINE_TEST_OUTPUTDIR"));
+
+    // Check if getscu binary file exists
+    BOOST_CHECK_EQUAL(boost::filesystem::exists(boost::filesystem::path("./tools/getscu")), true);
+
+    std::stringstream com_string;
+    com_string << "./getscu -aet LOCAL -aec REMOTE -P "
+               << "-k 0020,000e=\"2.16.756.5.5.100.3611280983.20092.1364462499.1\" -k 0008,0052=\"STUDY\" -od "
+               << outputdir << " localhost " << listeningport;
+    QString command_(com_string.str().c_str());
+
+    QProcess *myProcess = new QProcess();
+    myProcess->setWorkingDirectory(QString("./tools"));
+    myProcess->start(command_);
+    myProcess->waitForFinished(5000);
+
+    // Check results
+    BOOST_CHECK_EQUAL(myProcess->exitCode(), 0);
+    BOOST_CHECK_EQUAL(myProcess->exitStatus(), QProcess::NormalExit);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardOutput().length(), 0);
+    BOOST_CHECK_GT(myProcess->readAllStandardError().length(), 0);
 }
