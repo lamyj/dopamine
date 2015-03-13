@@ -18,7 +18,6 @@
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 #include "core/NetworkPACS.h"
-#include "../SCP/ToolsForTests.h"
 
 /**
  * Pre-conditions: 
@@ -40,7 +39,7 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "[dicom]\n";
     myfile << "storage_path=./temp_dir\n";
     myfile << "allowed_peers=*\n";
-    myfile << "port=11112\n";
+    myfile << "port=11114\n";
     myfile << "[database]\n";
     myfile << "hostname=localhost\n";
     myfile << "port=27017\n";
@@ -60,8 +59,20 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "[listAddressPort]\n";
     myfile << "allowed=LANGUEDOC,LOCAL\n";
     myfile << "LANGUEDOC=languedoc:11113\n";
-    myfile << "LOCAL=vexin:11112\n";
+    myfile << "LOCAL=vexin:11114\n";
     myfile.close();
+}
+
+void terminateNetwork()
+{
+    // Call Terminate SCU
+    QString command = "termscu";
+    QStringList args;
+    args << "localhost" << "11114";
+
+    QProcess *myProcess = new QProcess();
+    myProcess->start(command, args);
+    myProcess->waitForFinished(5000);
 }
 
 /*************************** TEST OK 01 *******************************/
@@ -172,11 +183,8 @@ BOOST_FIXTURE_TEST_CASE(Run_forceStop, TestDataOK01)
  * Nominal test case: Run and send Shutdown request
  */
 
-BOOST_AUTO_TEST_CASE(Shutdown_Request)
+BOOST_FIXTURE_TEST_CASE(Shutdown_Request, TestDataOK01)
 {
-    std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
-    dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
-
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
 
     // Stop NetworkPACS after 1second
@@ -185,9 +193,6 @@ BOOST_AUTO_TEST_CASE(Shutdown_Request)
     // Start NetworkPACS (stopped by another thread)
     networkpacs.run();
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
-
-    dopamine::ConfigurationPACS::delete_instance();
-    dopamine::NetworkPACS::delete_instance();
 }
 
 /*************************** TEST KO 01 *******************************/
@@ -230,7 +235,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "[dicom]\n";
         myfile << "storage_path=./temp_dir\n";
         myfile << "allowed_peers=*\n";
-        myfile << "port=1\n";               // WARNING: this port should be used
+        myfile << "port=11112\n";               // WARNING: this port should be used
         myfile << "[database]\n";
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";

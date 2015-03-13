@@ -17,7 +17,6 @@
 #include <dcmtk/dcmdata/dctk.h>
 
 #include "SCP/FindSCP.h"
-#include "ToolsForTests.h"
 
 /**
  * Pre-conditions:
@@ -49,33 +48,12 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 /**
  * Nominal test case: Execute Find
  */
-struct TestDataOK02
+BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    DcmDataset * dataset;
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
+    dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
 
-    TestDataOK02()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-
-        // Create Dataset To Find
-        dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
-        dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
-    }
-
-    ~TestDataOK02()
-    {
-        delete dataset;
-
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
-{
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -159,7 +137,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     DcmDataset *detail = NULL;
 
     condition = DIMSE_findUser(association, presentation_id, request,
-                               dataset, NULL, NULL, DIMSE_BLOCKING, 30,
+                               &dataset, NULL, NULL, DIMSE_BLOCKING, 30,
                                &response, &detail);
 
     BOOST_CHECK_EQUAL(condition.good(), true);
@@ -180,32 +158,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 /**
  * Error test case: No QueryRetrieveLevel
  */
-struct TestDataKO01
+BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    DcmDataset * dataset;
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
 
-    TestDataKO01()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-
-        // Create Dataset To Find
-        dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
-    }
-
-    ~TestDataKO01()
-    {
-        delete dataset;
-
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
-{
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -288,7 +245,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
     T_DIMSE_C_FindRSP response;
     DcmDataset * detail = NULL;
 
-    condition = DIMSE_findUser(association, presentation_id, request, dataset,
+    condition = DIMSE_findUser(association, presentation_id, request, &dataset,
                                NULL, NULL, DIMSE_BLOCKING, 30,
                                &response, &detail);
 
