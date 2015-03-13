@@ -92,6 +92,8 @@ BOOST_AUTO_TEST_CASE(Run_GetSCU)
             BOOST_CHECK_EQUAL(std::string(patient_name.c_str()), "Doe^Jane");
 
             filecreate = true;
+
+            boost::filesystem::remove((*it).path());
         }
     }
     BOOST_CHECK_EQUAL(filecreate, true);
