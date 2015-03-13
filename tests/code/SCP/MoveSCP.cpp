@@ -16,8 +16,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
+#include "core/ExceptionPACS.h"
 #include "SCP/MoveSCP.h"
-#include "ToolsForTests.h"
 
 /**
  * Pre-conditions:
@@ -192,33 +192,12 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 /**
  * Nominal test case: Execute Move
  */
-struct TestDataOK02
+BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    DcmDataset * dataset;
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
+    dataset.putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
 
-    TestDataOK02()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-
-        // Create Dataset To Move
-        dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
-        dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel, "PATIENT");
-    }
-
-    ~TestDataOK02()
-    {
-        delete dataset;
-
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
-{
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -303,7 +282,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     DcmDataset *detail = NULL;
     DcmDataset *rspIds = NULL;
 
-    condition = DIMSE_moveUser(association, presentation_id, request, dataset,
+    condition = DIMSE_moveUser(association, presentation_id, request, &dataset,
                                NULL, NULL, DIMSE_BLOCKING, 30, networkSCU,
                                subOpCallback, NULL, &response, &detail,
                                &rspIds, OFTrue);
@@ -325,32 +304,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 /**
  * Error test case: No QueryRetrieveLevel
  */
-struct TestDataKO01
+BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    DcmDataset * dataset;
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
 
-    TestDataKO01()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-
-        // Create Dataset To Move
-        dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^Jane");
-    }
-
-    ~TestDataKO01()
-    {
-        delete dataset;
-
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
-{
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -435,7 +393,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
     DcmDataset *detail = NULL;
     DcmDataset *rspIds = NULL;
 
-    condition = DIMSE_moveUser(association, presentation_id, request, dataset,
+    condition = DIMSE_moveUser(association, presentation_id, request, &dataset,
                                NULL, NULL, DIMSE_BLOCKING, 30, networkSCU,
                                subOpCallback, NULL, &response, &detail,
                                &rspIds, OFTrue);

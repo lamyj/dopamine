@@ -16,8 +16,18 @@
 
 int main(int argc, char** argv)
 {
+    char* conffile = getenv("DOPAMINE_TEST_CONFIG");
+    std::string NetworkConfFILE;
+    if (conffile != NULL)
+    {
+        NetworkConfFILE = std::string(conffile);
+    }
     // Read configuration file
-    if (boost::filesystem::exists(boost::filesystem::path("../../../configuration/dopamine_conf.ini")))
+    if (NetworkConfFILE != "")
+    {
+        dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
+    }
+    else if (boost::filesystem::exists(boost::filesystem::path("../../../configuration/dopamine_conf.ini")))
     {
         dopamine::ConfigurationPACS::get_instance().Parse("../../../configuration/dopamine_conf.ini");
     }

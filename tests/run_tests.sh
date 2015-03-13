@@ -163,6 +163,9 @@ EOF
 export DOPAMINE_TEST_CONFIG=${DIRECTORY}/config
 export DOPAMINE_TEST_DICOMFILE=${DIRECTORY}/temp_dir/2014/12/15/AB2411EA/3B11F27C/BE5F493E
 
+export DOPAMINE_TEST_OUTPUTDIR=${DIRECTORY}/output
+mkdir ${DOPAMINE_TEST_OUTPUTDIR}
+
 # Create JavaScript to initialize mongo database
 cat > ${DIRECTORY}/create_db.js << EOF
 db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
@@ -194,8 +197,12 @@ dump2dcm ${DIRECTORY}/dataset "${DOPAMINE_TEST_DICOMFILE}"
 # Create Database
 mongo --quiet ${DIRECTORY}/create_db.js
 
+./src/appli/dopamine &
+
 # Execute unit tests
 ctest --no-compress-output -T Test || true
+
+termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js

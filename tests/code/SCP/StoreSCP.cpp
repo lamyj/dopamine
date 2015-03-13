@@ -17,7 +17,6 @@
 #include <dcmtk/dcmdata/dctk.h>
 
 #include "SCP/StoreSCP.h"
-#include "ToolsForTests.h"
 
 /**
  * Pre-conditions:
@@ -49,37 +48,16 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 /**
  * Nominal test case: Execute Store
  */
-struct TestDataOK02
+BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    DcmDataset * dataset;
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
+    dataset.putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.840.10008.5.1.4.1.1.4");
+    dataset.putAndInsertOFStringArray(DCM_Modality, "MR");
+    dataset.putAndInsertOFStringArray(DCM_ImageType, "ORIGINAL\\PRIMARY\\OTHER");
+    dataset.putAndInsertOFStringArray(DCM_SOPInstanceUID,
+                                       "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
 
-    TestDataOK02()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-
-        // Create Dataset To store
-        dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
-        dataset->putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.840.10008.5.1.4.1.1.4");
-        dataset->putAndInsertOFStringArray(DCM_Modality, "MR");
-        dataset->putAndInsertOFStringArray(DCM_ImageType, "ORIGINAL\\PRIMARY\\OTHER");
-        dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                           "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
-    }
-
-    ~TestDataOK02()
-    {
-        delete dataset;
-
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
-{
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -157,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
 
     OFString sop_instance_uid;
-    const_cast<DcmDataset*>(dataset)->findAndGetOFString(DCM_SOPInstanceUID,
+    dataset.findAndGetOFString(DCM_SOPInstanceUID,
                                                          sop_instance_uid);
     strcpy(request->AffectedSOPInstanceUID, sop_instance_uid.c_str());
     BOOST_CHECK_EQUAL(sop_instance_uid.size() != 0, true);
@@ -169,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
     DcmDataset *detail = NULL;
 
     condition = DIMSE_storeUser(association, presentation_id, request,
-                                NULL, dataset, NULL, NULL, DIMSE_NONBLOCKING,
+                                NULL, &dataset, NULL, NULL, DIMSE_NONBLOCKING,
                                 30, &response, &detail, NULL, 0);
     BOOST_CHECK_EQUAL(condition.good(), true);
     BOOST_CHECK_EQUAL(detail == NULL, true);
@@ -189,8 +167,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 /**
  * Nominal test case: Execute Store with SOPInstanceUID already register
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
+BOOST_AUTO_TEST_CASE(TEST_OK_03)
 {
+    DcmDataset dataset;
+    dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
+    dataset.putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.840.10008.5.1.4.1.1.4");
+    dataset.putAndInsertOFStringArray(DCM_Modality, "MR");
+    dataset.putAndInsertOFStringArray(DCM_ImageType, "ORIGINAL\\PRIMARY\\OTHER");
+    dataset.putAndInsertOFStringArray(DCM_SOPInstanceUID,
+                                       "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
+
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
     T_ASC_Network * networkSCU;
@@ -268,7 +254,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
     strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
 
     OFString sop_instance_uid;
-    const_cast<DcmDataset*>(dataset)->findAndGetOFString(DCM_SOPInstanceUID,
+    dataset.findAndGetOFString(DCM_SOPInstanceUID,
                                                          sop_instance_uid);
     strcpy(request->AffectedSOPInstanceUID, sop_instance_uid.c_str());
     BOOST_CHECK_EQUAL(sop_instance_uid.size() != 0, true);
@@ -280,7 +266,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
     DcmDataset *detail = NULL;
 
     condition = DIMSE_storeUser(association, presentation_id, request,
-                                NULL, dataset, NULL, NULL, DIMSE_NONBLOCKING,
+                                NULL, &dataset, NULL, NULL, DIMSE_NONBLOCKING,
                                 30, &response, &detail, NULL, 0);
     BOOST_CHECK_EQUAL(condition.good(), true);
     BOOST_CHECK_EQUAL(detail == NULL, true);

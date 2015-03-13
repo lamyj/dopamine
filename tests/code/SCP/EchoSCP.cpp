@@ -13,7 +13,6 @@
 #include <boost/thread/thread.hpp>
 
 #include "SCP/EchoSCP.h"
-#include "ToolsForTests.h"
 
 /**
  * Pre-conditions:
@@ -30,23 +29,7 @@
 /**
  * Nominal test case: Execute Echo
  */
- struct TestDataOK01
-{
-    TestDataOK01()
-    {
-        // Start NetworkPACS (create and launch thread)
-        boost::thread networkThread(launchNetwork);
-        sleep(1); // Wait network initialisation
-    }
- 
-    ~TestDataOK01()
-    {
-        sleep(1);
-        terminateNetwork();
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
     std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
 
