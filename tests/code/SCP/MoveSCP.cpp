@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
     std::string outputdir(getenv("DOPAMINE_TEST_OUTPUTDIR"));
 
     std::stringstream com_string;
-    com_string << "movescu -aet LOCAL -aec REMOTE -aem LOCAL"
+    com_string << "movescu -aet LOCAL -aec REMOTE -aem LOCAL "
                << "+P " << writingport
                << " -P -k 0010,0010=\"Doe^Jane\" -od "
                << outputdir << " localhost " << listeningport;
