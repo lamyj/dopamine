@@ -16,18 +16,19 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
+#include <qt4/Qt/qstring.h>
+#include <qt4/Qt/qstringlist.h>
+#include <qt4/Qt/qprocess.h>
+
 #include "SCP/StoreSCP.h"
 
 /**
  * Pre-conditions:
- *     - we assume that ConfigurationPACS works correctly
- *     - we assume that AuthenticatorNone works correctly
- *     - we assume that DBConnection works correctly
+ *     - we assume that NetworkPACS works correctly
  *
  *     - Following Environment variables should be defined
  *          * DOPAMINE_TEST_LISTENINGPORT
- *          * DOPAMINE_TEST_WRITINGPORT
- *          * DOPAMINE_TEST_CONFIG
+ *          * DOPAMINE_TEST_OUTPUTDIR
  */
 
 /*************************** TEST OK 01 *******************************/
@@ -48,7 +49,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 /**
  * Nominal test case: Execute Store
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_AUTO_TEST_CASE(Run_StoreSCP)
 {
     DcmDataset dataset;
     dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
@@ -58,116 +59,41 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
     dataset.putAndInsertOFStringArray(DCM_SOPInstanceUID,
                                        "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
 
-    std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
-
-    T_ASC_Network * networkSCU;
-    OFCondition condition = ASC_initializeNetwork(NET_REQUESTOR,
-                                                  atoi(writingport.c_str()),
-                                                  30, &networkSCU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    T_ASC_Parameters * params;
-    condition = ASC_createAssociationParameters(&params, ASC_DEFAULTMAXPDU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_setAPTitles(params, "LOCAL", "REMOTE", NULL);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_setTransportLayerType(params, OFFalse);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    std::string localhost(128, '\0');
-    gethostname(&localhost[0], localhost.size()-1);
-
     std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+    std::string outputdir(getenv("DOPAMINE_TEST_OUTPUTDIR"));
 
-    std::stringstream addressport;
-    addressport << "localhost:" << listeningport;
-    condition = ASC_setPresentationAddresses(params, localhost.c_str(),
-                                             addressport.str().c_str());
-    BOOST_CHECK_EQUAL(condition.good(), true);
+    std::stringstream stream;
+    stream << outputdir << "/" << "JOHNDOE";
 
-    typedef std::pair<std::string, std::vector<std::string> > PresentationContext;
-    std::vector<PresentationContext> presentation_contexts;
-    std::vector<std::string> tempvect = { UID_LittleEndianExplicitTransferSyntax,
-                                          UID_LittleEndianImplicitTransferSyntax,
-                                          UID_BigEndianExplicitTransferSyntax};
-    presentation_contexts.push_back(std::make_pair(UID_MRImageStorage,
-                                                   tempvect));
+    // Create DICOM file
+    DcmFileFormat fileformat(&dataset);
+    OFCondition result = fileformat.saveFile(stream.str().c_str(),
+                                             EXS_LittleEndianExplicit);
+    BOOST_CHECK_EQUAL(result == EC_Normal, true);
 
-    unsigned int context_id = 1;
-    for(auto const & context: presentation_contexts)
-    {
-        char const ** transfer_syntaxes = new char const *[context.second.size()];
-        for(std::size_t i = 0; i < context.second.size(); ++i)
-        {
-            transfer_syntaxes[i] = context.second[i].c_str();
-        }
+    std::stringstream com_string;
+    com_string << "storescu -aet LOCAL -aec REMOTE "
+               << "localhost " << listeningport << " " << stream.str();
+    QString command_(com_string.str().c_str());
 
-        condition = ASC_addPresentationContext(params, context_id,
-                                               context.first.c_str(),
-                                               transfer_syntaxes,
-                                               context.second.size());
-        BOOST_CHECK_EQUAL(condition.good(), true);
+    QProcess *myProcess = new QProcess();
+    myProcess->start(command_);
+    myProcess->waitForFinished(5000);
 
-        context_id += 2;
-    }
+    // Check results
+    BOOST_CHECK_EQUAL(myProcess->exitCode(), 0);
+    BOOST_CHECK_EQUAL(myProcess->exitStatus(), QProcess::NormalExit);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardOutput().length(), 0);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardError().length(), 0);
 
-    T_ASC_Association * association;
-    condition = ASC_requestAssociation(networkSCU, params, &association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    T_ASC_PresentationContextID const presentation_id =
-        ASC_findAcceptedPresentationContextID(association,
-                                              UID_MRImageStorage);
-    BOOST_CHECK_EQUAL(presentation_id != 0, true);
-
-    T_ASC_PresentationContext pc;
-    condition = ASC_findAcceptedPresentationContext(association->params,
-                                                    presentation_id, &pc);
-    BOOST_CHECK_EQUAL(presentation_id != 0, true);
-
-    DIC_US const message_id = association->nextMsgID++;
-
-    T_DIMSE_C_StoreRQ * request = new T_DIMSE_C_StoreRQ();
-    memset(request, 0, sizeof(*request));
-    request->MessageID = message_id;
-    strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
-
-    OFString sop_instance_uid;
-    dataset.findAndGetOFString(DCM_SOPInstanceUID,
-                                                         sop_instance_uid);
-    strcpy(request->AffectedSOPInstanceUID, sop_instance_uid.c_str());
-    BOOST_CHECK_EQUAL(sop_instance_uid.size() != 0, true);
-
-    request->DataSetType = DIMSE_DATASET_PRESENT;
-    request->Priority = DIMSE_PRIORITY_MEDIUM;
-
-    T_DIMSE_C_StoreRSP response;
-    DcmDataset *detail = NULL;
-
-    condition = DIMSE_storeUser(association, presentation_id, request,
-                                NULL, &dataset, NULL, NULL, DIMSE_NONBLOCKING,
-                                30, &response, &detail, NULL, 0);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-    BOOST_CHECK_EQUAL(detail == NULL, true);
-    BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_Success);
-
-    condition = ASC_releaseAssociation(association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_destroyAssociation(&association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_dropNetwork(&networkSCU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
+    boost::filesystem::remove(boost::filesystem::path(stream.str().c_str()));
 }
 
 /*************************** TEST OK 03 *******************************/
 /**
  * Nominal test case: Execute Store with SOPInstanceUID already register
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_03)
+BOOST_AUTO_TEST_CASE(SOPInstanceUID_Already_Register)
 {
     DcmDataset dataset;
     dataset.putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
@@ -177,107 +103,32 @@ BOOST_AUTO_TEST_CASE(TEST_OK_03)
     dataset.putAndInsertOFStringArray(DCM_SOPInstanceUID,
                                        "1.3.12.2.1107.5.2.36.40480.2013092014393692825160048");
 
-    std::string writingport(getenv("DOPAMINE_TEST_WRITINGPORT"));
-
-    T_ASC_Network * networkSCU;
-    OFCondition condition = ASC_initializeNetwork(NET_REQUESTOR,
-                                                  atoi(writingport.c_str()),
-                                                  30, &networkSCU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    T_ASC_Parameters * params;
-    condition = ASC_createAssociationParameters(&params, ASC_DEFAULTMAXPDU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_setAPTitles(params, "LOCAL", "REMOTE", NULL);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_setTransportLayerType(params, OFFalse);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    std::string localhost(128, '\0');
-    gethostname(&localhost[0], localhost.size()-1);
-
     std::string listeningport(getenv("DOPAMINE_TEST_LISTENINGPORT"));
+    std::string outputdir(getenv("DOPAMINE_TEST_OUTPUTDIR"));
 
-    std::stringstream addressport;
-    addressport << "localhost:" << listeningport;
-    condition = ASC_setPresentationAddresses(params, localhost.c_str(),
-                                             addressport.str().c_str());
-    BOOST_CHECK_EQUAL(condition.good(), true);
+    std::stringstream stream;
+    stream << outputdir << "/" << "JOHNDOE";
 
-    typedef std::pair<std::string, std::vector<std::string> > PresentationContext;
-    std::vector<PresentationContext> presentation_contexts;
-    std::vector<std::string> tempvect = { UID_LittleEndianExplicitTransferSyntax,
-                                          UID_LittleEndianImplicitTransferSyntax,
-                                          UID_BigEndianExplicitTransferSyntax};
-    presentation_contexts.push_back(std::make_pair(UID_MRImageStorage,
-                                                   tempvect));
+    // Create DICOM file
+    DcmFileFormat fileformat(&dataset);
+    OFCondition result = fileformat.saveFile(stream.str().c_str(),
+                                             EXS_LittleEndianExplicit);
+    BOOST_CHECK_EQUAL(result == EC_Normal, true);
 
-    unsigned int context_id = 1;
-    for(auto const & context: presentation_contexts)
-    {
-        char const ** transfer_syntaxes = new char const *[context.second.size()];
-        for(std::size_t i = 0; i < context.second.size(); ++i)
-        {
-            transfer_syntaxes[i] = context.second[i].c_str();
-        }
+    std::stringstream com_string;
+    com_string << "storescu -aet LOCAL -aec REMOTE "
+               << "localhost " << listeningport << " " << stream.str();
+    QString command_(com_string.str().c_str());
 
-        condition = ASC_addPresentationContext(params, context_id,
-                                               context.first.c_str(),
-                                               transfer_syntaxes,
-                                               context.second.size());
-        BOOST_CHECK_EQUAL(condition.good(), true);
+    QProcess *myProcess = new QProcess();
+    myProcess->start(command_);
+    myProcess->waitForFinished(5000);
 
-        context_id += 2;
-    }
+    // Check results
+    BOOST_CHECK_EQUAL(myProcess->exitCode(), 0);
+    BOOST_CHECK_EQUAL(myProcess->exitStatus(), QProcess::NormalExit);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardOutput().length(), 0);
+    BOOST_CHECK_EQUAL(myProcess->readAllStandardError().length(), 0);
 
-    T_ASC_Association * association;
-    condition = ASC_requestAssociation(networkSCU, params, &association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    T_ASC_PresentationContextID const presentation_id =
-        ASC_findAcceptedPresentationContextID(association,
-                                              UID_MRImageStorage);
-    BOOST_CHECK_EQUAL(presentation_id != 0, true);
-
-    T_ASC_PresentationContext pc;
-    condition = ASC_findAcceptedPresentationContext(association->params,
-                                                    presentation_id, &pc);
-    BOOST_CHECK_EQUAL(presentation_id != 0, true);
-
-    DIC_US const message_id = association->nextMsgID++;
-
-    T_DIMSE_C_StoreRQ * request = new T_DIMSE_C_StoreRQ();
-    memset(request, 0, sizeof(*request));
-    request->MessageID = message_id;
-    strcpy(request->AffectedSOPClassUID, UID_MRImageStorage);
-
-    OFString sop_instance_uid;
-    dataset.findAndGetOFString(DCM_SOPInstanceUID,
-                                                         sop_instance_uid);
-    strcpy(request->AffectedSOPInstanceUID, sop_instance_uid.c_str());
-    BOOST_CHECK_EQUAL(sop_instance_uid.size() != 0, true);
-
-    request->DataSetType = DIMSE_DATASET_PRESENT;
-    request->Priority = DIMSE_PRIORITY_MEDIUM;
-
-    T_DIMSE_C_StoreRSP response;
-    DcmDataset *detail = NULL;
-
-    condition = DIMSE_storeUser(association, presentation_id, request,
-                                NULL, &dataset, NULL, NULL, DIMSE_NONBLOCKING,
-                                30, &response, &detail, NULL, 0);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-    BOOST_CHECK_EQUAL(detail == NULL, true);
-    BOOST_CHECK_EQUAL(response.DimseStatus, STATUS_Success);
-
-    condition = ASC_releaseAssociation(association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_destroyAssociation(&association);
-    BOOST_CHECK_EQUAL(condition.good(), true);
-
-    condition = ASC_dropNetwork(&networkSCU);
-    BOOST_CHECK_EQUAL(condition.good(), true);
+    boost::filesystem::remove(boost::filesystem::path(stream.str().c_str()));
 }
