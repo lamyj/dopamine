@@ -194,6 +194,9 @@ mkdir "${DIRECTORY}/temp_dir/" "${DIRECTORY}/temp_dir/2014/" "${DIRECTORY}/temp_
 # Create Dataset
 dump2dcm ${DIRECTORY}/dataset "${DOPAMINE_TEST_DICOMFILE}"
 
+# Make sure Database is empty
+mongo --quiet ${DIRECTORY}/delete_db.js
+
 # Create Database
 mongo --quiet ${DIRECTORY}/create_db.js
 
