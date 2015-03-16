@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 /*************************** TEST OK 02 *******************************/
 /**
  * Nominal test case: Execute Store
- */
+ *
 BOOST_AUTO_TEST_CASE(Run_StoreSCP)
 {
     DcmDataset dataset;
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(Run_StoreSCP)
 /*************************** TEST OK 03 *******************************/
 /**
  * Nominal test case: Execute Store with SOPInstanceUID already register
- */
+ *
 BOOST_AUTO_TEST_CASE(SOPInstanceUID_Already_Register)
 {
     DcmDataset dataset;
@@ -131,4 +131,4 @@ BOOST_AUTO_TEST_CASE(SOPInstanceUID_Already_Register)
     BOOST_CHECK_EQUAL(myProcess->readAllStandardError().length(), 0);
 
     boost::filesystem::remove(boost::filesystem::path(stream.str().c_str()));
-}
+}*/
