@@ -6,9 +6,6 @@
  * for details.
  ************************************************************************/
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-
 #include "core/ConfigurationPACS.h"
 #include "core/DBConnection.h"
 #include "core/LoggerPACS.h"
@@ -41,23 +38,6 @@ int main(int argc, char** argv)
         (
             dopamine::ConfigurationPACS::get_instance().GetValue("logger.priority")
         );
-    
-    // Get all indexes
-    std::string indexlist = dopamine::ConfigurationPACS::get_instance().GetValue("database.indexlist");
-    std::vector<std::string> indexlistvect;
-    boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
-
-    // Create and Initialize DB connection
-    dopamine::DBConnection::get_instance().Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
-
-    // Connect Database
-    dopamine::DBConnection::get_instance().connect();
     
     // Create and run Network listener
     dopamine::NetworkPACS::get_instance().run();

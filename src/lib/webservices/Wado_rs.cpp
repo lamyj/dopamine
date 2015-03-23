@@ -40,8 +40,7 @@ Wado_rs::Wado_rs(const std::string &pathinfo):
 
 Wado_rs::~Wado_rs()
 {
-    // release connexion initialized in function search_database
-    dopamine::DBConnection::delete_instance();
+    // Nothing to do
 }
 
 void Wado_rs::parse_pathfinfo(const std::string &pathinfo)
@@ -167,19 +166,10 @@ void Wado_rs::search_database()
     boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
 
     // Create and Initialize DB connection
-    dopamine::DBConnection::get_instance().Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
+    dopamine::DBConnection connection;
 
-    // Connect Database
-    dopamine::DBConnection::get_instance().connect();
-
-    DBConnection::get_instance().get_connection().runCommand
-        (DBConnection::get_instance().get_db_name(),
+    connection.get_connection().runCommand
+        (connection.get_db_name(),
             group_command, info, 0);
 
     if ( info["count"].Double() == 0)

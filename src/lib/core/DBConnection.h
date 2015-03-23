@@ -23,21 +23,11 @@ namespace dopamine
 class DBConnection
 {
 public:
-    /**
-     * Create (if not exist) and return an unique instance of DBConnection
-     * @return unique instance of DBConnection
-     */
-    static DBConnection & get_instance();
-    /**
-     * Remove the unique instance of DBConnection
-     */
-    static void delete_instance();
+    /// Create an instance of DBConnection
+    DBConnection();
     
     /// Destroy the DBConnection
     virtual ~DBConnection();
-
-    void Initialize(std::string const & db_name, std::string const & db_host,
-                    std::string const & db_port, std::vector<std::string> indexeslist);
     
     /**
      * Get the connection with database
@@ -45,12 +35,12 @@ public:
      */
     mongo::DBClientConnection const & get_connection() const 
         { return this->_connection; }
-    
+
     /**
      * Get the connection with database
      * @return database connection
      */
-    mongo::DBClientConnection & get_connection() 
+    mongo::DBClientConnection & get_connection()
         { return this->_connection; }
     
     /**
@@ -58,11 +48,6 @@ public:
      * @return database name
      */
     std::string const & get_db_name() const { return this->_db_name; }
-    
-    /**
-     * Create the connection with the database
-     */
-    void connect();
     
     /**
      * Check if user is allowed to perform a given Command
@@ -76,25 +61,11 @@ public:
 protected:
 
 private:
-    /// Create an instance of DBConnection
-    DBConnection();
-    
-    /// Unique instance
-    static DBConnection * _instance;
-
     /// Database connection
     mongo::DBClientConnection _connection;
     
     /// Database name
     std::string _db_name;
-
-    /// Database host
-    std::string _db_host;
-
-    /// Database port
-    std::string _db_port;
-
-    std::vector<DcmTag> _indexeslist;
     
     // Purposely not implemented
     DBConnection(DBConnection const & other);

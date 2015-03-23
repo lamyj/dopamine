@@ -13,14 +13,12 @@
 #include <sstream>
 
 #include "core/ConfigurationPACS.h"
-#include "core/DBConnection.h"
 #include "webservices/Wado_rs.h"
 #include "webservices/WebServiceException.h"
 
 /**
  * Pre-conditions:
  *     - we assume that ConfigurationPACS works correctly
- *     - we assume that DBConnection works correctly
  *
  *     - Following Environment variables should be defined
  *          * DOPAMINE_TEST_CONFIG

@@ -6,61 +6,49 @@
  * for details.
  ************************************************************************/
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+#include "ConfigurationPACS.h"
 #include "DBConnection.h"
 #include "ExceptionPACS.h"
 #include "LoggerPACS.h"
 
 namespace dopamine
 {
-    
-DBConnection * DBConnection::_instance = NULL;
-
-DBConnection &
-DBConnection
-::get_instance()
-{
-    if(DBConnection::_instance == NULL)
-    {
-        DBConnection::_instance = new DBConnection();
-    }
-    return *DBConnection::_instance;
-}
-
-void
-DBConnection
-::delete_instance()
-{
-    if(DBConnection::_instance != NULL)
-    {
-        delete DBConnection::_instance;
-    }
-    DBConnection::_instance = NULL;
-}
 
 DBConnection
 ::DBConnection():
-    _db_name(""), _db_host(""), _db_port("")
+    _db_name("")
 {
-    // nothing to do
-}
+    // Get all indexes
+    std::string indexlist = ConfigurationPACS::get_instance().GetValue("database.indexlist");
+    std::vector<std::string> indexeslist;
+    boost::split(indexeslist, indexlist, boost::is_any_of(";"));
 
-DBConnection
-::~DBConnection()
-{
-    // nothing to do
-}
+    this->_db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
+    std::string db_host = ConfigurationPACS::get_instance().GetValue("database.hostname");
+    std::string db_port = ConfigurationPACS::get_instance().GetValue("database.port");
 
-void
-DBConnection
-::Initialize(const std::string &db_name,
-             const std::string &db_host,
-             const std::string &db_port,
-             std::vector<std::string> indexeslist)
-{
-    this->_db_name = db_name;
-    this->_db_host = db_host;
-    this->_db_port = db_port;
-    this->_indexeslist.clear();
+    if (this->_db_name == "" || db_host == "" || db_port == "")
+    {
+        throw ExceptionPACS("DBConnection not initialize.");
+    }
+
+    // Try to connect database
+    // Disconnect is automatic when it calls the destructors
+    std::string errormsg = "";
+    if ( ! this->_connection.connect(mongo::HostAndPort(db_host + ":" + db_port),
+                                     errormsg) )
+    {
+        std::stringstream stream;
+        stream << "DBConnection::connect error: " << errormsg;
+        throw ExceptionPACS(stream.str());
+    }
+    dopamine::loggerDebug() << "DBconnection::connect OK";
+
+    // Create indexes
+    std::string const datasets = this->_db_name + ".datasets";
 
     for (auto currentIndex : indexeslist)
     {
@@ -69,52 +57,28 @@ DBConnection
 
         if (ret.good())
         {
-            this->_indexeslist.push_back(dcmtag);
+            // convert Uint16 => string XXXXYYYY
+            char buffer[9];
+            snprintf(buffer, 9, "%04x%04x", dcmtag.getGroup(), dcmtag.getElement());
+
+            std::stringstream stream;
+            stream << "\"" << buffer << "\"";
+
+            this->_connection.ensureIndex
+                (
+                    datasets,
+                    BSON(stream.str() << 1),
+                    false,
+                    std::string(dcmtag.getTagName())
+                );
         }
     }
 }
 
-void
 DBConnection
-::connect()
+::~DBConnection()
 {
-    if (this->_db_name == "" || this->_db_host == "" || this->_db_port == "")
-    {
-        throw ExceptionPACS("DBConnection not initialize.");
-    }
-
-    // Try to connect database
-    // Disconnect is automatic when it calls the destructors
-    std::string errormsg = "";
-    if ( ! this->_connection.connect(mongo::HostAndPort(this->_db_host + ":" + this->_db_port),
-                                     errormsg) )
-    {
-        std::stringstream stream;
-        stream << "DBConnection::connect error: " << errormsg;
-        throw ExceptionPACS(stream.str());
-    }
-    dopamine::loggerDebug() << "DBconnection::connect OK";
-    
-    // Create indexes
-    std::string const datasets = this->_db_name + ".datasets";
-
-    for (DcmTag currentIndex : this->_indexeslist)
-    {
-        // convert Uint16 => string XXXXYYYY
-        char buffer[9];
-        snprintf(buffer, 9, "%04x%04x", currentIndex.getGroup(), currentIndex.getElement());
-
-        std::stringstream stream;
-        stream << "\"" << buffer << "\"";
-
-        this->_connection.ensureIndex
-            (
-                datasets,
-                BSON(stream.str() << 1),
-                false,
-                std::string(currentIndex.getTagName())
-            );
-    }
+    // nothing to do
 }
 
 bool 

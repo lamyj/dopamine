@@ -12,9 +12,9 @@
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
-#include "core/DBConnection.h"
 #include "core/Hashcode.h"
 #include "core/LoggerPACS.h"
+#include "core/NetworkPACS.h"
 #include "StoreSCP.h"
 
 namespace dopamine
@@ -48,8 +48,8 @@ static void storeCallback(
         (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
         
         mongo::auto_ptr<mongo::DBClientCursor> cursor =
-            DBConnection::get_instance().get_connection().query(
-                DBConnection::get_instance().get_db_name()+"."+"datasets",
+            NetworkPACS::get_instance().get_connection().get_connection().query(
+                NetworkPACS::get_instance().get_connection().get_db_name()+"."+"datasets",
                 QUERY("00080018" << sop_instance_uid.c_str()));
 
         if(cursor->more())
@@ -123,8 +123,8 @@ static void storeCallback(
 
             // Store the dataset in DB and in filesystem
             builder << "location" << destination.string();
-            DBConnection::get_instance().get_connection().insert(
-                DBConnection::get_instance().get_db_name()+".datasets", 
+            NetworkPACS::get_instance().get_connection().get_connection().insert(
+                NetworkPACS::get_instance().get_connection().get_db_name()+".datasets",
                 builder.obj());
             boost::filesystem::create_directories(destination.parent_path());
             

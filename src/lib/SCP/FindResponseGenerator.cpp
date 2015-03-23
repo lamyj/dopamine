@@ -9,9 +9,9 @@
 #include "ConverterBSON/BSONToDataSet.h"
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/TagMatch.h"
-#include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
+#include "core/NetworkPACS.h"
 #include "FindResponseGenerator.h"
 
 namespace dopamine
@@ -182,8 +182,8 @@ FindResponseGenerator
             "$reduce" << reduce_function << "initial" << initial_builder.obj()
         ));
 
-        DBConnection::get_instance().get_connection().runCommand
-            (DBConnection::get_instance().get_db_name(),
+        NetworkPACS::get_instance().get_connection().get_connection().runCommand
+            (NetworkPACS::get_instance().get_connection().get_db_name(),
                 group_command, this->_info, 0);
 
         this->_results = this->_info["retval"].Array();

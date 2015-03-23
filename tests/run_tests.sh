@@ -297,6 +297,8 @@ ctest --no-compress-output -T Test || true
 
 termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
+sleep 1
+
 nosetests -w ../tests/code
 
 # Remove Database

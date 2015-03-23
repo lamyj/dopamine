@@ -15,6 +15,7 @@
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
 
+#include "DBConnection.h"
 
 namespace dopamine
 {
@@ -76,6 +77,8 @@ public:
      */
     void set_timeout(int const & timeout) { this->_timeout = timeout; }
 
+    DBConnection & get_connection() { return this->_connection; }
+
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
      *  on the SCP configuration and option flags. No A-ASSOCIATE response is generated,
@@ -95,6 +98,8 @@ private:
     
     /// Unique Instance
     static NetworkPACS * _instance;
+
+    DBConnection _connection;
     
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;

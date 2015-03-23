@@ -10,7 +10,6 @@
 
 #include "ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
-#include "DBConnection.h"
 #include "ExceptionPACS.h"
 #include "NetworkPACS.h"
 #include "SCP/EchoSCP.h"
@@ -495,8 +494,8 @@ NetworkPACS
             msg.CommandField != DIMSE_C_ECHO_RQ)
         {
             // Veriry user's rights
-            if (!DBConnection::get_instance().checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,
-                                                                     msg.CommandField))
+            if (!this->_connection.checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,
+                                                           msg.CommandField))
             {
                 cond = DIMSE_BADCOMMANDTYPE;
                 dopamine::loggerError() << "User not authorized for command: 0x"
