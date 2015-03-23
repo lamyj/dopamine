@@ -42,6 +42,7 @@ struct TestDataOK01
     ~TestDataOK01()
     {
         dopamine::ConfigurationPACS::delete_instance();
+        sleep(1);
     }
 };
 
@@ -365,14 +366,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_10, TestDataOK01)
     stream << "series" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462499.1" << "/";
     stream << "instances" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462499.1.0";
 
+    {
     // Create the response
     BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(stream.str()),
                         dopamine::webservices::WebServiceException);
+    }
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(stream.str());
+        dopamine::webservices::Wado_rs wadors_(stream.str());
     }
     catch (dopamine::webservices::WebServiceException &exc)
     {
@@ -397,14 +400,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_11, TestDataOK01)
     stream << "series" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462488.1" << "/";
     stream << "instances" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462488.1.0";
 
+    {
     // Create the response
     BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(stream.str()),
                         dopamine::webservices::WebServiceException);
+    }
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(stream.str());
+        dopamine::webservices::Wado_rs wadors_(stream.str());
     }
     catch (dopamine::webservices::WebServiceException &exc)
     {

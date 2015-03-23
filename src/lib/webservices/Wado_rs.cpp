@@ -40,7 +40,8 @@ Wado_rs::Wado_rs(const std::string &pathinfo):
 
 Wado_rs::~Wado_rs()
 {
-    // Nothing to do
+    // release connexion initialized in function search_database
+    dopamine::DBConnection::delete_instance();
 }
 
 void Wado_rs::parse_pathfinfo(const std::string &pathinfo)
