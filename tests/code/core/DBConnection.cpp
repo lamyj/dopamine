@@ -18,132 +18,43 @@
 /*************************** TEST OK 01 *******************************/
 /**
  * Nominal test case: Constructor/Destructor
- *
+ */
+struct TestDataOK01
 {
-    dopamine::DBConnection::get_instance();
-    dopamine::DBConnection::delete_instance();
-}
-
-/*************************** TEST OK 02 *******************************/
-/**
- * Nominal test case: Initialization
- *
-struct TestDataOK02
-{
-    std::vector<std::string> indexlistvect;
-
-    TestDataOK02()
+    TestDataOK01()
     {
         std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
         dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
-
-        // Get all indexes
-        std::string indexlist =
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.indexlist");
-        boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
     }
 
-    ~TestDataOK02()
+    ~TestDataOK01()
     {
-        dopamine::DBConnection::delete_instance();
         dopamine::ConfigurationPACS::delete_instance();
     }
 };
 
-(Initialization, TestDataOK02)
+BOOST_FIXTURE_TEST_CASE(Constructor, TestDataOK01)
 {
-    // Create and Initialize DB connection
-    dopamine::DBConnection::get_instance().Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
+    dopamine::DBConnection connection;
 
-    BOOST_CHECK_EQUAL(dopamine::DBConnection::get_instance().get_db_name(),
-                      "dopamine_test");
+    BOOST_CHECK_EQUAL(connection.get_connection().isFailed(), false);
 }
 
-/*************************** TEST OK 03 *******************************/
-/**
- * Nominal test case: Connection
- *
-(Connection, TestDataOK02)
-{
-    // Create and Initialize DB connection
-    dopamine::DBConnection::get_instance().Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
-
-    dopamine::DBConnection::get_instance().connect();
-    // ok => no error
-}
-
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST OK 02 *******************************/
 /**
  * Nominal test case: checkUserAuthorization
- *
-(Check_Authorization, TestDataOK02)
+ */
+BOOST_FIXTURE_TEST_CASE(Check_Authorization, TestDataOK01)
 {
-    dopamine::DBConnection& instance = dopamine::DBConnection::get_instance();
-    // Create and Initialize DB connection
-    instance.Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.hostname"),
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
-
-    instance.connect();
+    dopamine::DBConnection connection;
 
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("unknown", 7);
     identity->setSecField("password2", 9);
 
-    BOOST_CHECK_EQUAL(instance.checkUserAuthorization(*identity, DIMSE_C_ECHO_RQ),
+    BOOST_CHECK_EQUAL(connection.checkUserAuthorization(*identity, DIMSE_C_ECHO_RQ),
                       false);
 
     delete identity;
 }
-
-/*************************** TEST KO 01 *******************************/
-/**
- * Error test case: Not initialize
- *
-(Not_Initialize)
-{
-    dopamine::DBConnection::get_instance();
-
-    BOOST_REQUIRE_THROW(dopamine::DBConnection::get_instance().connect(),
-                        dopamine::ExceptionPACS);
-
-    dopamine::DBConnection::delete_instance();
-}
-
-/*************************** TEST KO 02 *******************************/
-/**
- * Error test case: Connection error
- *
-(Connection_error, TestDataOK02)
-{
-    dopamine::DBConnection& instance = dopamine::DBConnection::get_instance();
-    // Create and Initialize DB connection
-    instance.Initialize
-        (
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.dbname"),
-            "BAD_VALUE",
-            dopamine::ConfigurationPACS::get_instance().GetValue("database.port"),
-            indexlistvect
-        );
-
-    BOOST_REQUIRE_THROW(instance.connect(), dopamine::ExceptionPACS);
-
-    dopamine::DBConnection::delete_instance();
-}*/
