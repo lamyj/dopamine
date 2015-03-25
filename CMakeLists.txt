@@ -58,8 +58,10 @@ endif()
 
 # depends on Boost DCMTK log4cpp mongodb
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-filesystem${boost_version},
+                                  libboost-random${boost_version},
                                   libboost-system${boost_version},
                                   libboost-thread${boost_version},
+                                  libcgicc5,
                                   libdcmtk2,
                                   liblog4cpp5,
                                   mongodb-clients")
