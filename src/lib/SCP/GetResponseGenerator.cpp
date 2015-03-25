@@ -109,7 +109,7 @@ GetResponseGenerator
             response->DimseStatus = STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass;
 
             this->createStatusDetail(STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass,
-                                     DCM_QueryRetrieveLevel, condition, stDetail);
+                                     DCM_QueryRetrieveLevel, OFString(condition.text()), stDetail);
             return;
         }
 
@@ -221,7 +221,7 @@ GetResponseGenerator
             dopamine::loggerError() << "Unable to retrieve location field.";
 
             this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, EC_CorruptedData, details);
+                                     DCM_UndefinedTagKey, OFString(EC_CorruptedData.text()), details);
 
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;
@@ -235,7 +235,7 @@ GetResponseGenerator
             dopamine::loggerError() << "Unable to load file: " << condition.text();
 
             this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, condition, details);
+                                     DCM_UndefinedTagKey, OFString(condition.text()), details);
 
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;
@@ -250,7 +250,7 @@ GetResponseGenerator
                                     << condition.text();
 
             this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
-                                     DCM_SOPClassUID, condition, details);
+                                     DCM_SOPClassUID, OFString(condition.text()), details);
 
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;
@@ -263,7 +263,7 @@ GetResponseGenerator
                                     << condition.text();
 
             this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
-                                     DCM_SOPInstanceUID, condition, details);
+                                     DCM_SOPInstanceUID, OFString(condition.text()), details);
 
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;
@@ -279,7 +279,7 @@ GetResponseGenerator
                                          << condition.text();
 
             this->createStatusDetail(STATUS_GET_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, condition, details);
+                                     DCM_UndefinedTagKey, OFString(condition.text()), details);
 
             this->_status = STATUS_GET_Failed_UnableToProcess;
             return;

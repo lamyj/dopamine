@@ -16,6 +16,12 @@
 
 namespace dopamine
 {
+
+std::string const Service_All       = "*";
+std::string const Service_Echo      = "Echo";
+std::string const Service_Store     = "Store";
+std::string const Service_Query     = "Query";
+std::string const Service_Retrieve  = "Retrieve";
     
 /**
  * @brief Class to create and manage the Database Connection
@@ -57,6 +63,10 @@ public:
      */
     bool checkUserAuthorization(UserIdentityNegotiationSubItemRQ & userIdentNeg,
                                 T_DIMSE_Command command);
+
+    static std::string DIMSE_Command_to_Service(T_DIMSE_Command command);
+
+    static std::string WebService_to_Service(std::string const & webservice);
 
 protected:
 

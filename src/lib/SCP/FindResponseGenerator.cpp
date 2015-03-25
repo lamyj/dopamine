@@ -9,6 +9,7 @@
 #include "ConverterBSON/BSONToDataSet.h"
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/TagMatch.h"
+#include "core/DBConnection.h"
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
@@ -42,7 +43,28 @@ FindResponseGenerator
 {
     if (responseCount == 1)
     {
+        // Look for user authorization
+        if ( !NetworkPACS::get_instance().check_authorization(
+                 this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
+                 Service_Query) )
+        {
+            loggerWarning() << "User not allowed to perform FIND";
+
+            this->_status = STATUS_FIND_Refused_OutOfResources;
+            response->DimseStatus = STATUS_FIND_Refused_OutOfResources;
+
+            this->createStatusDetail(STATUS_FIND_Refused_OutOfResources, DCM_UndefinedTagKey,
+                                     OFString("User not allowed to perform FIND"), stDetail);
+
+            return;
+        }
+
         this->_status = STATUS_Pending;
+
+        mongo::BSONObj constraint =
+                NetworkPACS::get_instance().get_constraint_for_user(
+                    this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
+                    Service_Query);
 
         // Convert the dataset to BSON, excluding Query/Retrieve Level.
         DataSetToBSON dataset_to_bson;
@@ -98,7 +120,8 @@ FindResponseGenerator
             response->DimseStatus = STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass;
 
             this->createStatusDetail(STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass,
-                                     DCM_QueryRetrieveLevel, condition, stDetail);
+                                     DCM_QueryRetrieveLevel, OFString(condition.text()),
+                                     stDetail);
             return;
         }
 
@@ -171,14 +194,18 @@ FindResponseGenerator
             this->_convert_modalities_in_study = false;
         }
 
+        mongo::BSONArrayBuilder finalquerybuilder;
+        finalquerybuilder << constraint << db_query.obj();
+        mongo::BSONObjBuilder finalquery;
+        finalquery << "$and" << finalquerybuilder.arr();
+
         // Format the reduce function
         reduce_function = "function(current, result) { " + reduce_function + " }";
 
         // Perform the DB query.
         mongo::BSONObj const fields = fields_builder.obj();
-
         mongo::BSONObj group_command = BSON("group" << BSON(
-            "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
+            "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
             "$reduce" << reduce_function << "initial" << initial_builder.obj()
         ));
 
@@ -243,7 +270,7 @@ FindResponseGenerator
             this->_status = STATUS_FIND_Failed_UnableToProcess;
 
             this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                                     DCM_QueryRetrieveLevel, condition, details);
+                                     DCM_QueryRetrieveLevel, OFString(condition.text()), details);
             return;
         }
 
@@ -264,7 +291,8 @@ FindResponseGenerator
                 this->_status = STATUS_FIND_Failed_UnableToProcess;
 
                 this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                                         this->_instance_count_tag, condition, details);
+                                         this->_instance_count_tag,
+                                         OFString(condition.text()), details);
                 return;
             }
         }
@@ -293,7 +321,8 @@ FindResponseGenerator
                 this->_status = STATUS_FIND_Failed_UnableToProcess;
 
                 this->createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                                         DCM_ModalitiesInStudy, condition, details);
+                                         DCM_ModalitiesInStudy,
+                                         OFString(condition.text()), details);
                 return;
             }
         }

@@ -101,37 +101,69 @@ DBConnection
         delete [] user;
     }
 
-    // Get authorization
-    mongo::auto_ptr< mongo::DBClientCursor> cursor = 
-        this->_connection.query(this->_db_name+"."+"authorization",  
-                                mongo::BSONObj());
+    mongo::BSONObjBuilder fields_builder;
+    fields_builder << "principal_name" << BSON("$in" << BSON_ARRAY("*" << lcurrentUser))
+                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << DBConnection::DIMSE_Command_to_Service(command)));
 
-    while (cursor->more())
+    mongo::BSONObj group_command = BSON("count" << "authorization" << "query" << fields_builder.obj());
+
+    mongo::BSONObj info;
+    this->_connection.runCommand(this->get_db_name(), group_command, info, 0);
+
+    // If the command correctly executed and database entries match
+    if (info["ok"].Double() == 1 && info["n"].Double() > 0)
     {
-        mongo::BSONObj p = cursor->next();
-        
-        std::string lusername = p.getStringField("username");
-        
-        if (lusername == lcurrentUser || lusername == "*")
-        {
-            std::vector<int> operations;
-            mongo::BSONObjIterator fields(p.getObjectField("authorizedAction"));
-            while(fields.more()) {
-                operations.push_back(fields.next().numberInt());
-            }
-            
-            for (int liter = 0 ; liter < operations.size() ; liter++)
-            {
-                // User authorized
-                if (command == T_DIMSE_Command(operations[liter]))
-                {
-                    return true;
-                }
-            }
-        }
+        return true;
     }
-            
+
+    // Not allowed
     return false;
 }
-    
+
+std::string DBConnection::DIMSE_Command_to_Service(T_DIMSE_Command command)
+{
+    switch (command)
+    {
+    case DIMSE_C_ECHO_RQ:
+    {
+        return Service_Echo;
+    }
+    case DIMSE_C_STORE_RQ:
+    {
+        return Service_Store;
+    }
+    case DIMSE_C_FIND_RQ:
+    {
+        return Service_Query;
+    }
+    case DIMSE_C_GET_RQ:
+    case DIMSE_C_MOVE_RQ:
+    {
+        return Service_Retrieve;
+    }
+    default:
+        break;
+    }
+
+    return "";
+}
+
+std::string DBConnection::WebService_to_Service(const std::string &webservice)
+{
+    if (webservice == "QUIDO")
+    {
+        return Service_Query;
+    }
+    else if (webservice == "WADO")
+    {
+        return Service_Retrieve;
+    }
+    else if (webservice == "STOW")
+    {
+        return Service_Store;
+    }
+
+    return "";
+}
+
 } // namespace dopamine

@@ -7,7 +7,9 @@
  ************************************************************************/
 
 #include "core/LoggerPACS.h"
+#include "core/NetworkPACS.h"
 #include "EchoSCP.h"
+#include "ResponseGenerator.h"
 
 namespace dopamine
 {
@@ -31,13 +33,30 @@ OFCondition
 EchoSCP
 ::process()
 {
-    dopamine::loggerInfo() << "Received Echo SCP RQ: MsgID "
-                                << this->_request->MessageID;
+    loggerInfo() << "Received Echo SCP RQ: MsgID "
+                 << this->_request->MessageID;
 
+    // Default response is SUCCESS
+    DIC_US status = STATUS_Success;
+    DcmDataset * details = NULL;
+
+    // Look for user authorization
+    if ( !NetworkPACS::get_instance().check_authorization(this->_association->params->DULparams.reqUserIdentNeg,
+                                                          Service_Echo) )
+    {
+        status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+        loggerWarning() << "User not allowed to perform ECHO";
+
+        ResponseGenerator::createStatusDetail(0xa700, DCM_UndefinedTagKey,
+                                              OFString("User not allowed to perform ECHO"),
+                                              &details);
+    }
+
+    // Send the response
     return DIMSE_sendEchoResponse(this->_association,
                                   this->_presentationID, 
                                   this->_request, 
-                                  STATUS_Success, NULL);
+                                  status, details);
 }
     
 } // namespace dopamine

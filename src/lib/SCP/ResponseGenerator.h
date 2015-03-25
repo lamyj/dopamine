@@ -66,6 +66,9 @@ public:
                                std::string const & old, 
                                std::string const & new_);
 
+    static void createStatusDetail(Uint16 const & errorCode, DcmTagKey const & key,
+                            OFString const & comment, DcmDataset **statusDetail);
+
 protected:
     /// Associated SCP
     SCP * _scp;
@@ -118,9 +121,6 @@ protected:
      *        corresponding to the specified match type.
      */
     DicomQueryToMongoQuery _get_query_conversion(Match::Type const & match_type) const;
-
-    void createStatusDetail(Uint16 const & errorCode, DcmTagKey const & key,
-                            OFCondition const & comment, DcmDataset **statusDetail);
     
 private:
     /**

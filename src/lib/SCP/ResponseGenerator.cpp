@@ -303,7 +303,7 @@ ResponseGenerator
 void
 ResponseGenerator
 ::createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
-                     const OFCondition &comment, DcmDataset **statusDetail)
+                     const OFString &comment, DcmDataset **statusDetail)
 {
     DcmElement * element;
     std::vector<Uint16> vect;
@@ -325,7 +325,7 @@ ResponseGenerator
     cond = element->putUint16Array(&vect[0], vect.size()/2);
 
     cond = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                 OFString(comment.text()));
+                                                      comment);
 }
     
 } // namespace dopamine

@@ -79,6 +79,12 @@ public:
 
     DBConnection & get_connection() { return this->_connection; }
 
+    bool check_authorization(UserIdentityNegotiationSubItemRQ * userIdentNeg,
+                             std::string const & service);
+
+    mongo::BSONObj get_constraint_for_user(UserIdentityNegotiationSubItemRQ * userIdentNeg,
+                                           std::string const & service);
+
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
      *  on the SCP configuration and option flags. No A-ASSOCIATE response is generated,

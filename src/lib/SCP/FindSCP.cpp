@@ -12,6 +12,7 @@
 #include <dcmtk/dcmnet/diutil.h>
 
 #include "core/LoggerPACS.h"
+#include "core/NetworkPACS.h"
 #include "FindResponseGenerator.h"
 #include "FindSCP.h"
 

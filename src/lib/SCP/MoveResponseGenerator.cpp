@@ -114,7 +114,7 @@ MoveResponseGenerator
             response->DimseStatus = STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
 
             this->createStatusDetail(STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass,
-                                     DCM_QueryRetrieveLevel, condition, stDetail);
+                                     DCM_QueryRetrieveLevel, OFString(condition.text()), stDetail);
             return;
         }
 
@@ -249,7 +249,7 @@ MoveResponseGenerator
             dopamine::loggerError() << "Unable to retrieve location field";
 
             this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, EC_CorruptedData, details);
+                                     DCM_UndefinedTagKey, OFString(EC_CorruptedData.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -264,7 +264,7 @@ MoveResponseGenerator
                                     << result.text();
 
             this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, result, details);
+                                     DCM_UndefinedTagKey, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -280,7 +280,7 @@ MoveResponseGenerator
                                     << result.text();
 
             this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_SOPClassUID, result, details);
+                                     DCM_SOPClassUID, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -294,7 +294,7 @@ MoveResponseGenerator
                                     << result.text();
 
             this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_SOPInstanceUID, result, details);
+                                     DCM_SOPInstanceUID, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -309,7 +309,7 @@ MoveResponseGenerator
             dopamine::loggerError() << "Move Sub-Op Failed: " << result.text();
 
             this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, result, details);
+                                     DCM_UndefinedTagKey, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
 
@@ -383,7 +383,7 @@ MoveResponseGenerator
         dopamine::loggerError() << "Invalid Peer for move operation";
 
         this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, EC_IllegalParameter, details);
+                                 DCM_UndefinedTagKey, OFString(EC_IllegalParameter.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return EC_IllegalParameter;
@@ -395,7 +395,7 @@ MoveResponseGenerator
     if (result.bad())
     {
         this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, result, details);
+                                 DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
@@ -412,7 +412,7 @@ MoveResponseGenerator
     if (result.bad())
     {
         this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, result, details);
+                                 DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
@@ -439,7 +439,7 @@ MoveResponseGenerator
         }
 
         this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, result, details);
+                                 DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
