@@ -7,6 +7,7 @@
  ************************************************************************/
 
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/IsPrivateTag.h"
@@ -15,10 +16,122 @@
 #include "core/Hashcode.h"
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
+#include "ResponseGenerator.h"
 #include "StoreSCP.h"
 
 namespace dopamine
 {
+
+static std::string bsonelement_to_string(mongo::BSONElement const & bsonelement)
+{
+    std::stringstream builder;
+    switch (bsonelement.type())
+    {
+    case mongo::BSONType::NumberDouble:
+    {
+        builder << bsonelement.numberDouble();
+        break;
+    }
+    case mongo::BSONType::String:
+    {
+        builder << bsonelement.String();
+        break;
+    }
+    case mongo::BSONType::NumberInt:
+    {
+        builder << bsonelement.Int();
+        break;
+    }
+    case mongo::BSONType::NumberLong:
+    {
+        builder << bsonelement.Long();
+        break;
+    }
+    default:
+    {
+        builder << bsonelement.toString(false);
+        break;
+    }
+    }
+
+    return builder.str();
+}
+
+static bool check_user_authorization(mongo::BSONObj const & dataset,
+                                     UserIdentityNegotiationSubItemRQ * identity)
+{
+    // Retrieve user's Rights
+    mongo::BSONObj constraint =
+            NetworkPACS::get_instance().get_constraint_for_user(
+                identity, Service_Store);
+
+    if (constraint.isEmpty())
+    {
+        // No constraint
+        return true;
+    }
+
+    // Compare with input dataset
+
+    // constraint is a Logical OR array
+    for (auto itemor : constraint["$or"].Array())
+    {
+        bool result = true;
+        // Each item is a Logical AND array
+        for (auto itemand : itemor["$and"].Array())
+        {
+            // Foreach object
+            for(mongo::BSONObj::iterator it=itemand.Obj().begin(); it.more();)
+            {
+                mongo::BSONElement const element = it.next();
+
+                // Retrieve DICOM field name
+                std::string name(element.fieldName());
+                name = name.substr(0, 8);
+
+                // Check if input dataset as this field
+                if (!dataset.hasField(name))
+                {
+                    result = false;
+                    break;
+                }
+                else
+                {
+                    // Compare the field's values
+                    std::string valuestr = bsonelement_to_string(dataset.getField(name).Array()[1]);
+
+                    if (element.type() == mongo::BSONType::RegEx)
+                    {
+                        std::string regex(element.regex());
+                        if (!boost::regex_match(valuestr.c_str(), boost::regex(regex.c_str())))
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        std::string elementstr = bsonelement_to_string(element);
+                        if (valuestr != elementstr)
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Stop if find dataset match with one condition
+        if (result)
+        {
+            return true;
+        }
+        // else continue
+    }
+
+    return false;
+}
 
 /**
  * Callback handler called by the DIMSE_storeProvider callback function
@@ -43,6 +156,23 @@ static void storeCallback(
 {
     if(progress->state == DIMSE_StoreEnd)
     {
+        // Look for user authorization
+        if ( !NetworkPACS::get_instance().check_authorization(
+                 reinterpret_cast<StoreCallbackData*>(callbackData)->user_identity,
+                 Service_Store) )
+        {
+            loggerWarning() << "User not allowed to perform STORE";
+
+            rsp->DimseStatus = STATUS_STORE_Refused_OutOfResources;
+
+            ResponseGenerator::createStatusDetail(STATUS_STORE_Refused_OutOfResources,
+                                                  DCM_UndefinedTagKey,
+                                                  OFString("User not allowed to perform STORE"),
+                                                  stDetail);
+
+            return;
+        }
+
         // Check if we already have this dataset, based on its SOP Instance UID
         OFString sop_instance_uid;
         (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
@@ -87,15 +217,6 @@ static void storeCallback(
                reinterpret_cast<StoreCallbackData*>(callbackData)->source_application_entity_title.c_str());
 
             // Compute the destination filename
-            // DCM4CHEE does:
-            // /root
-            //   /year/month/day (of now)
-            //   /(32-bits hash of Study Instance UID
-            //   /(32-bits hash of Series Instance UID)
-            //   /(32-bits hash of SOP Instance UID)
-            // The 32-bits hash is based on String.hashCode 
-            //   (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/String.html#hashCode%28%29)
-
             boost::gregorian::date const today(
                 boost::gregorian::day_clock::universal_day());
 
@@ -121,13 +242,32 @@ static void storeCallback(
                     /boost::lexical_cast<std::string>(today.day())
                     /study_hash/series_hash/sop_instance_hash;
 
-            // Store the dataset in DB and in filesystem
+            // Add DICOM file path into BSON object
             builder << "location" << destination.string();
+
+            // Check user's constraints (user's Rights)
+            mongo::BSONObj dataset = builder.obj();
+            if (!check_user_authorization(dataset, reinterpret_cast<StoreCallbackData*>(callbackData)->user_identity))
+            {
+                loggerWarning() << "User not allowed to perform STORE";
+
+                rsp->DimseStatus = STATUS_STORE_Refused_OutOfResources;
+
+                ResponseGenerator::createStatusDetail(STATUS_STORE_Refused_OutOfResources,
+                                                      DCM_UndefinedTagKey,
+                                                      OFString("User not allowed to perform STORE"),
+                                                      stDetail);
+
+                return;
+            }
+
+            // Store the dataset in DB
             NetworkPACS::get_instance().get_connection().get_connection().insert(
                 NetworkPACS::get_instance().get_connection().get_db_name()+".datasets",
-                builder.obj());
+                dataset);
+
+            // Create DICOM file
             boost::filesystem::create_directories(destination.parent_path());
-            
             file_format.saveFile(destination.string().c_str(), 
                                  EXS_LittleEndianExplicit);
         }
@@ -174,6 +314,8 @@ StoreSCP
                 this->_association->params->DULparams.callingAPTitle;
         }
     }
+
+    data.user_identity = this->_association->params->DULparams.reqUserIdentNeg;
 
     /* we must still retrieve the data set even if some error has occured */
     DcmDataset dset;

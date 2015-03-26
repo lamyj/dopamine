@@ -53,8 +53,29 @@ GetResponseGenerator
 {
     if (responseCount == 1)
     {
+        // Look for user authorization
+        if ( !NetworkPACS::get_instance().check_authorization(
+                 this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
+                 Service_Query) )
+        {
+            loggerWarning() << "User not allowed to perform GET";
+
+            this->_status = STATUS_GET_Refused_OutOfResourcesNumberOfMatches;
+            response->DimseStatus = STATUS_GET_Refused_OutOfResourcesNumberOfMatches;
+
+            this->createStatusDetail(STATUS_GET_Refused_OutOfResourcesNumberOfMatches, DCM_UndefinedTagKey,
+                                     OFString("User not allowed to perform GET"), stDetail);
+
+            return;
+        }
+
         /* Start the database search */
-        
+
+        mongo::BSONObj constraint =
+                NetworkPACS::get_instance().get_constraint_for_user(
+                    this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
+                    Service_Retrieve);
+
         // Convert the dataset to BSON, excluding Query/Retrieve Level.
         DataSetToBSON dataset_to_bson;
 
@@ -161,14 +182,18 @@ GetResponseGenerator
             initial_builder << "instance_count" << 0;
         }
 
+        mongo::BSONArrayBuilder finalquerybuilder;
+        finalquerybuilder << constraint << db_query.obj();
+        mongo::BSONObjBuilder finalquery;
+        finalquery << "$and" << finalquerybuilder.arr();
+
         // Format the reduce function
         reduce_function = "function(current, result) { " + reduce_function + " }";
 
         // Perform the DB query.
         mongo::BSONObj const fields = fields_builder.obj();
-
         mongo::BSONObj group_command = BSON("group" << BSON(
-            "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
+            "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
             "$reduce" << reduce_function << "initial" << initial_builder.obj() 
         ));
         

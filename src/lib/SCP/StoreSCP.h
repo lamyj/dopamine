@@ -54,6 +54,7 @@ struct StoreCallbackData
 {
     DIC_US status;
     std::string source_application_entity_title;
+    UserIdentityNegotiationSubItemRQ * user_identity;
 };
     
 } // namespace dopamine

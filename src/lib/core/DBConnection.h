@@ -54,19 +54,6 @@ public:
      * @return database name
      */
     std::string const & get_db_name() const { return this->_db_name; }
-    
-    /**
-     * Check if user is allowed to perform a given Command
-     * @param userIdentNeg: User identity
-     * @param Request service
-     * @return true if user is allowed, false otherwise
-     */
-    bool checkUserAuthorization(UserIdentityNegotiationSubItemRQ & userIdentNeg,
-                                T_DIMSE_Command command);
-
-    static std::string DIMSE_Command_to_Service(T_DIMSE_Command command);
-
-    static std::string WebService_to_Service(std::string const & webservice);
 
 protected:
 

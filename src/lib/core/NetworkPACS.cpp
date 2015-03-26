@@ -490,21 +490,6 @@ NetworkPACS
         T_DIMSE_Message msg;
         cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
 
-        /* TODO RLA Remove
-        if (cond.good())
-        {
-            // Veriry user's rights
-            if (!this->_connection.checkUserAuthorization(*assoc->params->DULparams.reqUserIdentNeg,
-                                                          msg.CommandField))
-            {
-                cond = DIMSE_BADCOMMANDTYPE;
-                dopamine::loggerError() << "User not authorized for command: 0x"
-                                             << STD_NAMESPACE hex
-                                             << (unsigned)msg.CommandField;
-            }
-        }
-        */
-
         /* did peer release, abort, or do we have a valid message ? */
         if (cond.good())
         {

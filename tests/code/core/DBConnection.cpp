@@ -39,22 +39,3 @@ BOOST_FIXTURE_TEST_CASE(Constructor, TestDataOK01)
 
     BOOST_CHECK_EQUAL(connection.get_connection().isFailed(), false);
 }
-
-/*************************** TEST OK 02 *******************************/
-/**
- * Nominal test case: checkUserAuthorization
- */
-BOOST_FIXTURE_TEST_CASE(Check_Authorization, TestDataOK01)
-{
-    dopamine::DBConnection connection;
-
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-    identity->setPrimField("unknown", 7);
-    identity->setSecField("password2", 9);
-
-    BOOST_CHECK_EQUAL(connection.checkUserAuthorization(*identity, DIMSE_C_ECHO_RQ),
-                      false);
-
-    delete identity;
-}
