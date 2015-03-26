@@ -258,9 +258,6 @@ mkdir ${DOPAMINE_TEST_OUTPUTDIR}
 # Create JavaScript to initialize mongo database
 cat > ${DIRECTORY}/create_db.js << EOF
 db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "username" : "*", "authorizedAction" : [ 1, 16, 32, 33 ] }
-db.authorization.insert(j)
-
 j = { "00080008" : [  "CS",  [  "ORIGINAL",  "PRIMARY",  "OTHER" ] ], "00080012" : [  "DA",  "20140827" ], "00080013" : [  "TM",  "103310" ], "00080016" : [  "UI",  "1.2.840.10008.5.1.4.1.1.4" ], "00080018" : [  "UI",  "2.16.756.5.5.100.3611280983.20092.1364462458.1.0" ], "00080020" : [  "DA",  "20130328" ], "00080022" : [  "DA",  "20130328" ], "00080030" : [  "TM",  "101009" ], "00080032" : [  "TM",  "101818" ], "00080050" : [  "SH",  null ], "00080060" : [  "CS",  "MR" ], "00080070" : [  "LO",  "Bruker BioSpin MRI GmbH" ], "00080080" : [  "LO",  "STRASBOURG" ], "00080090" : [  "PN",  null ], "00081010" : [  "SH",  "Station" ], "00100010" : [  "PN",  "Doe^Jane" ], "00100020" : [  "LO",  "dopamine_test_01" ], "00100030" : [  "DA",  null ], "00100040" : [  "CS",  "F" ], "00101030" : [  "DS",  5 ], "00180020" : [  "CS",  [  "RM",  "IR" ] ], "00180021" : [  "CS",  "NONE" ], "00180022" : [  "CS",  null ], "00180023" : [  "CS",  "2D" ], "00180024" : [  "SH",  "FAIR_EPI (pvm)" ], "00180050" : [  "DS",  0.8 ], "00180080" : [  "DS",  18000 ], "00180081" : [  "DS",  33 ], "00180082" : [  "DS",  35.37627273 ], "00180083" : [  "DS",  1 ], "00180084" : [  "DS",  200.3334861 ], "00180085" : [  "SH",  "1H" ], "00180088" : [  "DS",  0.8 ], "00180089" : [  "IS",  107 ], "00180091" : [  "IS",  107 ], "00180094" : [  "DS",  100 ], "00180095" : [  "DS",  3337.783712 ], "00181020" : [  "LO",  "ParaVision 5.1" ], "00181030" : [  "LO",  "Protocol" ], "00181310" : [  "US",  [  107,  0,  0,  107 ] ], "00181312" : [  "CS",  "COL" ], "00181314" : [  "DS",  90 ], "00185100" : [  "CS",  "HFS" ], "0020000d" : [  "UI",  "2.16.756.5.5.100.3611280983.19057.1364461809.7789" ], "0020000e" : [  "UI",  "2.16.756.5.5.100.3611280983.20092.1364462458.1" ], "00200010" : [  "SH",  "Study_id" ], "00200011" : [  "IS",  196609 ], "00200012" : [  "IS",  1 ], "00200013" : [  "IS",  1 ], "00200032" : [  "DS",  [  -15,  -15,  -1.6 ] ], "00200037" : [  "DS",  [  1,  6.123031769e-17,  0,  -6.123031769e-17,  1,  0 ] ], "00200052" : [  "UI",  "2.16.756.5.5.100.3611280983.20092.1364462458.1.6.15.18" ], "00201002" : [  "IS",  75 ], "00201040" : [  "LO",  null ], "00201041" : [  "DS",  -1.6 ], "00280002" : [  "US",  1 ], "00280004" : [  "CS",  "MONOCHROME2" ], "00280010" : [  "US",  128 ], "00280011" : [  "US",  128 ], "00280030" : [  "DS",  [  0.234375,  0.234375 ] ], "00280100" : [  "US",  16 ], "00280101" : [  "US",  16 ], "00280102" : [  "US",  15 ], "00280103" : [  "US",  1 ], "00280106" : [  "US",  3 ], "00280107" : [  "US",  32766 ], "00281050" : [  "DS",  16385 ], "00281051" : [  "DS",  32764 ], "00281055" : [  "LO",  "MinMax" ], "location" : "${DOPAMINE_TEST_DICOMFILE}" }
 db.datasets.insert(j)
 
@@ -269,6 +266,23 @@ db.datasets.insert(j)
 
 j = { "00080018" : [  "UI",  "2.16.756.5.5.100.3611280983.20092.1364462488.1.0" ], "0020000d" : [  "UI",  "2.16.756.5.5.100.3611280983.19057.1364461809.8888" ], "0020000e" : [  "UI",  "2.16.756.5.5.100.3611280983.20092.1364462488.1" ], "location" : "/tmp/error_no_file.dcm" }
 db.datasets.insert(j)
+EOF
+
+export DOPAMINE_TEST_ADD_AUTH="mongo --quiet ${DIRECTORY}/create_authorization.js"
+
+# Create JavaScript to initialize Authorization
+cat > ${DIRECTORY}/create_authorization.js << EOF
+db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
+j = { "principal_name" : "", "principal_type" : "", "service" : "Echo", "dataset" : {} }
+db.authorization.insert(j)
+EOF
+
+export DOPAMINE_TEST_DEL_AUTH="mongo --quiet ${DIRECTORY}/remove_authorization.js"
+
+# Create JavaScript to remove Authorization
+cat > ${DIRECTORY}/remove_authorization.js << EOF
+db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
+db.authorization.drop()
 EOF
 
 # Create JavaScript to remove mongo database
