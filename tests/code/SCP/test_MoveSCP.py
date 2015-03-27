@@ -1,4 +1,5 @@
 
+import os
 import subprocess
 import unittest
 
@@ -11,6 +12,10 @@ class TestMoveSCP(TestBase):
     #################################################
     def test_run_movescu(self):
         try:
+            pathjoin = os.path.join(self._output_directory, 
+                                    "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
+            self.assertEqual(os.path.isfile(pathjoin), False)
+            
             # Send a Move request
             subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
                                         "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
@@ -27,7 +32,11 @@ class TestMoveSCP(TestBase):
             self.assertEqual(out, "")
             self.assertEqual(err, "")
             
-            #TODO check result file
+            # Check result file
+            self.assertEqual(os.path.isfile(pathjoin), True)
+            
+            # remove file
+            os.remove(pathjoin)
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -41,6 +50,10 @@ class TestMoveSCP(TestBase):
         thread_spec.wait()
         
         try:
+            pathjoin = os.path.join(self._output_directory, 
+                                    "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
+            self.assertEqual(os.path.isfile(pathjoin), False)
+            
             # Send a Move request
             subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
                                         "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
@@ -57,7 +70,8 @@ class TestMoveSCP(TestBase):
             self.assertEqual(out, "")
             self.assertEqual(err, "")
             
-            #TODO check result file (no file)
+            # Check result file (no file)
+            self.assertEqual(os.path.isfile(pathjoin), False)
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
