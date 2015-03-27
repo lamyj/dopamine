@@ -8,6 +8,9 @@
 
 #include <sstream>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
 #include "ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ExceptionPACS.h"
@@ -53,6 +56,8 @@ NetworkPACS
     _timeout(1000)
 {
     this->create_authenticator();
+
+    create_db_connection(this->_connection, this->_db_name);
     
     int port = std::atoi(ConfigurationPACS::get_instance().GetValue("dicom.port").c_str());
     
@@ -106,6 +111,62 @@ NetworkPACS
         std::stringstream stream;
         stream << "Unknown authentication type " << type;
         throw ExceptionPACS(stream.str());
+    }
+}
+
+void NetworkPACS::create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
+{
+    // Get all indexes
+    std::string indexlist = ConfigurationPACS::get_instance().GetValue("database.indexlist");
+    std::vector<std::string> indexeslist;
+    boost::split(indexeslist, indexlist, boost::is_any_of(";"));
+
+    db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
+    std::string db_host = ConfigurationPACS::get_instance().GetValue("database.hostname");
+    std::string db_port = ConfigurationPACS::get_instance().GetValue("database.port");
+
+    if (db_name == "" || db_host == "" || db_port == "")
+    {
+        throw ExceptionPACS("Connection with Database not initialize.");
+    }
+
+    // Try to connect database
+    // Disconnect is automatic when it calls the destructors
+    std::string errormsg = "";
+    if ( ! connection.connect(mongo::HostAndPort(db_host + ":" + db_port),
+                                     errormsg) )
+    {
+        std::stringstream stream;
+        stream << "Connection with Database in error: " << errormsg;
+        throw ExceptionPACS(stream.str());
+    }
+    dopamine::loggerDebug() << "Connection with Database OK";
+
+    // Create indexes
+    std::string const datasets = db_name + ".datasets";
+
+    for (auto currentIndex : indexeslist)
+    {
+        DcmTag dcmtag;
+        OFCondition ret = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
+
+        if (ret.good())
+        {
+            // convert Uint16 => string XXXXYYYY
+            char buffer[9];
+            snprintf(buffer, 9, "%04x%04x", dcmtag.getGroup(), dcmtag.getElement());
+
+            std::stringstream stream;
+            stream << "\"" << buffer << "\"";
+
+            connection.ensureIndex
+                (
+                    datasets,
+                    BSON(stream.str() << 1),
+                    false,
+                    std::string(dcmtag.getTagName())
+                );
+        }
     }
 }
 
@@ -625,7 +686,7 @@ NetworkPACS
     mongo::BSONObj group_command = BSON("count" << "authorization" << "query" << fields_builder.obj());
 
     mongo::BSONObj info;
-    this->_connection.get_connection().runCommand(this->_connection.get_db_name(), group_command, info, 0);
+    this->_connection.runCommand(this->_db_name, group_command, info, 0);
 
     // If the command correctly executed and database entries match
     if (info["ok"].Double() == 1 && info["n"].Double() > 0)
@@ -675,8 +736,7 @@ NetworkPACS
     ));
 
     mongo::BSONObj result;
-    this->_connection.get_connection().runCommand(this->_connection.get_db_name(),
-                                                  group_command, result, 0);
+    this->_connection.runCommand(this->_db_name, group_command, result, 0);
 
     if (result["ok"].Double() != 1 || result["count"].Double() == 0)
     {

@@ -16,7 +16,7 @@
 #include <mongo/client/dbclient.h>
 
 #include "core/ConfigurationPACS.h"
-#include "core/DBConnection.h" // Warning include DCMTK
+#include "core/NetworkPACS.h" // Warning include DCMTK
 #include "Wado_uri.h"
 #include "WebServiceException.h"
 
@@ -118,11 +118,11 @@ std::string wado_uri(std::string const & querystring, std::string &filename)
     boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
 
     // Create and Initialize DB connection
-    dopamine::DBConnection connection;
+    mongo::DBClientConnection connection;
+    std::string db_name;
+    NetworkPACS::create_db_connection(connection, db_name);
 
-    connection.get_connection().runCommand
-        (connection.get_db_name(),
-            group_command, info, 0);
+    connection.runCommand(db_name, group_command, info, 0);
 
     if ( info["count"].Double() == 0)
     {

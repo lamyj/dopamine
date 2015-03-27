@@ -197,8 +197,8 @@ GetResponseGenerator
             "$reduce" << reduce_function << "initial" << initial_builder.obj() 
         ));
         
-        NetworkPACS::get_instance().get_connection().get_connection().runCommand
-            (NetworkPACS::get_instance().get_connection().get_db_name(),
+        NetworkPACS::get_instance().get_connection().runCommand
+            (NetworkPACS::get_instance().get_db_name(),
                 group_command, this->_info, 0);
                 
         this->_results = this->_info["retval"].Array();

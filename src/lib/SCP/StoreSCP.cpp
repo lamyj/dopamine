@@ -178,8 +178,8 @@ static void storeCallback(
         (*imageDataSet)->findAndGetOFString(DcmTagKey(0x0008,0x0018), sop_instance_uid);
         
         mongo::auto_ptr<mongo::DBClientCursor> cursor =
-            NetworkPACS::get_instance().get_connection().get_connection().query(
-                NetworkPACS::get_instance().get_connection().get_db_name()+"."+"datasets",
+            NetworkPACS::get_instance().get_connection().query(
+                NetworkPACS::get_instance().get_db_name()+"."+"datasets",
                 QUERY("00080018" << sop_instance_uid.c_str()));
 
         if(cursor->more())
@@ -262,8 +262,8 @@ static void storeCallback(
             }
 
             // Store the dataset in DB
-            NetworkPACS::get_instance().get_connection().get_connection().insert(
-                NetworkPACS::get_instance().get_connection().get_db_name()+".datasets",
+            NetworkPACS::get_instance().get_connection().insert(
+                NetworkPACS::get_instance().get_db_name()+".datasets",
                 dataset);
 
             // Create DICOM file

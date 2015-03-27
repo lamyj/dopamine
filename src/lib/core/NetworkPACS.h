@@ -11,11 +11,11 @@
 
 #include <boost/filesystem.hpp>
 
+#include <mongo/client/dbclient.h>
+
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
-
-#include "DBConnection.h"
 
 namespace dopamine
 {
@@ -36,6 +36,12 @@ enum CTN_RefuseReason
     /// other non-specific reason
     CTN_NoReason
 };
+
+std::string const Service_All       = "*";
+std::string const Service_Echo      = "Echo";
+std::string const Service_Store     = "Store";
+std::string const Service_Query     = "Query";
+std::string const Service_Retrieve  = "Retrieve";
 
 /**
  * @brief Class to create and manage a Network
@@ -77,13 +83,34 @@ public:
      */
     void set_timeout(int const & timeout) { this->_timeout = timeout; }
 
-    DBConnection & get_connection() { return this->_connection; }
+    /**
+     * Get the connection with database
+     * @return database connection
+     */
+    mongo::DBClientConnection const & get_connection() const
+        { return this->_connection; }
+
+    /**
+     * Get the connection with database
+     * @return database connection
+     */
+    mongo::DBClientConnection & get_connection()
+        { return this->_connection; }
+
+    /**
+     * Get the database name
+     * @return database name
+     */
+    std::string const & get_db_name() const { return this->_db_name; }
 
     bool check_authorization(UserIdentityNegotiationSubItemRQ * userIdentNeg,
                              std::string const & service);
 
     mongo::BSONObj get_constraint_for_user(UserIdentityNegotiationSubItemRQ * userIdentNeg,
                                            std::string const & service);
+
+
+    static void create_db_connection(mongo::DBClientConnection & connection, std::string & db_name);
 
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
@@ -105,7 +132,11 @@ private:
     /// Unique Instance
     static NetworkPACS * _instance;
 
-    DBConnection _connection;
+    /// Database connection
+    mongo::DBClientConnection _connection;
+
+    /// Database name
+    std::string _db_name;
     
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;
