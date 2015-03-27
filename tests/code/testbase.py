@@ -11,12 +11,12 @@ class TestBase(unittest.TestCase) :
         self._scu_port = os.environ["DOPAMINE_TEST_WRITINGPORT"]
         self._output_directory = os.environ["DOPAMINE_TEST_OUTPUTDIR"]
         self._create_authorization = os.environ["DOPAMINE_TEST_ADD_AUTH"]
+        self._create_specific_auth = os.environ["DOPAMINE_TEST_SPE_AUTH"]
         self._remove_authorization = os.environ["DOPAMINE_TEST_DEL_AUTH"]
     
         unittest.TestCase.__init__(self, *args, **kwargs)
         
     def setUp(self) :
-        print self._create_authorization
         # Add authorization in database
         subprocess.Popen(str(self._create_authorization), shell=True)
         # launch dopamine in a subprocess

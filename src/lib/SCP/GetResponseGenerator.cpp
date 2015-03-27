@@ -56,7 +56,7 @@ GetResponseGenerator
         // Look for user authorization
         if ( !NetworkPACS::get_instance().check_authorization(
                  this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
-                 Service_Query) )
+                 Service_Retrieve) )
         {
             loggerWarning() << "User not allowed to perform GET";
 

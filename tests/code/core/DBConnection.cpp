@@ -7,13 +7,10 @@
  ************************************************************************/
 
 #define BOOST_TEST_MODULE ModuleDBConnection
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "core/ConfigurationPACS.h"
 #include "core/DBConnection.h"
-#include "core/ExceptionPACS.h"
 
 /*************************** TEST OK 01 *******************************/
 /**

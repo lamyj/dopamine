@@ -23,7 +23,8 @@ class TestEchoSCP(TestBase):
     #          use another SCU if it's possible
     def test_run_echoscu_false(self):
         # Remove authorization from database
-        subprocess.Popen(self._remove_authorization, shell=True)
+        thread_remove = subprocess.Popen(self._remove_authorization, shell=True)
+        thread_remove.wait()
         
         try:
             # Send ECHO request
