@@ -31,6 +31,35 @@ class TestGetSCP(TestBase):
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
+    
+    #################################################
+    # Nominal test case: Not Allowed
+    #################################################
+    def test_run_getscu(self):
+        # Remove authorization from database
+        thread_spec = subprocess.Popen(self._create_specific_auth, shell=True)
+        thread_spec.wait()
+        
+        try:
+            # Send a Get request
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
+                                        "-k", " 0008,0052=PATIENT", 
+                                        "-od", self._output_directory,
+                                        "localhost", self._dopamine_port],
+                                        stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            
+            # Read the output
+            out, err = subproc.communicate()
+            
+            # Check results
+            self.assertEqual(out, "")
+            self.assertEqual(err, "")
+            
+            #TODO check result file (no file)
+            
+        except subprocess.CalledProcessError as error:
+            self.assertEqual(error.returncode, 0)
         
     #################################################
     # Error test case: No QueryRetrieveLevel
@@ -53,6 +82,35 @@ class TestGetSCP(TestBase):
             #self.assertRegexpMatches(err, "\(0000,0902\) LO \[Tag not found\]")
             # Error return is not "Tag not found" but "Identifier does not match SOP class"
             self.assertRegexpMatches(err, "Identifier does not match SOP class")
+            
+        except subprocess.CalledProcessError as error:
+            self.assertEqual(error.returncode, 0)
+        
+    #################################################
+    # Error test case: No Authentication
+    #################################################
+    def test_get_not_authenticate(self):
+        # Remove authorization from database
+        thread_remove = subprocess.Popen(self._remove_authorization, shell=True)
+        thread_remove.wait()
+        
+        try:
+            # Send a Get request
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
+                                        "-k", " 0008,0052=PATIENT", 
+                                        "-od", self._output_directory,
+                                        "localhost", self._dopamine_port],
+                                        stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            
+            # Read the output
+            out, err = subproc.communicate()
+            
+            # Check results
+            self.assertEqual(out, "")
+            self.assertRegexpMatches(err, "Out of Resouces - Unable to calculate number of matches")
+            #self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
+            #self.assertRegexpMatches(err, "\(0000,0902\) LO \[User not allowed to perform GET\]")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

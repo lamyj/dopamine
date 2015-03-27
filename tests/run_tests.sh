@@ -278,6 +278,9 @@ db.authorization.insert(j)
 
 j = { "principal_name" : "", "principal_type" : "", "service" : "Query", "dataset" : {} }
 db.authorization.insert(j)
+
+j = { "principal_name" : "", "principal_type" : "", "service" : "Retrieve", "dataset" : {} }
+db.authorization.insert(j)
 EOF
 
 export DOPAMINE_TEST_SPE_AUTH="mongo --quiet ${DIRECTORY}/create_specific_authorization.js"
@@ -288,6 +291,9 @@ db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
 db.authorization.drop()
 
 j = { "principal_name" : "", "principal_type" : "", "service" : "Query", "dataset" : { "00100010" : /^Not_Doe_Jane$/ } }
+db.authorization.insert(j)
+
+j = { "principal_name" : "", "principal_type" : "", "service" : "Retrieve", "dataset" : { "00100010" : /^Not_Doe_Jane$/ } }
 db.authorization.insert(j)
 EOF
 
