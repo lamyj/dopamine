@@ -34,7 +34,8 @@ std::string wado_rs(std::string const & pathinfo, std::string & filename);
 class Wado_rs
 {
 public:
-    Wado_rs(std::string const & pathinfo);
+    Wado_rs(std::string const & pathinfo,
+            std::string const & remoteuser = "");
 
     ~Wado_rs();
 
@@ -55,6 +56,7 @@ private:
     std::vector<mongo::BSONElement> _results;
     std::string _response;
     std::string _boundary;
+    std::string _username;
 
     void parse_pathfinfo(std::string const & pathinfo);
 
@@ -63,6 +65,14 @@ private:
     void create_response();
 
     void create_boundary();
+
+    bool check_authorization(mongo::DBClientConnection & connection,
+                             std::string const & db_name,
+                             std::string const & username);
+
+    mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection & connection,
+                                           std::string const & db_name,
+                                           std::string const & username);
 
 };
 

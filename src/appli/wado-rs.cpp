@@ -16,6 +16,7 @@
 #include <cgicc/HTTPContentHeader.h>
 #include <cgicc/HTTPStatusHeader.h>
 #include <cgicc/HTMLClasses.h>
+#include <cgicc/HTTPResponseHeader.h>
 
 #include "core/ConfigurationPACS.h"
 #include "webservices/Wado_rs.h"
@@ -41,7 +42,7 @@ int main(int argc, char** argv)
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
         // Create the response
-        dopamine::webservices::Wado_rs wadors(environment.getPathInfo());
+        dopamine::webservices::Wado_rs wadors(environment.getPathInfo(), environment.getRemoteUser());
 
         // send response
         std::ostringstream headerstream;
@@ -56,7 +57,15 @@ int main(int argc, char** argv)
     }
     catch (dopamine::webservices::WebServiceException &exc)
     {
-        std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
+        if (exc.status() == 401)
+        {
+            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(), exc.statusmessage())
+                            .addHeader("WWW-Authenticate", "Basic realm=\"cgicc\"");
+        }
+        else
+        {
+            std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
+        }
 
         std::stringstream stream;
         stream << exc.status() << " " << exc.statusmessage();
@@ -71,6 +80,7 @@ int main(int argc, char** argv)
         std::cout << cgicc::body() << std::endl;
         std::cout << "\t" << cgicc::h1(stream.str()) << std::endl;
         std::cout << "\t" << cgicc::p() << exc.what() << cgicc::p() << std::endl;
+
         std::cout << cgicc::body() << std::endl;
 
         std::cout << cgicc::html() << std::endl;
