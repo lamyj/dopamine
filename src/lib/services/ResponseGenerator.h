@@ -45,7 +45,8 @@ public:
 
     typedef ResponseGenerator Self;
 
-    ResponseGenerator(T_ASC_Association * request_association);
+    ResponseGenerator(T_ASC_Association * request_association,
+                      std::string const & service_name);
 
     virtual ~ResponseGenerator();
 
@@ -58,6 +59,8 @@ public:
 protected:
 
     T_ASC_Association * _request_association;
+
+    std::string _service_name;
 
     /// Local AETitle
     std::string _ourAETitle;
@@ -72,7 +75,10 @@ protected:
 
     DcmTagKey _instance_count_tag;
 
-    virtual Uint16 set_query(DcmDataset * dataset) = 0;
+    /// flag indicating if modalities should be convert
+    bool _convert_modalities_in_study;
+
+    virtual Uint16 set_query(DcmDataset * dataset);
 
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
 

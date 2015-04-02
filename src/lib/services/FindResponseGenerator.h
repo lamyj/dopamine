@@ -54,11 +54,7 @@ protected:
      */
     virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details);
 
-    virtual Uint16 set_query(DcmDataset * dataset);
-
 private :
-    /// flag indicating if modalities should be convert
-    bool _convert_modalities_in_study;
     
 };
 

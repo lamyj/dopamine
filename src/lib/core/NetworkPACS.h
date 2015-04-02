@@ -37,11 +37,6 @@ enum CTN_RefuseReason
     CTN_NoReason
 };
 
-std::string const Service_All       = "*";
-std::string const Service_Store     = "Store";
-std::string const Service_Query     = "Query";
-std::string const Service_Retrieve  = "Retrieve";
-
 /**
  * @brief Class to create and manage a Network
  */

@@ -55,8 +55,6 @@ public:
 
 protected:
 
-    virtual Uint16 set_query(DcmDataset * dataset);
-
     /**
      * Process next response
      * @param responseIdentifiers: move response identifiers (out)

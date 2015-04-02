@@ -51,8 +51,6 @@ public:
         T_DIMSE_C_GetRSP* response, DcmDataset** stDetail,
         DcmDataset** responseIdentifiers);
 
-    virtual Uint16 set_query(DcmDataset * dataset);
-
 protected:
     /**
      * Process next response

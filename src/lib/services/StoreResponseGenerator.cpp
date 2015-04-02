@@ -26,7 +26,8 @@ namespace services
 
 StoreResponseGenerator
 ::StoreResponseGenerator(T_ASC_Association *request_association):
-    ResponseGenerator(request_association), _destination_path("")
+    ResponseGenerator(request_association, Service_Store),
+    _destination_path("")
 {
     // Nothing to do
 }
