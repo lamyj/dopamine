@@ -9,10 +9,12 @@
 #ifndef _d93218f7_028e_49c7_a2e0_7f3d860331c5
 #define _d93218f7_028e_49c7_a2e0_7f3d860331c5
 
-#include "GetSCP.h"
 #include "ResponseGenerator.h"
 
 namespace dopamine
+{
+
+namespace services
 {
     
 /**
@@ -26,7 +28,7 @@ public:
      * @param scp: associated C-GET SCP
      * @param ouraetitle: Local AE Title
      */
-    GetResponseGenerator(GetSCP * scp, std::string const & ouraetitle);
+    GetResponseGenerator(T_ASC_Association * request_association);
     
     /// Destroy the get response generator
     virtual ~GetResponseGenerator();
@@ -41,13 +43,15 @@ public:
      * @param stDetail: status detail for get response (out)
      * @param responseIdentifiers: get response identifiers (out)
      */
-    void callBackHandler(
+    void process(
         /* in */
         OFBool cancelled, T_DIMSE_C_GetRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
         /* out */
         T_DIMSE_C_GetRSP* response, DcmDataset** stDetail,
         DcmDataset** responseIdentifiers);
+
+    virtual Uint16 set_query(DcmDataset * dataset);
 
 protected:
     /**
@@ -68,8 +72,13 @@ protected:
                                        DcmDataset* dataset);
 
 private:
+
+    /// Priority of request
+    T_DIMSE_Priority _priority;
     
 };
+
+} // namespace services
     
 } // namespace dopamine
 

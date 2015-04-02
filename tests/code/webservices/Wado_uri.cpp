@@ -13,8 +13,8 @@
 #include <sstream>
 
 #include "core/ConfigurationPACS.h"
-#include "webservices/Wado_uri.h"
-#include "webservices/WebServiceException.h"
+#include "services/webservices/Wado_uri.h"
+#include "services/webservices/WebServiceException.h"
 
 /**
  * Pre-conditions:
@@ -46,14 +46,14 @@ struct TestDataOK01
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.7789" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.7789" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
 
     std::string filename = "";
     // Create the response
-    std::string data = dopamine::webservices::wado_uri(stream.str(), filename);
+    std::string data = dopamine::services::wado_uri(stream.str(), filename);
 
     std::string test_filename(getenv("DOPAMINE_TEST_DICOMFILE"));
     test_filename = boost::filesystem::path(test_filename).filename().c_str();
@@ -73,15 +73,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(query, filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(query, filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(query, filename);
+        dopamine::services::wado_uri(query, filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -99,19 +99,19 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
 BOOST_AUTO_TEST_CASE(TEST_KO_02)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=WADO";
+    stream << dopamine::services::REQUEST_TYPE << "=WADO";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -124,9 +124,9 @@ BOOST_AUTO_TEST_CASE(TEST_KO_02)
     catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri("", filename);
+        dopamine::services::wado_uri("", filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -144,23 +144,23 @@ BOOST_AUTO_TEST_CASE(TEST_KO_02)
 BOOST_AUTO_TEST_CASE(TEST_KO_03)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test" << "&";
     stream << "contentType" << "=" << "test";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -178,22 +178,22 @@ BOOST_AUTO_TEST_CASE(TEST_KO_03)
 BOOST_AUTO_TEST_CASE(TEST_KO_04)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "BADVALUE" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "test";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "BADVALUE" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -211,22 +211,22 @@ BOOST_AUTO_TEST_CASE(TEST_KO_04)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_05, TestDataOK01)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "test";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -245,14 +245,14 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_05, TestDataOK01)
 BOOST_AUTO_TEST_CASE(TEST_KO_06)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "BADVALUE" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "test" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "test";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "BADVALUE" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
                         std::exception);
 }
 
@@ -263,22 +263,22 @@ BOOST_AUTO_TEST_CASE(TEST_KO_06)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_07, TestDataOK01)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.9999" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1.0";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.9999" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1.0";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -296,22 +296,22 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_07, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_08, TestDataOK01)
 {
     std::stringstream stream;
-    stream << dopamine::webservices::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::webservices::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.8888" << "&";
-    stream << dopamine::webservices::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1" << "&";
-    stream << dopamine::webservices::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1.0";
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.8888" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1.0";
 
     std::string filename = "";
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::wado_uri(stream.str(), filename),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::wado_uri(stream.str(), filename),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::wado_uri(stream.str(), filename);
+        dopamine::services::wado_uri(stream.str(), filename);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 

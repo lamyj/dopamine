@@ -15,11 +15,12 @@
 #include "core/LoggerPACS.h"
 #include "ExceptionPACS.h"
 #include "NetworkPACS.h"
-#include "SCP/EchoSCP.h"
-#include "SCP/FindSCP.h"
-#include "SCP/GetSCP.h"
-#include "SCP/MoveSCP.h"
-#include "SCP/StoreSCP.h"
+#include "services/SCP/EchoSCP.h"
+#include "services/SCP/FindSCP.h"
+#include "services/SCP/GetSCP.h"
+#include "services/SCP/MoveSCP.h"
+#include "services/SCP/StoreSCP.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -57,7 +58,7 @@ NetworkPACS
 {
     this->create_authenticator();
 
-    create_db_connection(this->_connection, this->_db_name);
+    services::create_db_connection(this->_connection, this->_db_name);
     
     int port = std::atoi(ConfigurationPACS::get_instance().GetValue("dicom.port").c_str());
     
@@ -111,62 +112,6 @@ NetworkPACS
         std::stringstream stream;
         stream << "Unknown authentication type " << type;
         throw ExceptionPACS(stream.str());
-    }
-}
-
-void NetworkPACS::create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
-{
-    // Get all indexes
-    std::string indexlist = ConfigurationPACS::get_instance().GetValue("database.indexlist");
-    std::vector<std::string> indexeslist;
-    boost::split(indexeslist, indexlist, boost::is_any_of(";"));
-
-    db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
-    std::string db_host = ConfigurationPACS::get_instance().GetValue("database.hostname");
-    std::string db_port = ConfigurationPACS::get_instance().GetValue("database.port");
-
-    if (db_name == "" || db_host == "" || db_port == "")
-    {
-        throw ExceptionPACS("Connection with Database not initialize.");
-    }
-
-    // Try to connect database
-    // Disconnect is automatic when it calls the destructors
-    std::string errormsg = "";
-    if ( ! connection.connect(mongo::HostAndPort(db_host + ":" + db_port),
-                                     errormsg) )
-    {
-        std::stringstream stream;
-        stream << "Connection with Database in error: " << errormsg;
-        throw ExceptionPACS(stream.str());
-    }
-    dopamine::loggerDebug() << "Connection with Database OK";
-
-    // Create indexes
-    std::string const datasets = db_name + ".datasets";
-
-    for (auto currentIndex : indexeslist)
-    {
-        DcmTag dcmtag;
-        OFCondition ret = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
-
-        if (ret.good())
-        {
-            // convert Uint16 => string XXXXYYYY
-            char buffer[9];
-            snprintf(buffer, 9, "%04x%04x", dcmtag.getGroup(), dcmtag.getElement());
-
-            std::stringstream stream;
-            stream << "\"" << buffer << "\"";
-
-            connection.ensureIndex
-                (
-                    datasets,
-                    BSON(stream.str() << 1),
-                    false,
-                    std::string(dcmtag.getTagName())
-                );
-        }
     }
 }
 
@@ -558,31 +503,32 @@ NetworkPACS
             switch (msg.CommandField) {
             case DIMSE_C_ECHO_RQ:
             {
-                EchoSCP echoscp(assoc, presID, &msg.msg.CEchoRQ);
+                services::EchoSCP echoscp(assoc, presID, &msg.msg.CEchoRQ);
                 cond = echoscp.process();
                 break;
             }
             case DIMSE_C_STORE_RQ:
             {
-                StoreSCP storescp(assoc, presID, &msg.msg.CStoreRQ);
+                services::StoreSCP storescp(assoc, presID, &msg.msg.CStoreRQ);
                 cond = storescp.process();
                 break;
             }
             case DIMSE_C_FIND_RQ:
             {
-                FindSCP findscp(assoc, presID, &msg.msg.CFindRQ);
+                services::FindSCP findscp(assoc, presID, &msg.msg.CFindRQ);
                 cond = findscp.process();
                 break;
             }
             case DIMSE_C_GET_RQ:
             {
-                GetSCP getscp(assoc, presID, &msg.msg.CGetRQ);
+                services::GetSCP getscp(assoc, presID, &msg.msg.CGetRQ);
                 cond = getscp.process();
                 break;
             }
             case DIMSE_C_MOVE_RQ:
             {
-                MoveSCP movescp(assoc, presID, &msg.msg.CMoveRQ);
+                services::MoveSCP movescp(assoc, presID, &msg.msg.CMoveRQ);
+                movescp.set_network(this->_network);
                 cond = movescp.process();
                 break;
             }
@@ -650,129 +596,6 @@ NetworkPACS
 ::force_stop()
 {
     this->_forceStop = true;
-}
-
-bool
-NetworkPACS
-::check_authorization(UserIdentityNegotiationSubItemRQ *userIdentNeg,
-                      const std::string &service)
-{
-    std::string lcurrentUser = "";
-
-    // Retrieve UserName for Identity Type: User or User/Pasword
-    if ((userIdentNeg != NULL) &&
-        (userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER ||
-         userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD))
-    {
-        // Get user name
-        char * user; Uint16 user_length;
-        userIdentNeg->getPrimField(user, user_length);
-        // user is not NULL-terminated
-        lcurrentUser = std::string(user, user_length);
-        delete [] user;
-    }
-
-    mongo::BSONArrayBuilder builder;
-    if (lcurrentUser != "")
-    {
-        builder << "*";
-    }
-    builder << lcurrentUser;
-
-    mongo::BSONObjBuilder fields_builder;
-    fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << service));
-
-    mongo::BSONObj group_command = BSON("count" << "authorization" << "query" << fields_builder.obj());
-
-    mongo::BSONObj info;
-    this->_connection.runCommand(this->_db_name, group_command, info, 0);
-
-    // If the command correctly executed and database entries match
-    if (info["ok"].Double() == 1 && info["n"].Double() > 0)
-    {
-        return true;
-    }
-
-    // Not allowed
-    return false;
-}
-
-mongo::BSONObj
-NetworkPACS
-::get_constraint_for_user(UserIdentityNegotiationSubItemRQ * userIdentNeg,
-                          const std::string &service)
-{
-    std::string lcurrentUser = "";
-
-    // Retrieve UserName for Identity Type: User or User/Pasword
-    if ((userIdentNeg != NULL) &&
-        (userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER ||
-         userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD))
-    {
-        // Get user name
-        char * user; Uint16 user_length;
-        userIdentNeg->getPrimField(user, user_length);
-        // user is not NULL-terminated
-        lcurrentUser = std::string(user, user_length);
-        delete [] user;
-    }
-
-    mongo::BSONArrayBuilder builder;
-    if (lcurrentUser != "")
-    {
-        builder << "*";
-    }
-    builder << lcurrentUser;
-
-    // Create Query with user's authorization
-    mongo::BSONObjBuilder fields_builder;
-    fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << service));
-    mongo::BSONObjBuilder initial_builder;
-    mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "authorization" << "key" << BSON("dataset" << 1) << "cond" << fields_builder.obj() <<
-        "$reduce" << "function(current, result) { }" << "initial" << initial_builder.obj()
-    ));
-
-    mongo::BSONObj result;
-    this->_connection.runCommand(this->_db_name, group_command, result, 0);
-
-    if (result["ok"].Double() != 1 || result["count"].Double() == 0)
-    {
-        throw ExceptionPACS("Error while searching authorization into database");
-    }
-
-    mongo::BSONArrayBuilder constaintarray;
-    for (auto item : result["retval"].Array())
-    {
-        // if dataset: "" or dataset: {} => all is allowed
-        if ((item["dataset"].type() == mongo::BSONType::String && item["dataset"].String() == "") ||
-            (item["dataset"].type() == mongo::BSONType::Object && item["dataset"].Obj().isEmpty()))
-        {
-            // No constraint
-            return mongo::BSONObj();
-        }
-
-        // Warning: throw an exception if item["dataset"].type() != mongo::BSONType::Object
-
-        mongo::BSONArrayBuilder andarray;
-        for(mongo::BSONObj::iterator it=item["dataset"].Obj().begin(); it.more();)
-        {
-            mongo::BSONElement const element = it.next();
-
-            mongo::BSONObjBuilder object;
-            object.appendRegex(std::string(element.fieldName())+".1", element.regex(), "");
-            andarray << object.obj();
-        }
-        mongo::BSONObjBuilder andobject;
-        andobject << "$and" << andarray.arr();
-        constaintarray << andobject.obj();
-    }
-    mongo::BSONObjBuilder constraint;
-    constraint << "$or" << constaintarray.arr();
-
-    return constraint.obj();
 }
 
 } // namespace dopamine

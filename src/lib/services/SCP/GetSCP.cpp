@@ -6,16 +6,14 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmqrdb/dcmqropt.h>
-#include <dcmtk/dcmdata/dcdeftag.h>
-#include <dcmtk/dcmnet/diutil.h>
-
 #include "core/LoggerPACS.h"
-#include "GetResponseGenerator.h"
 #include "GetSCP.h"
+#include "services/GetResponseGenerator.h"
 
 namespace dopamine
+{
+
+namespace services
 {
 
 /**
@@ -41,16 +39,16 @@ static void getCallback(
 {
     GetResponseGenerator* context =
             reinterpret_cast<GetResponseGenerator*>(callbackData);
-    context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, stDetail,
-                             responseIdentifiers);
+    context->process(cancelled, request, requestIdentifiers,
+                     responseCount, response, stDetail,
+                     responseIdentifiers);
 }
     
 GetSCP
 ::GetSCP(T_ASC_Association * assoc, 
          T_ASC_PresentationContextID presID, 
          T_DIMSE_C_GetRQ * req):
-    SCP(assoc, presID), _request(req) // base class initialisation
+    services::SCP(assoc, presID), _request(req) // base class initialisation
 {
     // nothing to do
 }
@@ -68,15 +66,13 @@ GetSCP
     dopamine::loggerInfo() << "Received Get SCP: MsgID "
                                 << this->_request->MessageID;
 
-    DIC_AE aeTitle;
-    aeTitle[0] = '\0';
-    ASC_getAPTitles(this->_association->params, NULL, aeTitle, NULL);
-    
-    GetResponseGenerator context(this, std::string(aeTitle));
+    GetResponseGenerator context(this->_association);
     
     return DIMSE_getProvider(this->_association, this->_presentationID, 
                              this->_request, getCallback, &context, 
                              DIMSE_BLOCKING, 0);
 }
+
+} // namespace services
 
 } // namespace dopamine

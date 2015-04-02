@@ -15,14 +15,14 @@
 #include <boost/random/uniform_int_distribution.hpp>
 
 #include "core/ConfigurationPACS.h"
-#include "core/NetworkPACS.h"
+#include "services/ServicesTools.h"
 #include "Wado_rs.h"
 #include "WebServiceException.h"
 
 namespace dopamine
 {
 
-namespace webservices
+namespace services
 {
 
 std::string const authentication_string = "This server could not verify that \
@@ -131,16 +131,18 @@ void Wado_rs::search_database()
     // Create and Initialize DB connection
     mongo::DBClientConnection connection;
     std::string db_name;
-    NetworkPACS::create_db_connection(connection, db_name);
+    create_db_connection(connection, db_name);
 
-    if (! this->check_authorization(connection, db_name, this->_username))
+    if (! is_authorized(connection, db_name, this->_username, Service_Retrieve))
     {
         throw WebServiceException(401, "Authorization Required",
                                   authentication_string);
     }
 
-    mongo::BSONObj constraint =
-            this->get_constraint_for_user(connection, db_name, this->_username);
+    mongo::BSONObj constraint = get_constraint_for_user(connection,
+                                                        db_name,
+                                                        this->_username,
+                                                        Service_Retrieve);
 
     // Requested fields
     mongo::BSONObjBuilder fields_builder;
@@ -273,101 +275,6 @@ void Wado_rs::create_boundary()
     this->_boundary = stream.str();
 }
 
-bool
-Wado_rs
-::check_authorization(mongo::DBClientConnection &connection,
-                      const std::string &db_name,
-                      const std::string &username)
-{
-    mongo::BSONArrayBuilder builder;
-    if (username != "")
-    {
-        builder << "*";
-    }
-    builder << username;
-
-    mongo::BSONObjBuilder fields_builder;
-    fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << Service_Retrieve));
-
-    mongo::BSONObj group_command = BSON("count" << "authorization" << "query" << fields_builder.obj());
-
-    mongo::BSONObj info;
-    connection.runCommand(db_name, group_command, info, 0);
-
-    // If the command correctly executed and database entries match
-    if (info["ok"].Double() == 1 && info["n"].Double() > 0)
-    {
-        return true;
-    }
-
-    // Not allowed
-    return false;
-}
-
-mongo::BSONObj
-Wado_rs
-::get_constraint_for_user(mongo::DBClientConnection &connection,
-                          const std::string &db_name,
-                          const std::string &username)
-{
-    mongo::BSONArrayBuilder builder;
-    if (username != "")
-    {
-        builder << "*";
-    }
-    builder << username;
-
-    // Create Query with user's authorization
-    mongo::BSONObjBuilder fields_builder;
-    fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << Service_Retrieve));
-    mongo::BSONObjBuilder initial_builder;
-    mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "authorization" << "key" << BSON("dataset" << 1) << "cond" << fields_builder.obj() <<
-        "$reduce" << "function(current, result) { }" << "initial" << initial_builder.obj()
-    ));
-
-    mongo::BSONObj result;
-    connection.runCommand(db_name, group_command, result, 0);
-
-    if (result["ok"].Double() != 1 || result["count"].Double() == 0)
-    {
-        throw WebServiceException(500, "Internal Server Error", "Error while searching authorization into database");
-    }
-
-    mongo::BSONArrayBuilder constaintarray;
-    for (auto item : result["retval"].Array())
-    {
-        // if dataset: "" or dataset: {} => all is allowed
-        if ((item["dataset"].type() == mongo::BSONType::String && item["dataset"].String() == "") ||
-            (item["dataset"].type() == mongo::BSONType::Object && item["dataset"].Obj().isEmpty()))
-        {
-            // No constraint
-            return mongo::BSONObj();
-        }
-
-        // Warning: throw an exception if item["dataset"].type() != mongo::BSONType::Object
-
-        mongo::BSONArrayBuilder andarray;
-        for(mongo::BSONObj::iterator it=item["dataset"].Obj().begin(); it.more();)
-        {
-            mongo::BSONElement const element = it.next();
-
-            mongo::BSONObjBuilder object;
-            object.appendRegex(std::string(element.fieldName())+".1", element.regex(), "");
-            andarray << object.obj();
-        }
-        mongo::BSONObjBuilder andobject;
-        andobject << "$and" << andarray.arr();
-        constaintarray << andobject.obj();
-    }
-    mongo::BSONObjBuilder constraint;
-    constraint << "$or" << constaintarray.arr();
-
-    return constraint.obj();
-}
-
-} // namespace webservices
+} // namespace services
 
 } // namespace dopamine

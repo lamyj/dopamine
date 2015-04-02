@@ -15,7 +15,7 @@
 namespace dopamine
 {
 
-namespace webservices
+namespace services
 {
 
 const std::string MIME_TYPE_DICOM = "application/dicom";
@@ -59,7 +59,7 @@ const std::map<std::string, parameters> RequestParameters = {
 
 std::string wado_uri(std::string const & querystring, std::string & filename);
 
-} // namespace webservices
+} // namespace services
 
 } // namespace dopamine
 

@@ -7,10 +7,13 @@
  ************************************************************************/
 
 #include "core/LoggerPACS.h"
-#include "MoveResponseGenerator.h"
 #include "MoveSCP.h"
+#include "services/MoveResponseGenerator.h"
 
 namespace dopamine
+{
+
+namespace services
 {
 
 /**
@@ -35,16 +38,16 @@ static void moveCallback(
 {
     MoveResponseGenerator* context =
             reinterpret_cast<MoveResponseGenerator*>(callbackData);
-    context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, stDetail,
-                             responseIdentifiers);
+    context->process(cancelled, request, requestIdentifiers,
+                     responseCount, response, stDetail,
+                     responseIdentifiers);
 }
     
 MoveSCP
 ::MoveSCP(T_ASC_Association * assoc, 
           T_ASC_PresentationContextID presID,
           T_DIMSE_C_MoveRQ * req):
-    SCP(assoc, presID), _request(req) // base class initialisation
+    services::SCP(assoc, presID), _request(req) // base class initialisation
 {
     // Nothing to do
 }
@@ -62,15 +65,20 @@ MoveSCP
    dopamine::loggerInfo() << "Received Move SCP: MsgID "
                                << this->_request->MessageID;
 
-    DIC_AE aeTitle;
-    aeTitle[0] = '\0';
-    ASC_getAPTitles(this->_association->params, NULL, aeTitle, NULL);
-    
-    MoveResponseGenerator context(this, std::string(aeTitle));
+    MoveResponseGenerator context(this->_association);
     
     return DIMSE_moveProvider(this->_association, this->_presentationID, 
                               this->_request, moveCallback, &context, 
                               DIMSE_BLOCKING, 0);
 }
+
+void
+MoveSCP
+::set_network(T_ASC_Network *network)
+{
+    this->_network = network;
+}
+
+} // namespace services
     
 } // namespace dopamine

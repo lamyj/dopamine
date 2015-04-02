@@ -10,6 +10,9 @@
 
 namespace dopamine
 {
+
+namespace services
+{
     
 SCP
 ::SCP(T_ASC_Association * assoc, T_ASC_PresentationContextID presID):
@@ -23,5 +26,7 @@ SCP
 {
     // nothing to do
 }
+
+} // namespace services
     
 } // namespace dopamine

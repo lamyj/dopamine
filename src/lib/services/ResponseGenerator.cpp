@@ -8,26 +8,13 @@
 
 #include "core/LoggerPACS.h"
 #include "ResponseGenerator.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
 
-std::string 
-ResponseGenerator
-::replace(std::string const & value, std::string const & old, 
-                    std::string const & new_)
+namespace services
 {
-    std::string result(value);
-    size_t begin=0;
-    while(std::string::npos != (begin=result.find(old, begin)))
-    {
-        result = result.replace(begin, old.size(), new_);
-        begin = (begin+new_.size()<result.size())?begin+new_.size()
-                                                 :std::string::npos;
-    }
-    
-    return result;
-}
 
 // Define Unknown specialization first, since other specializations use it.
 template<>
@@ -96,21 +83,21 @@ ResponseGenerator
     //
     std::string regex = value.String();
     // Escape "\\" first since we're using it to replace "."
-    regex = ResponseGenerator::replace(regex, "\\", "\\\\");
+    regex = replace(regex, "\\", "\\\\");
     // Escape "." first since we're using it to replace "*"
-    regex = ResponseGenerator::replace(regex, ".", "\\.");
-    regex = ResponseGenerator::replace(regex, "*", ".*");
-    regex = ResponseGenerator::replace(regex, "?", ".");
+    regex = replace(regex, ".", "\\.");
+    regex = replace(regex, "*", ".*");
+    regex = replace(regex, "?", ".");
     // Escape other PCRE metacharacters
-    regex = ResponseGenerator::replace(regex, "^", "\\^");
-    regex = ResponseGenerator::replace(regex, "$", "\\$");
-    regex = ResponseGenerator::replace(regex, "[", "\\[");
-    regex = ResponseGenerator::replace(regex, "]", "\\]");
-    regex = ResponseGenerator::replace(regex, "(", "\\(");
-    regex = ResponseGenerator::replace(regex, ")", "\\)");
-    regex = ResponseGenerator::replace(regex, "+", "\\+");
-    regex = ResponseGenerator::replace(regex, "{", "\\{");
-    regex = ResponseGenerator::replace(regex, "}", "\\}");
+    regex = replace(regex, "^", "\\^");
+    regex = replace(regex, "$", "\\$");
+    regex = replace(regex, "[", "\\[");
+    regex = replace(regex, "]", "\\]");
+    regex = replace(regex, "(", "\\(");
+    regex = replace(regex, ")", "\\)");
+    regex = replace(regex, "+", "\\+");
+    regex = replace(regex, "{", "\\{");
+    regex = replace(regex, "}", "\\}");
     // Add the start and end anchors
     regex = "^"+regex+"$";
 
@@ -167,14 +154,20 @@ ResponseGenerator
     }
     builder << "$or" << or_builder.arr();
 }
-    
+
 ResponseGenerator
-::ResponseGenerator(SCP * scp, std::string const & ouraetitle):
-    _scp(scp), _ourAETitle(ouraetitle), _status(STATUS_Pending),
-    _query_retrieve_level(""), _results({}), _index(0), 
-    _priority(DIMSE_PRIORITY_MEDIUM)
+::ResponseGenerator(T_ASC_Association *request_association):
+    _request_association(request_association), _ourAETitle(""),
+    _status(STATUS_Pending), _query_retrieve_level("")
 {
-    // Nothing to do
+    // get AE title from association
+    DIC_AE aeTitle;
+    aeTitle[0] = '\0';
+    ASC_getAPTitles(this->_request_association->params, NULL, aeTitle, NULL);
+    _ourAETitle = std::string(aeTitle);
+
+    // Create DataBase Connection
+    create_db_connection(this->_connection, this->_db_name);
 }
 
 ResponseGenerator
@@ -183,20 +176,18 @@ ResponseGenerator
     // Nothing to do
 }
 
-void 
-ResponseGenerator
-::cancel()
+void ResponseGenerator::cancel()
 {
-    dopamine::loggerWarning() << "Function Not implemented: ResponseGenerator::cancel()";
+    loggerWarning() << "Function Not implemented: ResponseGenerator::cancel()";
 }
 
-ResponseGenerator::Match::Type 
+ResponseGenerator::Match::Type
 ResponseGenerator
-::_get_match_type(std::string const & vr, 
+::_get_match_type(std::string const & vr,
                   mongo::BSONElement const & element) const
 {
     Match::Type type = Match::Unknown;
-    
+
     if(element.isNull())
     {
         // C.2.2.2.3 Universal Matching
@@ -216,20 +207,20 @@ ResponseGenerator
         {
             std::string value(element);
             // Not a date or time, no wildcard AND date or time, no range
-            if(!(!is_date_or_time && value.find_first_of("?*") != std::string::npos) && 
+            if(!(!is_date_or_time && value.find_first_of("?*") != std::string::npos) &&
                !(is_date_or_time && value.find('-') != std::string::npos))
             {
                 // C.2.2.2.1 Single Value Matching
-                // Non-zero length AND 
+                // Non-zero length AND
                 //   not a date or time or datetime, contains no wildcard OR
-                //   a date or time or datetime, contains a single date or time 
+                //   a date or time or datetime, contains a single date or time
                 //   or datetime with not "-"
                 type = Match::SingleValue;
             }
             else if(has_wildcard_matching && value.find_first_of("?*") != std::string::npos)
             {
                 // C.2.2.2.4 Wild Card Matching
-                // Not a date, time, datetime, SL, SL, UL, US, FL, FD, OB, 
+                // Not a date, time, datetime, SL, SL, UL, US, FL, FD, OB,
                 // OW, UN, AT, DS, IS, AS, UI and Value contains "*" or "?"
                 type = Match::WildCard;
             }
@@ -255,7 +246,7 @@ ResponseGenerator
             type = Match::MultipleValues;
         }
     }
-    
+
     return type;
 }
 
@@ -300,32 +291,6 @@ ResponseGenerator
     return function;
 }
 
-void
-ResponseGenerator
-::createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
-                     const OFString &comment, DcmDataset **statusDetail)
-{
-    DcmElement * element;
-    std::vector<Uint16> vect;
-    OFCondition cond;
+} // namespace services
 
-    (*statusDetail) = new DcmDataset();
-
-    cond = (*statusDetail)->insertEmptyElement(DCM_Status);
-    cond = (*statusDetail)->findAndGetElement(DCM_Status, element);
-    vect.clear();
-    vect.push_back(errorCode);
-    cond = element->putUint16Array(&vect[0], vect.size());
-
-    cond = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
-    cond = (*statusDetail)->findAndGetElement(DCM_OffendingElement, element);
-    vect.clear();
-    vect.push_back(key.getGroup());
-    vect.push_back(key.getElement());
-    cond = element->putUint16Array(&vect[0], vect.size()/2);
-
-    cond = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                      comment);
-}
-    
 } // namespace dopamine

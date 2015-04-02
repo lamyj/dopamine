@@ -6,17 +6,14 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmqrdb/dcmqropt.h>
-#include <dcmtk/dcmdata/dcdeftag.h>
-#include <dcmtk/dcmnet/diutil.h>
-
 #include "core/LoggerPACS.h"
-#include "core/NetworkPACS.h"
-#include "FindResponseGenerator.h"
+#include "services/FindResponseGenerator.h"
 #include "FindSCP.h"
 
 namespace dopamine
+{
+
+namespace services
 {
 
 /**
@@ -40,9 +37,9 @@ static void findCallback(
 {
     FindResponseGenerator* context =
             reinterpret_cast<FindResponseGenerator*>(callbackData);
-    context->callBackHandler(cancelled, request, requestIdentifiers, 
-                             responseCount, response, responseIdentifiers,
-                             stDetail);
+    context->process(cancelled, request, requestIdentifiers,
+                     responseCount, response, responseIdentifiers,
+                     stDetail);
 }
     
 FindSCP
@@ -67,15 +64,13 @@ FindSCP
     dopamine::loggerInfo() << "Received Find SCP: MsgID "
                                 << this->_request->MessageID;
 
-    DIC_AE aeTitle;
-    aeTitle[0] = '\0';
-    ASC_getAPTitles(this->_association->params, NULL, aeTitle, NULL);
-
-    FindResponseGenerator context(this, std::string(aeTitle));
+    FindResponseGenerator context(this->_association);
     
     return DIMSE_findProvider(this->_association, this->_presentationID,
                               this->_request, findCallback, &context, 
                               DIMSE_BLOCKING, 30);
 }
+
+} // namespace services
 
 } // namespace dopamine

@@ -9,10 +9,12 @@
 #ifndef _ee9915a2_a504_4b21_8d43_7938c66c526e
 #define _ee9915a2_a504_4b21_8d43_7938c66c526e
 
-#include "FindSCP.h"
-#include "ResponseGenerator.h"
+#include "services/ResponseGenerator.h"
 
 namespace dopamine
+{
+
+namespace services
 {
 
 /**
@@ -21,14 +23,8 @@ namespace dopamine
 class FindResponseGenerator : public ResponseGenerator
 {
 public :
-    typedef FindResponseGenerator Self;
-
-    /**
-     * Create a default find response generator
-     * @param scp: associated C-FIND SCP
-     * @param ouraetitle: Local AE Title
-     */
-    FindResponseGenerator(FindSCP* scp, std::string const & ouraetitle);
+    /// Create a default find response generator
+    FindResponseGenerator(T_ASC_Association * request_association);
     
     /// Destroy the find response generator
     virtual ~FindResponseGenerator();
@@ -43,7 +39,7 @@ public :
      * @param responseIdentifiers: find response identifiers (out)
      * @param stDetail: status detail for find response (out)
      */
-    void callBackHandler(
+    void process(
         /* in */
         OFBool cancelled, T_DIMSE_C_FindRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
@@ -58,11 +54,15 @@ protected:
      */
     virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details);
 
+    virtual Uint16 set_query(DcmDataset * dataset);
+
 private :
     /// flag indicating if modalities should be convert
     bool _convert_modalities_in_study;
     
 };
+
+} // namespace services
 
 } // namespace dopamine
 

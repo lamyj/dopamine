@@ -13,8 +13,8 @@
 #include <sstream>
 
 #include "core/ConfigurationPACS.h"
-#include "webservices/Wado_rs.h"
-#include "webservices/WebServiceException.h"
+#include "services/webservices/Wado_rs.h"
+#include "services/webservices/WebServiceException.h"
 
 /**
  * Pre-conditions:
@@ -51,7 +51,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
     stream << "studies" << "/" << "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
 
     // Create the response
-    dopamine::webservices::Wado_rs wadors(stream.str());
+    dopamine::services::Wado_rs wadors(stream.str());
 
     std::string test_filename(getenv("DOPAMINE_TEST_DICOMFILE"));
     test_filename = boost::filesystem::path(test_filename).filename().c_str();
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
     stream << "series" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462458.1";
 
     // Create the response
-    dopamine::webservices::Wado_rs wadors(stream.str());
+    dopamine::services::Wado_rs wadors(stream.str());
 
     std::string test_filename(getenv("DOPAMINE_TEST_DICOMFILE"));
     test_filename = boost::filesystem::path(test_filename).filename().c_str();
@@ -96,7 +96,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
     stream << "instances" << "/" << "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
 
     // Create the response
-    dopamine::webservices::Wado_rs wadors(stream.str());
+    dopamine::services::Wado_rs wadors(stream.str());
 
     std::string test_filename(getenv("DOPAMINE_TEST_DICOMFILE"));
     test_filename = boost::filesystem::path(test_filename).filename().c_str();
@@ -114,18 +114,18 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
     std::string query = "/";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(""),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(""),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -144,15 +144,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_02)
 {
     std::string query = "/unknown/value";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -171,15 +171,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_03)
 {
     std::string query = "/studies/";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -190,8 +190,8 @@ BOOST_AUTO_TEST_CASE(TEST_KO_03)
     BOOST_CHECK_EQUAL(catch_exec, true);
 
     query = "/studies";
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 }
 
 /*************************** TEST KO 04 *******************************/
@@ -202,15 +202,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_04)
 {
     std::string query = "/studies/value/unknown/value";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -229,15 +229,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_05)
 {
     std::string query = "/studies/value/series/";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -248,8 +248,8 @@ BOOST_AUTO_TEST_CASE(TEST_KO_05)
     BOOST_CHECK_EQUAL(catch_exec, true);
 
     query = "/studies/value/series";
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 }
 
 /*************************** TEST KO 06 *******************************/
@@ -260,15 +260,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_06)
 {
     std::string query = "/studies/value/series/value/unknown/value";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -287,15 +287,15 @@ BOOST_AUTO_TEST_CASE(TEST_KO_07)
 {
     std::string query = "/studies/value/series/value/instances/";
 
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -306,8 +306,8 @@ BOOST_AUTO_TEST_CASE(TEST_KO_07)
     BOOST_CHECK_EQUAL(catch_exec, true);
 
     query = "/studies/value/series/value/instances";
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 }
 
 /*************************** TEST KO 08 *******************************/
@@ -319,15 +319,15 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_08, TestDataOK01)
     std::string query = "/studies/value/series/value/instances/value";
 
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
+                        dopamine::services::WebServiceException);
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors(query);
+        dopamine::services::Wado_rs wadors(query);
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -348,7 +348,7 @@ BOOST_AUTO_TEST_CASE(TEST_KO_09)
     std::string query = "/studies/value/series/value/instances/value";
 
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(query),
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(query),
                         std::exception);
 }
 
@@ -366,16 +366,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_10, TestDataOK01)
 
     {
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(stream.str()),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(stream.str()),
+                        dopamine::services::WebServiceException);
     }
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors_(stream.str());
+        dopamine::services::Wado_rs wadors_(stream.str());
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 
@@ -400,16 +400,16 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_11, TestDataOK01)
 
     {
     // Create the response
-    BOOST_REQUIRE_THROW(dopamine::webservices::Wado_rs wadors(stream.str()),
-                        dopamine::webservices::WebServiceException);
+    BOOST_REQUIRE_THROW(dopamine::services::Wado_rs wadors(stream.str()),
+                        dopamine::services::WebServiceException);
     }
 
     bool catch_exec = false;
     try
     {
-        dopamine::webservices::Wado_rs wadors_(stream.str());
+        dopamine::services::Wado_rs wadors_(stream.str());
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         catch_exec = true;
 

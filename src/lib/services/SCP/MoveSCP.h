@@ -6,47 +6,56 @@
  * for details.
  ************************************************************************/
 
-#ifndef _6f9b5539_5d0b_4f90_8779_314e21a8661f
-#define _6f9b5539_5d0b_4f90_8779_314e21a8661f
+#ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
+#define _7e2166a1_25b3_48eb_8226_abe9d64ba064
 
-#include "SCP.h"
+#include "services/SCP/SCP.h"
 
 namespace dopamine
 {
+
+namespace services
+{
     
 /**
- * @brief SCP for C-ECHO services
+ * @brief SCP for C-MOVE services
  */
-class EchoSCP : public SCP
+class MoveSCP : public services::SCP
 {
 public:
     /**
-     * Create a default EchoSCP
+     * Create a default MoveSCP
      * @param assoc: linked association
      * @param presID: linked presentation context
-     * @param req: C-ECHO request
+     * @param req: C-STORE request
      */
-    EchoSCP(T_ASC_Association * assoc, 
+    MoveSCP(T_ASC_Association * assoc, 
             T_ASC_PresentationContextID presID,
-            T_DIMSE_C_EchoRQ * req);
+            T_DIMSE_C_MoveRQ * req);
     
     /// Destroy the SCP
-    virtual ~EchoSCP();
+    virtual ~MoveSCP();
     
     /**
-     * Send the C-ECHO response
+     * Send the C-MOVE response
      * @return EC_Normal if successful, an error code otherwise 
      */
     virtual OFCondition process();
 
+    void set_network(T_ASC_Network *network);
+
 protected:
 
 private:
-    /// Associated C-ECHO request
-    T_DIMSE_C_EchoRQ * _request;
+    /// Associated C-MOVE request
+    T_DIMSE_C_MoveRQ * _request;
 
+    T_ASC_Network * _network;
+    
 };
+
+} // namespace services
     
 } // namespace dopamine
 
-#endif // _6f9b5539_5d0b_4f90_8779_314e21a8661f
+#endif // _7e2166a1_25b3_48eb_8226_abe9d64ba064

@@ -16,7 +16,7 @@
 namespace dopamine
 {
 
-namespace webservices
+namespace services
 {
 
 const std::string ATTRIBUT_BOUNDARY = "boundary=";
@@ -66,17 +66,9 @@ private:
 
     void create_boundary();
 
-    bool check_authorization(mongo::DBClientConnection & connection,
-                             std::string const & db_name,
-                             std::string const & username);
-
-    mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection & connection,
-                                           std::string const & db_name,
-                                           std::string const & username);
-
 };
 
-} // namespace webservices
+} // namespace services
 
 } // namespace dopamine
 

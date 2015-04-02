@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleMoveSCP
 #include <boost/test/unit_test.hpp>
 
-#include "SCP/MoveSCP.h"
+#include "services/SCP/MoveSCP.h"
 
 /**
  * Pre-conditions:
@@ -22,8 +22,10 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    dopamine::MoveSCP * movescp =
-            new dopamine::MoveSCP(NULL, T_ASC_PresentationContextID(), NULL);
+    dopamine::services::MoveSCP * movescp =
+            new dopamine::services::MoveSCP(NULL,
+                                            T_ASC_PresentationContextID(),
+                                            NULL);
 
     BOOST_REQUIRE_EQUAL(movescp != NULL, true);
 

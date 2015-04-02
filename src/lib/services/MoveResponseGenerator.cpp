@@ -10,12 +10,14 @@
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/TagMatch.h"
 #include "core/ConfigurationPACS.h"
-#include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
-#include "core/NetworkPACS.h"
 #include "MoveResponseGenerator.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
+{
+
+namespace services
 {
     
 /**
@@ -30,8 +32,9 @@ static void moveSubProcessCallback(void*, T_DIMSE_StoreProgress * progress,
 }
     
 MoveResponseGenerator
-::MoveResponseGenerator(MoveSCP * scp, std::string const & ouraetitle):
-    ResponseGenerator(scp, ouraetitle) // base class initialisation
+::MoveResponseGenerator(T_ASC_Association *request_association):
+    ResponseGenerator(request_association), // base class initialisation
+    _priority(DIMSE_PRIORITY_MEDIUM)
 {
     _origAETitle[0] = '\0';
 }
@@ -44,7 +47,7 @@ MoveResponseGenerator
 
 void 
 MoveResponseGenerator
-::callBackHandler(
+::process(
         /* in */
         OFBool cancelled, T_DIMSE_C_MoveRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
@@ -54,164 +57,20 @@ MoveResponseGenerator
 {
     if (responseCount == 1)
     {
-        // Look for user authorization
-        if ( !NetworkPACS::get_instance().check_authorization(
-                 this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
-                 Service_Retrieve) )
+        this->_status = this->set_query(requestIdentifiers);
+
+        if (this->_status != STATUS_Success && this->_status != STATUS_Pending)
         {
-            loggerWarning() << "User not allowed to perform MOVE";
-
-            this->_status = STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches;
-            response->DimseStatus = STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches;
-
-            this->createStatusDetail(STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches, DCM_UndefinedTagKey,
-                                     OFString("User not allowed to perform MOVE"), stDetail);
-
-            return;
+            response->DimseStatus = this->_status;
+            createStatusDetail(this->_status, DCM_UndefinedTagKey,
+                               OFString("An error occured while processing Move operation"),
+                               stDetail);
         }
 
         _origMsgID = request->MessageID;
         
-        /* Start the database search */
-
-        mongo::BSONObj constraint =
-                NetworkPACS::get_instance().get_constraint_for_user(
-                    this->_scp->get_association()->params->DULparams.reqUserIdentNeg,
-                    Service_Retrieve);
-
-        // Convert the dataset to BSON, excluding Query/Retrieve Level.
-        DataSetToBSON dataset_to_bson;
-
-        dataset_to_bson.get_filters().push_back(
-            std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
-                           DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(
-            std::make_pair(TagMatch::New(DCM_SpecificCharacterSet),
-                           DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
-
-        mongo::BSONObjBuilder query_builder;
-        dataset_to_bson(requestIdentifiers, query_builder);
-        mongo::BSONObj const query_dataset = query_builder.obj();
-
-        // Build the MongoDB query and query fields from the query dataset.
-        mongo::BSONObjBuilder db_query;
-        mongo::BSONObjBuilder fields_builder;
-        for(mongo::BSONObj::iterator it=query_dataset.begin(); it.more();)
-        {
-            mongo::BSONElement const element = it.next();
-            std::vector<mongo::BSONElement> const array = element.Array();
-
-            std::string const vr = array[0].String();
-            mongo::BSONElement const & value = array[1];
-            Match::Type const match_type = this->_get_match_type(vr, value);
-
-            DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-            // Match the array element containing the value
-            (this->*function)(std::string(element.fieldName())+".1", vr, 
-                                          value, db_query);
-        }
-        
-        // retrieve 'location' field
-        fields_builder << "location" << 1;
-
-        // Always include Specific Character Set in results.
-        if(!fields_builder.hasField("00080005"))
-        {
-            fields_builder << "00080005" << 1;
-        }
-
-        // Always include the keys for the query level and its higher levels
-        OFString ofstring;
-        OFCondition condition = requestIdentifiers->findAndGetOFString(DCM_QueryRetrieveLevel,
-                                                                       ofstring);
-        if (condition.bad())
-        {
-            dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
-                                    << condition .text();
-
-            this->_status = STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
-            response->DimseStatus = STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
-
-            this->createStatusDetail(STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass,
-                                     DCM_QueryRetrieveLevel, OFString(condition.text()), stDetail);
-            return;
-        }
-
-        this->_query_retrieve_level = std::string(ofstring.c_str());
-        if(!fields_builder.hasField("00100020"))
-        {
-            fields_builder << "00100020" << 1;
-        }
-        if((this->_query_retrieve_level=="STUDY" ||
-            this->_query_retrieve_level=="SERIES" ||
-            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
-        {
-            fields_builder << "0020000d" << 1;
-        }
-        if((this->_query_retrieve_level=="SERIES" ||
-            this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
-        {
-            fields_builder << "0020000e" << 1;
-        }
-        if(this->_query_retrieve_level=="IMAGE" && !fields_builder.hasField("00080018"))
-        {
-            fields_builder << "00080018" << 1;
-        }
-
-        // Handle reduce-related attributes
-        std::string reduce_function;
-        mongo::BSONObjBuilder initial_builder;
-
-        // Number of XXX Related Instances (0020,120X)
-        if(query_dataset.hasField("00201204"))
-        {
-            this->_instance_count_tag = DCM_NumberOfPatientRelatedInstances;
-        }
-        else if(query_dataset.hasField("00201208"))
-        {
-            this->_instance_count_tag = DCM_NumberOfStudyRelatedInstances;
-        }
-        else if(query_dataset.hasField("00201209"))
-        {
-            this->_instance_count_tag = DCM_NumberOfSeriesRelatedInstances;
-        }
-        else
-        {
-            this->_instance_count_tag = DCM_UndefinedTagKey;
-        }
-        if (this->_instance_count_tag != DCM_UndefinedTagKey)
-        {
-            reduce_function += "result.instance_count+=1;";
-            initial_builder << "instance_count" << 0;
-        }
-
-        mongo::BSONArrayBuilder finalquerybuilder;
-        finalquerybuilder << constraint << db_query.obj();
-        mongo::BSONObjBuilder finalquery;
-        finalquery << "$and" << finalquerybuilder.arr();
-
-        // Format the reduce function
-        reduce_function = "function(current, result) { " + reduce_function + " }";
-
-        // Perform the DB query.
-        mongo::BSONObj const fields = fields_builder.obj();
-        mongo::BSONObj group_command = BSON("group" << BSON(
-            "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
-            "$reduce" << reduce_function << "initial" << initial_builder.obj()
-        ));
-        
-        NetworkPACS::get_instance().get_connection().runCommand
-            (NetworkPACS::get_instance().get_db_name(),
-                group_command, this->_info, 0);
-                
-        this->_results = this->_info["retval"].Array();
-        this->_index = 0;
-
-        this->_status = STATUS_Pending;
-        
         // Build a new association to the move destination
-        condition = this->buildSubAssociation(request, stDetail);
+        OFCondition condition = this->buildSubAssociation(request, stDetail);
         if (condition.bad())
         {
             dopamine::loggerError() << "Cannot create sub association: "
@@ -240,11 +99,161 @@ MoveResponseGenerator
     }
 }
 
+void
+MoveResponseGenerator
+::set_network(T_ASC_Network *network)
+{
+    this->_network = network;
+}
+
+Uint16 MoveResponseGenerator::set_query(DcmDataset *dataset)
+{
+    if (this->_connection.isFailed())
+    {
+        loggerWarning() << "Could not connect to database: " << this->_db_name;
+        return STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches;
+    }
+
+    // Look for user authorization
+    std::string const username =
+            get_username(this->_request_association->params->DULparams.reqUserIdentNeg);
+    if ( ! is_authorized(this->_connection, this->_db_name, username, Service_Retrieve) )
+    {
+        loggerWarning() << "User not allowed to perform MOVE";
+        return STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches;
+    }
+
+    mongo::BSONObj constraint = get_constraint_for_user(this->_connection,
+                                                        this->_db_name,
+                                                        username,
+                                                        Service_Retrieve);
+
+    // Convert the dataset to BSON, excluding Query/Retrieve Level.
+    DataSetToBSON dataset_to_bson;
+
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
+                       DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_SpecificCharacterSet),
+                       DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
+    mongo::BSONObjBuilder query_builder;
+    dataset_to_bson(dataset, query_builder);
+    mongo::BSONObj const query_dataset = query_builder.obj();
+
+    // Build the MongoDB query and query fields from the query dataset.
+    mongo::BSONObjBuilder db_query;
+    mongo::BSONObjBuilder fields_builder;
+    for(mongo::BSONObj::iterator it=query_dataset.begin(); it.more();)
+    {
+        mongo::BSONElement const element = it.next();
+        std::vector<mongo::BSONElement> const array = element.Array();
+
+        std::string const vr = array[0].String();
+        mongo::BSONElement const & value = array[1];
+        Match::Type const match_type = this->_get_match_type(vr, value);
+
+        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        // Match the array element containing the value
+        (this->*function)(std::string(element.fieldName())+".1", vr,
+                                      value, db_query);
+    }
+
+    // retrieve 'location' field
+    fields_builder << "location" << 1;
+
+    // Always include Specific Character Set in results.
+    if(!fields_builder.hasField("00080005"))
+    {
+        fields_builder << "00080005" << 1;
+    }
+
+    // Always include the keys for the query level and its higher levels
+    OFString ofstring;
+    OFCondition condition = dataset->findAndGetOFString(DCM_QueryRetrieveLevel,
+                                                        ofstring);
+    if (condition.bad())
+    {
+        dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
+                                << condition .text();
+        return STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass;
+    }
+
+    this->_query_retrieve_level = std::string(ofstring.c_str());
+    if(!fields_builder.hasField("00100020"))
+    {
+        fields_builder << "00100020" << 1;
+    }
+    if((this->_query_retrieve_level=="STUDY" ||
+        this->_query_retrieve_level=="SERIES" ||
+        this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
+    {
+        fields_builder << "0020000d" << 1;
+    }
+    if((this->_query_retrieve_level=="SERIES" ||
+        this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+    {
+        fields_builder << "0020000e" << 1;
+    }
+    if(this->_query_retrieve_level=="IMAGE" && !fields_builder.hasField("00080018"))
+    {
+        fields_builder << "00080018" << 1;
+    }
+
+    // Handle reduce-related attributes
+    std::string reduce_function;
+    mongo::BSONObjBuilder initial_builder;
+
+    // Number of XXX Related Instances (0020,120X)
+    if(query_dataset.hasField("00201204"))
+    {
+        this->_instance_count_tag = DCM_NumberOfPatientRelatedInstances;
+    }
+    else if(query_dataset.hasField("00201208"))
+    {
+        this->_instance_count_tag = DCM_NumberOfStudyRelatedInstances;
+    }
+    else if(query_dataset.hasField("00201209"))
+    {
+        this->_instance_count_tag = DCM_NumberOfSeriesRelatedInstances;
+    }
+    else
+    {
+        this->_instance_count_tag = DCM_UndefinedTagKey;
+    }
+    if (this->_instance_count_tag != DCM_UndefinedTagKey)
+    {
+        reduce_function += "result.instance_count+=1;";
+        initial_builder << "instance_count" << 0;
+    }
+
+    mongo::BSONArrayBuilder finalquerybuilder;
+    finalquerybuilder << constraint << db_query.obj();
+    mongo::BSONObjBuilder finalquery;
+    finalquery << "$and" << finalquerybuilder.arr();
+
+    // Format the reduce function
+    reduce_function = "function(current, result) { " + reduce_function + " }";
+
+    // Perform the DB query.
+    mongo::BSONObj const fields = fields_builder.obj();
+    mongo::BSONObj group_command = BSON("group" << BSON(
+        "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
+        "$reduce" << reduce_function << "initial" << initial_builder.obj()
+    ));
+
+    this->_cursor = this->_connection.query(this->_db_name, group_command);
+
+    return STATUS_Pending;
+}
+
 void 
 MoveResponseGenerator
 ::next(DcmDataset ** responseIdentifiers, DcmDataset **details)
 {
-    if(this->_index == this->_results.size())
+    if(!this->_cursor->more())
     {
         // We're done.
         this->_status = STATUS_Success;
@@ -266,14 +275,14 @@ MoveResponseGenerator
     }
     else
     {
-        mongo::BSONObj item = this->_results[this->_index].Obj();
+        mongo::BSONObj item = this->_cursor->next();
         
         if ( ! item.hasField("location"))
         {
             dopamine::loggerError() << "Unable to retrieve location field";
 
-            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, OFString(EC_CorruptedData.text()), details);
+            createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                               DCM_UndefinedTagKey, OFString(EC_CorruptedData.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -287,8 +296,8 @@ MoveResponseGenerator
             dopamine::loggerError() << "Cannot load dataset " << path << " : "
                                     << result.text();
 
-            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, OFString(result.text()), details);
+            createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                               DCM_UndefinedTagKey, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -303,8 +312,8 @@ MoveResponseGenerator
             dopamine::loggerError() << "Cannot retrieve SOPClassUID in dataset: "
                                     << result.text();
 
-            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_SOPClassUID, OFString(result.text()), details);
+            createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                               DCM_SOPClassUID, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -317,8 +326,8 @@ MoveResponseGenerator
             dopamine::loggerError() << "Cannot retrieve SOPInstanceUID in dataset: "
                                     << result.text();
 
-            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_SOPInstanceUID, OFString(result.text()), details);
+            createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                               DCM_SOPInstanceUID, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
             return;
@@ -332,15 +341,13 @@ MoveResponseGenerator
         {
             dopamine::loggerError() << "Move Sub-Op Failed: " << result.text();
 
-            this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                     DCM_UndefinedTagKey, OFString(result.text()), details);
+            createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                               DCM_UndefinedTagKey, OFString(result.text()), details);
 
             this->_status = STATUS_MOVE_Failed_UnableToProcess;
 
             return;
         }
-            
-        ++this->_index;
 
         this->_status = STATUS_Pending;
     }
@@ -397,7 +404,7 @@ MoveResponseGenerator
     
     DIC_AE aeTitle;
     aeTitle[0] = '\0';
-    ASC_getAPTitles(this->_scp->get_association()->params, 
+    ASC_getAPTitles(this->_request_association->params,
                     this->_origAETitle, aeTitle, NULL);
     
     std::string dstHostNamePort;
@@ -406,8 +413,8 @@ MoveResponseGenerator
     {
         dopamine::loggerError() << "Invalid Peer for move operation";
 
-        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, OFString(EC_IllegalParameter.text()), details);
+        createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                           DCM_UndefinedTagKey, OFString(EC_IllegalParameter.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return EC_IllegalParameter;
@@ -418,8 +425,8 @@ MoveResponseGenerator
                                                          ASC_DEFAULTMAXPDU);
     if (result.bad())
     {
-        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, OFString(result.text()), details);
+        createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                           DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
@@ -435,16 +442,15 @@ MoveResponseGenerator
     result = this->addAllStoragePresentationContext(params);
     if (result.bad())
     {
-        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, OFString(result.text()), details);
+        createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                           DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
     }
     
     // Create Association
-    result = ASC_requestAssociation(NetworkPACS::get_instance().get_network(), 
-                                    params, &this->_subAssociation);
+    result = ASC_requestAssociation(this->_network, params, &this->_subAssociation);
     
     if(result.bad())
     {
@@ -462,8 +468,8 @@ MoveResponseGenerator
             dopamine::loggerError() << DimseCondition::dump(empty, result).c_str();
         }
 
-        this->createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey, OFString(result.text()), details);
+        createStatusDetail(STATUS_MOVE_Failed_UnableToProcess,
+                           DCM_UndefinedTagKey, OFString(result.text()), details);
 
         this->_status = STATUS_MOVE_Failed_UnableToProcess;
         return result;
@@ -500,5 +506,7 @@ MoveResponseGenerator
     
     return cond;
 }
+
+} // namespace services
     
 } // namespace dopamine

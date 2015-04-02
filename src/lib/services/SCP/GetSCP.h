@@ -6,35 +6,38 @@
  * for details.
  ************************************************************************/
 
-#ifndef _c3674b2f_3f18_4264_89db_24dd4aaec99a
-#define _c3674b2f_3f18_4264_89db_24dd4aaec99a
+#ifndef _9514edbc_0abe_4f43_bf55_f064fb974d2e
+#define _9514edbc_0abe_4f43_bf55_f064fb974d2e
 
-#include "SCP.h"
+#include "services/SCP/SCP.h"
 
 namespace dopamine
 {
+
+namespace services
+{
     
 /**
- * @brief SCP for C-FIND services
+ * @brief SCP for C-GET services
  */
-class FindSCP : public SCP
+class GetSCP : public services::SCP
 {
 public:
     /**
-     * Create a default FindSCP
+     * Create a default GetSCP
      * @param assoc: linked association
      * @param presID: linked presentation context
-     * @param req: C-FIND request
+     * @param req: C-GET request
      */
-    FindSCP(T_ASC_Association * assoc, 
-            T_ASC_PresentationContextID presID,
-            T_DIMSE_C_FindRQ * req);
+    GetSCP(T_ASC_Association * assoc, 
+           T_ASC_PresentationContextID presID,
+           T_DIMSE_C_GetRQ * req);
     
     /// Destroy the SCP
-    virtual ~FindSCP();
+    virtual ~GetSCP();
     
     /**
-     * Send the C-FIND response
+     * Send the C-GET response
      * @return EC_Normal if successful, an error code otherwise 
      */
     virtual OFCondition process();
@@ -42,11 +45,13 @@ public:
 protected:
 
 private:
-    /// Associated C-FIND request
-    T_DIMSE_C_FindRQ * _request;
+    /// Associated C-GET request
+    T_DIMSE_C_GetRQ * _request;
 
 };
 
+} // namespace services
+    
 } // namespace dopamine
 
-#endif // _c3674b2f_3f18_4264_89db_24dd4aaec99a
+#endif // _9514edbc_0abe_4f43_bf55_f064fb974d2e

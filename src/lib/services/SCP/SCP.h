@@ -9,11 +9,14 @@
 #ifndef _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 #define _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 
-#include "dcmtk/config/osconfig.h" /* make sure OS specific configuration is included first */
-#include "dcmtk/dcmnet/assoc.h"
-#include "dcmtk/dcmnet/dimse.h"
+#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmnet/assoc.h>
+#include <dcmtk/dcmnet/dimse.h>
 
 namespace dopamine
+{
+
+namespace services
 {
     
 /**
@@ -49,6 +52,8 @@ protected:
 private:
     
 };
+
+} // namespace services
     
 } // namespace dopamine
 

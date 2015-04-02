@@ -9,10 +9,12 @@
 #ifndef _79e7aec7_0b07_42b9_b3a0_5086f1595af9
 #define _79e7aec7_0b07_42b9_b3a0_5086f1595af9
 
-#include "MoveSCP.h"
 #include "ResponseGenerator.h"
 
 namespace dopamine
+{
+
+namespace services
 {
     
 /**
@@ -26,7 +28,7 @@ public:
      * @param scp: associated C-MOVE SCP
      * @param ouraetitle: Local AE Title
      */
-    MoveResponseGenerator(MoveSCP * scp, std::string const & ouraetitle);
+    MoveResponseGenerator(T_ASC_Association * request_association);
     
     /// Destroy the move response generator
     virtual ~MoveResponseGenerator();
@@ -41,7 +43,7 @@ public:
      * @param stDetail: status detail for move response (out)
      * @param responseIdentifiers: move response identifiers (out)
      */
-    void callBackHandler(
+    void process(
         /* in */
         OFBool cancelled, T_DIMSE_C_MoveRQ* request,
         DcmDataset* requestIdentifiers, int responseCount,
@@ -49,7 +51,12 @@ public:
         T_DIMSE_C_MoveRSP* response, DcmDataset** stDetail,
         DcmDataset** responseIdentifiers);
 
+    void set_network(T_ASC_Network * network);
+
 protected:
+
+    virtual Uint16 set_query(DcmDataset * dataset);
+
     /**
      * Process next response
      * @param responseIdentifiers: move response identifiers (out)
@@ -92,7 +99,14 @@ private:
     /// Association to send C-Store response
     T_ASC_Association * _subAssociation;
 
+    /// Priority of request
+    T_DIMSE_Priority _priority;
+
+    T_ASC_Network * _network;
+
 };
+
+} // namespace services
     
 } // namespace dopamine
 

@@ -6,35 +6,38 @@
  * for details.
  ************************************************************************/
 
-#ifndef _57ab17de_94cf_44f4_8311_2a22f7360f34
-#define _57ab17de_94cf_44f4_8311_2a22f7360f34
+#ifndef _6f9b5539_5d0b_4f90_8779_314e21a8661f
+#define _6f9b5539_5d0b_4f90_8779_314e21a8661f
 
 #include "SCP.h"
 
 namespace dopamine
 {
-    
+
+namespace services
+{
+
 /**
- * @brief SCP for C-STORE services
+ * @brief SCP for C-ECHO services
  */
-class StoreSCP : public SCP
+class EchoSCP : public SCP
 {
 public:
     /**
-     * Create a default StoreSCP
+     * Create a default EchoSCP
      * @param assoc: linked association
      * @param presID: linked presentation context
-     * @param req: C-STORE request
+     * @param req: C-ECHO request
      */
-    StoreSCP(T_ASC_Association * assoc, 
-             T_ASC_PresentationContextID presID,
-             T_DIMSE_C_StoreRQ * req);
+    EchoSCP(T_ASC_Association * assoc, 
+            T_ASC_PresentationContextID presID,
+            T_DIMSE_C_EchoRQ * req);
     
     /// Destroy the SCP
-    virtual ~StoreSCP();
+    virtual ~EchoSCP();
     
     /**
-     * Send the C-STORE response
+     * Send the C-ECHO response
      * @return EC_Normal if successful, an error code otherwise 
      */
     virtual OFCondition process();
@@ -42,21 +45,13 @@ public:
 protected:
 
 private:
-    /// Associated C-STORE request
-    T_DIMSE_C_StoreRQ * _request;
-    
+    /// Associated C-ECHO request
+    T_DIMSE_C_EchoRQ * _request;
+
 };
 
-/**
- * @brief Context for the Store callback
- */
-struct StoreCallbackData
-{
-    DIC_US status;
-    std::string source_application_entity_title;
-    UserIdentityNegotiationSubItemRQ * user_identity;
-};
+} // namespace services
     
 } // namespace dopamine
 
-#endif // _57ab17de_94cf_44f4_8311_2a22f7360f34
+#endif // _6f9b5539_5d0b_4f90_8779_314e21a8661f

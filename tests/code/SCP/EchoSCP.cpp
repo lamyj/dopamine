@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleEchoSCP
 #include <boost/test/unit_test.hpp>
 
-#include "SCP/EchoSCP.h"
+#include "services/SCP/EchoSCP.h"
 
 /**
  * Pre-conditions:
@@ -22,8 +22,10 @@
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::EchoSCP * echoscp =
-            new dopamine::EchoSCP(NULL, T_ASC_PresentationContextID(), NULL);
+    dopamine::services::EchoSCP * echoscp =
+            new dopamine::services::EchoSCP(NULL,
+                                            T_ASC_PresentationContextID(),
+                                            NULL);
 
     BOOST_REQUIRE_EQUAL(echoscp != NULL, true);
 

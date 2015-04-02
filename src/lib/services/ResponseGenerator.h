@@ -6,24 +6,24 @@
  * for details.
  ************************************************************************/
 
-#ifndef _51950e73_7a21_4362_ba53_4aaf6257e0a6
-#define _51950e73_7a21_4362_ba53_4aaf6257e0a6
+#ifndef _7cbe5cf8_10a1_4e5c_ac53_44e38a2eeebf
+#define _7cbe5cf8_10a1_4e5c_ac53_44e38a2eeebf
 
-#include <vector>
+#include <string>
 
-#include <dcmtk/config/osconfig.h>  /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmdata/dctk.h>     /* Covers most common dcmdata classes */
+#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmdata/dcdatset.h>
+#include <dcmtk/dcmnet/assoc.h>
+#include <dcmtk/dcmnet/dimse.h>
 
 #include <mongo/client/dbclient.h>
 
-#include "SCP.h"
-
 namespace dopamine
 {
-    
-/**
- * @brief Base class for all Response Generator.
- */
+
+namespace services
+{
+
 class ResponseGenerator
 {
 public:
@@ -42,86 +42,57 @@ public:
             Unknown
         };
     };
-    
+
     typedef ResponseGenerator Self;
 
-    /**
-     * Create default Response generator
-     * @param scp: associated SCP
-     * @param ouraetitle: Local AETitle
-     */
-    ResponseGenerator(SCP * scp, std::string const & ouraetitle);
-    
-    /// Destroy the response generator
+    ResponseGenerator(T_ASC_Association * request_association);
+
     virtual ~ResponseGenerator();
-    
-    /**
-     * Replace all given pattern by another
-     * @param value: given input string
-     * @param old: search pattern to be replaced
-     * @param new_: new pattern
-     * @return string
-     */
-    static std::string replace(std::string const & value, 
-                               std::string const & old, 
-                               std::string const & new_);
 
-    static void createStatusDetail(Uint16 const & errorCode, DcmTagKey const & key,
-                            OFString const & comment, DcmDataset **statusDetail);
-
-protected:
-    /// Associated SCP
-    SCP * _scp;
-    
-    /// Local AETitle
-    std::string _ourAETitle;
-    
-    DIC_US _status;
-
-    std::string _query_retrieve_level;
-    
-    /// Store results
-    std::vector<mongo::BSONElement> _results;
-    
-    /// current index for _results vector
-    unsigned long _index;
-    
-    mongo::BSONObj _info;
-    
-    DcmTagKey _instance_count_tag;
-    
-    /// Priority of request
-    T_DIMSE_Priority _priority;
-    
     /**
      * Cancel response generation
      * NOT IMPLEMENTED YET
      */
     virtual void cancel();
-    
-    /**
-     * Process next response
-     * @param responseIdentifiers: service response identifiers
-     */
-    virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details) = 0;
-    
+
+protected:
+
+    T_ASC_Association * _request_association;
+
+    /// Local AETitle
+    std::string _ourAETitle;
+
+    mongo::DBClientConnection _connection;
+
+    std::string _db_name;
+
+    DIC_US _status;
+
+    std::string _query_retrieve_level;
+
+    DcmTagKey _instance_count_tag;
+
+    virtual Uint16 set_query(DcmDataset * dataset) = 0;
+
+    mongo::unique_ptr<mongo::DBClientCursor> _cursor;
+
     /// @brief Return the DICOM Match Type of an element in BSON form.
-    Match::Type _get_match_type(std::string const & vr, 
+    Match::Type _get_match_type(std::string const & vr,
                                 mongo::BSONElement const & element) const;
-                                
-    
+
+
     /// @brief Type of DICOM query -> MongoDB query conversion functions.
     typedef void (Self::*DicomQueryToMongoQuery)(
         std::string const & field, std::string const & vr,
         mongo::BSONElement const & value,
         mongo::BSONObjBuilder & builder) const;
-        
+
     /**
      * @brief Return the DICOM query -> MongoDB query conversion function
      *        corresponding to the specified match type.
      */
     DicomQueryToMongoQuery _get_query_conversion(Match::Type const & match_type) const;
-    
+
 private:
     /**
      * @brief Convert a BSON element from the DICOM query language to the
@@ -134,9 +105,11 @@ private:
         std::string const & field, std::string const & vr,
         mongo::BSONElement const & value,
         mongo::BSONObjBuilder & builder) const;
-    
+
 };
-    
+
+} // namespace services
+
 } // namespace dopamine
 
-#endif // _51950e73_7a21_4362_ba53_4aaf6257e0a6
+#endif // _7cbe5cf8_10a1_4e5c_ac53_44e38a2eeebf

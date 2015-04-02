@@ -14,7 +14,7 @@
 namespace dopamine
 {
 
-namespace webservices
+namespace services
 {
 
 /**
@@ -61,7 +61,7 @@ private:
 
 };
 
-} // namespace webservices
+} // namespace services
 
 } // namespace dopamine
 

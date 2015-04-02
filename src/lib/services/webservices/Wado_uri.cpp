@@ -16,14 +16,14 @@
 #include <mongo/client/dbclient.h>
 
 #include "core/ConfigurationPACS.h"
-#include "core/NetworkPACS.h" // Warning include DCMTK
+#include "services/ServicesTools.h"
 #include "Wado_uri.h"
 #include "WebServiceException.h"
 
 namespace dopamine
 {
 
-namespace webservices
+namespace services
 {
 
 std::string wado_uri(std::string const & querystring, std::string &filename)
@@ -120,7 +120,7 @@ std::string wado_uri(std::string const & querystring, std::string &filename)
     // Create and Initialize DB connection
     mongo::DBClientConnection connection;
     std::string db_name;
-    NetworkPACS::create_db_connection(connection, db_name);
+    create_db_connection(connection, db_name);
 
     connection.runCommand(db_name, group_command, info, 0);
 
@@ -175,6 +175,6 @@ std::string wado_uri(std::string const & querystring, std::string &filename)
     return "";
 }
 
-} // namespace webservices
+} // namespace services
 
 } // namespace dopamine

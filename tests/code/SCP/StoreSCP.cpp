@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleStoreSCP
 #include <boost/test/unit_test.hpp>
 
-#include "SCP/StoreSCP.h"
+#include "services/SCP/StoreSCP.h"
 
 /**
  * Pre-conditions:
@@ -22,8 +22,10 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    dopamine::StoreSCP * storescp =
-            new dopamine::StoreSCP(NULL, T_ASC_PresentationContextID(), NULL);
+    dopamine::services::StoreSCP * storescp =
+            new dopamine::services::StoreSCP(NULL,
+                                             T_ASC_PresentationContextID(),
+                                             NULL);
 
     BOOST_REQUIRE_EQUAL(storescp != NULL, true);
 

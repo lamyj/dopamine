@@ -6,35 +6,38 @@
  * for details.
  ************************************************************************/
 
-#ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
-#define _7e2166a1_25b3_48eb_8226_abe9d64ba064
+#ifndef _57ab17de_94cf_44f4_8311_2a22f7360f34
+#define _57ab17de_94cf_44f4_8311_2a22f7360f34
 
-#include "SCP.h"
+#include "services/SCP/SCP.h"
 
 namespace dopamine
 {
+
+namespace services
+{
     
 /**
- * @brief SCP for C-MOVE services
+ * @brief SCP for C-STORE services
  */
-class MoveSCP : public SCP
+class StoreSCP : public SCP
 {
 public:
     /**
-     * Create a default MoveSCP
+     * Create a default StoreSCP
      * @param assoc: linked association
      * @param presID: linked presentation context
      * @param req: C-STORE request
      */
-    MoveSCP(T_ASC_Association * assoc, 
-            T_ASC_PresentationContextID presID,
-            T_DIMSE_C_MoveRQ * req);
+    StoreSCP(T_ASC_Association * assoc, 
+             T_ASC_PresentationContextID presID,
+             T_DIMSE_C_StoreRQ * req);
     
     /// Destroy the SCP
-    virtual ~MoveSCP();
+    virtual ~StoreSCP();
     
     /**
-     * Send the C-MOVE response
+     * Send the C-STORE response
      * @return EC_Normal if successful, an error code otherwise 
      */
     virtual OFCondition process();
@@ -42,11 +45,13 @@ public:
 protected:
 
 private:
-    /// Associated C-MOVE request
-    T_DIMSE_C_MoveRQ * _request;
+    /// Associated C-STORE request
+    T_DIMSE_C_StoreRQ * _request;
     
 };
+
+} // namespace services
     
 } // namespace dopamine
 
-#endif // _7e2166a1_25b3_48eb_8226_abe9d64ba064
+#endif // _57ab17de_94cf_44f4_8311_2a22f7360f34

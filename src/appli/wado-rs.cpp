@@ -19,8 +19,8 @@
 #include <cgicc/HTTPResponseHeader.h>
 
 #include "core/ConfigurationPACS.h"
-#include "webservices/Wado_rs.h"
-#include "webservices/WebServiceException.h"
+#include "services/webservices/Wado_rs.h"
+#include "services/webservices/WebServiceException.h"
 
 int main(int argc, char** argv)
 {
@@ -42,20 +42,20 @@ int main(int argc, char** argv)
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
         // Create the response
-        dopamine::webservices::Wado_rs wadors(environment.getPathInfo(), environment.getRemoteUser());
+        dopamine::services::Wado_rs wadors(environment.getPathInfo(), environment.getRemoteUser());
 
         // send response
         std::ostringstream headerstream;
-        headerstream << dopamine::webservices::MIME_VERSION << "\n"
-                     << dopamine::webservices::CONTENT_TYPE
-                     << dopamine::webservices::MIME_TYPE_MULTIPART_RELATED << "; "
-                     << dopamine::webservices::ATTRIBUT_BOUNDARY
+        headerstream << dopamine::services::MIME_VERSION << "\n"
+                     << dopamine::services::CONTENT_TYPE
+                     << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
+                     << dopamine::services::ATTRIBUT_BOUNDARY
                      << wadors.get_boundary() << "\n";
 
         std::cout << headerstream.str() << "\n";
         std::cout << wadors.get_response() << "\n";
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         if (exc.status() == 401)
         {

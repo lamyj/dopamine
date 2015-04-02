@@ -7,11 +7,13 @@
  ************************************************************************/
 
 #include "core/LoggerPACS.h"
-#include "core/NetworkPACS.h"
 #include "EchoSCP.h"
-#include "ResponseGenerator.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
+{
+
+namespace services
 {
     
 EchoSCP
@@ -36,20 +38,37 @@ EchoSCP
     loggerInfo() << "Received Echo SCP RQ: MsgID "
                  << this->_request->MessageID;
 
+    mongo::DBClientConnection connection;
+    std::string db_name;
+    bool connection_state = create_db_connection(connection, db_name);
+
     // Default response is SUCCESS
     DIC_US status = STATUS_Success;
     DcmDataset * details = NULL;
 
-    // Look for user authorization
-    if ( !NetworkPACS::get_instance().check_authorization(this->_association->params->DULparams.reqUserIdentNeg,
-                                                          Service_Echo) )
+    if (connection_state)
+    {
+        std::string const username = get_username(this->_association->params->DULparams.reqUserIdentNeg);
+
+        // Look for user authorization
+        if ( ! is_authorized(connection, db_name, username, Service_Echo) )
+        {
+            status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+            loggerWarning() << "User not allowed to perform ECHO";
+
+            createStatusDetail(0xa700, DCM_UndefinedTagKey,
+                               OFString("User not allowed to perform ECHO"),
+                               &details);
+        }
+    }
+    else
     {
         status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
-        loggerWarning() << "User not allowed to perform ECHO";
+        loggerWarning() << "Could not connect to database: " << db_name;
 
-        ResponseGenerator::createStatusDetail(0xa700, DCM_UndefinedTagKey,
-                                              OFString("User not allowed to perform ECHO"),
-                                              &details);
+        createStatusDetail(0xa700, DCM_UndefinedTagKey,
+                           OFString("Could not connect to database"),
+                           &details);
     }
 
     // Send the response
@@ -58,5 +77,7 @@ EchoSCP
                                   this->_request, 
                                   status, details);
 }
+
+} // namespace services
     
 } // namespace dopamine

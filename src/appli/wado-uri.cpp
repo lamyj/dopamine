@@ -19,8 +19,8 @@
 #include "cgicc/HTMLClasses.h"
 
 #include "core/ConfigurationPACS.h"
-#include "webservices/Wado_uri.h"
-#include "webservices/WebServiceException.h"
+#include "services/webservices/Wado_uri.h"
+#include "services/webservices/WebServiceException.h"
 
 int main(int argc, char** argv)
 {
@@ -44,16 +44,16 @@ int main(int argc, char** argv)
         std::string filename = "";
 
         // Create the response
-        std::string data = dopamine::webservices::wado_uri(environment.getQueryString(), filename);
+        std::string data = dopamine::services::wado_uri(environment.getQueryString(), filename);
 
         // send response
         std::stringstream headerstream;
-        headerstream << dopamine::webservices::MIME_TYPE_DICOM << std::endl
+        headerstream << dopamine::services::MIME_TYPE_DICOM << std::endl
                      << "Content-Disposition: attachment; filename=" << filename;
         std::cout << cgicc::HTTPContentHeader(headerstream.str());
         std::cout.write(&data[0], data.size());
     }
-    catch (dopamine::webservices::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException &exc)
     {
         std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
 

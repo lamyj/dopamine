@@ -38,7 +38,6 @@ enum CTN_RefuseReason
 };
 
 std::string const Service_All       = "*";
-std::string const Service_Echo      = "Echo";
 std::string const Service_Store     = "Store";
 std::string const Service_Query     = "Query";
 std::string const Service_Retrieve  = "Retrieve";
@@ -102,15 +101,6 @@ public:
      * @return database name
      */
     std::string const & get_db_name() const { return this->_db_name; }
-
-    bool check_authorization(UserIdentityNegotiationSubItemRQ * userIdentNeg,
-                             std::string const & service);
-
-    mongo::BSONObj get_constraint_for_user(UserIdentityNegotiationSubItemRQ * userIdentNeg,
-                                           std::string const & service);
-
-
-    static void create_db_connection(mongo::DBClientConnection & connection, std::string & db_name);
 
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request based
