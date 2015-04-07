@@ -419,6 +419,9 @@ mongo --quiet ${DIRECTORY}/delete_db.js
 # Create Database
 mongo --quiet ${DIRECTORY}/create_db.js
 
+# Create Authorization
+mongo --quiet ${DIRECTORY}/create_authorization.js
+
 ./src/appli/dopamine &
 
 # Execute unit tests
