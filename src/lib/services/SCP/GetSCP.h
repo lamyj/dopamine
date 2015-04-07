@@ -9,7 +9,7 @@
 #ifndef _9514edbc_0abe_4f43_bf55_f064fb974d2e
 #define _9514edbc_0abe_4f43_bf55_f064fb974d2e
 
-#include "services/RetrieveResponseGenerator.h"
+#include "services/RetrieveGenerator.h"
 #include "services/SCP/SCP.h"
 
 namespace dopamine

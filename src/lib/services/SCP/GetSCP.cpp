@@ -122,7 +122,7 @@ GetSCP
 
     std::string const username =
            get_username(this->_association->params->DULparams.reqUserIdentNeg);
-    RetrieveResponseGenerator generator(username);
+    RetrieveGenerator generator(username);
 
     StoreSubOperation storeprovider(NULL, this->_association,
                                     this->_request->MessageID);

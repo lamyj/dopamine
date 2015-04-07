@@ -7,7 +7,7 @@
  ************************************************************************/
 
 #include "core/LoggerPACS.h"
-#include "services/FindResponseGenerator.h"
+#include "services/QueryGenerator.h"
 #include "FindSCP.h"
 
 namespace dopamine
@@ -35,8 +35,8 @@ static void findCallback(
         T_DIMSE_C_FindRSP *response, DcmDataset **responseIdentifiers,
         DcmDataset **stDetail)
 {
-    FindResponseGenerator* context =
-            reinterpret_cast<FindResponseGenerator*>(callbackData);
+    QueryGenerator* context =
+            reinterpret_cast<QueryGenerator*>(callbackData);
 
     Uint16 status = STATUS_Pending;
 
@@ -175,7 +175,7 @@ FindSCP
 
     std::string const username =
            get_username(this->_association->params->DULparams.reqUserIdentNeg);
-    FindResponseGenerator context(username);
+    QueryGenerator context(username);
     
     return DIMSE_findProvider(this->_association, this->_presentationID,
                               this->_request, findCallback, &context, 

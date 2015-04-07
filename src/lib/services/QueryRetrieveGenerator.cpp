@@ -24,7 +24,7 @@ namespace services
 QueryRetrieveGenerator
 ::QueryRetrieveGenerator(const std::string &username,
                          const std::string &service_name):
-    ResponseGenerator(username), _service_name(service_name),
+    Generator(username), _service_name(service_name),
     _query_retrieve_level(""), _convert_modalities_in_study(false)
 {
 }

@@ -22,7 +22,7 @@ namespace dopamine
 namespace services
 {
 
-class ResponseGenerator
+class Generator
 {
 public:
     /// @brief DICOM match type, see PS 3.4-2011, C.2.2.2
@@ -41,11 +41,11 @@ public:
         };
     };
 
-    typedef ResponseGenerator Self;
+    typedef Generator Self;
 
-    ResponseGenerator(std::string const & username);
+    Generator(std::string const & username);
 
-    virtual ~ResponseGenerator();
+    virtual ~Generator();
 
     /**
      * Cancel response generation

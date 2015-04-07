@@ -10,7 +10,7 @@
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/TagMatch.h"
 #include "core/LoggerPACS.h"
-#include "ResponseGenerator.h"
+#include "Generator.h"
 #include "services/ServicesTools.h"
 
 namespace dopamine
@@ -22,8 +22,8 @@ namespace services
 // Define Unknown specialization first, since other specializations use it.
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::Unknown>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::Unknown>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -34,8 +34,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::SingleValue>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::SingleValue>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -45,8 +45,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::ListOfUID>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::ListOfUID>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -63,8 +63,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::Universal>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::Universal>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -74,8 +74,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::WildCard>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::WildCard>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -110,8 +110,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::Range>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::Range>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -136,8 +136,8 @@ ResponseGenerator
 
 template<>
 void
-ResponseGenerator
-::_dicom_query_to_mongo_query<ResponseGenerator::Match::MultipleValues>(
+Generator
+::_dicom_query_to_mongo_query<Generator::Match::MultipleValues>(
     std::string const & field, std::string const & vr,
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
@@ -158,26 +158,26 @@ ResponseGenerator
     builder << "$or" << or_builder.arr();
 }
 
-ResponseGenerator
-::ResponseGenerator(const std::string &username):
+Generator
+::Generator(const std::string &username):
     _username(username)
 {
     // Create DataBase Connection
     create_db_connection(this->_connection, this->_db_name);
 }
 
-ResponseGenerator
-::~ResponseGenerator()
+Generator
+::~Generator()
 {
     // Nothing to do
 }
 
-void ResponseGenerator::cancel()
+void Generator::cancel()
 {
-    loggerWarning() << "Function Not implemented: ResponseGenerator::cancel()";
+    loggerWarning() << "Function Not implemented: Generator::cancel()";
 }
 
-mongo::BSONObj ResponseGenerator::next()
+mongo::BSONObj Generator::next()
 {
     if (this->_cursor->more())
     {
@@ -187,8 +187,8 @@ mongo::BSONObj ResponseGenerator::next()
     return mongo::BSONObj();
 }
 
-ResponseGenerator::Match::Type
-ResponseGenerator
+Generator::Match::Type
+Generator
 ::_get_match_type(std::string const & vr,
                   mongo::BSONElement const & element) const
 {
@@ -256,8 +256,8 @@ ResponseGenerator
     return type;
 }
 
-ResponseGenerator::DicomQueryToMongoQuery
-ResponseGenerator
+Generator::DicomQueryToMongoQuery
+Generator
 ::_get_query_conversion(Match::Type const & match_type) const
 {
     DicomQueryToMongoQuery function = NULL;

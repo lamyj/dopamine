@@ -8,7 +8,7 @@
 
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
-#include "services/StoreResponseGenerator.h"
+#include "services/StoreGenerator.h"
 #include "StoreSCP.h"
 
 namespace dopamine
@@ -51,8 +51,8 @@ static void storeCallback(
         }
         else
         {
-            StoreResponseGenerator* context =
-                    reinterpret_cast<StoreResponseGenerator*>(callbackData);
+            StoreGenerator* context =
+                    reinterpret_cast<StoreGenerator*>(callbackData);
 
             Uint16 result = context->set_query(*imageDataSet);
 
@@ -92,7 +92,7 @@ StoreSCP
 
     std::string const username =
            get_username(this->_association->params->DULparams.reqUserIdentNeg);
-    StoreResponseGenerator context(username);
+    StoreGenerator context(username);
 
     std::string callingaptitle = "";
     char const * aet = this->_association->params->DULparams.callingAPTitle;

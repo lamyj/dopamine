@@ -9,7 +9,7 @@
 #ifndef _137519da_5031_4188_b52f_b1a3616696c5
 #define _137519da_5031_4188_b52f_b1a3616696c5
 
-#include "services/ResponseGenerator.h"
+#include "services/Generator.h"
 
 namespace dopamine
 {
@@ -17,13 +17,13 @@ namespace dopamine
 namespace services
 {
 
-class StoreResponseGenerator : public ResponseGenerator
+class StoreGenerator : public Generator
 {
 public:
-    StoreResponseGenerator(std::string const & username);
+    StoreGenerator(std::string const & username);
 
     /// Destroy the store response generator
-    virtual ~StoreResponseGenerator();
+    virtual ~StoreGenerator();
 
     virtual Uint16 set_query(DcmDataset * dataset);
 

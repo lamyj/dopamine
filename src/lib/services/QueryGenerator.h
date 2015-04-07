@@ -20,14 +20,14 @@ namespace services
 /**
  * @brief Response Generator for C-FIND services.
  */
-class FindResponseGenerator : public QueryRetrieveGenerator
+class QueryGenerator : public QueryRetrieveGenerator
 {
 public :
     /// Create a default find response generator
-    FindResponseGenerator(std::string const & username);
+    QueryGenerator(std::string const & username);
     
     /// Destroy the find response generator
-    virtual ~FindResponseGenerator();
+    virtual ~QueryGenerator();
 
 protected:
 

@@ -18,12 +18,12 @@ namespace dopamine
 namespace services
 {
 
-class RetrieveResponseGenerator : public QueryRetrieveGenerator
+class RetrieveGenerator : public QueryRetrieveGenerator
 {
 public:
-    RetrieveResponseGenerator(std::string const & username);
+    RetrieveGenerator(std::string const & username);
 
-    virtual ~RetrieveResponseGenerator();
+    virtual ~RetrieveGenerator();
 
 protected:
 
@@ -33,10 +33,10 @@ private:
 
 struct RetrieveContext
 {
-    RetrieveResponseGenerator* _generator;
+    RetrieveGenerator* _generator;
     StoreSubOperation* _storeprovider;
 
-    RetrieveContext(RetrieveResponseGenerator * generator,
+    RetrieveContext(RetrieveGenerator * generator,
                     StoreSubOperation * storeprovider):
         _generator(generator), _storeprovider(storeprovider) {}
 };

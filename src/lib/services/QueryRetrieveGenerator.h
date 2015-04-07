@@ -13,7 +13,7 @@
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dctagkey.h>
 
-#include "ResponseGenerator.h"
+#include "Generator.h"
 #include "ServicesTools.h"
 
 namespace dopamine
@@ -22,7 +22,7 @@ namespace dopamine
 namespace services
 {
 
-class QueryRetrieveGenerator : public ResponseGenerator
+class QueryRetrieveGenerator : public Generator
 {
 public:
     QueryRetrieveGenerator(std::string const & username,

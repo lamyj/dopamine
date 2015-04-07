@@ -19,7 +19,7 @@
 #include "core/Hashcode.h"
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
-#include "StoreResponseGenerator.h"
+#include "StoreGenerator.h"
 
 namespace dopamine
 {
@@ -27,20 +27,20 @@ namespace dopamine
 namespace services
 {
 
-StoreResponseGenerator
-::StoreResponseGenerator(const std::string &username):
-    ResponseGenerator(username), _destination_path("")
+StoreGenerator
+::StoreGenerator(const std::string &username):
+    Generator(username), _destination_path("")
 {
     // Nothing to do
 }
 
-StoreResponseGenerator
-::~StoreResponseGenerator()
+StoreGenerator
+::~StoreGenerator()
 {
     // Nothing to do
 }
 
-Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
+Uint16 StoreGenerator::set_query(DcmDataset * dataset)
 {
     if (this->_connection.isFailed())
     {
@@ -142,14 +142,14 @@ Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
 }
 
 void
-StoreResponseGenerator
+StoreGenerator
 ::set_callingaptitle(const std::string &callingaptitle)
 {
     this->_callingaptitle = callingaptitle;
 }
 
 void
-StoreResponseGenerator
+StoreGenerator
 ::create_destination_path(DcmDataset * dataset)
 {
     // Compute the destination filename
@@ -181,7 +181,8 @@ StoreResponseGenerator
     _destination_path = destination.string();
 }
 
-bool StoreResponseGenerator
+bool
+StoreGenerator
 ::is_dataset_allowed_for_storage(mongo::BSONObj const & dataset)
 {
     // Retrieve user's Rights
