@@ -94,8 +94,8 @@ class TestMoveSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(0008,0052\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[Tag not found\]")
+            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
+            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Move operation\]")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -125,7 +125,7 @@ class TestMoveSCP(TestBase):
             self.assertEqual(out, "")
             #self.assertRegexpMatches(err, "Out of Resouces - Unable to calculate number of matches")
             self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[User not allowed to perform MOVE\]")
+            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Move operation\]")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

@@ -192,22 +192,17 @@ QueryRetrieveGenerator
         this->_convert_modalities_in_study = false;
     }
 
+    // Create Query
     mongo::BSONArrayBuilder finalquerybuilder;
     finalquerybuilder << constraint << db_query.obj();
-    mongo::BSONObjBuilder finalquery;
-    finalquery << "$and" << finalquerybuilder.arr();
+    mongo::Query query(BSON("$and" << finalquerybuilder.arr()));
 
-    // Format the reduce function
-    reduce_function = "function(current, result) { " + reduce_function + " }";
-
-    // Perform the DB query.
+    // Get fields to retrieve
     mongo::BSONObj const fields = fields_builder.obj();
-    mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
-        "$reduce" << reduce_function << "initial" << initial_builder.obj()
-    ));
 
-    this->_cursor = this->_connection.query(this->_db_name, group_command);
+    // Searching into database...
+    this->_cursor = this->_connection.query(this->_db_name + ".datasets",
+                                            query, 0, 0, &fields);
 
     return STATUS_Pending;
 }

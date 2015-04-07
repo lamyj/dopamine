@@ -69,6 +69,17 @@ static void findCallback(
             // We're done.
             status = STATUS_Success;
         }
+        else if (object.hasField("$err"))
+        {
+            dopamine::loggerError() << "An error occured while processing Find operation: "
+                                    << object.getField("$err").String();
+
+            status = STATUS_FIND_Failed_UnableToProcess;
+
+            createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
+                               DCM_UndefinedTagKey,
+                               OFString(object.getField("$err").String().c_str()), stDetail);
+        }
         else
         {
             (*responseIdentifiers) = context->bson_to_dataset(object);

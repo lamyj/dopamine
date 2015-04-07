@@ -73,8 +73,8 @@ class TestFindSCP(TestBase):
             # Check results
             self.assertEqual(out, "")
             self.assertRegexpMatches(err, "Find Response: Failed: IdentifierDoesNotMatchSOPClass")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(0008,0052\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[Tag not found \]")
+            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
+            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Find operation\]")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -102,7 +102,7 @@ class TestFindSCP(TestBase):
             self.assertEqual(out, "")
             self.assertRegexpMatches(err, "Refused: OutOfResources")
             self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[User not allowed to perform FIND\]")
+            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Find operation\]")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
