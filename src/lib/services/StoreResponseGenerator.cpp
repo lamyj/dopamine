@@ -9,6 +9,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
+#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmnet/dimse.h>
+
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
@@ -25,9 +28,8 @@ namespace services
 {
 
 StoreResponseGenerator
-::StoreResponseGenerator(T_ASC_Association *request_association):
-    ResponseGenerator(request_association, Service_Store),
-    _destination_path("")
+::StoreResponseGenerator(const std::string &username):
+    ResponseGenerator(username), _destination_path("")
 {
     // Nothing to do
 }
@@ -36,26 +38,6 @@ StoreResponseGenerator
 ::~StoreResponseGenerator()
 {
     // Nothing to do
-}
-
-void
-StoreResponseGenerator
-::process(T_DIMSE_StoreProgress *progress, T_DIMSE_C_StoreRQ *req,
-          char *imageFileName, DcmDataset **imageDataSet,
-          T_DIMSE_C_StoreRSP *rsp, DcmDataset **stDetail)
-{
-    if(progress->state == DIMSE_StoreEnd)
-    {
-        Uint16 result = this->set_query(*imageDataSet);
-
-        if (result != STATUS_Success)
-        {
-            rsp->DimseStatus = result;
-            createStatusDetail(result, DCM_UndefinedTagKey,
-                               OFString("An error occured while processing Storage"),
-                               stDetail);
-        }
-    }
 }
 
 Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
@@ -67,10 +49,11 @@ Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
     }
 
     // Look for user authorization
-    std::string const username = get_username(this->_request_association->params->DULparams.reqUserIdentNeg);
-    if ( ! is_authorized(this->_connection, this->_db_name, username, Service_Store) )
+    if ( ! is_authorized(this->_connection, this->_db_name,
+                         this->_username, Service_Store) )
     {
-        loggerWarning() << "User not allowed to perform STORE";
+        loggerWarning() << "User '" << this->_username << "' not allowed to perform "
+                        << Service_Store;
         return STATUS_STORE_Refused_OutOfResources;
     }
 
@@ -144,17 +127,10 @@ Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
         stream << this->_db_name << ".datasets";
         this->_connection.insert(stream.str(), bsondataset);
 
-        std::string callingaptitle = "";
-        char const * aet = this->_request_association->params->DULparams.callingAPTitle;
-        if(aet != NULL)
-        {
-            callingaptitle = this->_request_association->params->DULparams.callingAPTitle;
-        }
-
         // Create the header of the new file
         DcmFileFormat file_format(dataset);
         file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle,
-                                                      callingaptitle.c_str());
+                                                      this->_callingaptitle.c_str());
 
         // Create DICOM file
         boost::filesystem::create_directories(boost::filesystem::path(this->_destination_path).parent_path());
@@ -163,6 +139,13 @@ Uint16 StoreResponseGenerator::set_query(DcmDataset * dataset)
     }
 
     return STATUS_Success;
+}
+
+void
+StoreResponseGenerator
+::set_callingaptitle(const std::string &callingaptitle)
+{
+    this->_callingaptitle = callingaptitle;
 }
 
 void
@@ -201,13 +184,10 @@ StoreResponseGenerator
 bool StoreResponseGenerator
 ::is_dataset_allowed_for_storage(mongo::BSONObj const & dataset)
 {
-    std::string const username =
-            get_username(this->_request_association->params->DULparams.reqUserIdentNeg);
-
     // Retrieve user's Rights
     mongo::BSONObj constraint =
             get_constraint_for_user(this->_connection, this->_db_name,
-                                    username, Service_Store);
+                                    this->_username, Service_Store);
 
     if (constraint.isEmpty())
     {

@@ -9,7 +9,7 @@
 #ifndef _ee9915a2_a504_4b21_8d43_7938c66c526e
 #define _ee9915a2_a504_4b21_8d43_7938c66c526e
 
-#include "services/ResponseGenerator.h"
+#include "services/QueryRetrieveGenerator.h"
 
 namespace dopamine
 {
@@ -20,39 +20,16 @@ namespace services
 /**
  * @brief Response Generator for C-FIND services.
  */
-class FindResponseGenerator : public ResponseGenerator
+class FindResponseGenerator : public QueryRetrieveGenerator
 {
 public :
     /// Create a default find response generator
-    FindResponseGenerator(T_ASC_Association * request_association);
+    FindResponseGenerator(std::string const & username);
     
     /// Destroy the find response generator
     virtual ~FindResponseGenerator();
-    
-    /**
-     * Callback handler called by the DIMSE_findProvider callback function
-     * @param cancelled: flag indicating whether a C-CANCEL was received (in)
-     * @param request: original find request (in)
-     * @param requestIdentifiers: original find request identifiers (in)
-     * @param responseCount: find response count (in)
-     * @param response: final find response (out)
-     * @param responseIdentifiers: find response identifiers (out)
-     * @param stDetail: status detail for find response (out)
-     */
-    void process(
-        /* in */
-        OFBool cancelled, T_DIMSE_C_FindRQ* request,
-        DcmDataset* requestIdentifiers, int responseCount,
-        /* out */
-        T_DIMSE_C_FindRSP* response,
-        DcmDataset** responseIdentifiers, DcmDataset** stDetail);
 
 protected:
-    /**
-     * Process next response
-     * @param responseIdentifiers: find response identifiers (out)
-     */
-    virtual void next(DcmDataset ** responseIdentifiers, DcmDataset ** details);
 
 private :
     

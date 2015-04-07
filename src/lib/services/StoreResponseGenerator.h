@@ -20,23 +20,19 @@ namespace services
 class StoreResponseGenerator : public ResponseGenerator
 {
 public:
-    StoreResponseGenerator(T_ASC_Association * request_association);
+    StoreResponseGenerator(std::string const & username);
 
     /// Destroy the store response generator
     virtual ~StoreResponseGenerator();
 
-    void process(T_DIMSE_StoreProgress *progress,    /* progress state */
-                 T_DIMSE_C_StoreRQ *req,             /* original store request */
-                 char *imageFileName,                /* being received into */
-                 DcmDataset **imageDataSet,          /* being received into */
-                 /* out */
-                 T_DIMSE_C_StoreRSP *rsp,            /* final store response */
-                 DcmDataset **stDetail);
-
     virtual Uint16 set_query(DcmDataset * dataset);
+
+    void set_callingaptitle(std::string const & callingaptitle);
 
 private:
     std::string _destination_path;
+
+    std::string _callingaptitle;
 
     void create_destination_path(DcmDataset *dataset);
 

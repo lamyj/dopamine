@@ -53,8 +53,16 @@ static void storeCallback(
         {
             StoreResponseGenerator* context =
                     reinterpret_cast<StoreResponseGenerator*>(callbackData);
-            context->process(progress, req, imageFileName,
-                             imageDataSet, rsp, stDetail);
+
+            Uint16 result = context->set_query(*imageDataSet);
+
+            if (result != STATUS_Success)
+            {
+                rsp->DimseStatus = result;
+                createStatusDetail(result, DCM_UndefinedTagKey,
+                                   OFString("An error occured while processing Storage"),
+                                   stDetail);
+            }
         }
 
     }
@@ -81,8 +89,18 @@ StoreSCP
 {
     dopamine::loggerInfo() << "Received Store SCP: MsgID "
                                 << this->_request->MessageID;
-              
-    StoreResponseGenerator context(this->_association);
+
+    std::string const username =
+           get_username(this->_association->params->DULparams.reqUserIdentNeg);
+    StoreResponseGenerator context(username);
+
+    std::string callingaptitle = "";
+    char const * aet = this->_association->params->DULparams.callingAPTitle;
+    if(aet != NULL)
+    {
+        callingaptitle = this->_association->params->DULparams.callingAPTitle;
+    }
+    context.set_callingaptitle(callingaptitle);
 
     /* we must still retrieve the data set even if some error has occured */
     DcmDataset dset;

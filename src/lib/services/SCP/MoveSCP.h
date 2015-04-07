@@ -9,6 +9,7 @@
 #ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
 #define _7e2166a1_25b3_48eb_8226_abe9d64ba064
 
+#include "services/RetrieveResponseGenerator.h"
 #include "services/SCP/SCP.h"
 
 namespace dopamine

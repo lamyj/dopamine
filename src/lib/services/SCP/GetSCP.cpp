@@ -8,7 +8,6 @@
 
 #include "core/LoggerPACS.h"
 #include "GetSCP.h"
-#include "services/GetResponseGenerator.h"
 
 namespace dopamine
 {
@@ -37,11 +36,66 @@ static void getCallback(
         DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
-    GetResponseGenerator* context =
-            reinterpret_cast<GetResponseGenerator*>(callbackData);
-    context->process(cancelled, request, requestIdentifiers,
-                     responseCount, response, stDetail,
-                     responseIdentifiers);
+    RetrieveContext * context =
+            reinterpret_cast<RetrieveContext*>(callbackData);
+
+    Uint16 status = STATUS_Pending;
+
+    if (responseCount == 1)
+    {
+        // Search into database
+        status = context->_generator->set_query(requestIdentifiers);
+
+        if (status != STATUS_Pending)
+        {
+            createStatusDetail(status, DCM_UndefinedTagKey,
+                               OFString("An error occured while processing Get operation"),
+                               stDetail);
+        }
+    }
+
+    /* only cancel if we have pending responses */
+    if (cancelled && status == STATUS_Pending)
+    {
+        // Todo: not implemented yet
+        context->_generator->cancel();
+    }
+
+    /* Process next result */
+    if (status == STATUS_Pending)
+    {
+        mongo::BSONObj object = context->_generator->next();
+
+        if (object.isValid() && object.isEmpty())
+        {
+            // We're done.
+            status = STATUS_Success;
+        }
+        else
+        {
+            OFCondition condition =
+                    context->_storeprovider->performSubOperation(context->_generator->bson_to_dataset(object),
+                                                                 request->Priority);
+
+            if (condition.bad())
+            {
+                dopamine::loggerError() << "Cannot process sub association: "
+                                        << condition.text();
+                createStatusDetail(0xc000, DCM_UndefinedTagKey,
+                                   OFString(condition.text()), stDetail);
+
+                status = 0xc000; // Unable to process
+            }
+            // else status = STATUS_Pending
+        }
+    }
+
+    /* set response status */
+    response->DimseStatus = status;
+    if (status == STATUS_Pending || status == STATUS_Success)
+    {
+        (*stDetail) = NULL;
+    }
 }
     
 GetSCP
@@ -66,8 +120,15 @@ GetSCP
     dopamine::loggerInfo() << "Received Get SCP: MsgID "
                                 << this->_request->MessageID;
 
-    GetResponseGenerator context(this->_association);
-    
+    std::string const username =
+           get_username(this->_association->params->DULparams.reqUserIdentNeg);
+    RetrieveResponseGenerator generator(username);
+
+    StoreSubOperation storeprovider(NULL, this->_association,
+                                    this->_request->MessageID);
+
+    RetrieveContext context(&generator, &storeprovider);
+
     return DIMSE_getProvider(this->_association, this->_presentationID, 
                              this->_request, getCallback, &context, 
                              DIMSE_BLOCKING, 0);

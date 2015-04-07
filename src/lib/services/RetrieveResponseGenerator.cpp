@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include "FindResponseGenerator.h"
+#include "RetrieveResponseGenerator.h"
 
 namespace dopamine
 {
@@ -14,15 +14,14 @@ namespace dopamine
 namespace services
 {
 
-FindResponseGenerator
-::FindResponseGenerator(const std::string &username):
-    QueryRetrieveGenerator(username, Service_Query) // base class initialisation
+RetrieveResponseGenerator
+::RetrieveResponseGenerator(std::string const & username):
+    QueryRetrieveGenerator(username, Service_Retrieve) // base class initialization
 {
-    // Nothing to do
 }
 
-FindResponseGenerator
-::~FindResponseGenerator()
+RetrieveResponseGenerator
+::~RetrieveResponseGenerator()
 {
     // Nothing to do
 }
