@@ -33,7 +33,7 @@ ENDIF(NOT CPACK_PACKAGE_ARCHITECTURE)
 set(CPACK_PACKAGE_NAME "dopamine")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dopamine")
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
-set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION_MINOR "2")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_VERSION
     "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}~${release}")
@@ -43,7 +43,7 @@ set(CPACK_PACKAGE_FILE_NAME
     "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_ARCHITECTURE}")
 
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "lahaxe<lahaxe@unistra.fr>")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Romain Lahaxe <lahaxe@unistra.fr>")
 
 # Get packaged Boost version from release
 if(${release} STREQUAL "precise")
@@ -58,10 +58,10 @@ endif()
 
 # depends on Boost DCMTK log4cpp mongodb
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-filesystem${boost_version},
+                                  libboost-regex${boost_version},
                                   libboost-random${boost_version},
                                   libboost-system${boost_version},
                                   libboost-thread${boost_version},
-                                  libcgicc5,
                                   libdcmtk2,
                                   liblog4cpp5,
                                   mongodb-clients")
