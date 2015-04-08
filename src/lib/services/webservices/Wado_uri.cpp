@@ -13,9 +13,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 
-#include <mongo/client/dbclient.h>
-
 #include "core/ConfigurationPACS.h"
+#include "services/RetrieveGenerator.h"
 #include "services/ServicesTools.h"
 #include "Wado_uri.h"
 #include "WebServiceException.h"
@@ -26,7 +25,72 @@ namespace dopamine
 namespace services
 {
 
-std::string wado_uri(std::string const & querystring, std::string &filename)
+Wado_uri
+::Wado_uri(const std::string &querystring, const std::string &remoteuser):
+    _filename(""), _response(""), _username(remoteuser)
+{
+    mongo::BSONObj object = this->parse_querystring(querystring);
+
+    RetrieveGenerator generator(this->_username);
+
+    Uint16 status = generator.set_query(object);
+    if (status != STATUS_Pending)
+    {
+        throw WebServiceException(500, "Internal Server Error",
+                                  "Error while searching into database");
+    }
+
+    mongo::BSONObj findedobject = generator.next();
+    if (!findedobject.isValid() || findedobject.isEmpty())
+    {
+        throw WebServiceException(404, "Not Found", "No Dataset");
+    }
+
+    if (findedobject.hasField("location") &&
+        !findedobject["location"].isNull() &&
+        findedobject["location"].String() != "")
+    {
+        std::string value = findedobject["location"].String();
+
+        this->_filename = boost::filesystem::path(value).filename().c_str();
+
+        // Open file
+        std::ifstream dataset(value, std::ifstream::binary | std::ifstream::in);
+        if (dataset.is_open())
+        {
+            // get length of file:
+            int length = boost::filesystem::file_size(boost::filesystem::path(value));
+
+            std::string output(length, '\0');
+
+            // read data as a block:
+            dataset.read (&output[0], output.size());
+
+            // Close file
+            dataset.close();
+
+            this->_response = output;
+        }
+        else
+        {
+            throw WebServiceException(500, "Internal Server Error", "Unable to open file");
+        }
+    }
+    else
+    {
+        throw WebServiceException(404, "Not Found", "Dataset is empty");
+    }
+}
+
+Wado_uri
+::~Wado_uri()
+{
+    // Nothing to do
+}
+
+mongo::BSONObj
+Wado_uri
+::parse_querystring(const std::string &querystring)
 {
     // Parse the query string
     // WARNING: inadequate method (TODO: find other method)
@@ -86,93 +150,13 @@ std::string wado_uri(std::string const & querystring, std::string &filename)
 
     // Request is valid
 
-    // Requested fields
-    mongo::BSONObjBuilder fields_builder;
-    fields_builder << "00080018" << 1; // SOPInstanceUID
-    fields_builder << "0020000d" << 1; // StudyInstanceUID
-    fields_builder << "0020000e" << 1; // SeriesInstanceUID
-    fields_builder << "location" << 1; // Dataset file path
-
     // Conditions
     mongo::BSONObjBuilder db_query;
-    db_query << "00080018.1" << variables[SOP_INSTANCE_UID]
-             << "0020000d.1" << variables[STUDY_INSTANCE_UID]
-             << "0020000e.1" << variables[SERIES_INSTANCE_UID];
+    db_query << "00080018" << BSON_ARRAY("UI" << variables[SOP_INSTANCE_UID])
+             << "0020000d" << BSON_ARRAY("UI" << variables[STUDY_INSTANCE_UID])
+             << "0020000e" << BSON_ARRAY("UI" << variables[SERIES_INSTANCE_UID]);
 
-    // Perform the DB query.
-    mongo::BSONObj const fields = fields_builder.obj();
-
-    mongo::BSONObjBuilder initial_builder;
-    std::string reduce_function = "function(current, result) { }";
-    mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "datasets" << "key" << fields << "cond" << db_query.obj() <<
-        "$reduce" << reduce_function << "initial" << initial_builder.obj()
-    ));
-
-    mongo::BSONObj info;
-
-    // Get all indexes
-    std::string indexlist =
-        dopamine::ConfigurationPACS::get_instance().GetValue("database.indexlist");
-    std::vector<std::string> indexlistvect;
-    boost::split(indexlistvect, indexlist, boost::is_any_of(";"));
-
-    // Create and Initialize DB connection
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    create_db_connection(connection, db_name);
-
-    connection.runCommand(db_name, group_command, info, 0);
-
-    if ( info["count"].Double() == 0)
-    {
-        throw WebServiceException(404, "Not Found", "Dataset not found");
-    }
-
-    std::vector<mongo::BSONElement> results = info["retval"].Array();
-
-    if (results.size() == 0)
-    {
-        throw WebServiceException(404, "Not Found", "Dataset not found");
-    }
-
-    mongo::BSONObj bsonobject = results[0].Obj();
-    if (bsonobject.hasField("location") &&
-        !bsonobject["location"].isNull() &&
-        bsonobject["location"].String() != "")
-    {
-        std::string value = bsonobject["location"].String();
-
-        filename = boost::filesystem::path(value).filename().c_str();
-
-        // Open file
-        std::ifstream dataset(value, std::ifstream::binary | std::ifstream::in);
-        if (dataset.is_open())
-        {
-            // get length of file:
-            int length = boost::filesystem::file_size(boost::filesystem::path(value));
-
-            std::string output(length, '\0');
-
-            // read data as a block:
-            dataset.read (&output[0], output.size());
-
-            // Close file
-            dataset.close();
-
-            return output;
-        }
-        else
-        {
-            throw WebServiceException(500, "Internal Server Error", "Unable to open file");
-        }
-    }
-    else
-    {
-        throw WebServiceException(404, "Not Found", "Dataset is empty");
-    }
-
-    return "";
+    return db_query.obj();
 }
 
 } // namespace services

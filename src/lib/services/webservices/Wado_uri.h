@@ -12,6 +12,8 @@
 #include <map>
 #include <string>
 
+#include <mongo/client/dbclient.h>
+
 namespace dopamine
 {
 
@@ -57,7 +59,28 @@ const std::map<std::string, parameters> RequestParameters = {
     { "frameNumber", parameters(false, false) }
 };
 
-std::string wado_uri(std::string const & querystring, std::string & filename);
+class Wado_uri
+{
+public:
+    Wado_uri(std::string const & querystring,
+             std::string const & remoteuser = "");
+
+    ~Wado_uri();
+
+    std::string get_filename() const { return this->_filename; }
+
+    std::string get_response() const { return this->_response; }
+
+protected:
+
+private:
+    std::string _filename;
+    std::string _response;
+    std::string _username;
+
+    mongo::BSONObj parse_querystring(std::string const & querystring);
+
+};
 
 } // namespace services
 

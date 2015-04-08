@@ -41,16 +41,15 @@ int main(int argc, char** argv)
         // Get the Environment Variables
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
-        std::string filename = "";
-
         // Create the response
-        std::string data = dopamine::services::wado_uri(environment.getQueryString(), filename);
+        dopamine::services::Wado_uri wadouri(environment.getQueryString(), environment.getRemoteUser());
 
         // send response
         std::stringstream headerstream;
         headerstream << dopamine::services::MIME_TYPE_DICOM << std::endl
-                     << "Content-Disposition: attachment; filename=" << filename;
+                     << "Content-Disposition: attachment; filename=" << wadouri.get_filename();
         std::cout << cgicc::HTTPContentHeader(headerstream.str());
+        std::string data = wadouri.get_response();
         std::cout.write(&data[0], data.size());
     }
     catch (dopamine::services::WebServiceException &exc)

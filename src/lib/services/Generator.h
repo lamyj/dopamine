@@ -51,11 +51,11 @@ public:
      * Cancel response generation
      * NOT IMPLEMENTED YET
      */
-    virtual void cancel();
+    void cancel();
 
     virtual Uint16 set_query(mongo::BSONObj const & query_dataset) = 0;
 
-    virtual mongo::BSONObj next();
+    mongo::BSONObj next();
 
 protected:
 
