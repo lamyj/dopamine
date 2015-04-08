@@ -53,7 +53,7 @@ public:
      */
     virtual void cancel();
 
-    virtual Uint16 set_query(DcmDataset * dataset) = 0;
+    virtual Uint16 set_query(mongo::BSONObj const & query_dataset) = 0;
 
     virtual mongo::BSONObj next();
 

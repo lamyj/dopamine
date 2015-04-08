@@ -42,8 +42,17 @@ static void moveCallback(
 
     if (responseCount == 1)
     {
+        mongo::BSONObj object = context->_generator->dataset_to_bson(requestIdentifiers);
+        if (!object.isValid() || object.isEmpty())
+        {
+            status = 0xa900;
+        }
+
         // Search into database
-        status = context->_generator->set_query(requestIdentifiers);
+        if (status == STATUS_Pending)
+        {
+            status = context->_generator->set_query(object);
+        }
 
         if (status != STATUS_Pending)
         {

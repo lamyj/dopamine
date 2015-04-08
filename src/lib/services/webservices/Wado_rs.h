@@ -29,8 +29,6 @@ const std::string MIME_TYPE_MULTIPART_RELATED = "multipart/related";
 const std::string MIME_VERSION = "MIME-Version: 1.0";
 const std::string TRANSFER_ENCODING_BINARY = "binary";
 
-std::string wado_rs(std::string const & pathinfo, std::string & filename);
-
 class Wado_rs
 {
 public:
@@ -50,19 +48,11 @@ protected:
 
 private:
     std::string _filename;
-    std::string _study_instance_uid;
-    std::string _series_instance_uid;
-    std::string _sop_instance_uid;
-    std::vector<mongo::BSONElement> _results;
     std::string _response;
     std::string _boundary;
     std::string _username;
 
-    void parse_pathfinfo(std::string const & pathinfo);
-
-    void search_database();
-
-    void create_response();
+    mongo::BSONObj parse_pathfinfo(std::string const & pathinfo);
 
     void create_boundary();
 

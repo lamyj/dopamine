@@ -9,9 +9,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmnet/dimse.h>
-
 #include "ConverterBSON/DataSetToBSON.h"
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
@@ -29,7 +26,8 @@ namespace services
 
 StoreGenerator
 ::StoreGenerator(const std::string &username):
-    Generator(username), _destination_path("")
+    Generator(username), _destination_path(""),
+    _sop_instance_uid(""), _dataset(NULL)
 {
     // Nothing to do
 }
@@ -40,7 +38,7 @@ StoreGenerator
     // Nothing to do
 }
 
-Uint16 StoreGenerator::set_query(DcmDataset * dataset)
+Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
 {
     if (this->_connection.isFailed())
     {
@@ -57,18 +55,9 @@ Uint16 StoreGenerator::set_query(DcmDataset * dataset)
         return STATUS_STORE_Refused_OutOfResources;
     }
 
-    // Check if we already have this dataset, based on its SOP Instance UID
-    OFString sop_instance_uid;
-    OFCondition ret = dataset->findAndGetOFString(DcmTagKey(0x0008,0x0018),
-                                                  sop_instance_uid);
-    if (ret.bad())
-    {
-        loggerWarning() << "Cannot retrieve SOP Instance UID";
-        return STATUS_STORE_Warning_CoersionOfDataElements;
-    }
-
     mongo::BSONObj group_command =
-            BSON("count" << "datasets" << "query" << BSON("00080018" << sop_instance_uid.c_str()));
+            BSON("count" << "datasets" << "query"
+                 << BSON("00080018" << this->_sop_instance_uid.c_str()));
 
     mongo::BSONObj info;
     this->_connection.runCommand(this->_db_name, group_command, info, 0);
@@ -87,36 +76,8 @@ Uint16 StoreGenerator::set_query(DcmDataset * dataset)
     }
     else
     {
-        this->create_destination_path(dataset);
-
-        // Convert the dcmtk dataset to BSON
-        DataSetToBSON converter;
-
-        converter.get_filters().push_back(std::make_pair(
-            IsPrivateTag::New(), DataSetToBSON::FilterAction::EXCLUDE));
-        converter.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OB), DataSetToBSON::FilterAction::EXCLUDE));
-        converter.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OF), DataSetToBSON::FilterAction::EXCLUDE));
-        converter.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OW), DataSetToBSON::FilterAction::EXCLUDE));
-        converter.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_UN), DataSetToBSON::FilterAction::EXCLUDE));
-        converter.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
-
-        mongo::BSONObjBuilder builder;
-        converter(dataset, builder);
-
-        // Store it in the Mongo DB instance
-        mongo::OID const id(mongo::OID::gen());
-        builder << "_id" << id;
-
-        // Add DICOM file path into BSON object
-        builder << "location" << this->_destination_path;
-
         // Check user's constraints (user's Rights)
-        mongo::BSONObj bsondataset = builder.obj();
-        if (!this->is_dataset_allowed_for_storage(bsondataset))
+        if (!this->is_dataset_allowed_for_storage(query_dataset))
         {
             loggerWarning() << "User not allowed to perform STORE";
             return STATUS_STORE_Refused_OutOfResources;
@@ -125,10 +86,10 @@ Uint16 StoreGenerator::set_query(DcmDataset * dataset)
         // Store the dataset in DB
         std::stringstream stream;
         stream << this->_db_name << ".datasets";
-        this->_connection.insert(stream.str(), bsondataset);
+        this->_connection.insert(stream.str(), query_dataset);
 
         // Create the header of the new file
-        DcmFileFormat file_format(dataset);
+        DcmFileFormat file_format(this->_dataset);
         file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle,
                                                       this->_callingaptitle.c_str());
 
@@ -138,7 +99,7 @@ Uint16 StoreGenerator::set_query(DcmDataset * dataset)
                              EXS_LittleEndianExplicit);
     }
 
-    return STATUS_Success;
+    return STATUS_Pending;
 }
 
 void
@@ -146,6 +107,52 @@ StoreGenerator
 ::set_callingaptitle(const std::string &callingaptitle)
 {
     this->_callingaptitle = callingaptitle;
+}
+
+mongo::BSONObj StoreGenerator::dataset_to_bson(DcmDataset * const dataset)
+{
+    this->_dataset = NULL;
+    // Check if we already have this dataset, based on its SOP Instance UID
+    OFString sop_instance_uid;
+    OFCondition ret = dataset->findAndGetOFString(DcmTagKey(0x0008,0x0018),
+                                                  sop_instance_uid);
+    if (ret.bad())
+    {
+        loggerWarning() << "Cannot retrieve SOP Instance UID";
+        return mongo::BSONObj();
+    }
+    this->_sop_instance_uid = std::string(sop_instance_uid.c_str());
+
+    this->create_destination_path(dataset);
+
+    // Convert the dcmtk dataset to BSON
+    DataSetToBSON converter;
+
+    converter.get_filters().push_back(std::make_pair(
+        IsPrivateTag::New(), DataSetToBSON::FilterAction::EXCLUDE));
+    converter.get_filters().push_back(std::make_pair(
+        VRMatch::New(EVR_OB), DataSetToBSON::FilterAction::EXCLUDE));
+    converter.get_filters().push_back(std::make_pair(
+        VRMatch::New(EVR_OF), DataSetToBSON::FilterAction::EXCLUDE));
+    converter.get_filters().push_back(std::make_pair(
+        VRMatch::New(EVR_OW), DataSetToBSON::FilterAction::EXCLUDE));
+    converter.get_filters().push_back(std::make_pair(
+        VRMatch::New(EVR_UN), DataSetToBSON::FilterAction::EXCLUDE));
+    converter.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
+    mongo::BSONObjBuilder builder;
+    converter(dataset, builder);
+
+    // Store it in the Mongo DB instance
+    mongo::OID const id(mongo::OID::gen());
+    builder << "_id" << id;
+
+    // Add DICOM file path into BSON object
+    builder << "location" << this->_destination_path;
+
+    this->_dataset = dataset;
+
+    return builder.obj();
 }
 
 void

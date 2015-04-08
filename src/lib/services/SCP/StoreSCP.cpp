@@ -51,17 +51,32 @@ static void storeCallback(
         }
         else
         {
+            Uint16 status = STATUS_Pending;
+
             StoreGenerator* context =
                     reinterpret_cast<StoreGenerator*>(callbackData);
 
-            Uint16 result = context->set_query(*imageDataSet);
-
-            if (result != STATUS_Success)
+            mongo::BSONObj object = context->dataset_to_bson(*imageDataSet);
+            if (!object.isValid() || object.isEmpty())
             {
-                rsp->DimseStatus = result;
-                createStatusDetail(result, DCM_UndefinedTagKey,
+                status = STATUS_STORE_Refused_OutOfResources;
+            }
+
+            if (status == STATUS_Pending)
+            {
+                status = context->set_query(object);
+            }
+
+            if (status != STATUS_Pending)
+            {
+                rsp->DimseStatus = status;
+                createStatusDetail(status, DCM_UndefinedTagKey,
                                    OFString("An error occured while processing Storage"),
                                    stDetail);
+            }
+            else
+            {
+                status = STATUS_Success;
             }
         }
 

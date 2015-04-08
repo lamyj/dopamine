@@ -9,6 +9,10 @@
 #ifndef _137519da_5031_4188_b52f_b1a3616696c5
 #define _137519da_5031_4188_b52f_b1a3616696c5
 
+#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmdata/dcdatset.h>
+#include <dcmtk/dcmnet/dimse.h>
+
 #include "services/Generator.h"
 
 namespace dopamine
@@ -25,14 +29,20 @@ public:
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
-    virtual Uint16 set_query(DcmDataset * dataset);
+    virtual Uint16 set_query(mongo::BSONObj const & query_dataset);
 
     void set_callingaptitle(std::string const & callingaptitle);
+
+    mongo::BSONObj dataset_to_bson(DcmDataset * const dataset);
 
 private:
     std::string _destination_path;
 
     std::string _callingaptitle;
+
+    std::string _sop_instance_uid;
+
+    DcmDataset * _dataset;
 
     void create_destination_path(DcmDataset *dataset);
 

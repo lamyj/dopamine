@@ -31,7 +31,7 @@ QueryRetrieveGenerator
 
 Uint16
 QueryRetrieveGenerator
-::set_query(DcmDataset *dataset)
+::set_query(mongo::BSONObj const & query_dataset)
 {
     if (this->_connection.isFailed())
     {
@@ -63,25 +63,10 @@ QueryRetrieveGenerator
                                                         this->_username,
                                                         this->_service_name);
 
-    // Convert the dataset to BSON, excluding Query/Retrieve Level.
-    DataSetToBSON dataset_to_bson;
-
-    dataset_to_bson.get_filters().push_back(
-        std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
-                       DataSetToBSON::FilterAction::EXCLUDE));
-    dataset_to_bson.get_filters().push_back(
-        std::make_pair(TagMatch::New(DCM_SpecificCharacterSet),
-                       DataSetToBSON::FilterAction::EXCLUDE));
-    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
-
-    mongo::BSONObjBuilder query_builder;
-    dataset_to_bson(dataset, query_builder);
-    mongo::BSONObj const query_dataset = query_builder.obj();
-
     // Build the MongoDB query and query fields from the query dataset.
     mongo::BSONObjBuilder db_query;
     mongo::BSONObjBuilder fields_builder;
-    for(mongo::BSONObj::iterator it=query_dataset.begin(); it.more();)
+    for(mongo::BSONObj::iterator it = query_dataset.begin(); it.more();)
     {
         mongo::BSONElement const element = it.next();
         std::vector<mongo::BSONElement> const array = element.Array();
@@ -110,20 +95,6 @@ QueryRetrieveGenerator
         fields_builder << "00080005" << 1;
     }
 
-    // Always include the keys for the query level and its higher levels
-    OFString ofstring;
-    OFCondition condition = dataset->findAndGetOFString(DCM_QueryRetrieveLevel,
-                                                        ofstring);
-    if (condition.bad())
-    {
-        dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
-                                << condition .text();
-        return 0xa900; // STATUS_FIND_Failed_IdentifierDoesNotMatchSOPClass or
-                       // STATUS_MOVE_Failed_IdentifierDoesNotMatchSOPClass or
-                       // STATUS_GET_Failed_IdentifierDoesNotMatchSOPClass
-    }
-
-    this->_query_retrieve_level = std::string(ofstring.c_str());
     if(!fields_builder.hasField("00100020"))
     {
         fields_builder << "00100020" << 1;
@@ -234,6 +205,38 @@ QueryRetrieveGenerator
     }
 
     return dataset;
+}
+
+mongo::BSONObj
+QueryRetrieveGenerator
+::dataset_to_bson(DcmDataset * const dataset)
+{
+    // Always include the keys for the query level and its higher levels
+    OFString ofstring;
+    OFCondition condition = dataset->findAndGetOFString(DCM_QueryRetrieveLevel,
+                                                        ofstring);
+    if (condition.bad())
+    {
+        dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel: "
+                                << condition .text();
+        return mongo::BSONObj();
+    }
+    this->_query_retrieve_level = std::string(ofstring.c_str());
+
+    // Convert the dataset to BSON, excluding Query/Retrieve Level.
+    DataSetToBSON dataset_to_bson;
+
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_QueryRetrieveLevel),
+                       DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.get_filters().push_back(
+        std::make_pair(TagMatch::New(DCM_SpecificCharacterSet),
+                       DataSetToBSON::FilterAction::EXCLUDE));
+    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
+    mongo::BSONObjBuilder query_builder;
+    dataset_to_bson(dataset, query_builder);
+    return query_builder.obj();
 }
 
 DcmTagKey

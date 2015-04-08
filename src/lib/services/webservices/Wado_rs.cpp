@@ -15,6 +15,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 
 #include "core/ConfigurationPACS.h"
+#include "services/RetrieveGenerator.h"
 #include "services/ServicesTools.h"
 #include "Wado_rs.h"
 #include "WebServiceException.h"
@@ -33,190 +34,36 @@ std::string const authentication_string = "This server could not verify that \
                                            supply the credentials required.";
 
 Wado_rs::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
-    _filename(""), _study_instance_uid(""), _series_instance_uid(""),
-    _sop_instance_uid(""), _response(""), _boundary(""), _username(remoteuser)
+    _filename(""), _response(""), _boundary(""), _username(remoteuser)
 {
-    _results.clear();
+    mongo::BSONObj object = this->parse_pathfinfo(pathinfo);
 
-    this->parse_pathfinfo(pathinfo);
+    RetrieveGenerator generator(this->_username);
 
-    this->search_database();
-
-    this->create_response();
-}
-
-Wado_rs::~Wado_rs()
-{
-    // Nothing to do
-}
-
-void Wado_rs::parse_pathfinfo(const std::string &pathinfo)
-{
-    // Parse the path info
-    // WARNING: inadequate method (TODO: find other method)
-    // PATH_INFO is like: key1/value1/key2/value2
-    std::vector<std::string> vartemp;
-    boost::split(vartemp, pathinfo, boost::is_any_of("/"),
-                 boost::token_compress_off);
-
-    if (vartemp.size() > 0 && vartemp[0] == "")
+    Uint16 status = generator.set_query(object);
+    if (status != STATUS_Pending)
     {
-        vartemp.erase(vartemp.begin());
+        throw WebServiceException(500, "Internal Server Error",
+                                  "Error while searching into database");
     }
 
-    if (vartemp.size() < 1)
-    {
-        throw WebServiceException(400, "Bad Request",
-                                  "Some parameters missing");
-    }
-
-    // look for Study Instance UID
-    if (vartemp[0] == "studies")
-    {
-        if (vartemp.size() < 2 || vartemp[1] == "")
-        {
-            throw WebServiceException(400, "Bad Request",
-                                      "Missing study instance uid");
-        }
-
-        this->_study_instance_uid = vartemp[1];
-
-        // look for Series Instance UID
-        if (vartemp.size() > 2)
-        {
-            if (vartemp[2] != "series")
-            {
-                throw WebServiceException(400, "Bad Request",
-                                          "second parameter should be series");
-            }
-
-            if (vartemp.size() < 4 || vartemp[3] == "")
-            {
-                throw WebServiceException(400, "Bad Request",
-                                          "Missing series instance uid");
-            }
-
-            this->_series_instance_uid = vartemp[3];
-
-            // look for SOP Instance UID
-            if (vartemp.size() > 4)
-            {
-                if (vartemp[4] != "instances")
-                {
-                    throw WebServiceException(400, "Bad Request",
-                                              "third parameter should be instances");
-                }
-
-                if (vartemp.size() < 6 || vartemp[5] == "")
-                {
-                    throw WebServiceException(400, "Bad Request",
-                                              "Missing SOP instance uid");
-                }
-
-                this->_sop_instance_uid = vartemp[5];
-            }
-        }
-    }
-    else
-    {
-        throw WebServiceException(400, "Bad Request",
-                                  "first parameter should be studies");
-    }
-
-    // Request is valid
-}
-
-void Wado_rs::search_database()
-{
-    // Create and Initialize DB connection
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    create_db_connection(connection, db_name);
-
-    if (! is_authorized(connection, db_name, this->_username, Service_Retrieve))
-    {
-        throw WebServiceException(401, "Authorization Required",
-                                  authentication_string);
-    }
-
-    mongo::BSONObj constraint = get_constraint_for_user(connection,
-                                                        db_name,
-                                                        this->_username,
-                                                        Service_Retrieve);
-
-    // Requested fields
-    mongo::BSONObjBuilder fields_builder;
-
-    // Conditions
-    mongo::BSONObjBuilder db_query;
-
-    if (this->_sop_instance_uid != "")
-    {
-        fields_builder << "00080018" << 1; // SOPInstanceUID
-        db_query << "00080018.1" << this->_sop_instance_uid;
-    }
-
-    if (this->_study_instance_uid != "")
-    {
-        fields_builder << "0020000d" << 1; // StudyInstanceUID
-        db_query << "0020000d.1" << this->_study_instance_uid;
-    }
-
-    if (this->_series_instance_uid != "")
-    {
-        fields_builder << "0020000e" << 1; // SeriesInstanceUID
-        db_query << "0020000e.1" << this->_series_instance_uid;
-    }
-
-    fields_builder << "location" << 1; // Dataset file path
-
-    mongo::BSONArrayBuilder finalquerybuilder;
-    finalquerybuilder << constraint << db_query.obj();
-    mongo::BSONObjBuilder finalquery;
-    finalquery << "$and" << finalquerybuilder.arr();
-
-    // Perform the DB query.
-    mongo::BSONObj const fields = fields_builder.obj();
-
-    mongo::BSONObjBuilder initial_builder;
-    std::string reduce_function = "function(current, result) { }";
-    mongo::BSONObj group_command = BSON("group" << BSON(
-        "ns" << "datasets" << "key" << fields << "cond" << finalquery.obj() <<
-        "$reduce" << reduce_function << "initial" << initial_builder.obj()
-    ));
-
-    mongo::BSONObj info;
-
-    connection.runCommand(db_name,group_command, info, 0);
-
-    if ( info["count"].Double() == 0)
-    {
-        throw WebServiceException(404, "Not Found", "Dataset not found");
-    }
-
-    this->_results = info["retval"].Array();
-
-    if (this->_results.size() == 0)
-    {
-        throw WebServiceException(404, "Not Found", "Dataset not found");
-    }
-}
-
-void Wado_rs::create_response()
-{
     // Multipart Response
     this->create_boundary();
 
-    std::stringstream stream;
-    for (unsigned int i = 0; i < this->_results.size(); ++i)
+    mongo::BSONObj findedobject = generator.next();
+    if (!findedobject.isValid() || findedobject.isEmpty())
     {
-        mongo::BSONObj bsonobject = this->_results[i].Obj();
+        throw WebServiceException(404, "Not Found", "No Dataset");
+    }
 
-        if (bsonobject.hasField("location") &&
-            !bsonobject["location"].isNull() &&
-            bsonobject["location"].String() != "")
+    std::stringstream stream;
+    while (findedobject.isValid() && !findedobject.isEmpty())
+    {
+        if (findedobject.hasField("location") &&
+            !findedobject["location"].isNull() &&
+            findedobject["location"].String() != "")
         {
-            std::string value = bsonobject["location"].String();
+            std::string value = findedobject["location"].String();
 
             this->_filename = boost::filesystem::path(value).filename().c_str();
 
@@ -252,12 +99,119 @@ void Wado_rs::create_response()
         {
             throw WebServiceException(404, "Not Found", "Dataset is empty");
         }
+
+        findedobject = generator.next();
     }
 
     // Close the response
     stream << "--" << this->_boundary << "--";
 
     this->_response = stream.str();
+}
+
+Wado_rs::~Wado_rs()
+{
+    // Nothing to do
+}
+
+mongo::BSONObj Wado_rs::parse_pathfinfo(const std::string &pathinfo)
+{
+    std::string study_instance_uid;
+    std::string series_instance_uid;
+    std::string sop_instance_uid;
+
+    // Parse the path info
+    // WARNING: inadequate method (TODO: find other method)
+    // PATH_INFO is like: key1/value1/key2/value2
+    std::vector<std::string> vartemp;
+    boost::split(vartemp, pathinfo, boost::is_any_of("/"),
+                 boost::token_compress_off);
+
+    if (vartemp.size() > 0 && vartemp[0] == "")
+    {
+        vartemp.erase(vartemp.begin());
+    }
+
+    if (vartemp.size() < 1)
+    {
+        throw WebServiceException(400, "Bad Request",
+                                  "Some parameters missing");
+    }
+
+    // look for Study Instance UID
+    if (vartemp[0] == "studies")
+    {
+        if (vartemp.size() < 2 || vartemp[1] == "")
+        {
+            throw WebServiceException(400, "Bad Request",
+                                      "Missing study instance uid");
+        }
+
+        study_instance_uid = vartemp[1];
+
+        // look for Series Instance UID
+        if (vartemp.size() > 2)
+        {
+            if (vartemp[2] != "series")
+            {
+                throw WebServiceException(400, "Bad Request",
+                                          "second parameter should be series");
+            }
+
+            if (vartemp.size() < 4 || vartemp[3] == "")
+            {
+                throw WebServiceException(400, "Bad Request",
+                                          "Missing series instance uid");
+            }
+
+            series_instance_uid = vartemp[3];
+
+            // look for SOP Instance UID
+            if (vartemp.size() > 4)
+            {
+                if (vartemp[4] != "instances")
+                {
+                    throw WebServiceException(400, "Bad Request",
+                                              "third parameter should be instances");
+                }
+
+                if (vartemp.size() < 6 || vartemp[5] == "")
+                {
+                    throw WebServiceException(400, "Bad Request",
+                                              "Missing SOP instance uid");
+                }
+
+                sop_instance_uid = vartemp[5];
+            }
+        }
+    }
+    else
+    {
+        throw WebServiceException(400, "Bad Request",
+                                  "first parameter should be studies");
+    }
+
+    // Request is valid
+
+    // Conditions
+    mongo::BSONObjBuilder db_query;
+
+    if (sop_instance_uid != "")
+    {
+        db_query << "00080018" << BSON_ARRAY("UI" << sop_instance_uid);
+    }
+
+    if (study_instance_uid != "")
+    {
+        db_query << "0020000d" << BSON_ARRAY("UI" << study_instance_uid);
+    }
+
+    if (series_instance_uid != "")
+    {
+        db_query << "0020000e" << BSON_ARRAY("UI" << series_instance_uid);
+    }
+
+    return db_query.obj();
 }
 
 void Wado_rs::create_boundary()
