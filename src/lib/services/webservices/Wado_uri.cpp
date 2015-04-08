@@ -6,12 +6,10 @@
  * for details.
  ************************************************************************/
 
-#include <fstream>
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
 
 #include "core/ConfigurationPACS.h"
 #include "services/RetrieveGenerator.h"
@@ -27,15 +25,21 @@ namespace services
 
 Wado_uri
 ::Wado_uri(const std::string &querystring, const std::string &remoteuser):
-    _filename(""), _response(""), _username(remoteuser)
+    Wado(querystring, remoteuser)
 {
-    mongo::BSONObj object = this->parse_querystring(querystring);
+    mongo::BSONObj object = this->parse_string();
 
     RetrieveGenerator generator(this->_username);
 
     Uint16 status = generator.set_query(object);
     if (status != STATUS_Pending)
     {
+        if ( ! generator.is_allow())
+        {
+            throw WebServiceException(401, "Authorization Required",
+                                      authentication_string);
+        }
+
         throw WebServiceException(500, "Internal Server Error",
                                   "Error while searching into database");
     }
@@ -46,40 +50,7 @@ Wado_uri
         throw WebServiceException(404, "Not Found", "No Dataset");
     }
 
-    if (findedobject.hasField("location") &&
-        !findedobject["location"].isNull() &&
-        findedobject["location"].String() != "")
-    {
-        std::string value = findedobject["location"].String();
-
-        this->_filename = boost::filesystem::path(value).filename().c_str();
-
-        // Open file
-        std::ifstream dataset(value, std::ifstream::binary | std::ifstream::in);
-        if (dataset.is_open())
-        {
-            // get length of file:
-            int length = boost::filesystem::file_size(boost::filesystem::path(value));
-
-            std::string output(length, '\0');
-
-            // read data as a block:
-            dataset.read (&output[0], output.size());
-
-            // Close file
-            dataset.close();
-
-            this->_response = output;
-        }
-        else
-        {
-            throw WebServiceException(500, "Internal Server Error", "Unable to open file");
-        }
-    }
-    else
-    {
-        throw WebServiceException(404, "Not Found", "Dataset is empty");
-    }
+    this->_response = this->get_dataset(findedobject);
 }
 
 Wado_uri
@@ -90,13 +61,13 @@ Wado_uri
 
 mongo::BSONObj
 Wado_uri
-::parse_querystring(const std::string &querystring)
+::parse_string()
 {
     // Parse the query string
     // WARNING: inadequate method (TODO: find other method)
     // Query string is like: name1=value1&name2=value2
     std::vector<std::string> vartemp;
-    boost::split(vartemp, querystring, boost::is_any_of("&"));
+    boost::split(vartemp, this->_query, boost::is_any_of("&"));
 
     std::map<std::string, std::string> variables;
     for (std::string variable : vartemp)

@@ -57,6 +57,8 @@ public:
 
     mongo::BSONObj next();
 
+    bool is_allow() const;
+
 protected:
 
     mongo::DBClientConnection _connection;
@@ -66,6 +68,8 @@ protected:
     std::string _username;
 
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
+
+    bool _allow;
 
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr,

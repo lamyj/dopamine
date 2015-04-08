@@ -9,9 +9,7 @@
 #ifndef _23d72937_8451_4cd1_a64d_77b774672145
 #define _23d72937_8451_4cd1_a64d_77b774672145
 
-#include <string>
-
-#include <mongo/client/dbclient.h>
+#include "Wado.h"
 
 namespace dopamine
 {
@@ -29,7 +27,7 @@ const std::string MIME_TYPE_MULTIPART_RELATED = "multipart/related";
 const std::string MIME_VERSION = "MIME-Version: 1.0";
 const std::string TRANSFER_ENCODING_BINARY = "binary";
 
-class Wado_rs
+class Wado_rs: public Wado
 {
 public:
     Wado_rs(std::string const & pathinfo,
@@ -37,22 +35,14 @@ public:
 
     ~Wado_rs();
 
-    std::string get_filename() const { return this->_filename; }
-
-    std::string get_boundary() const { return this->_boundary; }
-
-    std::string get_response() const { return this->_response; }
+    std::string get_boundary() const;
 
 protected:
-    void set_filename(std::string const & filename) { this->_filename = filename; }
 
 private:
-    std::string _filename;
-    std::string _response;
     std::string _boundary;
-    std::string _username;
 
-    mongo::BSONObj parse_pathfinfo(std::string const & pathinfo);
+    virtual mongo::BSONObj parse_string();
 
     void create_boundary();
 

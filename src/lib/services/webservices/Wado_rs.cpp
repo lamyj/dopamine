@@ -10,7 +10,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
@@ -26,23 +25,23 @@ namespace dopamine
 namespace services
 {
 
-std::string const authentication_string = "This server could not verify that \
-                                           you are authorized to access the \
-                                           document requested. Either you supplied \
-                                           the wrong credentials (e.g., bad password), \
-                                           or your browser doesn't understand how to \
-                                           supply the credentials required.";
-
-Wado_rs::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
-    _filename(""), _response(""), _boundary(""), _username(remoteuser)
+Wado_rs
+::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
+    Wado(pathinfo, remoteuser), _boundary("")
 {
-    mongo::BSONObj object = this->parse_pathfinfo(pathinfo);
+    mongo::BSONObj object = this->parse_string();
 
     RetrieveGenerator generator(this->_username);
 
     Uint16 status = generator.set_query(object);
     if (status != STATUS_Pending)
     {
+        if ( ! generator.is_allow())
+        {
+            throw WebServiceException(401, "Authorization Required",
+                                      authentication_string);
+        }
+
         throw WebServiceException(500, "Internal Server Error",
                                   "Error while searching into database");
     }
@@ -59,46 +58,15 @@ Wado_rs::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
     std::stringstream stream;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
-        if (findedobject.hasField("location") &&
-            !findedobject["location"].isNull() &&
-            findedobject["location"].String() != "")
-        {
-            std::string value = findedobject["location"].String();
+        std::string const currentdata = this->get_dataset(findedobject);
 
-            this->_filename = boost::filesystem::path(value).filename().c_str();
+        stream << "--" << this->_boundary << "\n";
+        stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
+        stream << CONTENT_DISPOSITION_ATTACHMENT << " "
+               << ATTRIBUT_FILENAME << this->_filename << "\n";
+        stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
 
-            stream << "--" << this->_boundary << "\n";
-            stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
-            stream << CONTENT_DISPOSITION_ATTACHMENT << " "
-                   << ATTRIBUT_FILENAME << this->_filename << "\n";
-            stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
-
-            // Open file
-            std::ifstream dataset(value, std::ifstream::binary | std::ifstream::in);
-            if (dataset.is_open())
-            {
-                // get length of file:
-                int length = boost::filesystem::file_size(boost::filesystem::path(value));
-
-                std::string output(length, '\0');
-
-                // read data as a block:
-                dataset.read (&output[0], output.size());
-
-                // Close file
-                dataset.close();
-
-                stream << output << "\n" << "\n";
-            }
-            else
-            {
-                throw WebServiceException(500, "Internal Server Error", "Unable to open file");
-            }
-        }
-        else
-        {
-            throw WebServiceException(404, "Not Found", "Dataset is empty");
-        }
+        stream << currentdata << "\n" << "\n";
 
         findedobject = generator.next();
     }
@@ -114,7 +82,14 @@ Wado_rs::~Wado_rs()
     // Nothing to do
 }
 
-mongo::BSONObj Wado_rs::parse_pathfinfo(const std::string &pathinfo)
+std::string
+Wado_rs
+::get_boundary() const
+{
+    return this->_boundary;
+}
+
+mongo::BSONObj Wado_rs::parse_string()
 {
     std::string study_instance_uid;
     std::string series_instance_uid;
@@ -124,7 +99,7 @@ mongo::BSONObj Wado_rs::parse_pathfinfo(const std::string &pathinfo)
     // WARNING: inadequate method (TODO: find other method)
     // PATH_INFO is like: key1/value1/key2/value2
     std::vector<std::string> vartemp;
-    boost::split(vartemp, pathinfo, boost::is_any_of("/"),
+    boost::split(vartemp, this->_query, boost::is_any_of("/"),
                  boost::token_compress_off);
 
     if (vartemp.size() > 0 && vartemp[0] == "")

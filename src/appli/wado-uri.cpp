@@ -54,7 +54,15 @@ int main(int argc, char** argv)
     }
     catch (dopamine::services::WebServiceException &exc)
     {
-        std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
+        if (exc.status() == 401)
+        {
+            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(), exc.statusmessage())
+                            .addHeader("WWW-Authenticate", "Basic realm=\"cgicc\"");
+        }
+        else
+        {
+            std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
+        }
 
         std::stringstream stream;
         stream << exc.status() << " " << exc.statusmessage();

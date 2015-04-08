@@ -33,6 +33,8 @@ Uint16
 QueryRetrieveGenerator
 ::set_query(mongo::BSONObj const & query_dataset)
 {
+    this->_allow = true;
+
     if (this->_connection.isFailed())
     {
         loggerWarning() << "Could not connect to database: " << this->_db_name;
@@ -44,9 +46,11 @@ QueryRetrieveGenerator
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
 
+    this->_allow = is_authorized(this->_connection, this->_db_name,
+                                 this->_username, this->_service_name);
+
     // Look for user authorization
-    if ( ! is_authorized(this->_connection, this->_db_name,
-                         this->_username, this->_service_name) )
+    if ( ! this->_allow )
     {
         loggerWarning() << "User '" << this->_username << "' not allowed to perform "
                         << this->_service_name;

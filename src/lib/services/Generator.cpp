@@ -160,7 +160,7 @@ Generator
 
 Generator
 ::Generator(const std::string &username):
-    _username(username)
+    _username(username), _allow(false)
 {
     // Create DataBase Connection
     create_db_connection(this->_connection, this->_db_name);
@@ -185,6 +185,13 @@ mongo::BSONObj Generator::next()
     }
 
     return mongo::BSONObj();
+}
+
+bool
+Generator
+::is_allow() const
+{
+    return this->_allow;
 }
 
 Generator::Match::Type
