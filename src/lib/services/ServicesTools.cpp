@@ -14,6 +14,8 @@
 
 #include "ConverterBSON/BSONToDataSet.h"
 #include "ConverterBSON/DataSetToBSON.h"
+#include "ConverterBSON/IsPrivateTag.h"
+#include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ServicesTools.h"
@@ -271,10 +273,23 @@ std::string replace(const std::string &value, const std::string &old,
     return result;
 }
 
-mongo::BSONObj dataset_to_bson(DcmDataset * const dataset)
+mongo::BSONObj dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
+    if (isforstorage)
+    {
+        dataset_to_bson.get_filters().push_back(std::make_pair(
+            IsPrivateTag::New(), DataSetToBSON::FilterAction::EXCLUDE));
+        dataset_to_bson.get_filters().push_back(std::make_pair(
+            VRMatch::New(EVR_OB), DataSetToBSON::FilterAction::EXCLUDE));
+        dataset_to_bson.get_filters().push_back(std::make_pair(
+            VRMatch::New(EVR_OF), DataSetToBSON::FilterAction::EXCLUDE));
+        dataset_to_bson.get_filters().push_back(std::make_pair(
+            VRMatch::New(EVR_OW), DataSetToBSON::FilterAction::EXCLUDE));
+        dataset_to_bson.get_filters().push_back(std::make_pair(
+            VRMatch::New(EVR_UN), DataSetToBSON::FilterAction::EXCLUDE));
+    }
     dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
 
     mongo::BSONObjBuilder query_builder;

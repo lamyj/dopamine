@@ -10,7 +10,6 @@
 #define _76b2ab31_bb60_4366_ad0b_55c6eb286fdf
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dctagkey.h>
 
 #include "Generator.h"

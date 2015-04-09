@@ -9,9 +9,6 @@
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmnet/dimse.h>
 
-#include "ConverterBSON/BSONToDataSet.h"
-#include "ConverterBSON/DataSetToBSON.h"
-#include "ConverterBSON/TagMatch.h"
 #include "core/LoggerPACS.h"
 #include "QueryRetrieveGenerator.h"
 

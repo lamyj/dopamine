@@ -64,7 +64,8 @@ std::string replace(std::string const & value,
                     std::string const & old,
                     std::string const & new_);
 
-mongo::BSONObj dataset_to_bson(DcmDataset * const dataset);
+mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
+                               bool isforstorage = false);
 
 DcmDataset * bson_to_dataset(mongo::BSONObj object);
 

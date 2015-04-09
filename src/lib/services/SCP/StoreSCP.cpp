@@ -56,7 +56,7 @@ static void storeCallback(
             StoreGenerator* context =
                     reinterpret_cast<StoreGenerator*>(callbackData);
 
-            mongo::BSONObj object = context->dataset_to_bson(*imageDataSet);
+            mongo::BSONObj object = dataset_to_bson(*imageDataSet, true);
             if (!object.isValid() || object.isEmpty())
             {
                 status = STATUS_STORE_Refused_OutOfResources;
@@ -64,6 +64,7 @@ static void storeCallback(
 
             if (status == STATUS_Pending)
             {
+                context->set_dataset(*imageDataSet);
                 status = context->set_query(object);
             }
 

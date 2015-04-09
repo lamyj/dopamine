@@ -9,9 +9,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
-#include "ConverterBSON/DataSetToBSON.h"
-#include "ConverterBSON/IsPrivateTag.h"
-#include "ConverterBSON/VRMatch.h"
+#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+#include <dcmtk/dcmdata/dcfilefo.h>
+#include <dcmtk/dcmdata/dcmetinf.h>
+#include <dcmtk/dcmnet/dimse.h>
+
 #include "core/ConfigurationPACS.h"
 #include "core/Hashcode.h"
 #include "core/LoggerPACS.h"
@@ -27,7 +29,7 @@ namespace services
 StoreGenerator
 ::StoreGenerator(const std::string &username):
     Generator(username), _destination_path(""),
-    _sop_instance_uid(""), _dataset(NULL)
+    _dataset(NULL)
 {
     // Nothing to do
 }
@@ -55,9 +57,19 @@ Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
         return STATUS_STORE_Refused_OutOfResources;
     }
 
+    // Check if we already have this dataset, based on its SOP Instance UID
+    if (!query_dataset.hasField("00080018")) // SOP Instance UID
+    {
+        loggerWarning() << "Cannot retrieve SOP Instance UID";
+        return STATUS_STORE_Refused_OutOfResources;
+    }
+    std::string sop_instance_uid = query_dataset.getField("00080018").Array()[1].String();
+
+    this->create_destination_path(query_dataset);
+
     mongo::BSONObj group_command =
             BSON("count" << "datasets" << "query"
-                 << BSON("00080018" << this->_sop_instance_uid.c_str()));
+                 << BSON("00080018" << sop_instance_uid.c_str()));
 
     mongo::BSONObj info;
     this->_connection.runCommand(this->_db_name, group_command, info, 0);
@@ -83,10 +95,20 @@ Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
             return STATUS_STORE_Refused_OutOfResources;
         }
 
+        mongo::BSONObjBuilder builder;
+        builder.appendElements(query_dataset);
+
+        // Store it in the Mongo DB instance
+        mongo::OID const id(mongo::OID::gen());
+        builder << "_id" << id;
+
+        // Add DICOM file path into BSON object
+        builder << "location" << this->_destination_path;
+
         // Store the dataset in DB
         std::stringstream stream;
         stream << this->_db_name << ".datasets";
-        this->_connection.insert(stream.str(), query_dataset);
+        this->_connection.insert(stream.str(), builder.obj());
 
         // Create the header of the new file
         DcmFileFormat file_format(this->_dataset);
@@ -109,66 +131,27 @@ StoreGenerator
     this->_callingaptitle = callingaptitle;
 }
 
-mongo::BSONObj StoreGenerator::dataset_to_bson(DcmDataset * const dataset)
+void
+StoreGenerator
+::set_dataset(DcmDataset *dataset)
 {
-    this->_dataset = NULL;
-    // Check if we already have this dataset, based on its SOP Instance UID
-    OFString sop_instance_uid;
-    OFCondition ret = dataset->findAndGetOFString(DcmTagKey(0x0008,0x0018),
-                                                  sop_instance_uid);
-    if (ret.bad())
-    {
-        loggerWarning() << "Cannot retrieve SOP Instance UID";
-        return mongo::BSONObj();
-    }
-    this->_sop_instance_uid = std::string(sop_instance_uid.c_str());
-
-    this->create_destination_path(dataset);
-
-    // Convert the dcmtk dataset to BSON
-    DataSetToBSON converter;
-
-    converter.get_filters().push_back(std::make_pair(
-        IsPrivateTag::New(), DataSetToBSON::FilterAction::EXCLUDE));
-    converter.get_filters().push_back(std::make_pair(
-        VRMatch::New(EVR_OB), DataSetToBSON::FilterAction::EXCLUDE));
-    converter.get_filters().push_back(std::make_pair(
-        VRMatch::New(EVR_OF), DataSetToBSON::FilterAction::EXCLUDE));
-    converter.get_filters().push_back(std::make_pair(
-        VRMatch::New(EVR_OW), DataSetToBSON::FilterAction::EXCLUDE));
-    converter.get_filters().push_back(std::make_pair(
-        VRMatch::New(EVR_UN), DataSetToBSON::FilterAction::EXCLUDE));
-    converter.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
-
-    mongo::BSONObjBuilder builder;
-    converter(dataset, builder);
-
-    // Store it in the Mongo DB instance
-    mongo::OID const id(mongo::OID::gen());
-    builder << "_id" << id;
-
-    // Add DICOM file path into BSON object
-    builder << "location" << this->_destination_path;
-
     this->_dataset = dataset;
-
-    return builder.obj();
 }
 
 void
 StoreGenerator
-::create_destination_path(DcmDataset * dataset)
+::create_destination_path(const mongo::BSONObj &query_dataset)
 {
     // Compute the destination filename
     boost::gregorian::date const today(
         boost::gregorian::day_clock::universal_day());
 
-    OFString study_instance_uid;
-    dataset->findAndGetOFStringArray(DCM_StudyInstanceUID, study_instance_uid);
-    OFString series_instance_uid;
-    dataset->findAndGetOFStringArray(DCM_SeriesInstanceUID, series_instance_uid);
-    OFString sop_instance_uid;
-    dataset->findAndGetOFStringArray(DCM_SOPInstanceUID, sop_instance_uid);
+    std::string study_instance_uid =
+            query_dataset.getField("0020000d").Array()[1].String(); // DCM_StudyInstanceUID
+    std::string series_instance_uid =
+            query_dataset.getField("0020000e").Array()[1].String(); // DCM_SeriesInstanceUID
+    std::string sop_instance_uid =
+            query_dataset.getField("00080018").Array()[1].String(); // DCM_SOPInstanceUID
 
     std::string const study_hash = dopamine::hashcode::hashToString
             (dopamine::hashcode::hashCode(study_instance_uid));

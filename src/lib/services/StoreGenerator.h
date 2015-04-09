@@ -11,7 +11,6 @@
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmnet/dimse.h>
 
 #include "services/Generator.h"
 
@@ -33,18 +32,16 @@ public:
 
     void set_callingaptitle(std::string const & callingaptitle);
 
-    mongo::BSONObj dataset_to_bson(DcmDataset * const dataset);
+    void set_dataset(DcmDataset * dataset);
 
 private:
     std::string _destination_path;
 
     std::string _callingaptitle;
 
-    std::string _sop_instance_uid;
-
     DcmDataset * _dataset;
 
-    void create_destination_path(DcmDataset *dataset);
+    void create_destination_path(const mongo::BSONObj & query_dataset);
 
     bool is_dataset_allowed_for_storage(mongo::BSONObj const & dataset);
 
