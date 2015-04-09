@@ -72,7 +72,7 @@ class TestFindSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            self.assertRegexpMatches(err, "Find Response: Failed: IdentifierDoesNotMatchSOPClass")
+            self.assertRegexpMatches(err, "Find Response: Refused: OutOfResources")
             self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
             self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Find operation\]")
             

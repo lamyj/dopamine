@@ -94,7 +94,7 @@ class TestGetSCP(TestBase):
             #self.assertRegexpMatches(err, "\(0000,0901\) AT \(0008,0052\)")
             #self.assertRegexpMatches(err, "\(0000,0902\) LO \[Tag not found\]")
             # Error return is not "Tag not found" but "Identifier does not match SOP class"
-            self.assertRegexpMatches(err, "Identifier does not match SOP class")
+            self.assertRegexpMatches(err, "Out of Resouces")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

@@ -186,6 +186,10 @@ mongo::BSONObj Wado_rs::parse_string()
         db_query << "0020000e" << BSON_ARRAY("UI" << series_instance_uid);
     }
 
+    std::string query_retrieve_level = sop_instance_uid != "" ? "IMAGE" :
+                                       series_instance_uid != "" ? "SERIES" : "STUDY";
+    db_query << "00080052" << BSON_ARRAY("CS" << query_retrieve_level);
+
     return db_query.obj();
 }
 

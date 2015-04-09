@@ -43,7 +43,7 @@ static void getCallback(
 
     if (responseCount == 1)
     {
-        mongo::BSONObj object = context->_generator->dataset_to_bson(requestIdentifiers);
+        mongo::BSONObj object = dataset_to_bson(requestIdentifiers);
         if (!object.isValid() || object.isEmpty())
         {
             status = 0xa900;
@@ -83,7 +83,7 @@ static void getCallback(
         else
         {
             OFCondition condition =
-                    context->_storeprovider->performSubOperation(context->_generator->bson_to_dataset(object),
+                    context->_storeprovider->performSubOperation(bson_to_dataset(object),
                                                                  request->Priority);
 
             if (condition.bad())

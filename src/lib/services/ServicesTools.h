@@ -64,6 +64,10 @@ std::string replace(std::string const & value,
                     std::string const & old,
                     std::string const & new_);
 
+mongo::BSONObj dataset_to_bson(DcmDataset * const dataset);
+
+DcmDataset * bson_to_dataset(mongo::BSONObj object);
+
 } // namespace services
 
 } // namespace dopamine

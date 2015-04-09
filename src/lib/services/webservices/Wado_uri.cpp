@@ -127,6 +127,8 @@ Wado_uri
              << "0020000d" << BSON_ARRAY("UI" << variables[STUDY_INSTANCE_UID])
              << "0020000e" << BSON_ARRAY("UI" << variables[SERIES_INSTANCE_UID]);
 
+    db_query << "00080052" << BSON_ARRAY("CS" << "IMAGE");
+
     return db_query.obj();
 }
 

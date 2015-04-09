@@ -30,10 +30,6 @@ public:
 
     virtual Uint16 set_query(mongo::BSONObj const & query_dataset);
 
-    DcmDataset* bson_to_dataset(mongo::BSONObj object);
-
-    mongo::BSONObj dataset_to_bson(DcmDataset * const dataset);
-
     DcmTagKey get_instance_count_tag() const;
 
     bool get_convert_modalities_in_study() const;

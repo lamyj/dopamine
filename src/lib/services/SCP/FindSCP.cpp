@@ -42,7 +42,7 @@ static void findCallback(
 
     if (responseCount == 1)
     {
-        mongo::BSONObj object = context->dataset_to_bson(requestIdentifiers);
+        mongo::BSONObj object = dataset_to_bson(requestIdentifiers);
         if (!object.isValid() || object.isEmpty())
         {
             status = 0xa900;
@@ -91,7 +91,7 @@ static void findCallback(
         }
         else
         {
-            (*responseIdentifiers) = context->bson_to_dataset(object);
+            (*responseIdentifiers) = bson_to_dataset(object);
 
             OFCondition condition =
                     (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,

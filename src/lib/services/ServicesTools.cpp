@@ -12,7 +12,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "ConverterBSON/BSONToDataSet.h"
+#include "ConverterBSON/DataSetToBSON.h"
 #include "core/ConfigurationPACS.h"
+#include "core/LoggerPACS.h"
 #include "ServicesTools.h"
 
 namespace dopamine
@@ -266,6 +269,44 @@ std::string replace(const std::string &value, const std::string &old,
     }
 
     return result;
+}
+
+mongo::BSONObj dataset_to_bson(DcmDataset * const dataset)
+{
+    // Convert the dataset to BSON, excluding Query/Retrieve Level.
+    DataSetToBSON dataset_to_bson;
+    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+
+    mongo::BSONObjBuilder query_builder;
+    dataset_to_bson(dataset, query_builder);
+    return query_builder.obj();
+}
+
+DcmDataset *bson_to_dataset(mongo::BSONObj object)
+{
+    DcmDataset* dataset = NULL;
+
+    if ( ! object.hasField("location"))
+    {
+        BSONToDataSet bson2dataset;
+        DcmDataset result = bson2dataset(object);
+        dataset = new DcmDataset(result);
+    }
+    else
+    {
+        std::string const path = object.getField("location").String();
+        DcmFileFormat fileformat;
+        OFCondition result = fileformat.loadFile(path.c_str());
+        if (result.bad())
+        {
+            loggerError() << "Cannot load dataset '" << path << "': "
+                          << result.text();
+            return NULL;
+        }
+        dataset = fileformat.getAndRemoveDataset();
+    }
+
+    return dataset;
 }
 
 } // namespace services
