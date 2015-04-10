@@ -19,8 +19,6 @@ namespace dopamine
 namespace services
 {
 
-const std::string MIME_TYPE_DICOM = "application/dicom";
-
 struct parameters
 {
     bool _mandatory;

@@ -21,9 +21,10 @@ namespace services
 {
 
 Wado
-::Wado(const std::string &query, std::string const & username):
-    _query(query), _username(username),
-    _filename(""), _response("")
+::Wado(std::string const & pathinfo, std::string const & querystring,
+       std::string const & username):
+    Webservices(pathinfo, querystring, username),
+    _filename("")
 {
     // Nothing to do
 }
@@ -39,13 +40,6 @@ Wado
 ::get_filename() const
 {
     return this->_filename;
-}
-
-std::string
-Wado
-::get_response() const
-{
-    return this->_response;
 }
 
 std::string Wado::get_dataset(const mongo::BSONObj &object)

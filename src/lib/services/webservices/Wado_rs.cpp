@@ -10,8 +10,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/random/random_device.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
 
 #include "core/ConfigurationPACS.h"
 #include "services/RetrieveGenerator.h"
@@ -27,7 +25,7 @@ namespace services
 
 Wado_rs
 ::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
-    Wado(pathinfo, remoteuser), _boundary("")
+    Wado(pathinfo, "", remoteuser)
 {
     mongo::BSONObj object = this->parse_string();
 
@@ -82,13 +80,6 @@ Wado_rs::~Wado_rs()
     // Nothing to do
 }
 
-std::string
-Wado_rs
-::get_boundary() const
-{
-    return this->_boundary;
-}
-
 mongo::BSONObj Wado_rs::parse_string()
 {
     std::string study_instance_uid;
@@ -99,7 +90,7 @@ mongo::BSONObj Wado_rs::parse_string()
     // WARNING: inadequate method (TODO: find other method)
     // PATH_INFO is like: key1/value1/key2/value2
     std::vector<std::string> vartemp;
-    boost::split(vartemp, this->_query, boost::is_any_of("/"),
+    boost::split(vartemp, this->_pathinfo, boost::is_any_of("/"),
                  boost::token_compress_off);
 
     if (vartemp.size() > 0 && vartemp[0] == "")
@@ -191,21 +182,6 @@ mongo::BSONObj Wado_rs::parse_string()
     db_query << "00080052" << BSON_ARRAY("CS" << query_retrieve_level);
 
     return db_query.obj();
-}
-
-void Wado_rs::create_boundary()
-{
-    std::string const chars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
-    boost::random::random_device rng;
-    boost::random::uniform_int_distribution<> index_dist(0, chars.size() - 1);
-
-    std::stringstream stream;
-    for(int i = 0; i < 15; ++i)
-    {
-        stream << chars[index_dist(rng)];
-    }
-
-    this->_boundary = stream.str();
 }
 
 } // namespace services

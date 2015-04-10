@@ -25,7 +25,7 @@ namespace services
 
 Wado_uri
 ::Wado_uri(const std::string &querystring, const std::string &remoteuser):
-    Wado(querystring, remoteuser)
+    Wado("", querystring, remoteuser)
 {
     mongo::BSONObj object = this->parse_string();
 
@@ -67,7 +67,7 @@ Wado_uri
     // WARNING: inadequate method (TODO: find other method)
     // Query string is like: name1=value1&name2=value2
     std::vector<std::string> vartemp;
-    boost::split(vartemp, this->_query, boost::is_any_of("&"));
+    boost::split(vartemp, this->_querystring, boost::is_any_of("&"));
 
     std::map<std::string, std::string> variables;
     for (std::string variable : vartemp)

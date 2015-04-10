@@ -17,6 +17,7 @@
 #include <dcmtk/dcmdata/dcelem.h>
 #include <dcmtk/dcmdata/dctag.h>
 #include <dcmtk/dcmnet/dcuserid.h>
+#include <dcmtk/dcmnet/dimse.h>
 #include <dcmtk/ofstd/ofcond.h>
 
 #include <mongo/client/dbclient.h>

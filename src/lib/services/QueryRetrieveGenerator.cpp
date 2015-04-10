@@ -135,6 +135,14 @@ QueryRetrieveGenerator
         fields_builder << "00080018" << 1;
     }
 
+    for (unsigned int i = 0; i < this->_includefields.size(); ++i)
+    {
+        if (!fields_builder.hasField(this->_includefields.at(i)))
+        {
+            fields_builder << this->_includefields.at(i) << 1;
+        }
+    }
+
     // Handle reduce-related attributes
     std::string reduce_function;
     mongo::BSONObjBuilder initial_builder;
@@ -217,6 +225,13 @@ QueryRetrieveGenerator
 ::get_query_retrieve_level() const
 {
     return this->_query_retrieve_level;
+}
+
+void
+QueryRetrieveGenerator
+::set_includefields(std::vector<std::string> includefields)
+{
+    this->_includefields = includefields;
 }
 
 } // namespace services

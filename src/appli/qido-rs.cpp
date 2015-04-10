@@ -6,20 +6,18 @@
  * for details.
  ************************************************************************/
 
-#include <iostream>
 #include <stdlib.h>
-#include <sstream>
 
 #include <boost/filesystem.hpp>
 
 #include <cgicc/Cgicc.h>
-#include <cgicc/HTTPContentHeader.h>
+#include <cgicc/HTMLClasses.h>
+#include <cgicc/HTMLDoctype.h>
 #include <cgicc/HTTPResponseHeader.h>
 #include <cgicc/HTTPStatusHeader.h>
-#include "cgicc/HTMLClasses.h"
 
 #include "core/ConfigurationPACS.h"
-#include "services/webservices/Wado_uri.h"
+#include "services/webservices/Qido_rs.h"
 #include "services/webservices/WebServiceException.h"
 
 int main(int argc, char** argv)
@@ -41,16 +39,25 @@ int main(int argc, char** argv)
         // Get the Environment Variables
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
+        // TODO REMOVE
+        throw dopamine::services::WebServiceException(400, "Bad Request",
+                                                      "Not implemented yet");
         // Create the response
-        dopamine::services::Wado_uri wadouri(environment.getQueryString(), environment.getRemoteUser());
+        dopamine::services::Qido_rs qidors(environment.getPathInfo(),
+                                           environment.getQueryString(),
+                                           environment.getContentType(),
+                                           environment.getRemoteUser());
 
         // send response
-        std::stringstream headerstream;
-        headerstream << dopamine::services::MIME_TYPE_APPLICATION_DICOM << std::endl
-                     << "Content-Disposition: attachment; filename=" << wadouri.get_filename();
-        std::cout << cgicc::HTTPContentHeader(headerstream.str());
-        std::string data = wadouri.get_response();
-        std::cout.write(&data[0], data.size());
+        std::ostringstream headerstream;
+        headerstream << dopamine::services::MIME_VERSION << "\n"
+                     << dopamine::services::CONTENT_TYPE
+                     << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
+                     << dopamine::services::ATTRIBUT_BOUNDARY
+                     << qidors.get_boundary() << "\n";
+
+        std::cout << headerstream.str() << "\n";
+        std::cout << qidors.get_response() << "\n";
     }
     catch (dopamine::services::WebServiceException &exc)
     {
@@ -77,6 +84,7 @@ int main(int argc, char** argv)
         std::cout << cgicc::body() << std::endl;
         std::cout << "\t" << cgicc::h1(stream.str()) << std::endl;
         std::cout << "\t" << cgicc::p() << exc.what() << cgicc::p() << std::endl;
+
         std::cout << cgicc::body() << std::endl;
 
         std::cout << cgicc::html() << std::endl;

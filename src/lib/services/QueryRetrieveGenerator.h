@@ -35,6 +35,8 @@ public:
 
     std::string get_query_retrieve_level() const;
 
+    void set_includefields(std::vector<std::string> includefields);
+
 protected:
     std::string _service_name;
 
@@ -44,6 +46,9 @@ protected:
 
     /// flag indicating if modalities should be convert
     bool _convert_modalities_in_study;
+
+private:
+    std::vector<std::string> _includefields;
 
 };
 

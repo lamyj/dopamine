@@ -26,7 +26,8 @@ namespace dopamine
 namespace services
 {
 
-bool create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
+bool
+create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
 {
     // Get all indexes
     std::string indexlist = ConfigurationPACS::get_instance().GetValue("database.indexlist");
@@ -81,8 +82,9 @@ bool create_db_connection(mongo::DBClientConnection &connection, std::string &db
     return true;
 }
 
-void createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
-                        const OFString &comment, DcmDataset **statusDetail)
+void
+createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
+                   const OFString &comment, DcmDataset **statusDetail)
 {
     DcmElement * element;
     std::vector<Uint16> vect;
@@ -107,7 +109,8 @@ void createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
                                                       comment);
 }
 
-std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
+std::string
+get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
 {
     std::string lcurrentUser = "";
 
@@ -127,10 +130,11 @@ std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
     return lcurrentUser;
 }
 
-bool is_authorized(mongo::DBClientConnection &connection,
-                   std::string const & db_name,
-                   std::string const & username,
-                   std::string const & servicename)
+bool
+is_authorized(mongo::DBClientConnection &connection,
+              std::string const & db_name,
+              std::string const & username,
+              std::string const & servicename)
 {
     mongo::BSONArrayBuilder builder;
     if (username != "")
@@ -223,7 +227,8 @@ get_constraint_for_user(mongo::DBClientConnection &connection, const std::string
     return constraint.obj();
 }
 
-std::string bsonelement_to_string(mongo::BSONElement const & bsonelement)
+std::string
+bsonelement_to_string(mongo::BSONElement const & bsonelement)
 {
     std::stringstream builder;
     switch (bsonelement.type())
@@ -258,8 +263,9 @@ std::string bsonelement_to_string(mongo::BSONElement const & bsonelement)
     return builder.str();
 }
 
-std::string replace(const std::string &value, const std::string &old,
-                    const std::string &new_)
+std::string
+replace(const std::string &value, const std::string &old,
+        const std::string &new_)
 {
     std::string result(value);
     size_t begin=0;
@@ -273,7 +279,8 @@ std::string replace(const std::string &value, const std::string &old,
     return result;
 }
 
-mongo::BSONObj dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
+mongo::BSONObj
+dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
     DataSetToBSON dataset_to_bson;
@@ -297,7 +304,8 @@ mongo::BSONObj dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
     return query_builder.obj();
 }
 
-DcmDataset *bson_to_dataset(mongo::BSONObj object)
+DcmDataset *
+bson_to_dataset(mongo::BSONObj object)
 {
     DcmDataset* dataset = NULL;
 
