@@ -164,22 +164,22 @@ mongo::BSONObj Wado_rs::parse_string()
 
     if (sop_instance_uid != "")
     {
-        db_query << "00080018" << BSON_ARRAY("UI" << sop_instance_uid);
+        db_query << "00080018" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(sop_instance_uid));
     }
 
     if (study_instance_uid != "")
     {
-        db_query << "0020000d" << BSON_ARRAY("UI" << study_instance_uid);
+        db_query << "0020000d" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(study_instance_uid));
     }
 
     if (series_instance_uid != "")
     {
-        db_query << "0020000e" << BSON_ARRAY("UI" << series_instance_uid);
+        db_query << "0020000e" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(series_instance_uid));
     }
 
     std::string query_retrieve_level = sop_instance_uid != "" ? "IMAGE" :
                                        series_instance_uid != "" ? "SERIES" : "STUDY";
-    db_query << "00080052" << BSON_ARRAY("CS" << query_retrieve_level);
+    db_query << "00080052" << BSON("vr" << "CS" << "Value" << BSON_ARRAY(query_retrieve_level));
 
     return db_query.obj();
 }

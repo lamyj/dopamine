@@ -77,7 +77,7 @@ QueryRetrieveGenerator
         return 0xa701; // STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches or
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
-    this->_query_retrieve_level = query_dataset.getField("00080052").Array()[1].String();
+    this->_query_retrieve_level = query_dataset.getField("00080052").Obj().getField("Value").Array()[0].String();
 
     // Remove unused elements
     query_object = query_object.removeField("00080005"); // DCM_SpecificCharacterSet
@@ -89,18 +89,18 @@ QueryRetrieveGenerator
     for(mongo::BSONObj::iterator it = query_object.begin(); it.more();)
     {
         mongo::BSONElement const element = it.next();
-        std::vector<mongo::BSONElement> const array = element.Array();
+        mongo::BSONObj const bsonobj = element.Obj();
 
         // Always include the field in the results
         fields_builder << element.fieldName() << 1;
 
-        std::string const vr = array[0].String();
-        mongo::BSONElement const & value = array[1];
+        std::string const vr = bsonobj.getField("vr").String();
+        mongo::BSONElement const & value = bsonobj.getField("Value");
         Match::Type const match_type = this->_get_match_type(vr, value);
 
         DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
         // Match the array element containing the value
-        (this->*function)(std::string(element.fieldName())+".1", vr, value, db_query);
+        (this->*function)(std::string(element.fieldName())+".Value", vr, value, db_query);
     }
 
     if (this->_service_name != Service_Query)
@@ -178,7 +178,7 @@ QueryRetrieveGenerator
         Match::Type const match_type =
             this->_get_match_type("CS", modalities);
         DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-        (this->*function)("00080060.1", "CS", modalities, db_query);
+        (this->*function)("00080060.Value", "CS", modalities, db_query);
         fields_builder << "00080060" << 1;
         reduce_function +=
             "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "

@@ -64,7 +64,7 @@ private :
 
     /// @brief Convert binary data from a DICOM element to BSON.
     template<DcmEVR VVR>
-    void _to_bson(DcmObject * element, mongo::BSONArrayBuilder & builder) const;
+    void _to_bson(DcmObject * element, mongo::BSONObjBuilder & builder) const;
 
     /**
      * @brief Convert binary data from a text DICOM element.
@@ -72,7 +72,7 @@ private :
      * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI, UT
      */
     void _to_bson_text(DcmByteString * element,
-                       mongo::BSONArrayBuilder & builder, bool use_utf8) const;
+                       mongo::BSONObjBuilder & builder, bool use_utf8) const;
 
     /**
      * @brief Convert binary data from a DICOM element to BSON binary data.
@@ -80,7 +80,7 @@ private :
      * This is used for OB, OF, OW, UN
      */
     void _to_bson_binary(DcmElement * element,
-                         mongo::BSONArrayBuilder & builder) const;
+                         mongo::BSONObjBuilder & builder) const;
 
     /**
      * @brief Convert binary data from a DICOM element to a BSON number.
@@ -90,7 +90,7 @@ private :
     template<typename TDICOMValue, typename TBSONValue>
     void _to_bson_number(DcmElement * element, 
         OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
-        mongo::BSONArrayBuilder & builder) const;
+        mongo::BSONObjBuilder & builder) const;
 
     // Since _to_bson is specialized and instantiated in _add_element,
     // this function must be declared after the the specializations.

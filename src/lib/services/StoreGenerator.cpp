@@ -63,13 +63,13 @@ Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
         loggerWarning() << "Cannot retrieve SOP Instance UID";
         return STATUS_STORE_Refused_OutOfResources;
     }
-    std::string sop_instance_uid = query_dataset.getField("00080018").Array()[1].String();
+    std::string sop_instance_uid = query_dataset.getField("00080018").Obj().getField("Value").Array()[0].String();
 
     this->create_destination_path(query_dataset);
 
     mongo::BSONObj group_command =
             BSON("count" << "datasets" << "query"
-                 << BSON("00080018" << sop_instance_uid.c_str()));
+                 << BSON("00080018.Value" << BSON_ARRAY(sop_instance_uid.c_str())));
 
     mongo::BSONObj info;
     this->_connection.runCommand(this->_db_name, group_command, info, 0);
@@ -91,7 +91,7 @@ Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
         // Check user's constraints (user's Rights)
         if (!this->is_dataset_allowed_for_storage(query_dataset))
         {
-            loggerWarning() << "User not allowed to perform STORE";
+            loggerError() << "User not allowed to perform STORE";
             return STATUS_STORE_Refused_OutOfResources;
         }
 
@@ -147,11 +147,11 @@ StoreGenerator
         boost::gregorian::day_clock::universal_day());
 
     std::string study_instance_uid =
-            query_dataset.getField("0020000d").Array()[1].String(); // DCM_StudyInstanceUID
+            query_dataset.getField("0020000d").Obj().getField("Value").Array()[0].String(); // DCM_StudyInstanceUID
     std::string series_instance_uid =
-            query_dataset.getField("0020000e").Array()[1].String(); // DCM_SeriesInstanceUID
+            query_dataset.getField("0020000e").Obj().getField("Value").Array()[0].String(); // DCM_SeriesInstanceUID
     std::string sop_instance_uid =
-            query_dataset.getField("00080018").Array()[1].String(); // DCM_SOPInstanceUID
+            query_dataset.getField("00080018").Obj().getField("Value").Array()[0].String(); // DCM_SOPInstanceUID
 
     std::string const study_hash = dopamine::hashcode::hashToString
             (dopamine::hashcode::hashCode(study_instance_uid));
@@ -213,25 +213,34 @@ StoreGenerator
                 else
                 {
                     // Compare the field's values
-                    std::string valuestr = bsonelement_to_string(dataset.getField(name).Array()[1]);
-
-                    if (element.type() == mongo::BSONType::RegEx)
+                    auto array = dataset.getField(name).Obj().getField("Value").Array();
+                    for(auto itarray = array.begin(); itarray != array.end(); ++itarray)
                     {
-                        std::string regex(element.regex());
-                        if (!boost::regex_match(valuestr.c_str(), boost::regex(regex.c_str())))
+                        mongo::BSONElement const element2 = *itarray;
+                        std::string valuestr = bsonelement_to_string(element2);
+
+                        if (element.type() == mongo::BSONType::RegEx)
                         {
-                            result = false;
-                            break;
+                            std::string regex(element.regex());
+                            if (!boost::regex_match(valuestr.c_str(), boost::regex(regex.c_str())))
+                            {
+                                result = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            std::string elementstr = bsonelement_to_string(element);
+                            if (valuestr != elementstr)
+                            {
+                                result = false;
+                                break;
+                            }
                         }
                     }
-                    else
+                    if (result == false)
                     {
-                        std::string elementstr = bsonelement_to_string(element);
-                        if (valuestr != elementstr)
-                        {
-                            result = false;
-                            break;
-                        }
+                        break;
                     }
                 }
             }

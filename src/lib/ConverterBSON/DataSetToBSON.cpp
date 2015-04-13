@@ -119,7 +119,7 @@ DataSetToBSON
 template<>
 void
 DataSetToBSON::_to_bson<EVR_AE>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -127,7 +127,7 @@ DataSetToBSON::_to_bson<EVR_AE>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_AS>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -135,7 +135,7 @@ DataSetToBSON::_to_bson<EVR_AS>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_AT>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Uint32, unsigned>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getUint32, builder);
@@ -144,7 +144,7 @@ DataSetToBSON::_to_bson<EVR_AT>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_CS>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -152,7 +152,7 @@ DataSetToBSON::_to_bson<EVR_CS>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_DA>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -160,7 +160,7 @@ DataSetToBSON::_to_bson<EVR_DA>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_DT>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -168,36 +168,27 @@ DataSetToBSON::_to_bson<EVR_DT>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_DS>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     DcmDecimalString * ds = dynamic_cast<DcmDecimalString*>(element);
     unsigned long count = ds->getVM();
 
-    if(count > 1)
-    {
-        mongo::BSONArrayBuilder sub_builder;
+    mongo::BSONArrayBuilder sub_builder;
 
-        for(unsigned long i=0; i<count; ++i)
-        {
-            Float64 value;
-            ds->getFloat64(value, i);
-            sub_builder.append(value);
-        }
-
-        builder.append(sub_builder.arr());
-    }
-    else
+    for(unsigned long i=0; i<count; ++i)
     {
         Float64 value;
-        ds->getFloat64(value, 0);
-        builder.append(value);
+        ds->getFloat64(value, i);
+        sub_builder.append(value);
     }
+
+    builder << "Value" << sub_builder.arr();
 }
 
 template<>
 void
 DataSetToBSON::_to_bson<EVR_FD>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Float64, double>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getFloat64, builder);
@@ -206,7 +197,7 @@ DataSetToBSON::_to_bson<EVR_FD>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_FL>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Float32, double>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getFloat32, builder);
@@ -215,36 +206,27 @@ DataSetToBSON::_to_bson<EVR_FL>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_IS>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     DcmIntegerString * is = dynamic_cast<DcmIntegerString*>(element);
     unsigned long count = is->getVM();
 
-    if(count > 1)
-    {
-        mongo::BSONArrayBuilder sub_builder;
+    mongo::BSONArrayBuilder sub_builder;
 
-        for(unsigned long i=0; i<count; ++i)
-        {
-            Sint32 value;
-            is->getSint32(value, i);
-            sub_builder.append<int>(value);
-        }
-
-        builder.append(sub_builder.arr());
-    }
-    else
+    for(unsigned long i=0; i<count; ++i)
     {
         Sint32 value;
-        is->getSint32(value, 0);
-        builder.append<int>(value);
+        is->getSint32(value, i);
+        sub_builder.append<int>(value);
     }
+
+    builder << "Value" << sub_builder.arr();
 }
 
 template<>
 void
 DataSetToBSON::_to_bson<EVR_LO>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -252,7 +234,7 @@ DataSetToBSON::_to_bson<EVR_LO>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_LT>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -260,7 +242,7 @@ DataSetToBSON::_to_bson<EVR_LT>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_OB>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
@@ -268,7 +250,7 @@ DataSetToBSON::_to_bson<EVR_OB>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_OF>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
@@ -276,7 +258,7 @@ DataSetToBSON::_to_bson<EVR_OF>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_OW>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
@@ -284,7 +266,7 @@ DataSetToBSON::_to_bson<EVR_OW>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_PN>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -292,7 +274,7 @@ DataSetToBSON::_to_bson<EVR_PN>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_SH>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -300,7 +282,7 @@ DataSetToBSON::_to_bson<EVR_SH>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_SL>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Sint32, int>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getSint32, builder);
@@ -311,7 +293,7 @@ DataSetToBSON::_to_bson<EVR_SL>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_SS>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Sint16, int>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getSint16, builder);
@@ -320,7 +302,7 @@ DataSetToBSON::_to_bson<EVR_SS>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_ST>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -328,7 +310,7 @@ DataSetToBSON::_to_bson<EVR_ST>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_TM>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -336,7 +318,7 @@ DataSetToBSON::_to_bson<EVR_TM>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_UI>(DcmObject * element,
-                                 mongo::BSONArrayBuilder & builder) const
+                                 mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, false);
 }
@@ -344,7 +326,7 @@ DataSetToBSON::_to_bson<EVR_UI>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_UL>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Uint32, unsigned>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getUint32, builder);
@@ -353,7 +335,7 @@ DataSetToBSON::_to_bson<EVR_UL>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_UN>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_binary(dynamic_cast<DcmElement*>(element), builder);
 }
@@ -361,7 +343,7 @@ DataSetToBSON::_to_bson<EVR_UN>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_US>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_number<Uint16, unsigned>(
         dynamic_cast<DcmElement*>(element), &DcmElement::getUint16, builder);
@@ -370,7 +352,7 @@ DataSetToBSON::_to_bson<EVR_US>(DcmObject * element,
 template<>
 void
 DataSetToBSON::_to_bson<EVR_UT>(DcmObject * element,
-                                mongo::BSONArrayBuilder & builder) const
+                                mongo::BSONObjBuilder & builder) const
 {
     this->_to_bson_text(dynamic_cast<DcmByteString*>(element), builder, true);
 }
@@ -381,15 +363,14 @@ DataSetToBSON::_to_bson<EVR_UT>(DcmObject * element,
 
 void
 DataSetToBSON::_to_bson_text(
-    DcmByteString * element, mongo::BSONArrayBuilder & builder,
+    DcmByteString * element, mongo::BSONObjBuilder & builder,
     bool use_utf8) const
 {
     unsigned long count = element->getVM();
 
     mongo::BSONArrayBuilder sub_builder;
 
-    mongo::BSONArrayBuilder * const current_builder =
-        (count>1)?&sub_builder:&builder;
+    mongo::BSONArrayBuilder * const current_builder = &sub_builder;
 
     for(unsigned long i=0; i<count; ++i)
     {
@@ -426,41 +407,29 @@ DataSetToBSON::_to_bson_text(
         }
     }
 
-    if(count > 1)
-    {
-        builder.append(sub_builder.arr());
-    }
+    builder << "Value" << sub_builder.arr();
 }
 
 template<typename TDICOMValue, typename TBSONValue>
 void
 DataSetToBSON::_to_bson_number(DcmElement * element,
     OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
-    mongo::BSONArrayBuilder & builder) const
+    mongo::BSONObjBuilder & builder) const
 {
     unsigned long count = element->getVM();
-    if(count > 1)
+    mongo::BSONArrayBuilder sub_builder;
+    for(unsigned long i=0; i<count; ++i)
     {
-        mongo::BSONArrayBuilder sub_builder;
-        for(unsigned long i=0; i<count; ++i)
-        {
-            TDICOMValue value;
-            (element->*getter)(value, i);
-            sub_builder.append<TBSONValue>(value);
-        }
-        builder.append(sub_builder.arr());
-    }   
-    else
-    {   
         TDICOMValue value;
-        (element->*getter)(value, 0);
-        builder.append<TBSONValue>(value);
-    }   
+        (element->*getter)(value, i);
+        sub_builder.append<TBSONValue>(value);
+    }
+    builder << "Value" << sub_builder.arr();
 }
 
 void
 DataSetToBSON::_to_bson_binary(DcmElement * element,
-                               mongo::BSONArrayBuilder & builder) const
+                               mongo::BSONObjBuilder & builder) const
 {
     DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
     if(byte_string != NULL)
@@ -478,7 +447,8 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
         mongo::BSONObjBuilder binary_data_builder;
         binary_data_builder.appendBinData("data", element->getLength(),
                                           mongo::BinDataGeneral, begin);
-        builder.append(binary_data_builder.obj().getField("data"));
+
+        builder << "Value" << BSON_ARRAY(binary_data_builder.obj().getField("data"));
     }
     else
     {
@@ -494,8 +464,8 @@ DataSetToBSON
 {
     DcmEVR const vr(element->getVR());
 
-    mongo::BSONArrayBuilder value_builder;
-    value_builder.append(DcmVR(vr).getValidVRName());
+    mongo::BSONObjBuilder value_builder;
+    value_builder << "vr" << DcmVR(vr).getValidVRName();
 
     if(vr == EVR_SQ)
     {
@@ -511,11 +481,11 @@ DataSetToBSON
             converter(sequence_it, item_builder);
             sequence_builder.append(item_builder.obj());
         }
-        value_builder.append(sequence_builder.arr());
+        value_builder << "Value" << sequence_builder.arr();
     }
     else if(element->getLength() == 0)
     {
-        value_builder.appendNull();
+        value_builder.appendNull("Value");
     }
     else
     {
@@ -600,7 +570,7 @@ DataSetToBSON
     static char buffer[9];
     snprintf(buffer, 9, "%04x%04x", element->getGTag(), element->getETag());
 
-    builder << buffer << value_builder.arr();
+    builder << buffer << value_builder.obj();
 }
 
 } // namespace dopamine

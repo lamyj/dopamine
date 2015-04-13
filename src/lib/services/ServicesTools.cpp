@@ -190,7 +190,7 @@ get_constraint_for_user(mongo::DBClientConnection &connection, const std::string
     {
         // Create a constraint to deny all actions
         mongo::BSONObjBuilder builder_none;
-        builder_none << "00080018.1" << "_db8eeea6_e0eb_48b8_9a02_a94926b76992";
+        builder_none << "00080018.Value" << BSON_ARRAY("_db8eeea6_e0eb_48b8_9a02_a94926b76992");
 
         return builder_none.obj();
     }
@@ -214,7 +214,7 @@ get_constraint_for_user(mongo::DBClientConnection &connection, const std::string
             mongo::BSONElement const element = it.next();
 
             mongo::BSONObjBuilder object;
-            object.appendRegex(std::string(element.fieldName())+".1", element.regex(), "");
+            object.appendRegex(std::string(element.fieldName())+".Value", element.regex(), "");
             andarray << object.obj();
         }
         mongo::BSONObjBuilder andobject;

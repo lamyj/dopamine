@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #include "BSONToDataSet.h"
+#include "core/ExceptionPACS.h"
 
 namespace dopamine
 {
@@ -149,8 +150,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_FD>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Double, dataset, tag,
-                     &DcmDataset::putAndInsertFloat64);
+    this->_to_binary<Float64, double>(bson, &mongo::BSONElement::Double,
+                                      dataset, tag, &DcmElement::putFloat64Array);
 }
 
 template<>
@@ -159,8 +160,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_FL>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Double, dataset, tag,
-                     &DcmDataset::putAndInsertFloat32);
+    this->_to_binary<Float32, double>(bson, &mongo::BSONElement::Double,
+                                      dataset, tag, &DcmElement::putFloat32Array);
 }
 
 template<>
@@ -241,8 +242,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_SL>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
-                     &DcmDataset::putAndInsertSint32);
+    this->_to_binary<Sint32, int>(bson, &mongo::BSONElement::Int,
+                                  dataset, tag, &DcmElement::putSint32Array);
 }
 
 // SQ is not processed here
@@ -253,8 +254,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_SS>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int,  dataset, tag,
-                     &DcmDataset::putAndInsertSint16);
+    this->_to_binary<Sint16, int>(bson, &mongo::BSONElement::Int,
+                                  dataset, tag, &DcmElement::putSint16Array);
 }
 
 template<>
@@ -291,8 +292,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_UL>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
-                     &DcmDataset::putAndInsertUint32);
+    this->_to_binary<Uint32, int>(bson, &mongo::BSONElement::Int,
+                                  dataset, tag, &DcmElement::putUint32Array);
 }
 
 template<>
@@ -310,8 +311,8 @@ BSONToDataSet
 ::_to_dcmtk<EVR_US>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(bson, &mongo::BSONElement::Int, dataset, tag,
-                     &DcmDataset::putAndInsertUint16);
+    this->_to_binary<Uint16, int>(bson, &mongo::BSONElement::Int,
+                                  dataset, tag, &DcmElement::putUint16Array);
 }
 
 template<>
@@ -342,27 +343,28 @@ BSONToDataSet
     DcmTag const tag(d>>16, d&0xffff);
 
     // Value holding the VR and the data
-    std::vector<mongo::BSONElement> const array = bson.Array();
+    mongo::BSONObj const object = bson.Obj();
 
     // Get the VR : first item of value
-    DcmVR const vr(array[0].String().c_str());
+    DcmVR const vr(object.getField("vr").String().c_str());
     DcmEVR const evr(vr.getEVR());
 
-    if(!array[1].isNull())
+    mongo::BSONElement const element = object.getField("Value");
+    if(!element.isNull() && element.Array().size() != 0)
     {
         if(evr == EVR_SQ)
         {
-            if (array[1].isABSONObj())
+            if (element.isABSONObj())
             {
                 BSONToDataSet converter;
                 converter.set_specific_character_set(this->get_specific_character_set());
 
-                DcmItem * item = new DcmItem(converter(array[1].Obj()));
+                DcmItem * item = new DcmItem(converter(element.Obj()));
                 dataset.insertSequenceItem(tag, item);
             }
             else
             {
-                std::vector<mongo::BSONElement> elements = array[1].Array();
+                std::vector<mongo::BSONElement> elements = element.Array();
                 for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
                     it != elements.end(); ++it)
                 {
@@ -376,33 +378,33 @@ BSONToDataSet
         }
         else
         {
-            if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(array[1], dataset, tag);
-            else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(array[1], dataset, tag);
-            // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(array[1], dataset, tag);
-            else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(array[1], dataset, tag);
-            else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(array[1], dataset, tag);
-            else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(array[1], dataset, tag);
-            else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(array[1], dataset, tag);
-            else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(array[1], dataset, tag);
-            else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(array[1], dataset, tag);
-            else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(array[1], dataset, tag);
-            else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(array[1], dataset, tag);
-            else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(array[1], dataset, tag);
-            else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(array[1], dataset, tag);
-            else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(array[1], dataset, tag);
-            else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(array[1], dataset, tag);
-            else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(array[1], dataset, tag);
-            else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(array[1], dataset, tag);
+            if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(element, dataset, tag);
+            else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(element, dataset, tag);
+            // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(element, dataset, tag);
+            else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(element, dataset, tag);
+            else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(element, dataset, tag);
+            else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(element, dataset, tag);
+            else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(element, dataset, tag);
+            else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(element, dataset, tag);
+            else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(element, dataset, tag);
+            else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(element, dataset, tag);
+            else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(element, dataset, tag);
+            else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(element, dataset, tag);
+            else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(element, dataset, tag);
+            else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(element, dataset, tag);
+            else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(element, dataset, tag);
+            else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(element, dataset, tag);
+            else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(element, dataset, tag);
             // // SQ is not processed here
-            else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(array[1], dataset, tag);
-            else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(array[1], dataset, tag);
-            else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(array[1], dataset, tag);
-            else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(array[1], dataset, tag);
-            else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(array[1], dataset, tag);
-            else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(array[1], dataset, tag);
-            else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(array[1], dataset, tag);
-            else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(array[1], dataset, tag);
-            else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(array[1], dataset, tag);
+            else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(element, dataset, tag);
+            else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(element, dataset, tag);
+            else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(element, dataset, tag);
+            else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(element, dataset, tag);
+            else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(element, dataset, tag);
+            else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(element, dataset, tag);
+            else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(element, dataset, tag);
+            else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(element, dataset, tag);
+            else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(element, dataset, tag);
             
             // default
             else
@@ -422,16 +424,7 @@ BSONToDataSet
 ::_to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
            DcmDataset & dataset, DcmTag const & tag) const
 {
-    std::vector<mongo::BSONElement> elements;
-
-    if(bson.isABSONObj())
-    {
-        elements = bson.Array();
-    }
-    else
-    {
-        elements.push_back(bson);
-    }
+    std::vector<mongo::BSONElement> elements = bson.Array();
 
     OFString value;
 
@@ -484,25 +477,64 @@ BSONToDataSet
     dataset.putAndInsertOFStringArray(tag, value);
 }
 
-template<typename TInserter, typename TBSONGetter>
+template<typename TDCMTKType, typename TBSONType>
 void
 BSONToDataSet
-::_to_binary(mongo::BSONElement const & bson, TBSONGetter getter,
-             DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const
+::_to_binary(mongo::BSONElement const & bson,
+             typename BSONGetterType<TBSONType>::Type getter,
+             DcmDataset & dataset, DcmTag const & tag,
+             typename DCMTKSetterType<TDCMTKType>::Type setter) const
 {
-    if(bson.isABSONObj())
+    DcmElement * element;
+    OFCondition condition = dataset.findAndGetElement(tag.getXTag(), element);
+    // If Tag does not exist, create it
+    if (condition == EC_TagNotFound)
     {
-        std::vector<mongo::BSONElement> const elements = bson.Array();
-        unsigned long index=0;
-        for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-            it != elements.end(); ++it, ++index)
+        if (tag.getEVR() != EVR_xs)
         {
-            (dataset.*inserter)(tag, ((*it).*getter)(), index, OFTrue);
+            condition = dataset.insertEmptyElement(tag);
+        }
+        else
+        {
+            // InsertEmptyElement cannot process with VR = "xs"
+            // GetValidEVR => return "US" or "SS"
+            DcmTag tagtemp(tag.getGroup(), tag.getElement(), tag.getVR().getValidEVR());
+            condition = dataset.insertEmptyElement(tagtemp);
+        }
+
+        // Get the created element
+        if (condition.good())
+        {
+            condition = dataset.findAndGetElement(tag.getXTag(), element);
         }
     }
-    else
+
+    // Throw exception if element cannot not be retrieve
+    if (condition.bad())
     {
-        (dataset.*inserter)(tag, (bson.*getter)(), 0, OFTrue);
+        std::stringstream streamerror;
+        streamerror << "Cannot get element '" << tag.toString().c_str()
+                    << "': " << condition.text();
+        throw ExceptionPACS(streamerror.str());
+    }
+
+    std::vector<mongo::BSONElement> const elements = bson.Array();
+    unsigned long index=0;
+
+    std::vector<TDCMTKType> array; array.reserve(elements.size());
+    for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+        it != elements.end(); ++it)
+    {
+        array.push_back(static_cast<TDCMTKType>(((*it).*getter)()));
+    }
+    condition = (element->*setter)(&array[0], array.size());
+
+    if (condition.bad())
+    {
+        std::stringstream streamerror;
+        streamerror << "Cannot set element '" << tag.toString().c_str()
+                    << "': " << condition.text();
+        throw ExceptionPACS(streamerror.str());
     }
 }
 
@@ -524,16 +556,7 @@ BSONToDataSet
     std::ostringstream stream;
     stream.imbue(std::locale("C"));
 
-    std::vector<mongo::BSONElement> elements;
-
-    if(bson.isABSONObj())
-    {
-        elements = bson.Array();
-    }
-    else
-    {
-        elements.push_back(bson);
-    }
+    std::vector<mongo::BSONElement> elements = bson.Array();
 
     std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();

@@ -42,6 +42,18 @@ public :
 protected:
     
 private :
+    template<typename TBSONType>
+    struct BSONGetterType
+    {
+        typedef TBSONType (mongo::BSONElement::*Type)() const;
+    };
+
+    template<typename TDCMTKType>
+    struct DCMTKSetterType
+    {
+        typedef OFCondition (DcmElement::*Type)(TDCMTKType const *, const unsigned long);
+    };
+
     void _add_element(mongo::BSONElement const & bson,
                       DcmDataset & dataset);
 
@@ -52,10 +64,11 @@ private :
     void _to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
                   DcmDataset & dataset, DcmTag const & tag) const;
 
-    template<typename TInserter, typename TBSONGetter>
-    void _to_binary(mongo::BSONElement const & bson, TBSONGetter getter,
+    template<typename TDCMTKType, typename TBSONType>
+    void _to_binary(mongo::BSONElement const & bson,
+                    typename BSONGetterType<TBSONType>::Type getter,
                     DcmDataset & dataset, DcmTag const & tag,
-                    TInserter inserter) const;
+                    typename DCMTKSetterType<TDCMTKType>::Type setter) const;
 
     void _to_raw(mongo::BSONElement const & bson, DcmDataset & dataset,
                  DcmTag const & tag) const;
