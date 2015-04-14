@@ -354,25 +354,28 @@ BSONToDataSet
     {
         if(evr == EVR_SQ)
         {
-            if (element.isABSONObj())
+            for(unsigned int i = 0; i < element.Array().size(); ++i)
             {
-                BSONToDataSet converter;
-                converter.set_specific_character_set(this->get_specific_character_set());
+                DcmItem* item = NULL;
 
-                DcmItem * item = new DcmItem(converter(element.Obj()));
-                dataset.insertSequenceItem(tag, item);
-            }
-            else
-            {
-                std::vector<mongo::BSONElement> elements = element.Array();
-                for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-                    it != elements.end(); ++it)
+                mongo::BSONElement const subelement = element.Array()[i];
+
+                if (!subelement.isNull())
                 {
                     BSONToDataSet converter;
                     converter.set_specific_character_set(this->get_specific_character_set());
+                    DcmDataset itemdataset = converter(subelement.Obj());
 
-                    DcmDataset * item = new DcmDataset(converter(it->Obj()));
-                    dataset.insertSequenceItem(tag, item);
+                    item = new DcmItem(itemdataset);
+                }
+
+                OFCondition condition = dataset.insertSequenceItem(tag, item, -2); // -2 = create new
+                if (condition.bad())
+                {
+                    std::stringstream streamerror;
+                    streamerror << "Cannot insert sequence '" << tag.toString().c_str()
+                                << "': " << condition.text();
+                    throw ExceptionPACS(streamerror.str());
                 }
             }
         }
@@ -432,7 +435,7 @@ BSONToDataSet
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
         it != elements.end(); ++it)
     {
-        std::string const element = it->String();
+        std::string const element = it->isNull() ? "" : it->String();
         
         if(use_utf8)
         {
@@ -474,7 +477,14 @@ BSONToDataSet
         value += padding;
     }
     
-    dataset.putAndInsertOFStringArray(tag, value);
+    OFCondition condition = dataset.putAndInsertOFStringArray(tag, value);
+    if (condition.bad())
+    {
+        std::stringstream streamerror;
+        streamerror << "Cannot set element '" << tag.toString().c_str()
+                    << "': " << condition.text();
+        throw ExceptionPACS(streamerror.str());
+    }
 }
 
 template<typename TDCMTKType, typename TBSONType>
@@ -545,7 +555,16 @@ BSONToDataSet
 {
     int size=0;
     char const * begin = bson.binDataClean(size);
-    dataset.putAndInsertUint8Array(tag, reinterpret_cast<Uint8 const *>(begin), size);
+    OFCondition condition = dataset.putAndInsertUint8Array(tag,
+                                                           reinterpret_cast<Uint8 const *>(begin),
+                                                           size);
+    if (condition.bad())
+    {
+        std::stringstream streamerror;
+        streamerror << "Cannot set element '" << tag.toString().c_str()
+                    << "': " << condition.text();
+        throw ExceptionPACS(streamerror.str());
+    }
 }
 
 void
@@ -590,7 +609,14 @@ BSONToDataSet
     {
         value += ' ';
     }
-    dataset.putAndInsertOFStringArray(tag, value);
+    OFCondition condition = dataset.putAndInsertOFStringArray(tag, value);
+    if (condition.bad())
+    {
+        std::stringstream streamerror;
+        streamerror << "Cannot set element '" << tag.toString().c_str()
+                    << "': " << condition.text();
+        throw ExceptionPACS(streamerror.str());
+    }
 }
 
 } // namespace dopamine

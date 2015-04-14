@@ -33,7 +33,7 @@
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(Constructor, TestDataOK01)
 {
     // Object build
     BOOST_CHECK_EQUAL(bsontodataset != NULL, true);
@@ -44,9 +44,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 
 /*************************** TEST OK 02 *******************************/
 /**
- * Nominal test case: set_specific_character_set
+ * Nominal test case: Getter and Setter
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(GetterAndSetter, TestDataOK01)
 {
     // set_specific_character_set
     bsontodataset->set_specific_character_set("ISO_IR 192");
@@ -57,221 +57,211 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 
 /*************************** TEST OK 03 *******************************/
 /**
- * Nominal test case: Operator ()
+ * Nominal test case: Operator () Single Value
  */
- struct TestDataOK03
+ struct TestDataOperatorBracketSingleValue
 {
-    dopamine::BSONToDataSet * bsontodataset;
-    mongo::BSONObjBuilder * bsonobjectbuilder;
+    mongo::BSONObj bsonobject;
  
-    TestDataOK03()
+    TestDataOperatorBracketSingleValue()
     {
-        bsontodataset = new dopamine::BSONToDataSet();
-        bsonobjectbuilder = new mongo::BSONObjBuilder();
-        
-        static char buffer[9];
-        
+        mongo::BSONObjBuilder bsonobjectbuilder;
+
         // Insert AE
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("AE");
-        value_builder.append("test_AE");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0054);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "AE";
+        value_builder << "Value" << BSON_ARRAY("test_AE");
+        bsonobjectbuilder << "00080054" << value_builder.obj();
         }
         
         // Insert AS
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("AS");
-        value_builder.append("test_AS");
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x1010);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "AS";
+        value_builder << "Value" << BSON_ARRAY("test_AS");
+        bsonobjectbuilder << "00101010" << value_builder.obj();
         }
         
         // Insert CS
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("CS");
-        value_builder.append("value1");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "CS";
+        value_builder << "Value" << BSON_ARRAY("value1");
+        bsonobjectbuilder << "00080060" << value_builder.obj();
         }
         
         // Insert DA
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("DA");
-        value_builder.append("01/01/2001");
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x0030);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "DA";
+        value_builder << "Value" << BSON_ARRAY("01/01/2001");
+        bsonobjectbuilder << "00100030" << value_builder.obj();
         }
         
         // Insert DS
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("DS");
-        value_builder.append((Float64)60.5);
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x1030);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "DS";
+        value_builder << "Value" << BSON_ARRAY(60.5);
+        bsonobjectbuilder << "00101030" << value_builder.obj();
         }
         
         // Insert DT
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("DT");
-        value_builder.append("01/01/2001 09:09:09");
-        snprintf(buffer, 9, "%04x%04x", 0x0018, 0x9074);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "DT";
+        value_builder << "Value" << BSON_ARRAY("01/01/2001 09:09:09");
+        bsonobjectbuilder << "00189074" << value_builder.obj();
         }
         
         // Insert FD
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("FD");
-        value_builder.append((Float64)42.5);
-        snprintf(buffer, 9, "%04x%04x", 0x0046, 0x0044);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "FD";
+        value_builder << "Value" << BSON_ARRAY(42.5);
+        bsonobjectbuilder << "00460044" << value_builder.obj();
         }
         
         // Insert FL
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("FL");
-        value_builder.append((Float32)15.2);
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x9459);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "FL";
+        value_builder << "Value" << BSON_ARRAY(15.2);
+        bsonobjectbuilder << "00089459" << value_builder.obj();
         }
         
         // Insert IS
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("IS");
-        value_builder.append<int>((Sint32)12);
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x2122);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "IS";
+        value_builder << "Value" << BSON_ARRAY(12);
+        bsonobjectbuilder << "00082122" << value_builder.obj();
         }
         
         // Insert LO
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("LO");
-        value_builder.append("MyManufacturer");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0070);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "LO";
+        value_builder << "Value" << BSON_ARRAY("MyManufacturer");
+        bsonobjectbuilder << "00080070" << value_builder.obj();
         }
         
         // Insert LT
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("LT");
-        value_builder.append("test_valueLT");
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x21b0);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "LT";
+        value_builder << "Value" << BSON_ARRAY("test_valueLT");
+        bsonobjectbuilder << "001021b0" << value_builder.obj();
         }
         
         // Insert PN
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("PN");
-        value_builder.append("Doe^John");
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x0010);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "PN";
+        value_builder << "Value" << BSON_ARRAY("Doe^John");
+        bsonobjectbuilder << "00100010" << value_builder.obj();
         }
         
         // Insert SH
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("SH");
-        value_builder.append("test_valueSH");
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x2160);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SH";
+        value_builder << "Value" << BSON_ARRAY("test_valueSH");
+        bsonobjectbuilder << "00102160" << value_builder.obj();
         }
         
         // Insert SL
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("SL");
-        value_builder.append<int>((Sint32)10);
-        snprintf(buffer, 9, "%04x%04x", 0x0018, 0x6020);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SL";
+        value_builder << "Value" << BSON_ARRAY(10);
+        bsonobjectbuilder << "00186020" << value_builder.obj();
         }
         
         // Insert SS
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("SS");
-        value_builder.append<int>((Sint16)11);
-        snprintf(buffer, 9, "%04x%04x", 0x0018, 0x9219);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SS";
+        value_builder << "Value" << BSON_ARRAY(11);
+        bsonobjectbuilder << "00189219" << value_builder.obj();
         }
         
         // Insert ST
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("ST");
-        value_builder.append("MyAddress");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0081);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "ST";
+        value_builder << "Value" << BSON_ARRAY("MyAddress");
+        bsonobjectbuilder << "00080081" << value_builder.obj();
         }
         
         // Insert TM
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("TM");
-        value_builder.append("08:08:08");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0013);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "TM";
+        value_builder << "Value" << BSON_ARRAY("08:08:08");
+        bsonobjectbuilder << "00080013" << value_builder.obj();
         }
         
         // Insert UI
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("UI");
-        value_builder.append("1.2.3.4.5.6");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0016);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "UI";
+        value_builder << "Value" << BSON_ARRAY("1.2.3.4.5.6");
+        bsonobjectbuilder << "00080016" << value_builder.obj();
         }
         
         // Insert UL
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("UL");
-        value_builder.append<unsigned>((Uint32)6);
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x1161);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "UL";
+        value_builder << "Value" << BSON_ARRAY(6);
+        bsonobjectbuilder << "00081161" << value_builder.obj();
         }
         
         // Insert US
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("US");
-        value_builder.append<unsigned>((Uint16)5);
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x1197);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "US";
+        value_builder << "Value" << BSON_ARRAY(5);
+        bsonobjectbuilder << "00081197" << value_builder.obj();
         }
         
         // Insert UT
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("UT");
-        value_builder.append("test_valueUT");
-        snprintf(buffer, 9, "%04x%04x", 0x0028, 0x7fe0);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "UT";
+        value_builder << "Value" << BSON_ARRAY("test_valueUT");
+        bsonobjectbuilder << "00287fe0" << value_builder.obj();
         }
+
+
+        // Insert SQ
+        {
+        mongo::BSONObjBuilder subvalue_builder;
+        subvalue_builder << "vr" << "LO";
+        subvalue_builder << "Value" << BSON_ARRAY("123");
+
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SQ";
+        value_builder << "Value" << BSON_ARRAY(BSON("00100020" << subvalue_builder.obj()));
+        bsonobjectbuilder << "00101002" << value_builder.obj();
+        }
+
+        bsonobject = bsonobjectbuilder.obj();
     }
  
-    ~TestDataOK03()
+    ~TestDataOperatorBracketSingleValue()
     {
-        delete bsontodataset;
-        delete bsonobjectbuilder;
+        // Nothing to do
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK03)
+BOOST_FIXTURE_TEST_CASE(OperatorBracketSingleValue, TestDataOperatorBracketSingleValue)
 {
-    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
-    
+    dopamine::BSONToDataSet bsontodataset;
+    DcmDataset dataset = bsontodataset(bsonobject);
+
     // Testing AE
     {
     OFString value;
@@ -418,6 +408,18 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK03)
     dataset.findAndGetOFString(DCM_PixelDataProviderURL, value);
     BOOST_CHECK_EQUAL(value.c_str(), "test_valueUT");
     }
+
+    // Testing SQ
+    {
+    DcmSequenceOfItems * sequence = NULL;
+    dataset.findAndGetSequence(DCM_OtherPatientIDsSequence, sequence);
+    BOOST_CHECK_EQUAL(sequence != NULL, true);
+    DcmItem * item = sequence->getItem(0);
+    BOOST_CHECK_EQUAL(item != NULL, true);
+    OFString value;
+    item->findAndGetOFString(DCM_PatientID, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "123");
+    }
 }
 
 /*************************** TEST OK 04 *******************************/
@@ -426,37 +428,35 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK03)
  */
  struct TestDataOK04
 {
-    dopamine::BSONToDataSet * bsontodataset;
-    mongo::BSONObjBuilder * bsonobjectbuilder;
- 
-    TestDataOK04()
-    {
-        bsontodataset = new dopamine::BSONToDataSet();
-        bsonobjectbuilder = new mongo::BSONObjBuilder();
-        
-        static char buffer[9];
-        
-        // Insert CS
-        {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("CS");
-        value_builder.appendNull();
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
-        }
+     mongo::BSONObj bsonobject;
+
+     TestDataOK04()
+     {
+         mongo::BSONObjBuilder bsonobjectbuilder;
+
+         // Insert CS
+         {
+         mongo::BSONObjBuilder value_builder;
+         value_builder << "vr" << "CS";
+         mongo::BSONArrayBuilder array_builder;
+         array_builder.appendNull();
+         value_builder << "Value" << array_builder.arr();
+         bsonobjectbuilder << "00080060" << value_builder.obj();
+         }
+
+         bsonobject = bsonobjectbuilder.obj();
     }
  
     ~TestDataOK04()
     {
-        delete bsontodataset;
-        delete bsonobjectbuilder;
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 {
-    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
-    
+    dopamine::BSONToDataSet bsontodataset;
+    DcmDataset dataset = bsontodataset(bsonobject);
+
     // Testing CS
     {
     OFString value;
@@ -471,55 +471,67 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
  */
  struct TestDataOK05
 {
-    dopamine::BSONToDataSet * bsontodataset;
-    mongo::BSONObjBuilder * bsonobjectbuilder;
- 
+     mongo::BSONObj bsonobject_1_2;
+     mongo::BSONObj bsonobject_2_1;
+
     TestDataOK05()
     {
-        bsontodataset = new dopamine::BSONToDataSet();
-        bsonobjectbuilder = new mongo::BSONObjBuilder();
-        
-        static char buffer[9];
-        
-        mongo::BSONObjBuilder* objectcs = new mongo::BSONObjBuilder();
-        // Insert CS
+        mongo::BSONObjBuilder bsonobjectbuilder;
+
+        // Insert SQ 1 item 2 fields
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("CS");
-        value_builder.append("value1");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
-        (*objectcs) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder subvalue_builder;
+        subvalue_builder << "vr" << "LO";
+        subvalue_builder << "Value" << BSON_ARRAY("MyManufacturer");
+
+        mongo::BSONObjBuilder subvalue_builder2;
+        subvalue_builder2 << "vr" << "CS";
+        subvalue_builder2 << "Value" << BSON_ARRAY("value1");
+
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SQ";
+        value_builder << "Value" << BSON_ARRAY(BSON("00080070" << subvalue_builder.obj() <<
+                                                    "00080060" << subvalue_builder2.obj()));
+        bsonobjectbuilder << "00101002" << value_builder.obj();
         }
-        // Insert LO
+
+        bsonobject_1_2 = bsonobjectbuilder.obj();
+
+        mongo::BSONObjBuilder bsonobjectbuilder_2_1;
+
+        // Insert SQ 2 item 1 fields
         {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("LO");
-        value_builder.append("MyManufacturer");
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0070);
-        (*objectcs) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder subvalue_builder;
+        subvalue_builder << "vr" << "LO";
+        subvalue_builder << "Value" << BSON_ARRAY("MyManufacturer");
+
+        mongo::BSONObjBuilder subvalue_builder2;
+        subvalue_builder2 << "vr" << "LO";
+        subvalue_builder2 << "Value" << BSON_ARRAY("MyManufacturer2");
+
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "SQ";
+        value_builder << "Value" << BSON_ARRAY(BSON("00080070" << subvalue_builder.obj()) <<
+                                               BSON("00080070" << subvalue_builder2.obj()));
+        bsonobjectbuilder_2_1 << "00101002" << value_builder.obj();
         }
-        
-        // Insert SQ
-        {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("SQ");
-        value_builder.append(objectcs->obj());
-        snprintf(buffer, 9, "%04x%04x", 0x0010, 0x1002);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
-        }
+
+        bsonobject_2_1 = bsonobjectbuilder_2_1.obj();
     }
  
     ~TestDataOK05()
     {
-        delete bsontodataset;
-        delete bsonobjectbuilder;
+        // Nothing to do
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
 {
-    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
-    
+    dopamine::BSONToDataSet bsontodataset;
+
+    /***************************************************************************/
+    DcmDataset dataset = bsontodataset(bsonobject_1_2);
+
     // Testing SQ
     BOOST_CHECK_EQUAL(dataset.tagExists(DCM_OtherPatientIDsSequence), true);
     
@@ -539,53 +551,461 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
     item->findAndGetOFString(DCM_Manufacturer, value);
     BOOST_CHECK_EQUAL(value.c_str(), "MyManufacturer");
     }
+
+    /***************************************************************************/
+    dataset = bsontodataset(bsonobject_2_1);
+
+    // Testing SQ
+    BOOST_CHECK_EQUAL(dataset.tagExists(DCM_OtherPatientIDsSequence), true);
+
+    item = NULL;
+    dataset.findOrCreateSequenceItem(DCM_OtherPatientIDsSequence, item, 0);
+
+    // Testing LO
+    {
+    OFString value;
+    item->findAndGetOFString(DCM_Manufacturer, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "MyManufacturer");
+    }
+
+    item = NULL;
+    dataset.findOrCreateSequenceItem(DCM_OtherPatientIDsSequence, item, 1);
+
+    // Testing LO
+    {
+    OFString value;
+    item->findAndGetOFString(DCM_Manufacturer, value);
+    BOOST_CHECK_EQUAL(value.c_str(), "MyManufacturer2");
+    }
 }
 
 /*************************** TEST OK 06 *******************************/
 /**
- * Nominal test case: Multi-valued (VM > 1)
+ * Nominal test case: Operator () Multiple Values
  */
- struct TestDataOK06
+struct TestDataOperatorBracketMultipleValues
 {
-    dopamine::BSONToDataSet * bsontodataset;
-    mongo::BSONObjBuilder * bsonobjectbuilder;
- 
-    TestDataOK06()
-    {
-        bsontodataset = new dopamine::BSONToDataSet();
-        bsonobjectbuilder = new mongo::BSONObjBuilder();
-        
-        static char buffer[9];
-        
-        // Insert CS
-        {
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("CS");
-        mongo::BSONArrayBuilder value_builder2;
-        value_builder2.append("value1");
-        value_builder2.append("value2");
-        value_builder.append(value_builder2.arr());
-        snprintf(buffer, 9, "%04x%04x", 0x0008, 0x0060);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
-        }
-    }
- 
-    ~TestDataOK06()
-    {
-        delete bsontodataset;
-        delete bsonobjectbuilder;
-    }
+   mongo::BSONObj bsonobject;
+
+   TestDataOperatorBracketMultipleValues()
+   {
+       mongo::BSONObjBuilder bsonobjectbuilder;
+
+       // Insert AE
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "AE";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00080054" << value_builder.obj();
+       }
+
+       // Insert AS
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "AS";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00101010" << value_builder.obj();
+       }
+
+       // Insert CS
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "CS";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00080060" << value_builder.obj();
+       }
+
+       // Insert DA
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "DA";
+       value_builder << "Value" << BSON_ARRAY("01/01/2001" << "02/02/2002");
+       bsonobjectbuilder << "00100030" << value_builder.obj();
+       }
+
+       // Insert DS
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "DS";
+       value_builder << "Value" << BSON_ARRAY(60.5 << 61.6);
+       bsonobjectbuilder << "00101030" << value_builder.obj();
+       }
+
+       // Insert DT
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "DT";
+       value_builder << "Value" << BSON_ARRAY("01/01/2001 09:09:09" << "02/02/2002 09:09:09");
+       bsonobjectbuilder << "00189074" << value_builder.obj();
+       }
+
+       // Insert FD
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "FD";
+       value_builder << "Value" << BSON_ARRAY(42.5 << 43.6);
+       bsonobjectbuilder << "00460044" << value_builder.obj();
+       }
+
+       // Insert FL
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "FL";
+       value_builder << "Value" << BSON_ARRAY(15.2 << 16.3);
+       bsonobjectbuilder << "00089459" << value_builder.obj();
+       }
+
+       // Insert IS
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "IS";
+       value_builder << "Value" << BSON_ARRAY(12 << 13);
+       bsonobjectbuilder << "00082122" << value_builder.obj();
+       }
+
+       // Insert LO
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "LO";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00080070" << value_builder.obj();
+       }
+
+       // Insert LT
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "LT";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "001021b0" << value_builder.obj();
+       }
+
+       // Insert PN
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "PN";
+       value_builder << "Value" << BSON_ARRAY("Doe^John" << "Doe^Jane");
+       bsonobjectbuilder << "00100010" << value_builder.obj();
+       }
+
+       // Insert SH
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "SH";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00102160" << value_builder.obj();
+       }
+
+       // Insert SL
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "SL";
+       value_builder << "Value" << BSON_ARRAY(10 << 11);
+       bsonobjectbuilder << "00186020" << value_builder.obj();
+       }
+
+       // Insert SS
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "SS";
+       value_builder << "Value" << BSON_ARRAY(11 << 12);
+       bsonobjectbuilder << "00189219" << value_builder.obj();
+       }
+
+       // Insert ST
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "ST";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00080081" << value_builder.obj();
+       }
+
+       // Insert TM
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "TM";
+       value_builder << "Value" << BSON_ARRAY("08:08:08" << "09:09:09");
+       bsonobjectbuilder << "00080013" << value_builder.obj();
+       }
+
+       // Insert UI
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "UI";
+       value_builder << "Value" << BSON_ARRAY("1.2.3.4.5.6" << "1.2.3.4.5.7");
+       bsonobjectbuilder << "00080016" << value_builder.obj();
+       }
+
+       // Insert UL
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "UL";
+       value_builder << "Value" << BSON_ARRAY(6 << 7);
+       bsonobjectbuilder << "00081161" << value_builder.obj();
+       }
+
+       // Insert US
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "US";
+       value_builder << "Value" << BSON_ARRAY(5 << 6);
+       bsonobjectbuilder << "00081197" << value_builder.obj();
+       }
+
+       // Insert UT
+       {
+       mongo::BSONObjBuilder value_builder;
+       value_builder << "vr" << "UT";
+       value_builder << "Value" << BSON_ARRAY("value1" << "value2");
+       bsonobjectbuilder << "00287fe0" << value_builder.obj();
+       }
+
+       bsonobject = bsonobjectbuilder.obj();
+   }
+
+   ~TestDataOperatorBracketMultipleValues()
+   {
+       // Nothing to do
+   }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
+BOOST_FIXTURE_TEST_CASE(OperatorBracketMultipleValues, TestDataOperatorBracketMultipleValues)
 {
-    DcmDataset dataset = (*bsontodataset)(bsonobjectbuilder->obj());
-    
+    dopamine::BSONToDataSet bsontodataset;
+    DcmDataset dataset = bsontodataset(bsonobject);
+
+    OFCondition condition = EC_Normal;
+    // Testing AE
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_RetrieveAETitle, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    condition = dataset.findAndGetOFString(DCM_RetrieveAETitle, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing AS
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_PatientAge, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    condition = dataset.findAndGetOFString(DCM_PatientAge, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
     // Testing CS
     {
     OFString value;
-    dataset.findAndGetOFStringArray(DCM_Modality, value);
+    condition = dataset.findAndGetOFString(DCM_Modality, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    condition = dataset.findAndGetOFString(DCM_Modality, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing DA
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_PatientBirthDate, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "01/01/2001");
+    condition = dataset.findAndGetOFString(DCM_PatientBirthDate, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "02/02/2002");
+    }
+
+    // Testing DS
+    {
+    Float64 value;
+    condition = dataset.findAndGetFloat64(DCM_PatientWeight, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 60.5, 0.001);
+    condition = dataset.findAndGetFloat64(DCM_PatientWeight, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 61.6, 0.001);
+    }
+
+    // Testing DT
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "01/01/2001 09:09:09");
+    condition = dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "02/02/2002 09:09:09");
+    }
+
+    // Testing FD
+    {
+    Float64 value;
+    condition = dataset.findAndGetFloat64(DCM_PupilSize, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 42.5, 0.001);
+    condition = dataset.findAndGetFloat64(DCM_PupilSize, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 43.6, 0.001);
+    }
+
+    // Testing FL
+    {
+    Float32 value;
+    condition = dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 15.2, 0.001);
+    condition = dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_CLOSE(value, 16.3, 0.001);
+    }
+
+    // Testing IS
+    {
+    Sint32 value;
+    condition = dataset.findAndGetSint32(DCM_StageNumber, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 12);
+    condition = dataset.findAndGetSint32(DCM_StageNumber, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 13);
+    }
+
+    // Testing LO
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_Manufacturer, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    condition = dataset.findAndGetOFString(DCM_Manufacturer, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing LT
+    // Be carefull: putAndInsertOFStringArray for LT add only 1 value !!!
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_AdditionalPatientHistory, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
+    //condition = dataset.findAndGetOFString(DCM_AdditionalPatientHistory, value, 1);
+    //BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    //BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing PN
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_PatientName, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "Doe^John");
+    condition = dataset.findAndGetOFString(DCM_PatientName, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "Doe^Jane");
+    }
+
+    // Testing SH
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_EthnicGroup, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1");
+    condition = dataset.findAndGetOFString(DCM_EthnicGroup, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing SL
+    {
+    Sint32 value;
+    condition = dataset.findAndGetSint32(DCM_ReferencePixelX0, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 10);
+    condition = dataset.findAndGetSint32(DCM_ReferencePixelX0, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 11);
+    }
+
+    // Testing SS
+    {
+    Sint16 value;
+    condition = dataset.findAndGetSint16(DCM_TagAngleSecondAxis, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 11);
+    condition = dataset.findAndGetSint16(DCM_TagAngleSecondAxis, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 12);
+    }
+
+    // Testing ST
+    // Be carefull: putAndInsertOFStringArray for ST add only 1 value !!!
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_InstitutionAddress, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
+    //condition = dataset.findAndGetOFString(DCM_InstitutionAddress, value, 1);
+    //BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    //BOOST_CHECK_EQUAL(value.c_str(), "value2");
+    }
+
+    // Testing TM
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_InstanceCreationTime, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "08:08:08");
+    condition = dataset.findAndGetOFString(DCM_InstanceCreationTime, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "09:09:09");
+    }
+
+    // Testing UI
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_SOPClassUID, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "1.2.3.4.5.6");
+    condition = dataset.findAndGetOFString(DCM_SOPClassUID, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "1.2.3.4.5.7");
+    }
+
+    // Testing UL
+    {
+    Uint32 value;
+    condition = dataset.findAndGetUint32(DCM_SimpleFrameList, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 6);
+    condition = dataset.findAndGetUint32(DCM_SimpleFrameList, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 7);
+    }
+
+    // Testing US
+    {
+    Uint16 value;
+    condition = dataset.findAndGetUint16(DCM_FailureReason, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 5);
+    condition = dataset.findAndGetUint16(DCM_FailureReason, value, 1);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value, 6);
+    }
+
+    // Testing UT
+    // Be carefull: putAndInsertOFStringArray for UT add only 1 value !!!
+    {
+    OFString value;
+    condition = dataset.findAndGetOFString(DCM_PixelDataProviderURL, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
+    //condition = dataset.findAndGetOFString(DCM_PixelDataProviderURL, value, 1);
+    //BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    //BOOST_CHECK_EQUAL(value.c_str(), "value2");
     }
 }
 
@@ -622,34 +1042,31 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 /**
  * Error test case: Throw Unhandled VR
  */
- struct TestDataKO02
+struct TestDataKO02
 {
-    dopamine::BSONToDataSet * bsontodataset;
-    mongo::BSONObjBuilder * bsonobjectbuilder;
- 
+    mongo::BSONObj bsonobject;
+
     TestDataKO02()
     {
-        bsontodataset = new dopamine::BSONToDataSet();
-        bsonobjectbuilder = new mongo::BSONObjBuilder();
-        
-        static char buffer[9];
-        
-        mongo::BSONArrayBuilder value_builder;
-        value_builder.append("an");
-        value_builder.append("temp");
-        snprintf(buffer, 9, "%04x%04x", 0x9998, 0x9998);
-        (*bsonobjectbuilder) << buffer << value_builder.arr();
+        mongo::BSONObjBuilder bsonobjectbuilder;
+
+        mongo::BSONObjBuilder value_builder;
+        value_builder << "vr" << "an";
+        value_builder << "Value" << BSON_ARRAY("temp");
+        bsonobjectbuilder << "99989998" << value_builder.obj();
+
+        bsonobject = bsonobjectbuilder.obj();
     }
  
     ~TestDataKO02()
     {
-        delete bsontodataset;
-        delete bsonobjectbuilder;
+        // Nothing to do
     }
 };
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
-    BOOST_REQUIRE_THROW((*bsontodataset)(bsonobjectbuilder->obj()),
+    dopamine::BSONToDataSet bsontodataset;
+    BOOST_REQUIRE_THROW(bsontodataset(bsonobject),
                         std::runtime_error);
 }
