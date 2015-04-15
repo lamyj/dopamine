@@ -10,6 +10,9 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/archive/iterators/ostream_iterator.hpp>
 
 #include <dcmtk/dcmdata/dctag.h>
 
@@ -279,7 +282,21 @@ BSONToXML
 
     int size=0;
     char const * begin = it.binDataClean(size);
-    // TODO
+
+    typedef boost::archive::iterators::base64_from_binary<
+                boost::archive::iterators::transform_width<
+                    const char *, 6, 8>
+                >
+            base64_t;
+
+    std::stringstream os;
+    std::copy(
+            base64_t(begin),
+            base64_t(begin + size),
+            boost::archive::iterators::ostream_iterator<char>(os)
+        );
+
+    tag_inlinebinary.put_value(os.str());
 
     tag_xml.add_child(Tag_InlineBinary, tag_inlinebinary);
 }
