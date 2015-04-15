@@ -8,11 +8,13 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include "boost/regex.hpp"
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmdata/dctag.h>
 
+#include "ConverterBSON/XML/BSONToXML.h"
 #include "Qido_rs.h"
 #include "services/QueryGenerator.h"
 #include "services/ServicesTools.h"
@@ -60,23 +62,50 @@ Qido_rs
     }
 
     std::stringstream stream;
+    mongo::BSONArrayBuilder bsonarraybuilder; // only for Content-Type = MIME_TYPE_APPLICATION_JSON
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
-        //TODO RLA std::string const currentdata = this->get_data(findedobject);
+        if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
+        {
+            bsonarraybuilder << findedobject;
+        }
+        else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
+        {
+            stream << "--" << this->_boundary << "\n";
+            stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n";
+            //TODO RLA stream << CONTENT_DISPOSITION_ATTACHMENT << " "
+            //TODO RLA        << ATTRIBUT_FILENAME << this->_filename << "\n";
+            stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
 
-        stream << "--" << this->_boundary << "\n";
-        stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n";
-        //TODO RLA stream << CONTENT_DISPOSITION_ATTACHMENT << " "
-        //TODO RLA        << ATTRIBUT_FILENAME << this->_filename << "\n";
-        stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
+            dopamine::BSONToXML bsontoxml;
+            boost::property_tree::ptree tree = bsontoxml(findedobject);
 
-        //TODO RLA stream << currentdata << "\n" << "\n";
+            std::stringstream xmldataset;
+            boost::property_tree::xml_writer_settings<char> settings(' ', 4);
+            boost::property_tree::write_xml(xmldataset, tree, settings);
+
+            std::string currentdata = xmldataset.str();
+
+            // The directive xml:space="preserve" shall be included.
+            currentdata = replace(currentdata,
+                                  "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                                  "<?xml version=\"1.0\" encoding=\"utf-8\" xml:space=\"preserve\" ?>");
+
+            stream << currentdata << "\n" << "\n";
+        }
 
         findedobject = generator.next();
     }
 
-    // Close the response
-    stream << "--" << this->_boundary << "--";
+    if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
+    {
+        stream << bsonarraybuilder.arr().toString();
+    }
+    else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
+    {
+        // Close the response
+        stream << "--" << this->_boundary << "--";
+    }
 
     this->_response = stream.str();
 }
