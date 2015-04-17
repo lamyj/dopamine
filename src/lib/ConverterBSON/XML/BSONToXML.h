@@ -71,37 +71,15 @@ Number = attribute number { xsd:positiveInteger }
 #ifndef _052e3da7_023c_4322_80aa_3be13ca5b813
 #define _052e3da7_023c_4322_80aa_3be13ca5b813
 
-#include <string>
-
-#include <boost/property_tree/ptree.hpp>
-
-#include <mongo/bson/bson.h>
+#include "ConverterBSONXML.h"
 
 namespace dopamine
 {
 
-const std::string Attribute_Keyword         = "<xmlattr>.keyword";
-const std::string Attribute_Number          = "<xmlattr>.number";
-const std::string Attribute_PrivateCreator  = "<xmlattr>.privateCreator";
-const std::string Attribute_Tag             = "<xmlattr>.tag";
-const std::string Attribute_VR              = "<xmlattr>.vr";
-const std::string Tag_Alphabetic            = "Alphabetic";
-const std::string Tag_BulkData              = "BulkData";
-const std::string Tag_DicomAttribute        = "DicomAttribute";
-const std::string Tag_FamilyName            = "FamilyName";
-const std::string Tag_GivenName             = "GivenName";
-const std::string Tag_Ideographic           = "Ideographic";
-const std::string Tag_InlineBinary          = "InlineBinary";
-const std::string Tag_Item                  = "Item";
-const std::string Tag_MiddleName            = "MiddleName";
-const std::string Tag_NamePrefix            = "NamePrefix";
-const std::string Tag_NameSuffix            = "NameSuffix";
-const std::string Tag_NativeDicomModel      = "NativeDicomModel";
-const std::string Tag_PersonName            = "PersonName";
-const std::string Tag_Phonetic              = "Phonetic";
-const std::string Tag_Value                 = "Value";
+namespace converterBSON
+{
 
-class BSONToXML
+class BSONToXML : public ConverterBSONXML
 {
 public:
     BSONToXML();
@@ -149,6 +127,8 @@ private:
                                   boost::property_tree::ptree & tag_xml) const;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

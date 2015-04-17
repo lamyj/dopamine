@@ -399,7 +399,15 @@ DataSetToBSON::_to_bson_text(
             value = OFString(buffer, buffer_size-outbytesleft);
         }
 
-        current_builder->append(std::string(value.c_str()));
+        std::string const valuestr(value.c_str());
+        if (element->getVR() == EVR_PN)
+        {
+            current_builder->append(BSON("Alphabetic" << valuestr));
+        }
+        else
+        {
+            current_builder->append(valuestr);
+        }
 
         if(use_utf8)
         {

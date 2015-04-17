@@ -77,7 +77,7 @@ Qido_rs
             //TODO RLA        << ATTRIBUT_FILENAME << this->_filename << "\n";
             stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
 
-            dopamine::BSONToXML bsontoxml;
+            dopamine::converterBSON::BSONToXML bsontoxml;
             boost::property_tree::ptree tree = bsontoxml(findedobject);
 
             std::stringstream xmldataset;

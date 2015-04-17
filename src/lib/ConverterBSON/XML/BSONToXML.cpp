@@ -22,8 +22,12 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 BSONToXML
-::BSONToXML()
+::BSONToXML():
+    ConverterBSONXML() // base class initialization
 {
     // Nothing to do
 }
@@ -382,5 +386,7 @@ BSONToXML
         tag_xml.add_child(Tag_Value, tag_value);
     }
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

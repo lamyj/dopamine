@@ -62,71 +62,71 @@ void check_name_component(boost::property_tree::ptree & tree,
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_alpha,
                   tree)
     {
-        if (it_alpha.first == dopamine::Tag_FamilyName)
+        if (it_alpha.first == dopamine::converterBSON::Tag_FamilyName)
         {
             if (family_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::Tag_FamilyName
-                       << "' for node '" << dopamine::Tag_Alphabetic
-                       << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                       << dopamine::Tag_Phonetic;
+                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_FamilyName
+                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                       << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
 
             family_name = it_alpha.second.data();
         }
-        else if (it_alpha.first == dopamine::Tag_GivenName)
+        else if (it_alpha.first == dopamine::converterBSON::Tag_GivenName)
         {
             if (given_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::Tag_GivenName
-                       << "' for node '" << dopamine::Tag_Alphabetic
-                       << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                       << dopamine::Tag_Phonetic;
+                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_GivenName
+                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                       << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
 
             given_name = it_alpha.second.data();
         }
-        else if (it_alpha.first == dopamine::Tag_MiddleName)
+        else if (it_alpha.first == dopamine::converterBSON::Tag_MiddleName)
         {
             if (middle_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::Tag_MiddleName
-                       << "' for node '" << dopamine::Tag_Alphabetic
-                       << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                       << dopamine::Tag_Phonetic;
+                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_MiddleName
+                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                       << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
 
             middle_name = it_alpha.second.data();
         }
-        else if (it_alpha.first == dopamine::Tag_NamePrefix)
+        else if (it_alpha.first == dopamine::converterBSON::Tag_NamePrefix)
         {
             if (prefix_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::Tag_NamePrefix
-                       << "' for node '" << dopamine::Tag_Alphabetic
-                       << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                       << dopamine::Tag_Phonetic;
+                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_NamePrefix
+                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                       << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
 
             prefix_name = it_alpha.second.data();
         }
-        else if (it_alpha.first == dopamine::Tag_NameSuffix)
+        else if (it_alpha.first == dopamine::converterBSON::Tag_NameSuffix)
         {
             if (suffix_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::Tag_NameSuffix
-                       << "' for node '" << dopamine::Tag_Alphabetic
-                       << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                       << dopamine::Tag_Phonetic;
+                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_NameSuffix
+                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                       << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
 
@@ -136,14 +136,14 @@ void check_name_component(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_alpha.first
-                   << "' for node '" << dopamine::Tag_Alphabetic
-                   << "' or '" << dopamine::Tag_Ideographic << "' or '"
-                   << dopamine::Tag_Phonetic;
+                   << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
+                   << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                   << dopamine::converterBSON::Tag_Phonetic;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
 
-    std::string name = object.getField(dopamine::Tag_Alphabetic).String();
+    std::string name = object.getField(dopamine::converterBSON::Tag_Alphabetic).String();
     std::vector<std::string> name_components;
     boost::split(name_components, name,
                  boost::is_any_of("^"), boost::token_compress_off);
@@ -183,9 +183,9 @@ void check_value_xmlattr(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown attribute '" << it_xmlattr.first
-                   << "' for node " << dopamine::Tag_Value << " or "
-                   << dopamine::Tag_PersonName << " or "
-                   << dopamine::Tag_Item;
+                   << "' for node " << dopamine::converterBSON::Tag_Value << " or "
+                   << dopamine::converterBSON::Tag_PersonName << " or "
+                   << dopamine::converterBSON::Tag_Item;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -194,7 +194,7 @@ void check_value_xmlattr(boost::property_tree::ptree & tree,
     {
         std::stringstream stream;
         stream << "Missing mandatory attribute 'number' for node "
-               << dopamine::Tag_Value;
+               << dopamine::converterBSON::Tag_Value;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
 }
@@ -211,7 +211,7 @@ void check_item(boost::property_tree::ptree & tree,
         {
             check_value_xmlattr(it_xmlattr.second, object, number);
         }
-        else if (it_xmlattr.first == dopamine::Tag_DicomAttribute)
+        else if (it_xmlattr.first == dopamine::converterBSON::Tag_DicomAttribute)
         {
             check_dicom_attribute(it_xmlattr.second, object.getField("Value").Array()[number-1].Obj());
         }
@@ -219,7 +219,7 @@ void check_item(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_xmlattr.first
-                   << "' for node " << dopamine::Tag_Item;
+                   << "' for node " << dopamine::converterBSON::Tag_Item;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -240,19 +240,19 @@ void check_person_name(boost::property_tree::ptree & tree,
         {
             check_value_xmlattr(it_xmlattr.second, object, number);
         }
-        else if (it_xmlattr.first == dopamine::Tag_Alphabetic)
+        else if (it_xmlattr.first == dopamine::converterBSON::Tag_Alphabetic)
         {
             ++count_alphabetic;
             check_name_component(it_xmlattr.second,
                                  object.getField("Value").Array()[number-1].Obj());
         }
-        else if (it_xmlattr.first == dopamine::Tag_Ideographic)
+        else if (it_xmlattr.first == dopamine::converterBSON::Tag_Ideographic)
         {
             ++count_ideographic;
             check_name_component(it_xmlattr.second,
                                  object.getField("Value").Array()[number-1].Obj());
         }
-        else if (it_xmlattr.first == dopamine::Tag_Phonetic)
+        else if (it_xmlattr.first == dopamine::converterBSON::Tag_Phonetic)
         {
             ++count_phonetic;
             check_name_component(it_xmlattr.second,
@@ -262,7 +262,7 @@ void check_person_name(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_xmlattr.first
-                   << "' for node " << dopamine::Tag_PersonName;
+                   << "' for node " << dopamine::converterBSON::Tag_PersonName;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -270,9 +270,10 @@ void check_person_name(boost::property_tree::ptree & tree,
     if (count_alphabetic > 1 || count_ideographic > 1 || count_phonetic > 1)
     {
         std::stringstream stream;
-        stream << "Too many XML sub-node '" << dopamine::Tag_Alphabetic
-               << "' or '" << dopamine::Tag_Ideographic << "' or '"
-               << dopamine::Tag_Phonetic <<"' for node " << dopamine::Tag_PersonName;
+        stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_Alphabetic
+               << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+               << dopamine::converterBSON::Tag_Phonetic <<"' for node "
+               << dopamine::converterBSON::Tag_PersonName;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
 }
@@ -293,7 +294,7 @@ void check_value(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_xmlattr.first
-                   << "' for node " << dopamine::Tag_Value;
+                   << "' for node " << dopamine::converterBSON::Tag_Value;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -352,7 +353,7 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown attribute '" << it_xmlattr.first
-                   << "' for node " << dopamine::Tag_DicomAttribute;
+                   << "' for node " << dopamine::converterBSON::Tag_DicomAttribute;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -361,7 +362,7 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
     {
         std::stringstream stream;
         stream << "Missing mandatory attribute 'vr' for node "
-               << dopamine::Tag_DicomAttribute;
+               << dopamine::converterBSON::Tag_DicomAttribute;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
 
@@ -369,7 +370,7 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
     {
         std::stringstream stream;
         stream << "Missing mandatory attribute 'tag' for node "
-               << dopamine::Tag_DicomAttribute;
+               << dopamine::converterBSON::Tag_DicomAttribute;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
 }
@@ -378,9 +379,7 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
 void check_dicom_attribute(boost::property_tree::ptree & tree,
                            mongo::BSONObj const & object)
 {
-    std::cout << "DEBUG RLA         check_dicom_attribute begin" << std::endl;
-    std::string const tag = tree.get<std::string>(dopamine::Attribute_Tag);
-    std::cout << "DEBUG RLA         check_dicom_attribute tag = " << tag << std::endl;
+    std::string const tag = tree.get<std::string>(dopamine::converterBSON::Attribute_Tag);
 
     unsigned int count_value_node = 0;
     unsigned int count_personname_node = 0;
@@ -393,27 +392,27 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
         {
             check_dicom_attribute_xmlattr(it_value.second, object.getField(tag).Obj(), tag);
         }
-        else if (it_value.first == dopamine::Tag_Value)
+        else if (it_value.first == dopamine::converterBSON::Tag_Value)
         {
             ++count_value_node;
             check_value(it_value.second, object.getField(tag).Obj(), count_value_node);
         }
-        else if (it_value.first == dopamine::Tag_PersonName)
+        else if (it_value.first == dopamine::converterBSON::Tag_PersonName)
         {
             ++count_personname_node;
             check_person_name(it_value.second, object.getField(tag).Obj(), count_personname_node);
         }
-        else if (it_value.first == dopamine::Tag_Item)
+        else if (it_value.first == dopamine::converterBSON::Tag_Item)
         {
             ++count_item_node;
             check_item(it_value.second, object.getField(tag).Obj(), count_item_node);
         }
-        else if (it_value.first == dopamine::Tag_InlineBinary)
+        else if (it_value.first == dopamine::converterBSON::Tag_InlineBinary)
         {
             ++count_inlinebinary_node;
             check_inline_binary(it_value.second, object.getField(tag).Obj());
         }
-        else if (it_value.first == dopamine::Tag_BulkData)
+        else if (it_value.first == dopamine::converterBSON::Tag_BulkData)
         {
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("Not implemented yet"));
         }
@@ -421,7 +420,7 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_value.first
-                   << "' for node " << dopamine::Tag_DicomAttribute;
+                   << "' for node " << dopamine::converterBSON::Tag_DicomAttribute;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -435,7 +434,7 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
     if (different_node > 1)
     {
         std::stringstream stream;
-        stream << "Node " << dopamine::Tag_DicomAttribute
+        stream << "Node " << dopamine::converterBSON::Tag_DicomAttribute
                << " cannot contain different sub-node type";
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
@@ -443,33 +442,29 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
     if (count_inlinebinary_node > 1)
     {
         std::stringstream stream;
-        stream << "Too many sub-node " << dopamine::Tag_InlineBinary
-               << " for node " << dopamine::Tag_DicomAttribute;
+        stream << "Too many sub-node " << dopamine::converterBSON::Tag_InlineBinary
+               << " for node " << dopamine::converterBSON::Tag_DicomAttribute;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
-    std::cout << "DEBUG RLA         check_dicom_attribute end" << std::endl;
 }
 
 // Check the xml node NativeDicomModel
 void check_native_dicom_model(boost::property_tree::ptree & tree,
                               mongo::BSONObj const & object)
 {
-    std::cout << "DEBUG RLA     check_native_dicom_model begin" << std::endl;
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_dicomattribute,
                   tree)
     {
-        BOOST_CHECK_EQUAL(it_dicomattribute.first, dopamine::Tag_DicomAttribute);
+        BOOST_CHECK_EQUAL(it_dicomattribute.first, dopamine::converterBSON::Tag_DicomAttribute);
 
         check_dicom_attribute(it_dicomattribute.second, object);
     }
-    std::cout << "DEBUG RLA     check_native_dicom_model end" << std::endl;
 }
 
 // Check the root xml node
 void check_property_tree(boost::property_tree::ptree & tree,
                          mongo::BSONObj const & object)
 {
-    std::cout << "DEBUG RLA check_property_tree begin" << std::endl;
     bool find_tag_nativedicommodel = false;
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_nativedicommodel,
                   tree)
@@ -480,11 +475,10 @@ void check_property_tree(boost::property_tree::ptree & tree,
             return;
         }
         find_tag_nativedicommodel = true;
-        BOOST_CHECK_EQUAL(it_nativedicommodel.first, dopamine::Tag_NativeDicomModel);
+        BOOST_CHECK_EQUAL(it_nativedicommodel.first, dopamine::converterBSON::Tag_NativeDicomModel);
 
         check_native_dicom_model(it_nativedicommodel.second, object);
     }
-    std::cout << "DEBUG RLA check_property_tree end" << std::endl;
 }
 
 /**************************** END TOOLS *********************************/
@@ -495,7 +489,7 @@ void check_property_tree(boost::property_tree::ptree & tree,
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::BSONToXML * bsontoxml = new dopamine::BSONToXML();
+    dopamine::converterBSON::BSONToXML * bsontoxml = new dopamine::converterBSON::BSONToXML();
 
     BOOST_CHECK_EQUAL(bsontoxml != NULL, true);
 
@@ -515,7 +509,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -535,7 +529,7 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -555,7 +549,7 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -575,7 +569,7 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -595,7 +589,7 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -615,7 +609,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -635,7 +629,7 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -655,7 +649,7 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -675,7 +669,7 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -695,7 +689,7 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -715,7 +709,7 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -735,7 +729,7 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -761,7 +755,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
                       "InlineBinary" << binary_data_builder.obj().getField("data")));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -787,7 +781,7 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
                       "InlineBinary" << binary_data_builder.obj().getField("data")));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -813,7 +807,7 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
                       "InlineBinary" << binary_data_builder.obj().getField("data")));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -830,12 +824,12 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     std::string const tag = "00100010";
     std::string const vr = "PN";
     mongo::BSONArray const values =
-            BSON_ARRAY(BSON(dopamine::Tag_Alphabetic << "Doe^John^Wallas^Rev.^Chief Executive Officer")
-                    << BSON(dopamine::Tag_Alphabetic << "Smith^Jane^Scarlett^Ms.^Goddess"));
+            BSON_ARRAY(BSON(dopamine::converterBSON::Tag_Alphabetic << "Doe^John^Wallas^Rev.^Chief Executive Officer")
+                    << BSON(dopamine::converterBSON::Tag_Alphabetic << "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -855,7 +849,7 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -875,7 +869,7 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -909,7 +903,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -929,7 +923,7 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -949,7 +943,7 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -969,7 +963,7 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -989,7 +983,7 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -1009,7 +1003,7 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -1038,7 +1032,7 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
@@ -1058,7 +1052,7 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
-    dopamine::BSONToXML bsontoxml;
+    dopamine::converterBSON::BSONToXML bsontoxml;
     auto tree = bsontoxml(object);
 
     // Check result
