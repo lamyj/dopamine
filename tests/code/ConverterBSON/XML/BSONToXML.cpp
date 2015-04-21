@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleBSONToDataSet
+#define BOOST_TEST_MODULE ModuleBSONToXML
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
