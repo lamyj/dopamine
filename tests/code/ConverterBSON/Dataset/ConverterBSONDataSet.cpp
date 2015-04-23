@@ -125,7 +125,7 @@ struct TestDataConversionBSONDataset
        {
        mongo::BSONObjBuilder value_builder;
        value_builder << "vr" << "PN";
-       value_builder << "Value" << BSON_ARRAY("Doe^John");
+       value_builder << "Value" << BSON_ARRAY(BSON("Alphabetic" << "Doe^John"));
        bsonobjectbuilder << "00100010" << value_builder.obj();
        }
 
@@ -369,8 +369,6 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
                 BOOST_CHECK_EQUAL(itoldseqitem == NULL, true);
                 BOOST_CHECK_EQUAL(itnewseqitem == NULL, true);
 
-                //std::cout << "value1 = " << stream1.str() << std::endl;
-                //std::cout << "value2 = " << stream2.str() << std::endl;
                 itoldseq = sequence->nextInContainer(itoldseq);
                 itnewseq = newsequence->nextInContainer(itnewseq);
             }
