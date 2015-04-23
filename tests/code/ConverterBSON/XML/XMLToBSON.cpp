@@ -249,7 +249,6 @@ void create_test_sequence(std::string const & dicom_tag,
         dicomattributeSQ.add_child(dopamine::converterBSON::Tag_Item, item);
     }
 
-
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeSQ);
 
