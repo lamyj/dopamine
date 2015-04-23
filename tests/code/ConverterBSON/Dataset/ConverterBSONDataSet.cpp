@@ -18,8 +18,8 @@
 
 #include <mongo/bson/bson.h>
 
-#include "ConverterBSON/BSONToDataSet.h"
-#include "ConverterBSON/DataSetToBSON.h"
+#include "ConverterBSON/Dataset/BSONToDataSet.h"
+#include "ConverterBSON/Dataset/DataSetToBSON.h"
 
 /*************************** TEST OK 01 *******************************/
 /**

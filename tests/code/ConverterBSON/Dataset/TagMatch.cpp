@@ -12,7 +12,7 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include "ConverterBSON/TagMatch.h"
+#include "ConverterBSON/Dataset/TagMatch.h"
 
 /*************************** TEST OK 01 *******************************/
 /**

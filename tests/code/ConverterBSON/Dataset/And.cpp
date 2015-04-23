@@ -12,9 +12,9 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include "ConverterBSON/AlwaysFalse.h"
-#include "ConverterBSON/AlwaysTrue.h"
-#include "ConverterBSON/And.h"
+#include "ConverterBSON/Dataset/AlwaysFalse.h"
+#include "ConverterBSON/Dataset/AlwaysTrue.h"
+#include "ConverterBSON/Dataset/And.h"
 #include "core/ExceptionPACS.h"
 
 struct TestDataOK01

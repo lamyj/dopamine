@@ -6,10 +6,10 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleAlwaysFalse
+#define BOOST_TEST_MODULE ModuleAlwaysTrue
 #include <boost/test/unit_test.hpp>
 
-#include "ConverterBSON/AlwaysFalse.h"
+#include "ConverterBSON/Dataset/AlwaysTrue.h"
 
 /*************************** TEST OK 01 *******************************/
 /**
@@ -17,8 +17,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto alwaysfalse = dopamine::AlwaysFalse::New();
+    auto alwaystrue = dopamine::AlwaysTrue::New();
     
-    BOOST_CHECK_EQUAL((*alwaysfalse)(NULL), false);
+    BOOST_CHECK_EQUAL((*alwaystrue)(NULL), true);
 }
-

@@ -6,49 +6,50 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleVRMatch
+#define BOOST_TEST_MODULE ModuleIsPrivateTag
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include "ConverterBSON/VRMatch.h"
+#include "ConverterBSON/Dataset/IsPrivateTag.h"
+#include "core/ExceptionPACS.h"
 
 /*************************** TEST OK 01 *******************************/
 /**
- * Nominal test case: VR Match
+ * Nominal test case: Private Tag
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto vrmatch = dopamine::VRMatch::New(DcmVR("PN").getEVR());
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
-    DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0010));
-    BOOST_CHECK_EQUAL((*vrmatch)(element), true);
+    DcmElement* element = new DcmAttributeTag(DcmTag(0023,1001));
+    BOOST_CHECK_EQUAL((*isprivatetag)(element), true);
     
     delete element;
 }
 
 /*************************** TEST OK 02 *******************************/
 /**
- * Nominal test case: VR not Match
+ * Nominal test case: Public Tag
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    auto vrmatch = dopamine::VRMatch::New(DcmVR("PN").getEVR());
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
-    DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0020));
-    BOOST_CHECK_EQUAL((*vrmatch)(element), false);
+    DcmElement* element = new DcmAttributeTag(DcmTag(0010,0010));
+    BOOST_CHECK_EQUAL((*isprivatetag)(element), false);
     
     delete element;
 }
 
 /*************************** TEST KO 01 *******************************/
 /**
- * Error test case: Element is null
+ * Error test case: Empty element
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    auto vrmatch = dopamine::VRMatch::New(DcmVR("PN").getEVR());
+    auto isprivatetag = dopamine::IsPrivateTag::New();
     
-    BOOST_REQUIRE_THROW((*vrmatch)(NULL), dopamine::ExceptionPACS);
+    BOOST_REQUIRE_THROW((*isprivatetag)(NULL), dopamine::ExceptionPACS);
 }

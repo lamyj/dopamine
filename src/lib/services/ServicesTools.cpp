@@ -12,10 +12,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "ConverterBSON/BSONToDataSet.h"
-#include "ConverterBSON/DataSetToBSON.h"
-#include "ConverterBSON/IsPrivateTag.h"
-#include "ConverterBSON/VRMatch.h"
+#include "ConverterBSON/Dataset/BSONToDataSet.h"
+#include "ConverterBSON/Dataset/DataSetToBSON.h"
+#include "ConverterBSON/Dataset/IsPrivateTag.h"
+#include "ConverterBSON/Dataset/VRMatch.h"
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ServicesTools.h"

@@ -12,8 +12,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include "ConverterBSON/DataSetToBSON.h"
-#include "ConverterBSON/TagMatch.h"
+#include "ConverterBSON/Dataset/DataSetToBSON.h"
+#include "ConverterBSON/Dataset/TagMatch.h"
 
 /*************************** TEST OK 01 *******************************/
 /**

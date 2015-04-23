@@ -6,15 +6,15 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleNot
+#define BOOST_TEST_MODULE ModuleOr
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
-#include "ConverterBSON/AlwaysFalse.h"
-#include "ConverterBSON/AlwaysTrue.h"
-#include "ConverterBSON/Not.h"
+#include "ConverterBSON/Dataset/AlwaysFalse.h"
+#include "ConverterBSON/Dataset/AlwaysTrue.h"
+#include "ConverterBSON/Dataset/Or.h"
 #include "core/ExceptionPACS.h"
 
 struct TestDataOK01
@@ -38,24 +38,54 @@ struct TestDataOK01
 
 /*************************** TEST OK 01 *******************************/
 /**
- * Nominal test case: Not True => False
+ * Nominal test case: True Or True => True
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaystrue);
+    auto or_ = dopamine::Or::New();
+    or_->insert_condition(alwaystrue);
+    or_->insert_condition(alwaystrue);
     
-    BOOST_CHECK_EQUAL((*not_)(element), false);
+    BOOST_CHECK_EQUAL((*or_)(element), true);
 }
 
 /*************************** TEST OK 02 *******************************/
 /**
- * Nominal test case: Not False => True
+ * Nominal test case: True Or False => True
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaysfalse);
+    auto or_ = dopamine::Or::New();
+    or_->insert_condition(alwaystrue);
+    or_->insert_condition(alwaysfalse);
     
-    BOOST_CHECK_EQUAL((*not_)(element), true);
+    BOOST_CHECK_EQUAL((*or_)(element), true);
+}
+
+/*************************** TEST OK 03 *******************************/
+/**
+ * Nominal test case: False Or True => True
+ */
+BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
+{
+    auto or_ = dopamine::Or::New();
+    or_->insert_condition(alwaysfalse);
+    or_->insert_condition(alwaystrue);
+    
+    BOOST_CHECK_EQUAL((*or_)(element), true);
+}
+
+/*************************** TEST OK 04 *******************************/
+/**
+ * Nominal test case: False Or False => False
+ */
+BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
+{
+    auto or_ = dopamine::Or::New();
+    or_->insert_condition(alwaysfalse);
+    or_->insert_condition(alwaysfalse);
+    
+    BOOST_CHECK_EQUAL((*or_)(element), false);
 }
 
 /*************************** TEST KO 01 *******************************/
@@ -64,7 +94,9 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaystrue);
+    auto or_ = dopamine::Or::New();
+    or_->insert_condition(alwaystrue);
+    or_->insert_condition(alwaystrue);
     
-    BOOST_REQUIRE_THROW((*not_)(NULL), dopamine::ExceptionPACS);
+    BOOST_REQUIRE_THROW((*or_)(NULL), dopamine::ExceptionPACS);
 }

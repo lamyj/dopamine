@@ -12,7 +12,7 @@
 #include <mongo/bson/bson.h>
 #include <mongo/db/json.h>
 
-#include "ConverterBSON/BSONToDataSet.h"
+#include "ConverterBSON/Dataset/BSONToDataSet.h"
 
 /*************************** TEST OK 01 *******************************/
 /**
