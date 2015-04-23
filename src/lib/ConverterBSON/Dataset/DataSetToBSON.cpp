@@ -459,7 +459,7 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
         binary_data_builder.appendBinData("data", element->getLength(),
                                           mongo::BinDataGeneral, begin);
 
-        builder << "Value" << BSON_ARRAY(binary_data_builder.obj().getField("data"));
+        builder << "InlineBinary" << BSON_ARRAY(binary_data_builder.obj().getField("data"));
     }
     else
     {
