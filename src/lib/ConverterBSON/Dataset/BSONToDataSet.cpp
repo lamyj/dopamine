@@ -12,6 +12,7 @@
 
 #include "BSONToDataSet.h"
 #include "core/ExceptionPACS.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -109,7 +110,35 @@ BSONToDataSet
     this->_to_text(bson, false, ' ', dataset, tag);
 }
 
-// TODO : AT
+template<>
+void
+BSONToDataSet
+::_to_dcmtk<EVR_AT>(mongo::BSONElement const & bson, DcmDataset & dataset,
+                    DcmTag const & tag) const
+{
+    mongo::BSONArrayBuilder arraybuilder;
+    for (auto value : bson.Array())
+    {
+        std::string value_at = value.String();
+        value_at = dopamine::services::replace(value_at, "(", "");
+        value_at = dopamine::services::replace(value_at, ")", "");
+        value_at = dopamine::services::replace(value_at, ",", "");
+
+        char * old_numeric = setlocale(LC_NUMERIC, NULL);
+        setlocale(LC_NUMERIC, "C");
+        char* endptr;
+        long const d = std::strtol(value_at.c_str(), &endptr, 16);
+        setlocale(LC_NUMERIC, old_numeric);
+
+        DcmTag const tag(d>>16, d&0xffff);
+
+        arraybuilder << tag.getGroup() << tag.getElement();
+    }
+
+    this->_to_binary<Uint16, int>(BSON("data" << arraybuilder.arr()).getField("data"),
+                                  &mongo::BSONElement::Int,
+                                  dataset, tag, &DcmElement::putUint16Array);
+}
 
 template<>
 void
@@ -227,7 +256,16 @@ BSONToDataSet
 ::_to_dcmtk<EVR_PN>(mongo::BSONElement const & bson, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(bson, true, ' ', dataset, tag);
+    mongo::BSONArrayBuilder arraybuilder;
+    for (auto value : bson.Array())
+    {
+        if (value.Obj().hasField("Alphabetic"))
+        {
+            arraybuilder << value.Obj().getField("Alphabetic");
+        }
+    }
+
+    this->_to_text(BSON("data" << arraybuilder.arr()).getField("data"), true, ' ', dataset, tag);
 }
 
 template<>
@@ -352,8 +390,17 @@ BSONToDataSet
     DcmVR const vr(object.getField("vr").String().c_str());
     DcmEVR const evr(vr.getEVR());
 
-    mongo::BSONElement const element = object.getField("Value");
-    if(!element.isNull() && element.Array().size() != 0)
+    mongo::BSONElement element;
+    if (evr == EVR_OB || evr == EVR_OF || evr == EVR_OW || evr == EVR_UN)
+    {
+        element = object.getField("InlineBinary");
+    }
+    else
+    {
+        element = object.getField("Value");
+    }
+    if(!element.isNull() && ((element.type() == mongo::BSONType::Array && element.Array().size() != 0) ||
+                              element.type() == mongo::BSONType::BinData))
     {
         if(evr == EVR_SQ)
         {
@@ -386,7 +433,7 @@ BSONToDataSet
         {
             if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(element, dataset, tag);
             else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(element, dataset, tag);
-            // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(element, dataset, tag);
+            else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(element, dataset, tag);
             else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(element, dataset, tag);
             else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(element, dataset, tag);
             else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(element, dataset, tag);
