@@ -18,6 +18,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Or condition
  */
@@ -56,6 +59,8 @@ private:
     std::vector<Condition::Pointer> _conditions;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

@@ -13,6 +13,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 DataSetToBSON
 ::DataSetToBSON()
 : ConverterBSONDataSet(true),
@@ -580,5 +583,7 @@ DataSetToBSON
 
     builder << buffer << value_builder.obj();
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

@@ -16,6 +16,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 BSONToDataSet
 ::BSONToDataSet()
 : ConverterBSONDataSet(false)
@@ -618,5 +621,7 @@ BSONToDataSet
         throw ExceptionPACS(streamerror.str());
     }
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

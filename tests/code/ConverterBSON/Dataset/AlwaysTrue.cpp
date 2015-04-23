@@ -17,7 +17,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto alwaystrue = dopamine::AlwaysTrue::New();
+    auto alwaystrue = dopamine::converterBSON::AlwaysTrue::New();
     
     BOOST_CHECK_EQUAL((*alwaystrue)(NULL), true);
 }

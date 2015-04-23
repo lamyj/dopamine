@@ -20,14 +20,14 @@
 struct TestDataOK01
 {
     DcmElement * element;
-    dopamine::AlwaysTrue::Pointer alwaystrue;
-    dopamine::AlwaysFalse::Pointer alwaysfalse;
+    dopamine::converterBSON::AlwaysTrue::Pointer alwaystrue;
+    dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
  
     TestDataOK01()
     {
         element     = new DcmAttributeTag(DcmTag(0010,0010));
-        alwaystrue  = dopamine::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
-        alwaysfalse = dopamine::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
+        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ struct TestDataOK01
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaystrue);
+    auto not_ = dopamine::converterBSON::Not::New(alwaystrue);
     
     BOOST_CHECK_EQUAL((*not_)(element), false);
 }
@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaysfalse);
+    auto not_ = dopamine::converterBSON::Not::New(alwaysfalse);
     
     BOOST_CHECK_EQUAL((*not_)(element), true);
 }
@@ -64,7 +64,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
-    auto not_ = dopamine::Not::New(alwaystrue);
+    auto not_ = dopamine::converterBSON::Not::New(alwaystrue);
     
     BOOST_REQUIRE_THROW((*not_)(NULL), dopamine::ExceptionPACS);
 }

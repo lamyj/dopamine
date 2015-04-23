@@ -15,6 +15,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 IsPrivateTag::Pointer
 IsPrivateTag
 ::New()
@@ -45,5 +48,7 @@ IsPrivateTag
     }
     return (element->getGTag()%2 == 1);
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

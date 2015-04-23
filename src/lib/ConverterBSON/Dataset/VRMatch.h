@@ -19,6 +19,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief VRMatch Condition
  */
@@ -51,6 +54,8 @@ private:
     DcmEVR _vr;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

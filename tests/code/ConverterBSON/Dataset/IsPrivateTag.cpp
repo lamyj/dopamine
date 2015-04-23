@@ -21,7 +21,7 @@
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_01)
 {
-    auto isprivatetag = dopamine::IsPrivateTag::New();
+    auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0023,1001));
     BOOST_CHECK_EQUAL((*isprivatetag)(element), true);
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
  */
 BOOST_AUTO_TEST_CASE(TEST_OK_02)
 {
-    auto isprivatetag = dopamine::IsPrivateTag::New();
+    auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0010,0010));
     BOOST_CHECK_EQUAL((*isprivatetag)(element), false);
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
  */
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
-    auto isprivatetag = dopamine::IsPrivateTag::New();
+    auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     
     BOOST_REQUIRE_THROW((*isprivatetag)(NULL), dopamine::ExceptionPACS);
 }

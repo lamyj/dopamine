@@ -283,21 +283,21 @@ mongo::BSONObj
 dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
-    DataSetToBSON dataset_to_bson;
+    converterBSON::DataSetToBSON dataset_to_bson;
     if (isforstorage)
     {
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            IsPrivateTag::New(), DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::IsPrivateTag::New(), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OB), DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OB), converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OF), DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OF), converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_OW), DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OW), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            VRMatch::New(EVR_UN), DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_UN), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
     }
-    dataset_to_bson.set_default_filter(DataSetToBSON::FilterAction::INCLUDE);
+    dataset_to_bson.set_default_filter(converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     mongo::BSONObjBuilder query_builder;
     dataset_to_bson(dataset, query_builder);
@@ -311,7 +311,7 @@ bson_to_dataset(mongo::BSONObj object)
 
     if ( ! object.hasField("location"))
     {
-        BSONToDataSet bson2dataset;
+        converterBSON::BSONToDataSet bson2dataset;
         DcmDataset result = bson2dataset(object);
         dataset = new DcmDataset(result);
     }

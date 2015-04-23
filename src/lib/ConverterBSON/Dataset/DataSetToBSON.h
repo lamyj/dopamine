@@ -22,6 +22,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Convert a DCMTK DataSet to a BSON object.
  */
@@ -97,6 +100,8 @@ private :
     void _add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

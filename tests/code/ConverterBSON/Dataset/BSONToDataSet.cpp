@@ -20,11 +20,11 @@
  */
  struct TestDataOK01
 {
-    dopamine::BSONToDataSet * bsontodataset;
+    dopamine::converterBSON::BSONToDataSet * bsontodataset;
  
     TestDataOK01()
     {
-        bsontodataset = new dopamine::BSONToDataSet();
+        bsontodataset = new dopamine::converterBSON::BSONToDataSet();
     }
  
     ~TestDataOK01()
@@ -259,7 +259,7 @@ BOOST_FIXTURE_TEST_CASE(GetterAndSetter, TestDataOK01)
 
 BOOST_FIXTURE_TEST_CASE(OperatorBracketSingleValue, TestDataOperatorBracketSingleValue)
 {
-    dopamine::BSONToDataSet bsontodataset;
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
     DcmDataset dataset = bsontodataset(bsonobject);
 
     // Testing AE
@@ -454,7 +454,7 @@ BOOST_FIXTURE_TEST_CASE(OperatorBracketSingleValue, TestDataOperatorBracketSingl
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 {
-    dopamine::BSONToDataSet bsontodataset;
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
     DcmDataset dataset = bsontodataset(bsonobject);
 
     // Testing CS
@@ -527,7 +527,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
 
 BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
 {
-    dopamine::BSONToDataSet bsontodataset;
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
 
     /***************************************************************************/
     DcmDataset dataset = bsontodataset(bsonobject_1_2);
@@ -770,7 +770,7 @@ struct TestDataOperatorBracketMultipleValues
 
 BOOST_FIXTURE_TEST_CASE(OperatorBracketMultipleValues, TestDataOperatorBracketMultipleValues)
 {
-    dopamine::BSONToDataSet bsontodataset;
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
     DcmDataset dataset = bsontodataset(bsonobject);
 
     OFCondition condition = EC_Normal;
@@ -1066,7 +1066,7 @@ struct TestDataKO02
 
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
-    dopamine::BSONToDataSet bsontodataset;
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
     BOOST_REQUIRE_THROW(bsontodataset(bsonobject),
                         std::runtime_error);
 }

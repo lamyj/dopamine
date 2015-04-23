@@ -20,14 +20,14 @@
 struct TestDataOK01
 {
     DcmElement * element;
-    dopamine::AlwaysTrue::Pointer alwaystrue;
-    dopamine::AlwaysFalse::Pointer alwaysfalse;
+    dopamine::converterBSON::AlwaysTrue::Pointer alwaystrue;
+    dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
  
     TestDataOK01()
     {
         element = new DcmAttributeTag(DcmTag(0010,0010));
-        alwaystrue = dopamine::AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
-        alwaysfalse = dopamine::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+        alwaystrue = dopamine::converterBSON::AlwaysTrue::New(); // we suppose AlwaysTrue correctly run
+        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ struct TestDataOK01
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
 {
-    auto and_ = dopamine::And::New();
+    auto and_ = dopamine::converterBSON::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaystrue);
     
@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
 {
-    auto and_ = dopamine::And::New();
+    auto and_ = dopamine::converterBSON::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaysfalse);
     
@@ -68,7 +68,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
 {
-    auto and_ = dopamine::And::New();
+    auto and_ = dopamine::converterBSON::And::New();
     and_->insert_condition(alwaysfalse);
     and_->insert_condition(alwaystrue);
     
@@ -81,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 {
-    auto and_ = dopamine::And::New();
+    auto and_ = dopamine::converterBSON::And::New();
     and_->insert_condition(alwaysfalse);
     and_->insert_condition(alwaysfalse);
     
@@ -94,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
  */
 BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
 {
-    auto and_ = dopamine::And::New();
+    auto and_ = dopamine::converterBSON::And::New();
     and_->insert_condition(alwaystrue);
     and_->insert_condition(alwaystrue);
     

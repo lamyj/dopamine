@@ -13,6 +13,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 AlwaysTrue::Pointer
 AlwaysTrue
 ::New()
@@ -39,5 +42,7 @@ AlwaysTrue
 {
     return true;
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

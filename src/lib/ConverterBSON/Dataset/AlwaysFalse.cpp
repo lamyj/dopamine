@@ -13,6 +13,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 AlwaysFalse::Pointer
 AlwaysFalse
 ::New()
@@ -39,5 +42,7 @@ AlwaysFalse
 {
     return false;
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

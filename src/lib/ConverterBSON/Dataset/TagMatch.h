@@ -19,6 +19,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief TagMatch Condition
  */
@@ -51,6 +54,8 @@ private:
     DcmTagKey _tag;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

@@ -21,11 +21,11 @@
  */
  struct TestDataOK01
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
  
     TestDataOK01()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
     }
  
     ~TestDataOK01()
@@ -42,7 +42,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, TestDataOK01)
     // Default value
     BOOST_CHECK_EQUAL(datasettobson->get_specific_character_set() == "", true);
     BOOST_CHECK_EQUAL(datasettobson->get_default_filter() == 
-                      dopamine::DataSetToBSON::FilterAction::INCLUDE, true);
+                      dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE, true);
     BOOST_CHECK_EQUAL(datasettobson->get_filters().size() == 0, true);
 }
 
@@ -58,19 +58,19 @@ BOOST_FIXTURE_TEST_CASE(GetterAndSetter, TestDataOK01)
     BOOST_CHECK_EQUAL(datasettobson->get_specific_character_set() == "ISO_IR 192", true);
 
     // set_default_filter
-    datasettobson->set_default_filter(dopamine::DataSetToBSON::FilterAction::EXCLUDE);
+    datasettobson->set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
     // check value
     BOOST_CHECK_EQUAL(datasettobson->get_default_filter() == 
-                      dopamine::DataSetToBSON::FilterAction::EXCLUDE, true);
+                      dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE, true);
 
     // Set Filter
-    std::vector<dopamine::DataSetToBSON::Filter> filters;
-    filters.push_back(std::make_pair(dopamine::TagMatch::New(DCM_PatientName),
-                      dopamine::DataSetToBSON::FilterAction::INCLUDE));
+    std::vector<dopamine::converterBSON::DataSetToBSON::Filter> filters;
+    filters.push_back(std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_PatientName),
+                      dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE));
                       
     datasettobson->set_filters(filters);
     
-    std::vector<dopamine::DataSetToBSON::Filter> const getfilters =
+    std::vector<dopamine::converterBSON::DataSetToBSON::Filter> const getfilters =
         datasettobson->get_filters();
     // check value
     BOOST_CHECK_EQUAL(getfilters.size(), 1);
@@ -82,12 +82,12 @@ BOOST_FIXTURE_TEST_CASE(GetterAndSetter, TestDataOK01)
  */
  struct TestDataOperatorBracketSingleValue
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOperatorBracketSingleValue()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "test_AE");                         // insert AE
         dataset->putAndInsertOFStringArray(DCM_PatientAge, "test_AS");                              // insert AS
@@ -298,14 +298,14 @@ BOOST_FIXTURE_TEST_CASE(OperatorBracketSingleValue, TestDataOperatorBracketSingl
  */
  struct TestDataOperatorBracketMultipleValues
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
 
     TestDataOperatorBracketMultipleValues()
     {
         DcmElement * element = NULL;
 
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "test_AE\\test_AE2\\test_AE3");             // insert AE
         dataset->putAndInsertOFStringArray(DCM_PatientAge, "test_AS\\test_AS2\\test_AS3");                  // insert AS
@@ -620,12 +620,12 @@ BOOST_FIXTURE_TEST_CASE(OperatorBracketMultipleValues, TestDataOperatorBracketMu
  */
  struct TestDataOK05
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK05()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_Modality, "value1");     
         dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
@@ -641,11 +641,11 @@ BOOST_FIXTURE_TEST_CASE(OperatorBracketMultipleValues, TestDataOperatorBracketMu
 BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
 {
     datasettobson->get_filters().push_back(
-        std::make_pair(dopamine::TagMatch::New(DCM_PatientName),
-                       dopamine::DataSetToBSON::FilterAction::INCLUDE));
+        std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_PatientName),
+                       dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE));
     datasettobson->get_filters().push_back(
-        std::make_pair(dopamine::TagMatch::New(DCM_Modality),
-                       dopamine::DataSetToBSON::FilterAction::EXCLUDE));
+        std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_Modality),
+                       dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
                            
     mongo::BSONObjBuilder query_builder;
     (*datasettobson)(dataset, query_builder);
@@ -674,12 +674,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK05)
  */
  struct TestDataOK06
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK06()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         dataset->putAndInsertOFStringArray(DCM_Modality, "");
     }
@@ -718,12 +718,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
  */
  struct TestDataOK07
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK07()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         
         /*DcmElement* element = NULL;
@@ -778,12 +778,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK07)
  */
  struct TestDataOK08
 {
-    dopamine::DataSetToBSON * datasettobson;
+    dopamine::converterBSON::DataSetToBSON * datasettobson;
     DcmDataset* dataset;
  
     TestDataOK08()
     {
-        datasettobson = new dopamine::DataSetToBSON();
+        datasettobson = new dopamine::converterBSON::DataSetToBSON();
         dataset = new DcmDataset();
         
         // Insert OB

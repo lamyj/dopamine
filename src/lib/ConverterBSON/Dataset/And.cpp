@@ -14,6 +14,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 And::Pointer
 And
 ::New()
@@ -61,5 +64,7 @@ And
 {
     this->_conditions.push_back(condition);
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

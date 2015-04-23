@@ -16,6 +16,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Not Condition
  */
@@ -55,6 +58,8 @@ private:
     Condition::Pointer _condition;
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

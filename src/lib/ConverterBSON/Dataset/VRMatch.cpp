@@ -13,6 +13,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 VRMatch::Pointer
 VRMatch
 ::New(DcmEVR vr)
@@ -57,5 +60,7 @@ VRMatch
     }
     return match;
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

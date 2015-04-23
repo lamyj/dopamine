@@ -20,6 +20,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Convert a BSON object to a DCMTK DataSet.
  */
@@ -76,6 +79,8 @@ private :
     void _to_number_string(mongo::BSONElement const & bson, 
                            DcmDataset & dataset, DcmTag const & tag) const;
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

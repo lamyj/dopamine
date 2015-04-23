@@ -11,6 +11,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 std::map<std::string, std::string> const
 ConverterBSONDataSet
 ::_dicom_to_iconv = ConverterBSONDataSet::_create_encoding_map();
@@ -135,5 +138,7 @@ ConverterBSONDataSet
 
     return result;
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

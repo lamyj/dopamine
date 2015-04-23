@@ -15,6 +15,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 Or::Pointer
 Or
 ::New()
@@ -63,5 +66,7 @@ Or
 {
     this->_conditions.push_back(condition);
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

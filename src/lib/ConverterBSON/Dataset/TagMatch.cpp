@@ -13,6 +13,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 TagMatch::Pointer
 TagMatch
 ::New(DcmTagKey tag)
@@ -43,5 +46,7 @@ TagMatch
     }
     return (DcmTagKey(element->getGTag(), element->getETag()) == this->_tag);
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

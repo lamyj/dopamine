@@ -15,6 +15,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 Not::Pointer
 Not
 ::New(Condition::Pointer const & condition)
@@ -45,5 +48,7 @@ Not
     }
     return !(*this->_condition)(element);
 }
+
+} // namespace converterBSON
 
 } // namespace dopamine

@@ -16,6 +16,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Always True Condition
  */
@@ -44,6 +47,8 @@ private:
     AlwaysTrue();
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

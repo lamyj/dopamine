@@ -16,6 +16,9 @@ class DcmElement;
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief IsPrivateTag Condition
  */
@@ -45,6 +48,8 @@ private:
     IsPrivateTag();
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 

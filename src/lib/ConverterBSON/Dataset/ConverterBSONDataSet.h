@@ -20,6 +20,9 @@
 namespace dopamine
 {
 
+namespace converterBSON
+{
+
 /**
  * @brief Base class to Convert Bson to Dataset or Dataset to Bson
  */
@@ -73,6 +76,8 @@ private:
     static std::map<std::string, std::string> _create_encoding_map();
 
 };
+
+} // namespace converterBSON
 
 } // namespace dopamine
 
