@@ -25,6 +25,15 @@ Generator
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
 {
+    if (vr == "PN" && value.type() == mongo::BSONType::Object)
+    {
+        if (value.Obj().hasField("Alphabetic"))
+        {
+            builder << field << value.Obj().getField("Alphabetic").String();
+            return;
+        }
+    }
+
     // Default action: convert to string
     builder << field << value.String();
 }
@@ -37,6 +46,15 @@ Generator
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
 {
+    if (vr == "PN" && value.type() == mongo::BSONType::Object)
+    {
+        if (value.Obj().hasField("Alphabetic"))
+        {
+            builder << field << value.Obj().getField("Alphabetic").String();
+            return;
+        }
+    }
+
     builder << field << value.String();
 }
 
@@ -77,11 +95,27 @@ Generator
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
 {
+    std::string regex;
+    if (vr == "PN" && value.type() == mongo::BSONType::Object)
+    {
+        if (value.Obj().hasField("Alphabetic"))
+        {
+            regex = value.Obj().getField("Alphabetic").String();
+        }
+        else
+        {
+            regex = value.String();
+        }
+    }
+    else
+    {
+        regex = value.String();
+    }
+
     // Convert DICOM regex to PCRE: replace "*" by ".*", "?" by ".",
     // and escape other special PCRE characters (these are :
     // \^$.[]()+{}
     //
-    std::string regex = value.String();
     // Escape "\\" first since we're using it to replace "."
     regex = replace(regex, "\\", "\\\\");
     // Escape "." first since we're using it to replace "*"
@@ -213,9 +247,17 @@ Generator
             vr != "OB" && vr != "OF" && vr != "OW" && vr != "UN" &&
             vr != "DS" && vr != "US" &&
             vr != "UI");
-        if(element.type() == mongo::String)
+        if(element.type() == mongo::String || (element.type() == mongo::Object && vr == "PN"))
         {
-            std::string value(element);
+            std::string value;
+            if (element.type() == mongo::Object && vr == "PN")
+            {
+                value = element.Obj().getField("Alphabetic").String();
+            }
+            else
+            {
+                value = element.String();
+            }
             // Not a date or time, no wildcard AND date or time, no range
             if(!(!is_date_or_time && value.find_first_of("?*") != std::string::npos) &&
                !(is_date_or_time && value.find('-') != std::string::npos))

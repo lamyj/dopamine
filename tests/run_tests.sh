@@ -361,7 +361,7 @@ j = { "00080008" : { "vr" : "CS", "Value" : [ "ORIGINAL", "PRIMARY", "OTHER" ] }
       "00080080" : { "vr" : "LO", "Value" : [ "STRASBOURG" ] }, 
       "00080090" : { "vr" : "PN", "Value" : [ null ] }, 
       "00081010" : { "vr" : "SH", "Value" : [ "Station" ] }, 
-      "00100010" : { "vr" : "PN", "Value" : [ "Doe^Jane" ] }, 
+      "00100010" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "Doe^Jane" } ] }, 
       "00100020" : { "vr" : "LO", "Value" : [ "dopamine_test_01" ] }, 
       "00100030" : { "vr" : "DA", "Value" : [ null ] }, 
       "00100040" : { "vr" : "CS", "Value" : [ "F" ] }, 

@@ -93,14 +93,27 @@ QueryRetrieveGenerator
 
         // Always include the field in the results
         fields_builder << element.fieldName() << 1;
-
         std::string const vr = bsonobj.getField("vr").String();
-        mongo::BSONElement const & value = bsonobj.getField("Value");
+
+        std::string fieldtoget = "Value";
+        if (vr == "OB" || vr == "OF" || vr == "OW" || vr == "UN")
+        {
+            fieldtoget = "InlineBinary";
+        }
+
+        mongo::BSONElement const & value = bsonobj.getField(fieldtoget);
         Match::Type const match_type = this->_get_match_type(vr, value);
 
         DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+
+        std::stringstream field;
+        field << std::string(element.fieldName()) << "." << fieldtoget;
+        if (vr == "PN")
+        {
+            field << ".Alphabetic";
+        }
         // Match the array element containing the value
-        (this->*function)(std::string(element.fieldName())+".Value", vr, value, db_query);
+        (this->*function)(field.str(), vr, value, db_query);
     }
 
     if (this->_service_name != Service_Query)
