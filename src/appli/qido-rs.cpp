@@ -18,6 +18,7 @@
 
 #include "core/ConfigurationPACS.h"
 #include "services/webservices/Qido_rs.h"
+#include "services/webservices/Webservices.h"
 #include "services/webservices/WebServiceException.h"
 
 int main(int argc, char** argv)
@@ -39,9 +40,6 @@ int main(int argc, char** argv)
         // Get the Environment Variables
         cgicc::CgiEnvironment const & environment = cgi.getEnvironment();
 
-        // TODO REMOVE
-        throw dopamine::services::WebServiceException(400, "Bad Request",
-                                                      "Not implemented yet");
         // Create the response
         dopamine::services::Qido_rs qidors(environment.getPathInfo(),
                                            environment.getQueryString(),
@@ -51,10 +49,14 @@ int main(int argc, char** argv)
         // send response
         std::ostringstream headerstream;
         headerstream << dopamine::services::MIME_VERSION << "\n"
-                     << dopamine::services::CONTENT_TYPE
-                     << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
-                     << dopamine::services::ATTRIBUT_BOUNDARY
-                     << qidors.get_boundary() << "\n";
+                     << dopamine::services::CONTENT_TYPE;
+
+        if (environment.getContentType() == dopamine::services::MIME_TYPE_APPLICATION_DICOMXML)
+        {
+            headerstream << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
+                         << dopamine::services::ATTRIBUT_BOUNDARY
+                         << qidors.get_boundary() << "\n";
+        }
 
         std::cout << headerstream.str() << "\n";
         std::cout << qidors.get_response() << "\n";

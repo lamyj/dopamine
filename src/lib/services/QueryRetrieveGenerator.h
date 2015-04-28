@@ -37,6 +37,12 @@ public:
 
     void set_includefields(std::vector<std::string> includefields);
 
+    void set_maximumResults(int maximumResults);
+
+    void set_skippedResults(int skippedResults);
+
+    void set_fuzzymatching(bool fuzzymatching);
+
 protected:
     std::string _service_name;
 
@@ -49,6 +55,10 @@ protected:
 
 private:
     std::vector<std::string> _includefields;
+
+    int _maximumResults;
+    int _skippedResults;
+    bool _fuzzymatching;
 
 };
 

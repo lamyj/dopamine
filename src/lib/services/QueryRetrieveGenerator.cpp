@@ -22,8 +22,10 @@ QueryRetrieveGenerator
 ::QueryRetrieveGenerator(const std::string &username,
                          const std::string &service_name):
     Generator(username), _service_name(service_name),
-    _query_retrieve_level(""), _convert_modalities_in_study(false)
+    _query_retrieve_level(""), _convert_modalities_in_study(false),
+    _maximumResults(0), _skippedResults(0), _fuzzymatching(false)
 {
+    // Nothing to do
 }
 
 Uint16
@@ -86,8 +88,12 @@ QueryRetrieveGenerator
     // Build the MongoDB query and query fields from the query dataset.
     mongo::BSONObjBuilder db_query;
     mongo::BSONObjBuilder fields_builder;
+
+    mongo::BSONArrayBuilder arraybuilder;
     for(mongo::BSONObj::iterator it = query_object.begin(); it.more();)
     {
+        mongo::BSONObjBuilder db_query_sub;
+
         mongo::BSONElement const element = it.next();
         mongo::BSONObj const bsonobj = element.Obj();
 
@@ -113,8 +119,11 @@ QueryRetrieveGenerator
             field << ".Alphabetic";
         }
         // Match the array element containing the value
-        (this->*function)(field.str(), vr, value, db_query);
+        (this->*function)(field.str(), vr, value, db_query_sub);
+
+        arraybuilder << db_query_sub.obj();
     }
+    db_query << "$and" << arraybuilder.arr();
 
     if (this->_service_name != Service_Query)
     {
@@ -214,7 +223,8 @@ QueryRetrieveGenerator
 
     // Searching into database...
     this->_cursor = this->_connection.query(this->_db_name + ".datasets",
-                                            query, 0, 0, &fields);
+                                            query, this->_maximumResults,
+                                            this->_skippedResults, &fields);
 
     return STATUS_Pending;
 }
@@ -245,6 +255,27 @@ QueryRetrieveGenerator
 ::set_includefields(std::vector<std::string> includefields)
 {
     this->_includefields = includefields;
+}
+
+void
+QueryRetrieveGenerator
+::set_maximumResults(int maximumResults)
+{
+    this->_maximumResults = maximumResults;
+}
+
+void
+QueryRetrieveGenerator
+::set_skippedResults(int skippedResults)
+{
+    this->_skippedResults = skippedResults;
+}
+
+void
+QueryRetrieveGenerator
+::set_fuzzymatching(bool fuzzymatching)
+{
+    this->_fuzzymatching = fuzzymatching;
 }
 
 } // namespace services

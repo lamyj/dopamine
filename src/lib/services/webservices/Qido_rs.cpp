@@ -14,6 +14,7 @@
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmdata/dctag.h>
 
+#include "ConverterBSON/JSON/BSONToJSON.h"
 #include "ConverterBSON/XML/BSONToXML.h"
 #include "Qido_rs.h"
 #include "services/QueryGenerator.h"
@@ -32,12 +33,18 @@ Qido_rs
           const std::string &contenttype,
           const std::string &remoteuser):
     Webservices(pathinfo, querystring, remoteuser),
-    _contenttype(contenttype)
+    _contenttype(contenttype), _study_instance_uid_present(false),
+    _series_instance_uid_present(false)
 {
     mongo::BSONObj object = this->parse_string();
 
+    this->add_mandatory_fields(object);
+
     QueryGenerator generator(this->_username);
     generator.set_includefields(this->_includefields);
+    generator.set_maximumResults(this->_maximumResults);
+    generator.set_skippedResults(this->_skippedResults);
+    generator.set_fuzzymatching(this->_fuzzymatching);
 
     Uint16 status = generator.set_query(object);
     if (status != STATUS_Pending)
@@ -61,23 +68,39 @@ Qido_rs
         throw WebServiceException(404, "Not Found", "No Dataset");
     }
 
+    mongo::BSONObj queryretrievelevel =
+            BSON("00080052" << BSON("vr" << "CS" <<
+                                    "Value" << BSON_ARRAY(this->_query_retrieve_level)));
+
     std::stringstream stream;
-    mongo::BSONArrayBuilder bsonarraybuilder; // only for Content-Type = MIME_TYPE_APPLICATION_JSON
+    bool isfirst = true;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
+        mongo::BSONObjBuilder builderfinal;
+        builderfinal.appendElements(findedobject);
+        builderfinal.appendElements(queryretrievelevel);
+        findedobject = builderfinal.obj();
+
         if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
         {
-            bsonarraybuilder << findedobject;
+            if (isfirst)
+            {
+                stream << "[\n";
+                isfirst = false;
+            }
+            else
+            {
+                stream << ",\n";
+            }
+            converterBSON::BSONToJSON bsontojson;
+            stream << bsontojson.to_string(findedobject);
         }
         else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
         {
             stream << "--" << this->_boundary << "\n";
-            stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n";
-            //TODO RLA stream << CONTENT_DISPOSITION_ATTACHMENT << " "
-            //TODO RLA        << ATTRIBUT_FILENAME << this->_filename << "\n";
-            stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
+            stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
 
-            dopamine::converterBSON::BSONToXML bsontoxml;
+            converterBSON::BSONToXML bsontoxml;
             boost::property_tree::ptree tree = bsontoxml(findedobject);
 
             std::stringstream xmldataset;
@@ -91,7 +114,7 @@ Qido_rs
                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
                                   "<?xml version=\"1.0\" encoding=\"utf-8\" xml:space=\"preserve\" ?>");
 
-            stream << currentdata << "\n" << "\n";
+            stream << currentdata << "\n\n";
         }
 
         findedobject = generator.next();
@@ -99,7 +122,7 @@ Qido_rs
 
     if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
     {
-        stream << bsonarraybuilder.arr().toString();
+        stream << "]\n";
     }
     else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
     {
@@ -221,7 +244,6 @@ Qido_rs
 
         if (vartemp.size() > 1)
         {
-
             throw WebServiceException(400, "Bad Request",
                                       "too many parameters");
         }
@@ -245,14 +267,18 @@ Qido_rs
     // Conditions
     mongo::BSONObjBuilder db_query;
 
+    this->_study_instance_uid_present = study_instance_uid != "";
     if (study_instance_uid != "")
     {
-        db_query << "0020000d" << BSON_ARRAY("UI" << study_instance_uid);
+        db_query << "0020000d" << BSON("vr" << "UI" <<
+                                       "Value" << BSON_ARRAY(study_instance_uid));
     }
 
+    this->_series_instance_uid_present = series_instance_uid != "";
     if (series_instance_uid != "")
     {
-        db_query << "0020000e" << BSON_ARRAY("UI" << series_instance_uid);
+        db_query << "0020000e" << BSON("vr" << "UI" <<
+                                       "Value" << BSON_ARRAY(series_instance_uid));
     }
 
     // Parse the query string
@@ -274,6 +300,23 @@ Qido_rs
             this->add_to_builder(tempbuilder, data[1], "");
             this->_includefields.push_back(tempbuilder.obj().firstElementFieldName());
         }
+        else if (tag == "limit")
+        {
+            this->_maximumResults = std::atoi(data[1].c_str());
+        }
+        else if (tag == "offset")
+        {
+            this->_skippedResults = std::atoi(data[1].c_str());
+            if (this->_skippedResults < 0)
+            {
+                this->_skippedResults = 0;
+            }
+        }
+        else if (tag == "fuzzymatching")
+        {
+            // Not supported
+            this->_fuzzymatching = (data[1] == "true");
+        }
         else
         {
             this->add_to_builder(db_query, tag, data[1]);
@@ -283,7 +326,8 @@ Qido_rs
 
     if (!db_query.hasField("00080052"))
     {
-        db_query << "00080052" << BSON_ARRAY("CS" << this->_query_retrieve_level);
+        db_query << "00080052" << BSON("vr" << "CS" <<
+                                       "Value" << BSON_ARRAY(this->_query_retrieve_level));
     }
 
     return db_query.obj();
@@ -333,7 +377,82 @@ Qido_rs
     std::stringstream groupelement;
     groupelement << group << element;
 
-    builder << groupelement.str() << BSON_ARRAY(response.getVR().getVRName() << value);
+    if (response.getVR().getEVR() == EVR_PN)
+    {
+        builder << groupelement.str()
+                << BSON("vr" << response.getVR().getVRName() <<
+                        "Value" << BSON_ARRAY(BSON("Alphabetic" << value)));
+    }
+    else if (response.getVR().getEVR() == EVR_OB || response.getVR().getEVR() == EVR_OF ||
+             response.getVR().getEVR() == EVR_OW || response.getVR().getEVR() == EVR_UN)
+    {
+        builder << groupelement.str()
+                << BSON("vr" << response.getVR().getVRName() <<
+                        "InlineBinary" << value);
+    }
+    else
+    {
+        builder << groupelement.str()
+                << BSON("vr" << response.getVR().getVRName() <<
+                        "Value" << BSON_ARRAY(value));
+    }
+}
+
+void
+Qido_rs
+::add_mandatory_fields(const mongo::BSONObj &queryobject)
+{
+    std::vector<std::string> tag_to_add;
+    if (this->_query_retrieve_level == "STUDY")
+    { // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        tag_to_add.insert(tag_to_add.end(),
+                          mandatory_study_attributes.begin(),
+                          mandatory_study_attributes.end());
+    }
+    else if (this->_query_retrieve_level == "SERIES")
+    { // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
+        if (!this->_study_instance_uid_present)
+        {
+            tag_to_add.insert(tag_to_add.end(),
+                              mandatory_study_attributes.begin(),
+                              mandatory_study_attributes.end());
+        }
+        tag_to_add.insert(tag_to_add.end(),
+                          mandatory_series_attributes.begin(),
+                          mandatory_series_attributes.end());
+    }
+    else
+    { // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
+        if (!this->_study_instance_uid_present)
+        {
+            tag_to_add.insert(tag_to_add.end(),
+                              mandatory_study_attributes.begin(),
+                              mandatory_study_attributes.end());
+        }
+        if (!this->_series_instance_uid_present)
+        {
+            tag_to_add.insert(tag_to_add.end(),
+                              mandatory_series_attributes.begin(),
+                              mandatory_series_attributes.end());
+        }
+        tag_to_add.insert(tag_to_add.end(),
+                          mandatory_instance_attributes.begin(),
+                          mandatory_instance_attributes.end());
+    }
+
+    // Add tags
+    for (auto tag : tag_to_add)
+    {
+        // tag not already added
+        if (std::find(this->_includefields.begin(),
+                      this->_includefields.end(), tag) != this->_includefields.end() ||
+            queryobject.hasField(tag))
+        {
+            continue;
+        }
+
+        this->_includefields.push_back(tag);
+    }
 }
 
 } // namespace services

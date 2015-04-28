@@ -24,7 +24,8 @@ Webservices
               const std::string &querystring,
               const std::string &username):
     _pathinfo(pathinfo), _querystring(querystring),
-    _username(username), _response(""), _boundary("")
+    _username(username), _response(""), _boundary(""),
+    _maximumResults(0), _skippedResults(0), _fuzzymatching(false)
 {
     // Nothing to do
 }

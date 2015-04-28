@@ -58,6 +58,10 @@ protected:
     std::string _response;
     std::string _boundary;
 
+    int _maximumResults;
+    int _skippedResults;
+    bool _fuzzymatching;
+
     void create_boundary();
 
     virtual mongo::BSONObj parse_string() = 0;
