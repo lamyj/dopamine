@@ -256,13 +256,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONXML, TestDataConversionBSONXML)
 {
     // Convert original BSON to XML
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto xml = bsontoxml(bsonobject);
+    auto xml = bsontoxml.to_ptree(bsonobject);
 
     // Convert XML to new BSON
     dopamine::converterBSON::XMLToBSON xmltobson;
-    mongo::BSONObjBuilder bsonobjbuilder;
-    xmltobson(xml, bsonobjbuilder);
-    mongo::BSONObj const newbson = bsonobjbuilder.obj();
+    mongo::BSONObj const newbson = xmltobson.from_ptree(xml);
 
     // Compare original BSON with new
     isEqual(bsonobject, newbson);
@@ -470,14 +468,12 @@ struct TestDataConversionXMLBSON
 BOOST_FIXTURE_TEST_CASE(ConversionXMLBSON, TestDataConversionXMLBSON)
 {
     // Convert original BSON to Dataset
-    mongo::BSONObjBuilder bsonobjbuilder;
     dopamine::converterBSON::XMLToBSON xmltobson;
-    xmltobson(tree, bsonobjbuilder);
-    mongo::BSONObj const newbson = bsonobjbuilder.obj();
+    mongo::BSONObj const newbson = xmltobson.from_ptree(tree);
 
     // Convert Dataset to new BSON
     dopamine::converterBSON::BSONToXML bsontoxml;
-    boost::property_tree::ptree xml = bsontoxml(newbson);
+    boost::property_tree::ptree xml = bsontoxml.to_ptree(newbson);
 
     // Compare original BSON with new
     // Operator == not working

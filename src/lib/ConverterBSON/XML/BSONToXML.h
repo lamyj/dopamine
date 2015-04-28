@@ -87,11 +87,18 @@ public:
     ~BSONToXML();
 
     /**
-     * Operator ()
+     * to_ptree
      * @param bson: BSON object to convert
      * @return converted XML dataset
      */
-     boost::property_tree::ptree operator()(mongo::BSONObj const & bson);
+     boost::property_tree::ptree to_ptree(mongo::BSONObj const & bson);
+
+     /**
+      * to_string
+      * @param bson: BSON object to convert
+      * @return converted XML dataset as string
+      */
+     std::string to_string(mongo::BSONObj const & bson);
 
 protected:
      bool is_Dicom_field(std::string const & field_name);

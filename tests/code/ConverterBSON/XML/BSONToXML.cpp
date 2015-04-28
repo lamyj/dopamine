@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -530,7 +530,7 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -550,7 +550,7 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -570,7 +570,7 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -590,7 +590,7 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -610,7 +610,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -630,7 +630,7 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -650,7 +650,7 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -670,7 +670,7 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -690,7 +690,7 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -710,7 +710,7 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -730,7 +730,7 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -756,7 +756,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -782,7 +782,7 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -808,7 +808,7 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -830,7 +830,7 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -850,7 +850,7 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -870,7 +870,7 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -904,7 +904,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -924,7 +924,7 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -944,7 +944,7 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -964,7 +964,7 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -984,7 +984,7 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -1004,7 +1004,7 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -1033,7 +1033,7 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);
@@ -1053,7 +1053,7 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
-    auto tree = bsontoxml(object);
+    auto tree = bsontoxml.to_ptree(object);
 
     // Check result
     check_property_tree(tree, object);

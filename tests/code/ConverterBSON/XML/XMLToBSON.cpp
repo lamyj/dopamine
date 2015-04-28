@@ -47,12 +47,10 @@ void create_test_value(std::string const & dicom_tag,
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
 
     // Conversion
-    mongo::BSONObjBuilder object_builder;
     dopamine::converterBSON::XMLToBSON xmltobson;
-    xmltobson(tree, object_builder);
+    mongo::BSONObj const object = xmltobson.from_ptree(tree);
 
     // Check result
-    mongo::BSONObj const object = object_builder.obj();
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
     BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();
@@ -96,11 +94,9 @@ void create_test_inlinebinary(std::string const & dicom_tag,
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
 
     // Conversion
-    mongo::BSONObjBuilder object;
     dopamine::converterBSON::XMLToBSON xmltobson;
-    xmltobson(tree, object);
+    mongo::BSONObj const object_bson = xmltobson.from_ptree(tree);
 
-    mongo::BSONObj const object_bson = object.obj();
     BOOST_CHECK_EQUAL(object_bson.hasField(dicom_tag), true);
     BOOST_CHECK_EQUAL(object_bson.getField(dicom_tag).type(), mongo::BSONType::Object);
     mongo::BSONObj const subobject = object_bson.getField(dicom_tag).Obj();
@@ -184,12 +180,10 @@ void create_test_personname(std::string const & dicom_tag,
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
 
     // Conversion
-    mongo::BSONObjBuilder object_builder;
     dopamine::converterBSON::XMLToBSON xmltobson;
-    xmltobson(tree, object_builder);
+    mongo::BSONObj const object = xmltobson.from_ptree(tree);
 
     // Check result
-    mongo::BSONObj const object = object_builder.obj();
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
     BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();
@@ -256,12 +250,10 @@ void create_test_sequence(std::string const & dicom_tag,
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
 
     // Conversion
-    mongo::BSONObjBuilder object_builder;
     dopamine::converterBSON::XMLToBSON xmltobson;
-    xmltobson(tree, object_builder);
+    mongo::BSONObj const object = xmltobson.from_ptree(tree);
 
     // Check result
-    mongo::BSONObj const object = object_builder.obj();
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
     BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();

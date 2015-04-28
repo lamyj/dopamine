@@ -12,6 +12,7 @@
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/foreach.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
@@ -39,11 +40,10 @@ XMLToBSON
     // Nothing to do
 }
 
-void
-XMLToBSON
-::operator()(boost::property_tree::ptree tree,
-             mongo::BSONObjBuilder &builder)
+mongo::BSONObj XMLToBSON::from_ptree(boost::property_tree::ptree tree)
 {
+    mongo::BSONObjBuilder builder;
+
     bool find_tag_nativedicommodel = false;
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_nativedicommodel,
                   tree)
@@ -81,6 +81,21 @@ XMLToBSON
             }
         }
     }
+
+    return builder.obj();
+}
+
+mongo::BSONObj
+XMLToBSON
+::from_string(const std::string &xml)
+{
+    boost::property_tree::ptree ptree;
+
+    std::stringstream xmlstream;
+    xmlstream << xml;
+    boost::property_tree::read_xml(xmlstream, ptree);
+
+    return this->from_ptree(ptree);
 }
 
 void
@@ -158,11 +173,10 @@ XMLToBSON
             boost::property_tree::ptree nativetree;
             nativetree.add_child(Tag_NativeDicomModel, it_item.second);
 
-            mongo::BSONObjBuilder builder;
             XMLToBSON converter;
-            converter(nativetree, builder);
+            mongo::BSONObj buildedobject = converter.from_ptree(nativetree);
 
-            values[number-1] = std::make_pair(builder.obj(),
+            values[number-1] = std::make_pair(buildedobject,
                                               false);
         }
         else

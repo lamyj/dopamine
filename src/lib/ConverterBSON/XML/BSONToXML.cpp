@@ -13,6 +13,7 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/archive/iterators/ostream_iterator.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 #include <dcmtk/dcmdata/dctag.h>
 
@@ -40,7 +41,7 @@ BSONToXML
 
 boost::property_tree::ptree
 BSONToXML
-::operator()(const mongo::BSONObj &bson)
+::to_ptree(const mongo::BSONObj &bson)
 {
     // root element
     boost::property_tree::ptree bsonxml;
@@ -54,6 +55,19 @@ BSONToXML
     bsonxml.add_child(Tag_NativeDicomModel, nativedicommodel);
 
     return bsonxml;
+}
+
+std::string
+BSONToXML
+::to_string(const mongo::BSONObj &bson)
+{
+    boost::property_tree::ptree ptree = this->to_ptree(bson);
+
+    std::stringstream xmldataset;
+    boost::property_tree::xml_writer_settings<char> settings(' ', 4);
+    boost::property_tree::write_xml(xmldataset, ptree, settings);
+
+    return xmldataset.str();
 }
 
 bool

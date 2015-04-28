@@ -24,8 +24,9 @@ public:
 
     ~XMLToBSON();
 
-    void operator()(boost::property_tree::ptree tree,
-                    mongo::BSONObjBuilder & builder);
+    mongo::BSONObj from_ptree(boost::property_tree::ptree tree);
+
+    mongo::BSONObj from_string(std::string const & xml);
 
 protected:
 

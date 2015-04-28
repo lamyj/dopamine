@@ -8,7 +8,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #include "boost/regex.hpp"
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
@@ -101,13 +100,7 @@ Qido_rs
             stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
 
             converterBSON::BSONToXML bsontoxml;
-            boost::property_tree::ptree tree = bsontoxml(findedobject);
-
-            std::stringstream xmldataset;
-            boost::property_tree::xml_writer_settings<char> settings(' ', 4);
-            boost::property_tree::write_xml(xmldataset, tree, settings);
-
-            std::string currentdata = xmldataset.str();
+            std::string currentdata = bsontoxml.to_string(findedobject);
 
             // The directive xml:space="preserve" shall be included.
             currentdata = replace(currentdata,
