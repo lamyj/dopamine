@@ -78,10 +78,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
     dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -108,10 +105,7 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
     dataset->putAndInsertOFStringArray(DCM_PatientAge, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -147,10 +141,7 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
     dataset->putAndInsertOFStringArray(DCM_Modality, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -177,10 +168,7 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
     dataset->putAndInsertOFStringArray(DCM_PatientBirthDate, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -207,10 +195,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
     dataset->putAndInsertOFStringArray(DCM_PatientWeight, "61.5\\62.5");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -237,10 +222,7 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
     dataset->putAndInsertOFStringArray(DCM_FrameAcquisitionDateTime, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -271,10 +253,7 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
     element->putFloat64Array(&vectorfloat64[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -305,10 +284,7 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
     element->putFloat32Array(&vectorfloat32[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -335,10 +311,7 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
     dataset->putAndInsertOFStringArray(DCM_StageNumber, "12\\13");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -365,10 +338,7 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
     dataset->putAndInsertOFStringArray(DCM_Manufacturer, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -396,10 +366,7 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
     dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -454,10 +421,7 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John^Wallas^Rev.^Chief Executive Officer\\Smith^Jane^Scarlett^Ms.^Goddess");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -487,10 +451,7 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
     dataset->putAndInsertOFStringArray(DCM_EthnicGroup, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -521,10 +482,7 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
     element->putSint32Array(&vectorsint32[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -556,10 +514,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     dataset->insertSequenceItem(DCM_OtherPatientIDsSequence, item, 1);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -606,10 +561,7 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
     element->putSint16Array(&vectorsint16[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -637,10 +589,7 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     dataset->putAndInsertOFStringArray(DCM_InstitutionAddress, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -667,10 +616,7 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
     dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -697,10 +643,7 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
     dataset->putAndInsertOFStringArray(DCM_SOPClassUID, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -731,10 +674,7 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
     element->putUint32Array(&vectoruint32[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -774,10 +714,7 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
     element->putUint16Array(&vectoruint16[0], 2);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -805,10 +742,7 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL, "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder query_builder;
-    datasettobson(dataset, query_builder);
-
-    mongo::BSONObj const query_dataset = query_builder.obj();
+    mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
     mongo::BSONObj::iterator it = query_dataset.begin();
 
@@ -863,10 +797,8 @@ BOOST_AUTO_TEST_CASE(Unhandled_VR)
     OFCondition cond = element->putString(test.c_str());
     dataset->insert(element);
 
-    mongo::BSONObjBuilder query_builder;
-
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    BOOST_REQUIRE_THROW(datasettobson(dataset, query_builder);,
+    BOOST_REQUIRE_THROW(datasettobson.from_dataset(dataset);,
                         std::runtime_error);
 
     delete dataset;

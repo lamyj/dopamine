@@ -59,7 +59,7 @@ public :
     std::vector<Filter> & get_filters();
     void set_filters(std::vector<Filter> const & filters);
 
-    void operator()(DcmObject * dataset, mongo::BSONObjBuilder & builder);
+    mongo::BSONObj from_dataset(DcmObject * dataset);
 
 private :
     std::vector<Filter> _filters;

@@ -35,7 +35,7 @@ BSONToDataSet
 
 DcmDataset
 BSONToDataSet
-::operator()(mongo::BSONObj const & bson)
+::to_dataset(const mongo::BSONObj &bson)
 {
     if(bson.hasField("00080005") && !bson["00080005"].isNull())
     {
@@ -414,7 +414,7 @@ BSONToDataSet
                 {
                     BSONToDataSet converter;
                     converter.set_specific_character_set(this->get_specific_character_set());
-                    DcmDataset itemdataset = converter(subelement.Obj());
+                    DcmDataset itemdataset = converter.to_dataset(subelement.Obj());
 
                     item = new DcmItem(itemdataset);
                 }

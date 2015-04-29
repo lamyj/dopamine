@@ -58,10 +58,11 @@ DataSetToBSON
     this->_filters = filters;
 }
 
-void
+mongo::BSONObj
 DataSetToBSON
-::operator()(DcmObject * dataset, mongo::BSONObjBuilder & builder)
+::from_dataset(DcmObject *dataset)
 {
+    mongo::BSONObjBuilder builder;
     DcmObject * it = NULL;
     while(NULL != (it = dataset->nextInContainer(it)))
     {
@@ -90,7 +91,7 @@ DataSetToBSON
         if(it->getTag() == DCM_SpecificCharacterSet)
         {
             // Specific Character Set: setup internal iconv converter
-            DcmCodeString * specific_character_set = 
+            DcmCodeString * specific_character_set =
                 dynamic_cast<DcmCodeString*>(it);
             char* value;
             OFCondition condition = specific_character_set->getString(value);
@@ -113,6 +114,8 @@ DataSetToBSON
             this->_add_element(it, builder);
         }
     }
+
+    return builder.obj();
 }
 
 /*******************************************************************************
@@ -486,11 +489,9 @@ DataSetToBSON
         DcmObject * sequence_it = NULL;
         while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
-            mongo::BSONObjBuilder item_builder;
             DataSetToBSON converter;
             converter.set_specific_character_set(this->get_specific_character_set());
-            converter(sequence_it, item_builder);
-            sequence_builder.append(item_builder.obj());
+            sequence_builder.append(converter.from_dataset(sequence_it));
         }
         value_builder << "Value" << sequence_builder.arr();
     }

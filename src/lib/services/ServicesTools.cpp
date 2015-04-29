@@ -299,9 +299,7 @@ dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
     }
     dataset_to_bson.set_default_filter(converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
-    mongo::BSONObjBuilder query_builder;
-    dataset_to_bson(dataset, query_builder);
-    return query_builder.obj();
+    return dataset_to_bson.from_dataset(dataset);
 }
 
 DcmDataset *
@@ -312,7 +310,7 @@ bson_to_dataset(mongo::BSONObj object)
     if ( ! object.hasField("location"))
     {
         converterBSON::BSONToDataSet bson2dataset;
-        DcmDataset result = bson2dataset(object);
+        DcmDataset result = bson2dataset.to_dataset(object);
         dataset = new DcmDataset(result);
     }
     else

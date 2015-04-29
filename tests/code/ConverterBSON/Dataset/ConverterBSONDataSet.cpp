@@ -254,13 +254,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONDataset, TestDataConversionBSONDataset)
 {
     // Convert original BSON to Dataset
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(bsonobject);
+    DcmDataset dataset = bsontodataset.to_dataset(bsonobject);
 
     // Convert Dataset to new BSON
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder bsonobjbuilder;
-    datasettobson(&dataset, bsonobjbuilder);
-    mongo::BSONObj const newbson = bsonobjbuilder.obj();
+    mongo::BSONObj const newbson = datasettobson.from_dataset(&dataset);
 
     // Compare original BSON with new
     isEqual(bsonobject, newbson);
@@ -396,13 +394,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionDatasetBSON, TestDataConversionDatasetBSON)
 {
     // Convert original Dataset to BSON
     dopamine::converterBSON::DataSetToBSON datasettobson;
-    mongo::BSONObjBuilder bsonobjbuilder;
-    datasettobson(dataset, bsonobjbuilder);
-    mongo::BSONObj const bsonobj = bsonobjbuilder.obj();
+    mongo::BSONObj const bsonobj = datasettobson.from_dataset(dataset);
 
     // Convert BSON to new Dataset
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset newdataset = bsontodataset(bsonobj);
+    DcmDataset newdataset = bsontodataset.to_dataset(bsonobj);
 
     // Compare new Dataset with original
     isEqual(*dataset, newdataset);

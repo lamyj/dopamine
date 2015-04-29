@@ -36,11 +36,11 @@ public :
     ~BSONToDataSet();
 
     /**
-     * Operator ()
+     * to_dataset
      * @param bson: BSON object to convert
      * @return converted DICOM dataset
      */
-    DcmDataset operator()(mongo::BSONObj const & bson);
+    DcmDataset to_dataset(mongo::BSONObj const & bson);
     
 protected:
     

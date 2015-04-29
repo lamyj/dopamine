@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Float64 value;
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Float32 value;
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     std::stringstream stream;
@@ -417,7 +417,7 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     std::stringstream stream;
@@ -454,7 +454,7 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     std::stringstream stream;
@@ -484,7 +484,7 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -536,7 +536,7 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Sint32 value;
@@ -578,7 +578,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     DcmItem* item = NULL;
@@ -635,7 +635,7 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Sint16 value;
@@ -661,7 +661,7 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -688,7 +688,7 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -714,7 +714,7 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -740,7 +740,7 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Uint32 value;
@@ -775,7 +775,7 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     Uint16 value;
@@ -801,7 +801,7 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    DcmDataset dataset = bsontodataset(object);
+    DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
     OFString value;
@@ -856,6 +856,6 @@ struct TestDataKO02
 BOOST_FIXTURE_TEST_CASE(Unhandled_VR, TestDataKO02)
 {
     dopamine::converterBSON::BSONToDataSet bsontodataset;
-    BOOST_REQUIRE_THROW(bsontodataset(bsonobject),
+    BOOST_REQUIRE_THROW(bsontodataset.to_dataset(bsonobject),
                         std::runtime_error);
 }
