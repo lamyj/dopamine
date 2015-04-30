@@ -8,6 +8,7 @@
 
 #include "core/LoggerPACS.h"
 #include "MoveSCP.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {

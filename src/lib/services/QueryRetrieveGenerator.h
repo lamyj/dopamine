@@ -9,11 +9,7 @@
 #ifndef _76b2ab31_bb60_4366_ad0b_55c6eb286fdf
 #define _76b2ab31_bb60_4366_ad0b_55c6eb286fdf
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmdata/dctagkey.h>
-
 #include "Generator.h"
-#include "ServicesTools.h"
 
 namespace dopamine
 {
@@ -29,7 +25,7 @@ public:
 
     virtual Uint16 set_query(mongo::BSONObj const & query_dataset);
 
-    DcmTagKey get_instance_count_tag() const;
+    std::vector<std::string> get_instance_count_tags() const;
 
     bool get_convert_modalities_in_study() const;
 
@@ -43,12 +39,15 @@ public:
 
     void set_fuzzymatching(bool fuzzymatching);
 
+    mongo::BSONObj compute_attribute(std::string const & attribute,
+                                     std::string const & value);
+
 protected:
     std::string _service_name;
 
     std::string _query_retrieve_level;
 
-    DcmTagKey _instance_count_tag;
+    std::vector<std::string> _instance_count_tags;
 
     /// flag indicating if modalities should be convert
     bool _convert_modalities_in_study;
@@ -59,6 +58,10 @@ private:
     int _maximumResults;
     int _skippedResults;
     bool _fuzzymatching;
+
+    unsigned int get_count(const std::string &relatedElement,
+                           const std::string &ofElement,
+                           const std::string &value);
 
 };
 

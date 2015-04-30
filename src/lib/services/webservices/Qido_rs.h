@@ -9,6 +9,7 @@
 #ifndef _bfc0e3cc_01f0_402b_9e96_a8c825466940
 #define _bfc0e3cc_01f0_402b_9e96_a8c825466940
 
+#include "services/QueryGenerator.h"
 #include "Webservices.h"
 
 namespace dopamine
@@ -17,37 +18,54 @@ namespace dopamine
 namespace services
 {
 
-// See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
-std::vector<std::string> const mandatory_study_attributes =
+struct Attribute
 {
-    "00080020", // Study Date
-    "00080030", // Study Time
-    "00080050", // Accession Number
-    "00080090", // Referring Physician's Name
-    "00100010", // Patient's Name
-    "00100020", // Patient ID
-    "00100030", // Patient's Birth Date
-    "00100040", // Patient's Sex
-    "0020000d", // Study Instance UID
-    "00200010"  // Study ID
+    std::string _tag;
+    std::string _vr;
+
+    Attribute(std::string const & tag, std::string const & vr):
+        _tag(tag), _vr(vr) {}
+};
+
+// See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+std::vector<Attribute> const mandatory_study_attributes =
+{
+    Attribute("00080020", "DA"), // Study Date
+    Attribute("00080030", "TM"), // Study Time
+    Attribute("00080050", "SH"), // Accession Number
+    Attribute("00080056", "CS"), // Instance Availability
+    Attribute("00080061", "CS"), // Modalities in Study
+    Attribute("00080090", "PN"), // Referring Physician's Name
+    Attribute("00100010", "PN"), // Patient's Name
+    Attribute("00100020", "LO"), // Patient ID
+    Attribute("00100030", "DA"), // Patient's Birth Date
+    Attribute("00100040", "CS"), // Patient's Sex
+    Attribute("0020000d", "UI"), // Study Instance UID
+    Attribute("00200010", "SH"), // Study ID
+    Attribute("00201206", "IS"), // Number of Study Related Series
+    Attribute("00201208", "IS")  // Number of Study Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
-std::vector<std::string> const mandatory_series_attributes =
+std::vector<Attribute> const mandatory_series_attributes =
 {
-    "00080060", // Modality
-    "0008103e", // Series Description
-    "0020000e", // Series Instance UID
-    "00200011"  // Series Number
+    Attribute("00080060", "CS"), // Modality
+    Attribute("0008103e", "LO"), // Series Description
+    Attribute("0020000e", "UI"), // Series Instance UID
+    Attribute("00200011", "IS"), // Series Number
+    Attribute("00201209", "IS")  // Number of Series Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
-std::vector<std::string> const mandatory_instance_attributes =
+std::vector<Attribute> const mandatory_instance_attributes =
 {
-    "00080016", // SOP Class UID
-    "00080018", // SOP Instance UID
-    "00080056", // Instance Availability
-    "00200013"  // Instance Number
+    Attribute("00080016", "UI"), // SOP Class UID
+    Attribute("00080018", "UI"), // SOP Instance UID
+    Attribute("00080056", "CS"), // Instance Availability
+    Attribute("00200013", "IS"), // Instance Number
+    Attribute("00280010", "US"), // Rows
+    Attribute("00280011", "US"), // Columns
+    Attribute("00280100", "US")  // Bits Allocated
 };
 
 class Qido_rs : public Webservices
@@ -80,7 +98,11 @@ private:
                         std::string const & tag,
                         std::string const & value);
 
+    std::vector<Attribute> get_mandatory_fields() const;
+
     void add_mandatory_fields(mongo::BSONObj const & queryobject);
+
+    mongo::BSONObj check_mandatory_field_in_response(mongo::BSONObj const & response, QueryGenerator & generator);
 
 };
 

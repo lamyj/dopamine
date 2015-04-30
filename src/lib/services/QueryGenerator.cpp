@@ -7,6 +7,7 @@
  ************************************************************************/
 
 #include "QueryGenerator.h"
+#include "ServicesTools.h"
 
 namespace dopamine
 {

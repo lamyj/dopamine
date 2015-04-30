@@ -7,6 +7,7 @@
  ************************************************************************/
 
 #include "RetrieveGenerator.h"
+#include "ServicesTools.h"
 
 namespace dopamine
 {

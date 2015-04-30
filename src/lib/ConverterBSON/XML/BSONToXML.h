@@ -127,6 +127,7 @@ private:
 
      template<typename TBSONType>
      void _to_value(mongo::BSONElement const & bson,
+                    std::string const & vr,
                     boost::property_tree::ptree & tag_xml,
                     typename BSONGetterType<TBSONType>::Type getter) const;
 

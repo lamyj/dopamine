@@ -11,6 +11,7 @@
 
 #include "core/LoggerPACS.h"
 #include "QueryRetrieveGenerator.h"
+#include "ServicesTools.h"
 
 namespace dopamine
 {
@@ -170,48 +171,19 @@ QueryRetrieveGenerator
     mongo::BSONObjBuilder initial_builder;
 
     // Number of XXX Related Instances (0020,120X)
-    if(query_object.hasField("00201204"))
+    std::vector<std::string> tags = {"00201200", "00201202", "00201204",
+                                     "00201206", "00201208", "00201209"};
+    for (auto tag : tags)
     {
-        this->_instance_count_tag = DCM_NumberOfPatientRelatedInstances;
-    }
-    else if(query_object.hasField("00201208"))
-    {
-        this->_instance_count_tag = DCM_NumberOfStudyRelatedInstances;
-    }
-    else if(query_object.hasField("00201209"))
-    {
-        this->_instance_count_tag = DCM_NumberOfSeriesRelatedInstances;
-    }
-    else
-    {
-        this->_instance_count_tag = DCM_UndefinedTagKey;
-    }
-    if (this->_instance_count_tag != DCM_UndefinedTagKey)
-    {
-        reduce_function += "result.instance_count+=1;";
-        initial_builder << "instance_count" << 0;
+        if (query_object.hasField(tag))
+        {
+            this->_instance_count_tags.push_back(tag);
+        }
     }
 
     // Modalities in Study (0008,0061)
-    if(this->_service_name == Service_Query && query_object.hasField("00080061"))
-    {
-        // Use the Modality attribute
-        mongo::BSONElement modalities = query_object["00080061"];
-        Match::Type const match_type =
-            this->_get_match_type("CS", modalities);
-        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
-        (this->*function)("00080060.Value", "CS", modalities, db_query);
-        fields_builder << "00080060" << 1;
-        reduce_function +=
-            "if(result.modalities_in_study.indexOf(current[\"00080060\"][1])==-1) "
-            "{ result.modalities_in_study.push(current[\"00080060\"][1]); }";
-        initial_builder << "modalities_in_study" << mongo::BSONArrayBuilder().arr();
-        this->_convert_modalities_in_study = true;
-    }
-    else
-    {
-        this->_convert_modalities_in_study = false;
-    }
+    this->_convert_modalities_in_study = (this->_service_name == Service_Query &&
+                                          query_object.hasField("00080061"));
 
     // Create Query
     mongo::BSONArrayBuilder finalquerybuilder;
@@ -229,11 +201,11 @@ QueryRetrieveGenerator
     return STATUS_Pending;
 }
 
-DcmTagKey
+std::vector<std::string>
 QueryRetrieveGenerator
-::get_instance_count_tag() const
+::get_instance_count_tags() const
 {
-    return this->_instance_count_tag;
+    return this->_instance_count_tags;
 }
 
 bool
@@ -276,6 +248,82 @@ QueryRetrieveGenerator
 ::set_fuzzymatching(bool fuzzymatching)
 {
     this->_fuzzymatching = fuzzymatching;
+}
+
+unsigned int
+QueryRetrieveGenerator
+::get_count(std::string const & relatedElement,
+            std::string const & ofElement,
+            std::string const & value)
+{
+    mongo::BSONObj object = BSON("distinct" << "datasets" << "key" << relatedElement <<
+                                  "query" << BSON(ofElement << value));
+
+    mongo::BSONObj info;
+    bool ret = this->_connection.runCommand(this->_db_name,
+                                   object, info);
+
+    return info["values"].Array().size();
+}
+
+mongo::BSONObj
+QueryRetrieveGenerator
+::compute_attribute(const std::string &attribute,
+                    const std::string &value)
+{
+    if (attribute == "00080056") // Instance Availability
+    {
+        return BSON(attribute << BSON("vr" << "CS" << "Value" << BSON_ARRAY("ONLINE")));
+    }
+    else if (attribute == "00080061") // Modalities in Study
+    {
+        mongo::BSONObj object = BSON("distinct" << "datasets" << "key" << "00080060.Value" <<
+                                      "query" << BSON("0020000d.Value" << value));
+
+        mongo::BSONObj info;
+        bool ret = this->_connection.runCommand(this->_db_name,
+                                       object, info);
+
+        return BSON(attribute << BSON("vr" << "CS" << "Value" << info["values"]));
+    }
+    else if (attribute == "00201200") // Number of Patient Related Study
+    {
+        unsigned int size = this->get_count("0020000d", "00100020.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+    else if (attribute == "00201202") // Number of Patient Related Series
+    {
+        unsigned int size = this->get_count("0020000e", "00100020.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+    else if (attribute == "00201204") // Number of Patient Related Instances
+    {
+        unsigned int size = this->get_count("00080018", "00100020.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+    else if (attribute == "00201206") // Number of Study Related Series
+    {
+        unsigned int size = this->get_count("0020000e", "0020000d.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+    else if (attribute == "00201208") // Number of Study Related Instances
+    {
+        unsigned int size = this->get_count("00080018", "0020000d.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+    else if (attribute == "00201209") // Number of Series Related Instances
+    {
+        unsigned int size = this->get_count("00080018", "0020000e.Value", value);
+
+        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+    }
+
+    return mongo::BSONObj();
 }
 
 } // namespace services

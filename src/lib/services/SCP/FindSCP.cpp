@@ -7,8 +7,9 @@
  ************************************************************************/
 
 #include "core/LoggerPACS.h"
-#include "services/QueryGenerator.h"
 #include "FindSCP.h"
+#include "services/QueryGenerator.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -110,7 +111,7 @@ static void findCallback(
 
             if (status == STATUS_Pending && object.hasField("instance_count"))
             {
-                OFString count(12, '\0');
+                /*OFString count(12, '\0');
                 snprintf(&count[0], 12, "%i", int(object.getField("instance_count").Number()));
                 condition =
                         (*responseIdentifiers)->putAndInsertOFStringArray(context->get_instance_count_tag(),
@@ -128,7 +129,7 @@ static void findCallback(
                     createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
                                        context->get_instance_count_tag(),
                                        OFString(condition.text()), stDetail);
-                }
+                }*/
             }
 
             if (status == STATUS_Pending && context->get_convert_modalities_in_study())
