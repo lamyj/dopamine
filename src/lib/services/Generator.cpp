@@ -16,6 +16,16 @@ namespace dopamine
 namespace services
 {
 
+template<typename TType>
+void
+Generator
+::add_value_to_builder(mongo::BSONObjBuilder &builder,
+                       const std::string &field,
+                       const std::string &value) const
+{
+    builder << field << boost::lexical_cast<TType>(value);
+}
+
 // Define Unknown specialization first, since other specializations use it.
 template<>
 void
@@ -34,8 +44,19 @@ Generator
         }
     }
 
-    // Default action: convert to string
-    builder << field << value.String();
+    if (vr == "DS") this->add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FD") this->add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FL") this->add_value_to_builder<Float32>(builder, field, value.String());
+    else if (vr == "IS") this->add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SL") this->add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SS") this->add_value_to_builder<Sint16>(builder, field, value.String());
+    else if (vr == "UL") this->add_value_to_builder<Uint32>(builder, field, value.String());
+    else if (vr == "US") this->add_value_to_builder<Uint16>(builder, field, value.String());
+    else
+    {
+        // Default action: convert to string
+        builder << field << value.String();
+    }
 }
 
 template<>
@@ -55,7 +76,18 @@ Generator
         }
     }
 
-    builder << field << value.String();
+    if (vr == "DS") this->add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FD") this->add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FL") this->add_value_to_builder<Float32>(builder, field, value.String());
+    else if (vr == "IS") this->add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SL") this->add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SS") this->add_value_to_builder<Sint16>(builder, field, value.String());
+    else if (vr == "UL") this->add_value_to_builder<Uint32>(builder, field, value.String());
+    else if (vr == "US") this->add_value_to_builder<Uint16>(builder, field, value.String());
+    else
+    {
+        builder << field << value.String();
+    }
 }
 
 template<>

@@ -89,6 +89,12 @@ protected:
     DicomQueryToMongoQuery _get_query_conversion(Match::Type const & match_type) const;
 
 private:
+
+    template<typename TType>
+    void add_value_to_builder(mongo::BSONObjBuilder &builder,
+                              const std::string &field,
+                              const std::string &value) const;
+
     /**
      * @brief Convert a BSON element from the DICOM query language to the
      *        MongoDB query language.

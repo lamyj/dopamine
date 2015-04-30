@@ -275,9 +275,9 @@ cat > ${DIRECTORY}/dumpjohndoe2 << EOF
 (0008,0060) CS [MR]                                     #   2, 1 Modality
 (0008,0070) LO [Bruker BioSpin MRI GmbH]                #  24, 1 Manufacturer
 (0008,0080) LO [STRASBOURG]                             #  11, 1 InstitutionName
-(0008,0090) PN (no value available)                     #   0, 0 ReferringPhysicianName
-(0008,1010) SH [Station]                                #  8, 1 StationName
-(0010,0010) PN [Doe^John]                               #  9, 1 PatientName
+(0008,0090) PN [Greg^House]                             #  11, 1 ReferringPhysicianName
+(0008,1010) SH [Station]                                #   8, 1 StationName
+(0010,0010) PN [Doe^John]                               #   9, 1 PatientName
 (0010,0020) LO [dopamine_test_02]                       #  17, 1 PatientID
 (0010,0030) DA (no value available)                     #   0, 0 PatientBirthDate
 (0010,0040) CS [M]                                      #   2, 1 PatientSex
@@ -359,7 +359,7 @@ j = { "00080008" : { "vr" : "CS", "Value" : [ "ORIGINAL", "PRIMARY", "OTHER" ] }
       "00080060" : { "vr" : "CS", "Value" : [ "MR" ] }, 
       "00080070" : { "vr" : "LO", "Value" : [ "Bruker BioSpin MRI GmbH" ] }, 
       "00080080" : { "vr" : "LO", "Value" : [ "STRASBOURG" ] }, 
-      "00080090" : { "vr" : "PN", "Value" : [ null ] }, 
+      "00080090" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "Greg^House" } ] }, 
       "00081010" : { "vr" : "SH", "Value" : [ "Station" ] }, 
       "00100010" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "Doe^Jane" } ] }, 
       "00100020" : { "vr" : "LO", "Value" : [ "dopamine_test_01" ] }, 
