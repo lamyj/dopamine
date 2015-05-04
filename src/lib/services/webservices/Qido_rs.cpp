@@ -60,13 +60,27 @@ Qido_rs
     // Multipart Response
     this->create_boundary();
 
+    std::stringstream stream;
+
     mongo::BSONObj findedobject = generator.next();
     if (!findedobject.isValid() || findedobject.isEmpty())
     {
-        throw WebServiceException(404, "Not Found", "No Dataset");
+        // If there are no matching results, the message body will be empty.
+        if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
+        {
+            stream << "\n\n";
+        }
+        // If there are no matching results, the JSON message is empty.
+        else if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
+        {
+            stream << "[\n";
+        }
+        else
+        {
+            throw WebServiceException(404, "Not Found", "No Dataset");
+        }
     }
 
-    std::stringstream stream;
     bool isfirst = true;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
@@ -301,6 +315,15 @@ Qido_rs
         {
             // Not supported
             this->_fuzzymatching = (data[1] == "true");
+
+            if (this->_fuzzymatching)
+            {
+                // 6.7.1.2.1 Matching
+                // If the "fuzzymatching=true" query key/value is included in the request and it is not supported,
+                // the response shall include the following HTTP/1.1 Warning header
+                throw WebServiceException(299, "Warning",
+                                          "The fuzzymatching parameter is not supported. Only literal matching has been performed.");
+            }
         }
         else
         {
