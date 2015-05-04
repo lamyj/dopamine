@@ -94,10 +94,10 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
 {
-    std::string const query = "/studies";
+    std::string const pathinfo = "/studies";
 
     // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "StudyDate=20130328",
         "StudyTime=101009",
@@ -118,11 +118,11 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
         "0020000d=2.16.756.5.5.100.3611280983.19057.1364461809.7789&PatientName=Doe^Jane&PatientID=dopamine_test_0?"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -158,31 +158,62 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
 /*************************** TEST Nominal *******************************/
 BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
 {
-    std::stringstream querystream;
-    querystream << "/studies";
+    std::string const pathinfo = "/studies";
 
-    std::stringstream pathinfostream;
-    pathinfostream << "StudyInstanceUID=2.16.756.5.5.100.3611280983.19057.1364461809.7789";
-
-    // Perform query and get JSON response
-    dopamine::services::Qido_rs qidors_json(querystream.str(),
-                                            pathinfostream.str(),
-                                            dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                            "");
-    std::string const response_json = qidors_json.get_response();
-
-    // Check response
-    BOOST_CHECK_EQUAL(response_json != "", true);
-    std::string searchedtext = "00080052";
-    unsigned int count = 0;
-    size_t position = response_json.find(searchedtext);
-    while (position != std::string::npos)
+    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    std::vector<std::string> queries =
     {
-        ++count;
-        position = response_json.find(searchedtext, position+1);
+        "StudyDate=20130328",
+        "StudyTime=101009",
+//        "AccessionNumber=*",                  // Cannot be test => Null value
+//        "ModalitiesInStudy=*",                // Cannot be test => Not present
+        "ReferringPhysicianName=Greg^House",
+        "PatientName=Doe^Jane",
+        "PatientID=dopamine_test_01",
+        "StudyInstanceUID=2.16.756.5.5.100.3611280983.19057.1364461809.7789",
+        "StudyID=Study_id",
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00100010=Doe^J*",
+        "0020000d=2.16.756.5.5.100.3611280983.19057.1364461809.7789",
+        "0020000D=2.16.756.5.5.100.3611280983.19057.1364461809.7789",
+
+        // Multi parameters
+        "0020000d=2.16.756.5.5.100.3611280983.19057.1364461809.7789&PatientName=Doe^Jane&PatientID=dopamine_test_0?"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get JSON response
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_EQUAL(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        for (std::string attribute : mandatory_study_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
     }
-    BOOST_CHECK_EQUAL(count, 1);
-    BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -191,10 +222,10 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
 {
-    std::string const query = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series";
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series";
 
     // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
@@ -213,11 +244,11 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
         "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1&Modality=MR&SeriesNumber=196609"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -255,12 +286,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
 /**
  * Nominal test case: qido_rs request (Series level)
  */
-BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
+BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
 {
-    std::string const query = "/series";
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series";
 
     // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
@@ -279,11 +310,74 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
         "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1&Modality=MR&SeriesNumber=196609"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_EQUAL(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
+        for (std::string attribute : mandatory_series_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+    }
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: qido_rs request (Series level)
+ */
+BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
+{
+    std::string const pathinfo = "/series";
+
+    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    std::vector<std::string> queries =
+    {
+        "Modality=MR",
+        "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+        "SeriesNumber=196609",
+//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
+//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00080060=M?",
+        "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+        "0020000E=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+
+        // Multi parameters
+        "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1&Modality=MR&SeriesNumber=196609"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get XML response
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -330,14 +424,88 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
 
 /*************************** TEST Nominal *******************************/
 /**
+ * Nominal test case: qido_rs request (Series level)
+ */
+BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
+{
+    std::string const pathinfo = "/series";
+
+    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    std::vector<std::string> queries =
+    {
+        "Modality=MR",
+        "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+        "SeriesNumber=196609",
+//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
+//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00080060=M?",
+        "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+        "0020000E=2.16.756.5.5.100.3611280983.20092.1364462458.1",
+
+        // Multi parameters
+        "0020000e=2.16.756.5.5.100.3611280983.20092.1364462458.1&Modality=MR&SeriesNumber=196609"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get XML response
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_GE(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        for (std::string attribute : mandatory_study_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+
+        // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
+        for (std::string attribute : mandatory_series_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+    }
+}
+
+/*************************** TEST Nominal *******************************/
+/**
  * Nominal test case: qido_rs request (Instance level)
  */
 BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
 {
-    std::string const query = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series/2.16.756.5.5.100.3611280983.20092.1364462458.1/instances";
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series/2.16.756.5.5.100.3611280983.20092.1364462458.1/instances";
 
     // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
         "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
@@ -351,11 +519,11 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
         "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -377,7 +545,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
         BOOST_CHECK_EQUAL(response_xml.find("2.16.756.5.5.100.3611280983.20092.1364462458.1.0") != std::string::npos, true);
         BOOST_CHECK_EQUAL(response_xml.find("IMAGE") != std::string::npos, true);
 
-        // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
         for (std::string attribute : mandatory_instance_attributes)
         {
             if (response_xml.find(attribute) == std::string::npos)
@@ -394,12 +562,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
-BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
+BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
 {
-    std::string const query = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/instances";
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/series/2.16.756.5.5.100.3611280983.20092.1364462458.1/instances";
 
     // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
         "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
@@ -413,11 +581,70 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
         "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_EQUAL(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1.0") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
+        for (std::string attribute : mandatory_instance_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+    }
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: qido_rs request (Instance level)
+ */
+BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
+{
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/instances";
+
+    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    std::vector<std::string> queries =
+    {
+        "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
+        "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
+        "InstanceNumber=1",
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00080016=1.2.840.10008.5.1.4.1.1.4",
+        "00200013=1",
+
+        // Multi parameters
+        "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get XML response
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -450,7 +677,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
             }
         }
 
-        // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
         for (std::string attribute : mandatory_instance_attributes)
         {
             if (response_xml.find(attribute) == std::string::npos)
@@ -467,12 +694,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
-BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
+BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
 {
-    std::string const query = "/instances";
+    std::string const pathinfo = "/studies/2.16.756.5.5.100.3611280983.19057.1364461809.7789/instances";
 
     // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
-    std::vector<std::string> pathinfo_to_test =
+    std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
         "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
@@ -486,11 +713,81 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
         "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
     };
 
-    for (std::string const pathinfo : pathinfo_to_test)
+    for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo,
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_EQUAL(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1.0") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
+        for (std::string attribute : mandatory_series_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+
+        // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
+        for (std::string attribute : mandatory_instance_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+    }
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: qido_rs request (Instance level)
+ */
+BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
+{
+    std::string const pathinfo = "/instances";
+
+    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    std::vector<std::string> queries =
+    {
+        "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
+        "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
+        "InstanceNumber=1",
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00080016=1.2.840.10008.5.1.4.1.1.4",
+        "00200013=1",
+
+        // Multi parameters
+        "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get XML response
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query,
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -549,11 +846,92 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
 
 /*************************** TEST Nominal *******************************/
 /**
+ * Nominal test case: qido_rs request (Instance level)
+ */
+BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
+{
+    std::string const pathinfo = "/instances";
+
+    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    std::vector<std::string> queries =
+    {
+        "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
+        "SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0",
+        "InstanceNumber=1",
+
+        // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
+        "00080016=1.2.840.10008.5.1.4.1.1.4",
+        "00200013=1",
+
+        // Multi parameters
+        "00080016=1.2.840.10008.5.1.4.1.1.4&SOPInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1.0&InstanceNumber=1"
+    };
+
+    for (std::string const query : queries)
+    {
+        // Perform query and get XML response
+        dopamine::services::Qido_rs qidors_json(pathinfo,
+                                                query,
+                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
+                                                "");
+        std::string const response_json = qidors_json.get_response();
+
+        // Convert response to BSON Object
+        std::stringstream response;
+        response << "{ arrayjson : " << response_json << " }";
+        mongo::BSONObj objectjson = mongo::fromjson(response.str());
+
+        // Check response
+        BOOST_CHECK_EQUAL(response_json != "", true);
+        BOOST_CHECK_GE(objectjson["arrayjson"].Array().size(), 1);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1") != std::string::npos, true);
+        BOOST_CHECK_EQUAL(response_json.find("2.16.756.5.5.100.3611280983.20092.1364462458.1.0") != std::string::npos, true);
+
+        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+
+        // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+        for (std::string attribute : mandatory_study_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+
+        // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
+        for (std::string attribute : mandatory_series_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+
+        // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
+        for (std::string attribute : mandatory_instance_attributes)
+        {
+            if (object.hasField(attribute) == false)
+            {
+                std::stringstream streamerror;
+                streamerror << "Missing mandatory attribute: " << attribute;
+                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+            }
+        }
+    }
+}
+
+/*************************** TEST Nominal *******************************/
+/**
  * Nominal test case: qido_rs request IncludeField
  */
 BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
 {
-    std::string const query = "/studies";
+    std::string const pathinfo = "/studies";
 
     // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
     std::vector<std::string> field_to_test =
@@ -568,17 +946,17 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
         "00180089"  // IS
     };
 
-    std::stringstream pathinfo;
-    pathinfo << "StudyInstanceUID=2.16.756.5.5.100.3611280983.19057.1364461809.7789&PatientName=Doe^Jane";
+    std::stringstream query;
+    query << "StudyInstanceUID=2.16.756.5.5.100.3611280983.19057.1364461809.7789&PatientName=Doe^Jane";
 
     for (std::string const field : field_to_test)
     {
-        pathinfo << "&includefield=" << field;
+        query << "&includefield=" << field;
     }
 
     // Perform query and get XML response
-    dopamine::services::Qido_rs qidors_xml(query,
-                                           pathinfo.str(),
+    dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                           query.str(),
                                            dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                            "");
     std::string const response_xml = qidors_xml.get_response();
@@ -626,19 +1004,19 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
 {
-    std::string const query = "/studies";
+    std::string const pathinfo = "/studies";
 
     std::vector<unsigned int> limits = { 3, 2, 1, 4 };
 
     for (unsigned int limit : limits)
     {
-        std::stringstream pathinfo;
-        pathinfo << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
-        pathinfo << "&limit=" << limit;
+        std::stringstream query;
+        query << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
+        query << "&limit=" << limit;
 
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo.str(),
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query.str(),
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -673,19 +1051,19 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
 {
-    std::string const query = "/studies";
+    std::string const pathinfo = "/studies";
 
     std::vector<unsigned int> offsets = { 0, 1, 2, 3 };
 
     for (unsigned int offset : offsets)
     {
-        std::stringstream pathinfo;
-        pathinfo << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
-        pathinfo << "&offset=" << offset;
+        std::stringstream query;
+        query << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
+        query << "&offset=" << offset;
 
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(query,
-                                               pathinfo.str(),
+        dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                               query.str(),
                                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
@@ -718,7 +1096,7 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
 {
-    std::vector<std::string> query_to_test =
+    std::vector<std::string> pathinfo_to_test =
     {
         "",
         "/",
@@ -735,11 +1113,11 @@ BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
         "/instances/BadValue"
     };
 
-    for (auto query : query_to_test)
+    for (auto pathinfo : pathinfo_to_test)
     {
         try
         {
-            dopamine::services::Qido_rs qidors_xml(query, "");
+            dopamine::services::Qido_rs qidors_xml(pathinfo, "");
 
             std::stringstream streamerror;
             streamerror << "Error expected but No error detected";
@@ -759,15 +1137,15 @@ BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
 {
-    std::string const query = "/instances";
+    std::string const pathinfo = "/instances";
 
-    std::stringstream pathinfo;
-    pathinfo << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
-    pathinfo << "&NotADICOMTag=badvalue";
+    std::stringstream query;
+    query << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
+    query << "&NotADICOMTag=badvalue";
 
     try
     {
-        dopamine::services::Qido_rs qidors_xml(query, pathinfo.str());
+        dopamine::services::Qido_rs qidors_xml(pathinfo, query.str());
 
         std::stringstream streamerror;
         streamerror << "Error expected but No error detected";
@@ -786,15 +1164,15 @@ BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
  */
 BOOST_FIXTURE_TEST_CASE(RequestFuzzyMatching, TestDataRequest)
 {
-    std::string const query = "/studies";
+    std::string const pathinfo = "/studies";
 
-    std::stringstream pathinfo;
-    pathinfo << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
-    pathinfo << "&fuzzymatching=true";
+    std::stringstream query;
+    query << "StudyInstanceUID=2.16.756.5.5.100.1333920868.19866.1424334602.23";
+    query << "&fuzzymatching=true";
 
     try
     {
-        dopamine::services::Qido_rs qidors_xml(query, pathinfo.str());
+        dopamine::services::Qido_rs qidors_xml(pathinfo, query.str());
 
         std::stringstream streamerror;
         streamerror << "Error expected but No error detected";

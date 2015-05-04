@@ -94,7 +94,7 @@ BSONToJSON
     // Convert BSON to JSON
     mongo::BSONObj objectjson = this->to_JSON(bson);
     // Write json
-    return objectjson.toString();
+    return objectjson.jsonString();
 }
 
 } // namespace converterBSON
