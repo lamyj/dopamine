@@ -39,14 +39,15 @@ BSONToDataSet
 {
     if(bson.hasField("00080005") && !bson["00080005"].isNull())
     {
+        std::stringstream values;
         // Specific Character Set: map to iconv encoding
-        std::string value = bson["00080005"].Array()[1].String();
-        if(value.size()%2 != 0)
+        for (auto elem : bson["00080005"].Obj().getField("Value").Array())
         {
-            value += ' ';
+            if (values.str() != "") values << "\\";
+            values << elem.String();
         }
-        // TODO : multi-valued Specific Character Set
-        this->set_specific_character_set(value);
+
+        this->set_specific_character_set(values.str());
     }
 
     DcmDataset dataset;
@@ -605,9 +606,42 @@ BSONToDataSet
 {
     int size=0;
     char const * begin = bson.binDataClean(size);
-    OFCondition condition = dataset.putAndInsertUint8Array(tag,
-                                                           reinterpret_cast<Uint8 const *>(begin),
-                                                           size);
+    OFCondition condition = EC_Normal;
+    if (tag.getEVR() == EVR_OF)
+    {
+        // Warning: loss of information if the size of the input buffer is not a multiple of 4
+        int newsize = size / sizeof(Float32);
+        //if (size % sizeof(Float32) != 0) newsize += (sizeof(Float32) - (size % sizeof(Float32)));
+        //char * newbegin = new char[newsize];
+        //strncpy(newbegin, begin, size);
+
+        DcmElement * element = NULL;
+        if (condition.good())
+        {
+            condition = dataset.insertEmptyElement(tag);
+        }
+        if (condition.good())
+        {
+            condition = dataset.findAndGetElement(tag, element);
+        }
+        if (condition.good())
+        {
+            element->putFloat32Array(reinterpret_cast<Float32 const *>(begin), newsize);
+        }
+    }
+    else if (tag.getEVR() == EVR_OW)
+    {
+        condition = dataset.putAndInsertUint16Array(tag,
+                                                    reinterpret_cast<Uint16 const *>(begin),
+                                                    size/2);
+    }
+    else // if (tag.getEVR() == EVR_OB || EVR_UN)
+    {
+        condition = dataset.putAndInsertUint8Array(tag,
+                                                   reinterpret_cast<Uint8 const *>(begin),
+                                                   size);
+    }
+
     if (condition.bad())
     {
         std::stringstream streamerror;

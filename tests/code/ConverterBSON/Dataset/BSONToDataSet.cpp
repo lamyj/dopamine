@@ -400,9 +400,6 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
  */
 BOOST_AUTO_TEST_CASE(ConversionOF)
 {
-    // TODO
-
-    /*
     // Create BSON with OF tag
     std::string const tag = "00640009";
     std::string const vr = "OF";
@@ -419,16 +416,17 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     dopamine::converterBSON::BSONToDataSet bsontodataset;
     DcmDataset dataset = bsontodataset.to_dataset(object);
 
+    DcmElement* element = NULL;
+    OFCondition condition = dataset.findAndGetElement(DCM_VectorGridData, element);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+
+    void* begin(NULL);
+    condition = element->getFloat32Array(*reinterpret_cast<Float32**>(&begin));
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+
     // Check result
-    std::stringstream stream;
-    for (unsigned long i = 0; i < 32; ++i)
-    {
-        Uint8 values;
-        OFCondition condition = dataset.findAndGetUint8(DCM_VectorGridData, values, i);
-        BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-        stream << values;
-    }
-    BOOST_CHECK_EQUAL(value, stream.str());*/
+    std::string result(reinterpret_cast<char*>(begin), element->getLength());
+    BOOST_CHECK_EQUAL(value, result);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -437,9 +435,6 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
  */
 BOOST_AUTO_TEST_CASE(ConversionOW)
 {
-    // TODO
-
-    /*
     // Create BSON with OW tag
     std::string const tag = "00660023";
     std::string const vr = "OW";
@@ -457,15 +452,17 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     DcmDataset dataset = bsontodataset.to_dataset(object);
 
     // Check result
-    std::stringstream stream;
-    for (unsigned long i = 0; i < 32; ++i)
-    {
-        Uint8 values;
-        OFCondition condition = dataset.findAndGetUint8(DCM_TrianglePointIndexList, values, i);
-        BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-        stream << values;
-    }
-    BOOST_CHECK_EQUAL(value, stream.str());*/
+    DcmElement* element = NULL;
+    OFCondition condition = dataset.findAndGetElement(DCM_TrianglePointIndexList, element);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+
+    void* begin(NULL);
+    condition = element->getUint16Array(*reinterpret_cast<Uint16**>(&begin));
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+
+    // Check result
+    std::string result(reinterpret_cast<char*>(begin), element->getLength());
+    BOOST_CHECK_EQUAL(value, result);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -814,6 +811,49 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     BOOST_CHECK_EQUAL(value.c_str(), "value2");*/
 }
 
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Set Specific character set with BSON element
+ */
+BOOST_AUTO_TEST_CASE(Set_Specific_Character_Set)
+{
+    // Create BSON with UT tag
+    std::string const tag = "00080005";
+    std::string const vr = "CS";
+    mongo::BSONArray const values = BSON_ARRAY("ISO_IR 192");
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+
+    // Conversion
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
+    BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set(), "");
+    DcmDataset dataset = bsontodataset.to_dataset(object);
+    BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set(), "ISO_IR 192");
+
+    OFString value;
+    OFCondition condition = dataset.findAndGetOFString(DCM_SpecificCharacterSet, value, 0);
+    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK_EQUAL(value.c_str(), "ISO_IR 192");
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Ignore non DICOM tag
+ */
+BOOST_AUTO_TEST_CASE(Not_DICOM_Tag)
+{
+    // Create BSON with CS tag
+    std::string const tag = "X0080060";
+    std::string const vr = "CS";
+    mongo::BSONArray const values = BSON_ARRAY("valueCS1" << "valueCS2");
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+
+    // Conversion
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
+    DcmDataset dataset = bsontodataset.to_dataset(object);
+
+    BOOST_CHECK_EQUAL(dataset.getElement(0) == NULL, true);
+}
+
 /*************************** TEST Error *********************************/
 /**
  * Error test case: set_specific_character_set => bad value
@@ -825,6 +865,24 @@ BOOST_AUTO_TEST_CASE(Specific_charset_badvalue)
     // set_specific_character_set
     BOOST_REQUIRE_THROW(bsontodataset.set_specific_character_set("badvalue"),
                         std::runtime_error);
+}
+
+/*************************** TEST Error *********************************/
+/**
+ * Error test case: set_specific_character_set => multi-valued
+ */
+BOOST_AUTO_TEST_CASE(Specific_charset_multiValue)
+{
+    // Create BSON with UT tag
+    std::string const tag = "00080005";
+    std::string const vr = "CS";
+    mongo::BSONArray const values = BSON_ARRAY("ISO_IR 192" << "GB18030");
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+
+    // Conversion
+    dopamine::converterBSON::BSONToDataSet bsontodataset;
+    BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set(), "");
+    BOOST_REQUIRE_THROW(bsontodataset.to_dataset(object), std::runtime_error);
 }
 
 /*************************** TEST Error *********************************/

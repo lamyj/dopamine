@@ -450,7 +450,6 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
         void* begin(NULL);
         if (element->getVR() == EVR_OF)
         {
-            //std::vector<Float32> array;
             element->getFloat32Array(*reinterpret_cast<Float32**>(&begin));
         }
         else if(element->getVR() != EVR_OW)
