@@ -1058,3 +1058,22 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     // Check result
     check_property_tree(tree, object);
 }
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Not a valid DICOM Tag
+ */
+BOOST_AUTO_TEST_CASE(Bad_DICOM_tag)
+{
+    // Create BSON with CS tag
+    std::string const tag = "X0080060";
+    std::string const vr = "CS";
+    mongo::BSONArray const values = BSON_ARRAY("valueCS1" << "valueCS2");
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+
+    // Conversion
+    dopamine::converterBSON::BSONToXML bsontoxml;
+    auto tree = bsontoxml.to_ptree(object);
+
+    check_property_tree(tree, object);
+}
