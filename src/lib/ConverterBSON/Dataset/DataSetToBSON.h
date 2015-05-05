@@ -95,6 +95,8 @@ private :
         OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
         mongo::BSONObjBuilder & builder) const;
 
+    void _to_bson_at(DcmAttributeTag * element, mongo::BSONObjBuilder & builder) const;
+
     // Since _to_bson is specialized and instantiated in _add_element,
     // this function must be declared after the the specializations.
     void _add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const;

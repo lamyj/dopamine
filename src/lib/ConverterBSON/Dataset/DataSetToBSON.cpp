@@ -143,8 +143,7 @@ void
 DataSetToBSON::_to_bson<EVR_AT>(DcmObject * element,
                                 mongo::BSONObjBuilder & builder) const
 {
-    this->_to_bson_number<Uint32, unsigned>(
-        dynamic_cast<DcmElement*>(element), &DcmElement::getUint32, builder);
+    this->_to_bson_at(dynamic_cast<DcmAttributeTag*>(element), builder);
 }
 
 template<>
@@ -446,10 +445,15 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
                                mongo::BSONObjBuilder & builder) const
 {
     DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
-    if(byte_string != NULL)
+    if(element->getVR() == EVR_OF || byte_string != NULL)
     {
         void* begin(NULL);
-        if(element->getVR() != EVR_OW)
+        if (element->getVR() == EVR_OF)
+        {
+            //std::vector<Float32> array;
+            element->getFloat32Array(*reinterpret_cast<Float32**>(&begin));
+        }
+        else if(element->getVR() != EVR_OW)
         {
             byte_string->getUint8Array(*reinterpret_cast<Uint8**>(&begin));
         }
@@ -462,7 +466,7 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
         binary_data_builder.appendBinData("data", element->getLength(),
                                           mongo::BinDataGeneral, begin);
 
-        builder << "InlineBinary" << BSON_ARRAY(binary_data_builder.obj().getField("data"));
+        builder << "InlineBinary" << binary_data_builder.obj().getField("data");
     }
     else
     {
@@ -470,6 +474,22 @@ DataSetToBSON::_to_bson_binary(DcmElement * element,
             std::string("Cannot handle conversion of ")+
                 DcmVR(element->getVR()).getValidVRName());
     }
+}
+
+void
+DataSetToBSON
+::_to_bson_at(DcmAttributeTag *element, mongo::BSONObjBuilder &builder) const
+{
+    unsigned long count = element->getVM();
+    mongo::BSONArrayBuilder sub_builder;
+    for(unsigned long i=0; i<count; ++i)
+    {
+        OFString pointer;
+        element->getOFString(pointer, i);
+        sub_builder.append<std::string>(pointer.c_str());
+    }
+
+    builder << "Value" << sub_builder.arr();
 }
 
 void
