@@ -23,7 +23,7 @@
 #include "ConverterBSON/XML/BSONToXML.h"
 #include "ConverterBSON/XML/XMLToBSON.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Converter BSON <-> XML
  */
@@ -268,6 +268,27 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONXML, TestDataConversionBSONXML)
     isEqual(newbson, bsonobject);
 }
 
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Converter BSON <-> XML
+ */
+BOOST_FIXTURE_TEST_CASE(ConversionBSONXML_String, TestDataConversionBSONXML)
+{
+    // Convert original BSON to XML
+    dopamine::converterBSON::BSONToXML bsontoxml;
+    std::string const xml = bsontoxml.to_string(bsonobject);
+
+    // Convert XML to new BSON
+    dopamine::converterBSON::XMLToBSON xmltobson;
+    mongo::BSONObj const newbson = xmltobson.from_string(xml);
+
+    // Compare original BSON with new
+    isEqual(bsonobject, newbson);
+    // Compare new BSON with original
+    isEqual(newbson, bsonobject);
+}
+
 /*************************** TEST OK 02 *******************************/
 /**
  * Nominal test case: Converter XML <-> BSON
@@ -467,11 +488,11 @@ struct TestDataConversionXMLBSON
 
 BOOST_FIXTURE_TEST_CASE(ConversionXMLBSON, TestDataConversionXMLBSON)
 {
-    // Convert original BSON to Dataset
+    // Convert original XML to BSON
     dopamine::converterBSON::XMLToBSON xmltobson;
     mongo::BSONObj const newbson = xmltobson.from_ptree(tree);
 
-    // Convert Dataset to new BSON
+    // Convert BSON to new XML
     dopamine::converterBSON::BSONToXML bsontoxml;
     boost::property_tree::ptree xml = bsontoxml.to_ptree(newbson);
 
@@ -486,4 +507,151 @@ BOOST_FIXTURE_TEST_CASE(ConversionXMLBSON, TestDataConversionXMLBSON)
     boost::property_tree::write_xml(stream_final, tree, settings);
 
     BOOST_CHECK_EQUAL(stream_original.str(), stream_final.str());
+}
+
+/*************************** TEST OK 02 *******************************/
+/**
+ * Nominal test case: Converter XML <-> BSON
+ */
+BOOST_AUTO_TEST_CASE(ConversionXMLBSON_String)
+{
+    std::stringstream xmlstream;
+    xmlstream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+    xmlstream << "<NativeDicomModel>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080054\" vr=\"AE\" keyword=\"RetrieveAETitle\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00101010\" vr=\"AS\" keyword=\"PatientAge\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00209165\" vr=\"AT\" keyword=\"DimensionIndexPointer\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080060\" vr=\"CS\" keyword=\"Modality\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00100030\" vr=\"DA\" keyword=\"PatientBirthDate\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00101030\" vr=\"DS\" keyword=\"PatientWeight\">\n";
+    xmlstream << "        <Value number=\"1\">11.11</Value>\n";
+    xmlstream << "        <Value number=\"2\">22.22</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00189074\" vr=\"DT\" keyword=\"FrameAcquisitionDateTime\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00460044\" vr=\"FD\" keyword=\"PupilSize\">\n";
+    xmlstream << "        <Value number=\"1\">11.11</Value>\n";
+    xmlstream << "        <Value number=\"2\">22.22</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00089459\" vr=\"FL\" keyword=\"RecommendedDisplayFrameRateInFloat\">\n";
+    xmlstream << "        <Value number=\"1\">33.33000183105469</Value>\n";
+    xmlstream << "        <Value number=\"2\">44.43999862670898</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00082122\" vr=\"IS\" keyword=\"StageNumber\">\n";
+    xmlstream << "        <Value number=\"1\">111</Value>\n";
+    xmlstream << "        <Value number=\"2\">222</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080070\" vr=\"LO\" keyword=\"Manufacturer\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"001021b0\" vr=\"LT\" keyword=\"AdditionalPatientHistory\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00282000\" vr=\"OB\" keyword=\"ICCProfile\">\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00640009\" vr=\"OF\" keyword=\"VectorGridData\">\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00660023\" vr=\"OW\" keyword=\"TrianglePointIndexList\">\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00100010\" vr=\"PN\" keyword=\"PatientName\">\n";
+    xmlstream << "        <PersonName number=\"1\">\n";
+    xmlstream << "            <Alphabetic>\n";
+    xmlstream << "                <FamilyName>Doe</FamilyName>\n";
+    xmlstream << "                <GivenName>John</GivenName>\n";
+    xmlstream << "                <MiddleName>Wallas</MiddleName>\n";
+    xmlstream << "                <NamePrefix>Rev.</NamePrefix>\n";
+    xmlstream << "                <NameSuffix>Chief Executive Officer</NameSuffix>\n";
+    xmlstream << "            </Alphabetic>\n";
+    xmlstream << "        </PersonName>\n";
+    xmlstream << "        <PersonName number=\"2\">\n";
+    xmlstream << "            <Alphabetic>\n";
+    xmlstream << "                <FamilyName>Smith</FamilyName>\n";
+    xmlstream << "                <GivenName>Jane</GivenName>\n";
+    xmlstream << "                <MiddleName>Scarlett</MiddleName>\n";
+    xmlstream << "                <NamePrefix>Ms.</NamePrefix>\n";
+    xmlstream << "                <NameSuffix>Goddess</NameSuffix>\n";
+    xmlstream << "            </Alphabetic>\n";
+    xmlstream << "        </PersonName>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00102160\" vr=\"SH\" keyword=\"EthnicGroup\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00186020\" vr=\"SL\" keyword=\"ReferencePixelX0\">\n";
+    xmlstream << "        <Value number=\"1\">111</Value>\n";
+    xmlstream << "        <Value number=\"2\">222</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00101002\" vr=\"SQ\" keyword=\"OtherPatientIDsSequence\">\n";
+    xmlstream << "        <Item number=\"1\">\n";
+    xmlstream << "            <DicomAttribute tag=\"00100020\" vr=\"LO\" keyword=\"PatientID\">\n";
+    xmlstream << "                <Value number=\"1\">valueLO1</Value>\n";
+    xmlstream << "            </DicomAttribute>\n";
+    xmlstream << "        </Item>\n";
+    xmlstream << "        <Item number=\"2\">\n";
+    xmlstream << "            <DicomAttribute tag=\"00100020\" vr=\"LO\" keyword=\"PatientID\">\n";
+    xmlstream << "                <Value number=\"1\">valueLO1</Value>\n";
+    xmlstream << "            </DicomAttribute>\n";
+    xmlstream << "        </Item>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00189219\" vr=\"SS\" keyword=\"TagAngleSecondAxis\">\n";
+    xmlstream << "        <Value number=\"1\">333</Value>\n";
+    xmlstream << "        <Value number=\"2\">444</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080081\" vr=\"ST\" keyword=\"InstitutionAddress\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080013\" vr=\"TM\" keyword=\"InstanceCreationTime\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00080016\" vr=\"UI\" keyword=\"SOPClassUID\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00081161\" vr=\"UL\" keyword=\"SimpleFrameList\">\n";
+    xmlstream << "        <Value number=\"1\">555</Value>\n";
+    xmlstream << "        <Value number=\"2\">666</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00081197\" vr=\"US\" keyword=\"FailureReason\">\n";
+    xmlstream << "        <Value number=\"1\">777</Value>\n";
+    xmlstream << "        <Value number=\"2\">888</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "    <DicomAttribute tag=\"00287fe0\" vr=\"UT\" keyword=\"PixelDataProviderURL\">\n";
+    xmlstream << "        <Value number=\"1\">value01</Value>\n";
+    xmlstream << "        <Value number=\"2\">value02</Value>\n";
+    xmlstream << "    </DicomAttribute>\n";
+    xmlstream << "</NativeDicomModel>\n";
+
+    // Convert original XML to BSON
+    dopamine::converterBSON::XMLToBSON xmltobson;
+    mongo::BSONObj const bson_ = xmltobson.from_string(xmlstream.str());
+
+    // Convert BSON to new XML
+    dopamine::converterBSON::BSONToXML bsontoxml;
+    std::string const newxml = bsontoxml.to_string(bson_);
+
+    BOOST_CHECK_EQUAL(xmlstream.str(), newxml);
 }

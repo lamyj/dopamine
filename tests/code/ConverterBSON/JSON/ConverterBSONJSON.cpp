@@ -248,11 +248,11 @@ void isEqual(mongo::BSONObj const & firstbson, mongo::BSONObj const & secondbson
 
 BOOST_FIXTURE_TEST_CASE(ConversionBSONJSON, TestDataConversionBSONJSON)
 {
-    // Convert original BSON to Dataset
+    // Convert original BSON to JSON
     dopamine::converterBSON::BSONToJSON bsontojson;
     mongo::BSONObj const json = bsontojson.to_JSON(bsonobject);
 
-    // Convert Dataset to new BSON
+    // Convert JSON to new BSON
     dopamine::converterBSON::JSONToBSON jsontobson;
     mongo::BSONObj const newbson = jsontobson.from_JSON(json);
 
@@ -268,11 +268,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONJSON, TestDataConversionBSONJSON)
  */
 BOOST_FIXTURE_TEST_CASE(ConversionBSONJSON_String, TestDataConversionBSONJSON)
 {
-    // Convert original BSON to Dataset
+    // Convert original BSON to JSON
     dopamine::converterBSON::BSONToJSON bsontojson;
     std::string const json = bsontojson.to_string(bsonobject);
 
-    // Convert Dataset to new BSON
+    // Convert JSON to new BSON
     dopamine::converterBSON::JSONToBSON jsontobson;
     mongo::BSONObj const newbson = jsontobson.from_string(json);
 
@@ -494,9 +494,9 @@ BOOST_FIXTURE_TEST_CASE(ConversionJSONBSON, TestDataConversionJSONBSON)
     dopamine::converterBSON::BSONToJSON bsontojson;
     mongo::BSONObj const newjson = bsontojson.to_JSON(bson_);
 
-    // Compare original BSON with new
+    // Compare original JSON with new
     isEqual(jsonobject, newjson);
-    // Compare new BSON with original
+    // Compare new JSON with original
     isEqual(newjson, jsonobject);
 }
 
@@ -532,11 +532,11 @@ BOOST_AUTO_TEST_CASE(ConversionJSONBSON_String)
                << "\"00101002\" : { \"vr\" : \"SQ\", \"Value\" : [ { \"00100020\" : { \"vr\" : \"LO\", \"Value\" : [ \"valueLO\" ] } } ] }"
                << " }";
 
-    // Convert original BSON to Dataset
+    // Convert original JSON to BSON
     dopamine::converterBSON::JSONToBSON jsontobson;
     mongo::BSONObj const bson_ = jsontobson.from_string(jsonstream.str());
 
-    // Convert Dataset to new BSON
+    // Convert BSON to new JSON
     dopamine::converterBSON::BSONToJSON bsontojson;
     std::string const newjson = bsontojson.to_string(bson_);
 
