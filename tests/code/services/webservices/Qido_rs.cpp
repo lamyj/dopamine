@@ -1090,6 +1090,51 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
     }
 }
 
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: qido_rs request (Study level)
+ */
+BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
+{
+    std::string const pathinfo = "/studies";
+
+    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    std::string query = "StudyDate=20130327-20130329";
+
+    // Perform query and get XML response
+    dopamine::services::Qido_rs qidors_xml(pathinfo,
+                                           query,
+                                           dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
+                                           "");
+    std::string const response_xml = qidors_xml.get_response();
+
+    // Check response
+    BOOST_CHECK_EQUAL(response_xml != "", true);
+    std::stringstream boundary; boundary << "--" << qidors_xml.get_boundary();
+    std::stringstream stream; stream << boundary.str() << "--";
+    unsigned int count = 0;
+    size_t position = response_xml.find(boundary.str());
+    while (position != std::string::npos && position != response_xml.find(stream.str()))
+    {
+        ++count;
+        position = response_xml.find(boundary.str(), position+1);
+    }
+    BOOST_CHECK_EQUAL(count, 1);
+    BOOST_CHECK_EQUAL(response_xml.find("2.16.756.5.5.100.3611280983.19057.1364461809.7789") != std::string::npos, true);
+    BOOST_CHECK_EQUAL(response_xml.find("STUDY") != std::string::npos, true);
+
+    // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
+    for (std::string attribute : mandatory_study_attributes)
+    {
+        if (response_xml.find(attribute) == std::string::npos)
+        {
+            std::stringstream streamerror;
+            streamerror << "Missing mandatory attribute: " << attribute;
+            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+        }
+    }
+}
+
 /*************************** TEST Error *********************************/
 /**
  * Error test case: Bad query

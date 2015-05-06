@@ -35,9 +35,15 @@ public:
 
     void set_maximumResults(int maximumResults);
 
+    int get_maximumResults() const;
+
     void set_skippedResults(int skippedResults);
 
+    int get_skippedResults() const;
+
     void set_fuzzymatching(bool fuzzymatching);
+
+    bool get_fuzzymatching() const;
 
     mongo::BSONObj compute_attribute(std::string const & attribute,
                                      std::string const & value);

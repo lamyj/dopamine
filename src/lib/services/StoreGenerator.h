@@ -32,7 +32,11 @@ public:
 
     void set_callingaptitle(std::string const & callingaptitle);
 
+    std::string get_callingaptitle() const;
+
     void set_dataset(DcmDataset * dataset);
+
+    DcmDataset * get_dataset() const;
 
 private:
     std::string _destination_path;

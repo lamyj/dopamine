@@ -214,7 +214,14 @@ get_constraint_for_user(mongo::DBClientConnection &connection, const std::string
             mongo::BSONElement const element = it.next();
 
             mongo::BSONObjBuilder object;
-            object.appendRegex(std::string(element.fieldName())+".Value", element.regex(), "");
+            if (element.type() == mongo::BSONType::RegEx)
+            {
+                object.appendRegex(std::string(element.fieldName())+".Value", element.regex(), "");
+            }
+            else
+            {
+                object << std::string(element.fieldName())+".Value" << bsonelement_to_string(element);
+            }
             andarray << object.obj();
         }
         mongo::BSONObjBuilder andobject;

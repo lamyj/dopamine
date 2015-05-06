@@ -40,7 +40,9 @@ StoreGenerator
     // Nothing to do
 }
 
-Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
+Uint16
+StoreGenerator
+::set_query(const mongo::BSONObj &query_dataset)
 {
     if (this->_connection.isFailed())
     {
@@ -58,9 +60,11 @@ Uint16 StoreGenerator::set_query(const mongo::BSONObj &query_dataset)
     }
 
     // Check if we already have this dataset, based on its SOP Instance UID
-    if (!query_dataset.hasField("00080018")) // SOP Instance UID
+    if (!query_dataset.hasField("00080018") || // SOP Instance UID
+        !query_dataset.hasField("0020000d") || // Study Instance UID
+        !query_dataset.hasField("0020000e"))   // Series Instance UID
     {
-        loggerWarning() << "Cannot retrieve SOP Instance UID";
+        loggerWarning() << "Missing mandatory fields 00080018, 0020000d or 0020000e";
         return STATUS_STORE_Refused_OutOfResources;
     }
     std::string sop_instance_uid = query_dataset.getField("00080018").Obj().getField("Value").Array()[0].String();
@@ -131,11 +135,25 @@ StoreGenerator
     this->_callingaptitle = callingaptitle;
 }
 
+std::string
+StoreGenerator
+::get_callingaptitle() const
+{
+    return this->_callingaptitle;
+}
+
 void
 StoreGenerator
 ::set_dataset(DcmDataset *dataset)
 {
     this->_dataset = dataset;
+}
+
+DcmDataset *
+StoreGenerator
+::get_dataset() const
+{
+    return this->_dataset;
 }
 
 void

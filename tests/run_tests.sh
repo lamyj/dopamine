@@ -71,6 +71,32 @@ REMOTE=localhost:${DOPAMINE_TEST_LISTENINGPORT}
 
 EOF
 
+# Create PACS Configuration file
+cat > ${DIRECTORY}/badconfig  << EOF
+[logger]
+priority=ERROR
+
+[dicom]
+storage_path=${DIRECTORY}/temp_dir
+allowed_peers=*
+port=${DOPAMINE_TEST_LISTENINGPORT}
+
+[database]
+hostname=localhost
+port=1
+dbname=${DOPAMINE_TEST_DATABASE}
+indexlist=SOPInstanceUID;PatientName;PatientID;SeriesInstanceUID;SeriesDescription;StudyInstanceUID;StudyDescription
+
+[authenticator]
+type=None
+
+[listAddressPort]
+allowed=LOCAL,REMOTE
+LOCAL=localhost:${DOPAMINE_TEST_WRITINGPORT}
+REMOTE=localhost:${DOPAMINE_TEST_LISTENINGPORT}
+
+EOF
+
 # Create Dump Dataset File for Dataset Creation
 cat > ${DIRECTORY}/dataset << EOF
 
@@ -636,6 +662,7 @@ EOF
 
 # Export configuration file path
 export DOPAMINE_TEST_CONFIG=${DIRECTORY}/config
+export DOPAMINE_TEST_BADCONFIG=${DIRECTORY}/badconfig
 export DOPAMINE_TEST_DICOMFILE=${DIRECTORY}/temp_dir/2014/12/15/AB2411EA/3B11F27C/BE5F493E
 
 export DOPAMINE_TEST_DICOMFILE_01=${DIRECTORY}/temp_dir/2015/5/4/92582B31/21668918/91C46510

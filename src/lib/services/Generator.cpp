@@ -35,23 +35,12 @@ Generator
     mongo::BSONElement const & value,
     mongo::BSONObjBuilder & builder) const
 {
-    if (vr == "PN" && value.type() == mongo::BSONType::Object)
+    if (vr == "OB" || vr == "OF" || vr == "OW" || vr == "UN")
     {
-        if (value.Obj().hasField("Alphabetic"))
-        {
-            builder << field << value.Obj().getField("Alphabetic").String();
-            return;
-        }
+        int length = 0;
+        const char * data = value.binDataClean(length);
+        builder.appendBinData(field, length, mongo::BinDataGeneral, data);
     }
-
-    if (vr == "DS") this->add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FD") this->add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FL") this->add_value_to_builder<Float32>(builder, field, value.String());
-    else if (vr == "IS") this->add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SL") this->add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SS") this->add_value_to_builder<Sint16>(builder, field, value.String());
-    else if (vr == "UL") this->add_value_to_builder<Uint32>(builder, field, value.String());
-    else if (vr == "US") this->add_value_to_builder<Uint16>(builder, field, value.String());
     else
     {
         // Default action: convert to string
@@ -235,12 +224,16 @@ Generator
     // Nothing to do
 }
 
-void Generator::cancel()
+void
+Generator
+::cancel()
 {
     loggerWarning() << "Function Not implemented: Generator::cancel()";
 }
 
-mongo::BSONObj Generator::next()
+mongo::BSONObj
+Generator
+::next()
 {
     if (this->_cursor->more())
     {

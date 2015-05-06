@@ -166,10 +166,6 @@ QueryRetrieveGenerator
         }
     }
 
-    // Handle reduce-related attributes
-    std::string reduce_function;
-    mongo::BSONObjBuilder initial_builder;
-
     // Number of XXX Related Instances (0020,120X)
     std::vector<std::string> tags = {"00201200", "00201202", "00201204",
                                      "00201206", "00201208", "00201209"};
@@ -236,6 +232,13 @@ QueryRetrieveGenerator
     this->_maximumResults = maximumResults;
 }
 
+int
+QueryRetrieveGenerator
+::get_maximumResults() const
+{
+    return this->_maximumResults;
+}
+
 void
 QueryRetrieveGenerator
 ::set_skippedResults(int skippedResults)
@@ -243,11 +246,25 @@ QueryRetrieveGenerator
     this->_skippedResults = skippedResults;
 }
 
+int
+QueryRetrieveGenerator
+::get_skippedResults() const
+{
+    return this->_skippedResults;
+}
+
 void
 QueryRetrieveGenerator
 ::set_fuzzymatching(bool fuzzymatching)
 {
     this->_fuzzymatching = fuzzymatching;
+}
+
+bool
+QueryRetrieveGenerator
+::get_fuzzymatching() const
+{
+    return this->_fuzzymatching;
 }
 
 unsigned int
