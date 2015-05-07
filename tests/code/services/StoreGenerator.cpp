@@ -198,6 +198,8 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, TestDataGenerator)
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
+    sleep(1); // wait for database storage
+
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
     BOOST_CHECK_EQUAL(cursor->more(), true);
@@ -273,6 +275,8 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, TestDataGenerator)
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
+    sleep(1); // wait for database storage
+
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
     BOOST_CHECK_EQUAL(cursor->more(), true);
@@ -333,6 +337,8 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
+
+    sleep(1); // wait for database storage
 
     cursor = _connection.query(_db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));

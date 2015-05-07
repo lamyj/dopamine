@@ -94,6 +94,62 @@ BSONToXML
     return isdicom;
 }
 
+
+// Warning: problem with mongo::DBClientConnection::query => convert int into double
+template<>
+void
+BSONToXML
+::_to_value<int>(mongo::BSONElement const & bson, const std::string &vr,
+            boost::property_tree::ptree & tag_xml,
+            typename BSONGetterType<int>::Type getter) const
+{
+    std::vector<mongo::BSONElement> elements = bson.Array();
+
+    unsigned int count = 0;
+
+    for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+        it != elements.end(); ++it)
+    {
+        ++count;
+        boost::property_tree::ptree tag_value;
+        tag_value.put(Attribute_Number, count); // Mandatory
+
+        if (!it->isNull())
+        {
+            tag_value.put_value((*it).numberInt());
+        }
+
+        tag_xml.add_child(Tag_Value, tag_value);
+    }
+}
+
+template<typename TBSONType>
+void
+BSONToXML
+::_to_value(mongo::BSONElement const & bson, const std::string &vr,
+            boost::property_tree::ptree & tag_xml,
+            typename BSONGetterType<TBSONType>::Type getter) const
+{
+    std::vector<mongo::BSONElement> elements = bson.Array();
+
+    unsigned int count = 0;
+
+    for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+        it != elements.end(); ++it)
+    {
+        ++count;
+        boost::property_tree::ptree tag_value;
+        tag_value.put(Attribute_Number, count); // Mandatory
+
+        if (!it->isNull())
+        {
+            tag_value.put_value(static_cast<TBSONType>(((*it).*getter)()));
+        }
+
+        tag_xml.add_child(Tag_Value, tag_value);
+    }
+}
+
 void
 BSONToXML
 ::_to_dicom_attribute(const mongo::BSONElement &bson,
@@ -168,13 +224,13 @@ BSONToXML
     else if(evr == EVR_OW) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
     else if(evr == EVR_PN) this->_to_person_name(element, tag_xml);                                             // Object containing Person Name component groups as strings
     else if(evr == EVR_SH) this->_to_value<std::string>(element, "SH", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_SL) this->_to_value<int>(element, "SL", tag_xml, &mongo::BSONElement::Int);              // Number
+    else if(evr == EVR_SL) this->_to_value<long long>(element, "SL", tag_xml, &mongo::BSONElement::Long);             // Number
     else if(evr == EVR_SQ) this->_to_item(element, tag_xml);                                                    // Array containing DICOM JSON Objects
     else if(evr == EVR_SS) this->_to_value<int>(element, "SS", tag_xml, &mongo::BSONElement::Int);              // Number
     else if(evr == EVR_ST) this->_to_value<std::string>(element, "ST", tag_xml, &mongo::BSONElement::String);   // String
     else if(evr == EVR_TM) this->_to_value<std::string>(element, "TM", tag_xml, &mongo::BSONElement::String);   // String
     else if(evr == EVR_UI) this->_to_value<std::string>(element, "UI", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_UL) this->_to_value<int>(element, "UL", tag_xml, &mongo::BSONElement::Int);              // Number
+    else if(evr == EVR_UL) this->_to_value<long long>(element, "UL", tag_xml, &mongo::BSONElement::Long);              // Number
     else if(evr == EVR_UN) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
     else if(evr == EVR_US) this->_to_value<int>(element, "US", tag_xml, &mongo::BSONElement::Int);              // Number
     else if(evr == EVR_UT) this->_to_value<std::string>(element, "UT", tag_xml, &mongo::BSONElement::String);   // String
@@ -368,54 +424,6 @@ BSONToXML
                 // Throw an exception if it is not a String
                 tag_value.put_value(it->String());
             }
-        }
-
-        tag_xml.add_child(Tag_Value, tag_value);
-    }
-}
-
-template<typename TBSONType>
-void
-BSONToXML
-::_to_value(mongo::BSONElement const & bson, const std::string &vr,
-            boost::property_tree::ptree & tag_xml,
-            typename BSONGetterType<TBSONType>::Type getter) const
-{
-    std::vector<mongo::BSONElement> elements = bson.Array();
-
-    // Warning: problem with mongo::DBClientConnection::query => convert int into double
-    if (vr == "SL" || vr == "SS" || vr == "UL" || vr == "US")
-    {
-        std::vector<mongo::BSONElement> elements_int;
-        for (std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-             it != elements.end(); ++it)
-        {
-            if ((*it).type() == mongo::BSONType::NumberDouble)
-            {
-                mongo::BSONObj object = BSON("data_int" << static_cast<int>((*it).Double()));
-                elements_int.push_back(object.getField("data_int"));
-            }
-            else
-            {
-                elements_int.push_back((*it));
-            }
-        }
-
-        elements = elements_int;
-    }
-
-    unsigned int count = 0;
-
-    for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
-        it != elements.end(); ++it)
-    {
-        ++count;
-        boost::property_tree::ptree tag_value;
-        tag_value.put(Attribute_Number, count); // Mandatory
-
-        if (!it->isNull())
-        {
-            tag_value.put_value(static_cast<TBSONType>(((*it).*getter)()));
         }
 
         tag_xml.add_child(Tag_Value, tag_value);

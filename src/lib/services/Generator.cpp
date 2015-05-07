@@ -16,6 +16,28 @@ namespace dopamine
 namespace services
 {
 
+template<>
+void
+Generator
+::add_value_to_builder<Sint32>(mongo::BSONObjBuilder &builder,
+                       const std::string &field,
+                       const std::string &value) const
+{
+    // Fix compilation error for i386
+    builder.appendIntOrLL(field, boost::lexical_cast<Sint32>(value));
+}
+
+template<>
+void
+Generator
+::add_value_to_builder<Uint32>(mongo::BSONObjBuilder &builder,
+                       const std::string &field,
+                       const std::string &value) const
+{
+    // Fix compilation error for i386
+    builder.appendIntOrLL(field, boost::lexical_cast<Uint32>(value));
+}
+
 template<typename TType>
 void
 Generator

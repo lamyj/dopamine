@@ -326,12 +326,82 @@ XMLToBSON
                           mongo::BinDataGeneral, dec.c_str());
 }
 
+template<>
+void
+XMLToBSON
+::_add_value<Sint32>(boost::property_tree::ptree tree,
+                     mongo::BSONArrayBuilder &array_builder,
+                     unsigned int count) const
+{
+    std::vector<std::pair<Sint32, bool> > values; values.resize(count);
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &it_value,
+                  tree)
+    {
+        if (it_value.first == Tag_Value)
+        {
+            unsigned int number = it_value.second.get<int>(Attribute_Number);
+            values[number-1] = std::make_pair(it_value.second.get_value<Sint32>(),
+                                              it_value.second.empty());
+        }
+    }
+
+    for (auto it = values.begin(); it != values.end(); ++it)
+    {
+        if ((*it).second)
+        {
+            array_builder.appendNull();
+        }
+        else
+        {
+            mongo::BSONObjBuilder builder;
+            builder.appendIntOrLL("number", (*it).first);
+            mongo::BSONObj object = builder.obj();
+            array_builder.append(object.getField("number").numberLong());
+        }
+    }
+}
+
+template<>
+void
+XMLToBSON
+::_add_value<Uint32>(boost::property_tree::ptree tree,
+                     mongo::BSONArrayBuilder &array_builder,
+                     unsigned int count) const
+{
+    std::vector<std::pair<Uint32, bool> > values; values.resize(count);
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &it_value,
+                  tree)
+    {
+        if (it_value.first == Tag_Value)
+        {
+            unsigned int number = it_value.second.get<int>(Attribute_Number);
+            values[number-1] = std::make_pair(it_value.second.get_value<Uint32>(),
+                                              it_value.second.empty());
+        }
+    }
+
+    for (auto it = values.begin(); it != values.end(); ++it)
+    {
+        if ((*it).second)
+        {
+            array_builder.appendNull();
+        }
+        else
+        {
+            mongo::BSONObjBuilder builder;
+            builder.appendIntOrLL("number", (*it).first);
+            mongo::BSONObj object = builder.obj();
+            array_builder.append(object.getField("number").numberLong());
+        }
+    }
+}
+
 template<typename TType>
 void
 XMLToBSON
 ::_add_value(boost::property_tree::ptree tree,
-                     mongo::BSONArrayBuilder &array_builder,
-                     unsigned int count) const
+             mongo::BSONArrayBuilder &array_builder,
+             unsigned int count) const
 {
     std::vector<std::pair<TType, bool> > values; values.resize(count);
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_value,

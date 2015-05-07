@@ -865,7 +865,7 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
     // Create BSON with SL tag
     std::string const tag = "00186020";
     std::string const vr = "SL";
-    mongo::BSONArray const values = BSON_ARRAY(1001 << 2002);
+    mongo::BSONArray const values = BSON_ARRAY((long long)1001 << (long long)2002);
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
@@ -999,7 +999,7 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
     // Create BSON with UL tag
     std::string const tag = "00081161";
     std::string const vr = "UL";
-    mongo::BSONArray const values = BSON_ARRAY(111 << 333);
+    mongo::BSONArray const values = BSON_ARRAY((long long)111 << (long long)333);
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion

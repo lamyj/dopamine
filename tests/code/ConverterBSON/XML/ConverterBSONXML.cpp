@@ -143,7 +143,7 @@ struct TestDataConversionBSONXML
        {
        mongo::BSONObjBuilder value_builder;
        value_builder << "vr" << "SL";
-       value_builder << "Value" << BSON_ARRAY(10);
+       value_builder << "Value" << BSON_ARRAY((long long)10);
        bsonobjectbuilder << "00186020" << value_builder.obj();
        }
 
@@ -183,7 +183,7 @@ struct TestDataConversionBSONXML
        {
        mongo::BSONObjBuilder value_builder;
        value_builder << "vr" << "UL";
-       value_builder << "Value" << BSON_ARRAY(6);
+       value_builder << "Value" << BSON_ARRAY((long long)6);
        bsonobjectbuilder << "00081161" << value_builder.obj();
        }
 
