@@ -25,31 +25,53 @@
  *          * DOPAMINE_TEST_DICOMFILE
  */
 
-/*************************** TEST OK 01 *******************************/
-/**
- * Nominal test case: wado_uri request
- */
-struct TestDataOK01
+std::string const UNIQUE_SOP_INSTANCE_UID = "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
+std::string const UNIQUE_STUDY_INSTANCE_UID = "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
+std::string const UNIQUE_SERIES_INSTANCE_UID = "2.16.756.5.5.100.3611280983.20092.1364462458.1";
+
+struct TestDataWadoURI
 {
-    TestDataOK01()
+    TestDataWadoURI()
     {
         std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
         dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
     }
 
-    ~TestDataOK01()
+    ~TestDataWadoURI()
     {
         dopamine::ConfigurationPACS::delete_instance();
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: wado_rs Accessors
+ */
+BOOST_FIXTURE_TEST_CASE(Accessors, TestDataWadoURI)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.19057.1364461809.7789" << "&";
-    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1" << "&";
-    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << UNIQUE_STUDY_INSTANCE_UID << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << UNIQUE_SERIES_INSTANCE_UID << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << UNIQUE_SOP_INSTANCE_UID;
+
+    dopamine::services::Wado_uri wadouri(stream.str());
+
+    BOOST_CHECK_EQUAL(wadouri.get_boundary(), "");
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: wado_uri request
+ */
+
+BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, TestDataWadoURI)
+{
+    std::stringstream stream;
+    stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << UNIQUE_STUDY_INSTANCE_UID << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << UNIQUE_SERIES_INSTANCE_UID << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "=" << UNIQUE_SOP_INSTANCE_UID;
 
     // Create the response
     dopamine::services::Wado_uri wadouri(stream.str(), "");
@@ -65,83 +87,43 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
     BOOST_CHECK_EQUAL(filename, test_filename);
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Bad request Unknown parameter
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_01)
+BOOST_AUTO_TEST_CASE(UnknownParameters)
 {
-    std::string query = "unknown=value";
-
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(query, ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(query, "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 400);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Bad Request");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri("unknown=value", ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST KO 02 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Bad request Missing mandatory parameters
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_02)
+BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=WADO";
 
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
 
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 400);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Bad Request");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
-
-    catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri("", "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 400);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Bad Request");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri("", ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST KO 03 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Not implemented
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_03)
+BOOST_AUTO_TEST_CASE(NotImplemented)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
@@ -150,31 +132,17 @@ BOOST_AUTO_TEST_CASE(TEST_KO_03)
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test" << "&";
     stream << "contentType" << "=" << "test";
 
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 406);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Not Acceptable");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 406 && exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST KO 04 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: bad request type
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_04)
+BOOST_AUTO_TEST_CASE(BadRequestType)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "BADVALUE" << "&";
@@ -182,31 +150,17 @@ BOOST_AUTO_TEST_CASE(TEST_KO_04)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 406);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Not Acceptable");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 406 && exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST KO 05 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: dataset not find
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_05, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(DatasetNotFind, TestDataWadoURI)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
@@ -214,33 +168,17 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_05, TestDataOK01)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
-    std::string filename = "";
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 404);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Not Found");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 404 && exc.statusmessage() == "Not Found"); });
 }
 
-
-/*************************** TEST KO 06 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: No database
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_06)
+BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "BADVALUE" << "&";
@@ -254,11 +192,11 @@ BOOST_AUTO_TEST_CASE(TEST_KO_06)
                         std::exception);
 }
 
-/*************************** TEST KO 07 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: dataset location empty
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_07, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(BadDatasetLocation, TestDataWadoURI)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
@@ -266,31 +204,17 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_07, TestDataOK01)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462499.1.0";
 
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 404);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Not Found");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 404 && exc.statusmessage() == "Not Found"); });
 }
 
-/*************************** TEST KO 08 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Cannot not open file
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_08, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(CannotOpenDataset, TestDataWadoURI)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
@@ -298,23 +222,8 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_08, TestDataOK01)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.1364462488.1.0";
 
-    std::string filename = "";
-    // Create the response
-    BOOST_REQUIRE_THROW(dopamine::services::Wado_uri(stream.str(), ""),
-                        dopamine::services::WebServiceException);
-
-    bool catch_exec = false;
-    try
-    {
-        dopamine::services::Wado_uri(stream.str(), "");
-    }
-    catch (dopamine::services::WebServiceException &exc)
-    {
-        catch_exec = true;
-
-        BOOST_CHECK_EQUAL(exc.status(), 500);
-        BOOST_CHECK_EQUAL(exc.statusmessage(), "Internal Server Error");
-    }
-
-    BOOST_CHECK_EQUAL(catch_exec, true);
+    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
+                          dopamine::services::WebServiceException,
+                          [] (dopamine::services::WebServiceException const exc)
+        { return (exc.status() == 500 && exc.statusmessage() == "Internal Server Error"); });
 }
