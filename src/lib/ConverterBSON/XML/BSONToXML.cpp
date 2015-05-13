@@ -10,14 +10,12 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/ostream_iterator.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <dcmtk/dcmdata/dctag.h>
 
 #include "BSONToXML.h"
+#include "core/ConverterBase64.h"
 #include "core/ExceptionPACS.h"
 
 namespace dopamine
@@ -371,20 +369,9 @@ BSONToXML
     int size=0;
     char const * begin = bson.binDataClean(size);
 
-    typedef boost::archive::iterators::base64_from_binary<
-                boost::archive::iterators::transform_width<
-                    const char *, 6, 8>
-                >
-            base64_t;
+    std::string encode = ConverterBase64::encode(std::string(begin, size));
 
-    std::stringstream os;
-    std::copy(
-            base64_t(begin),
-            base64_t(begin + size),
-            boost::archive::iterators::ostream_iterator<char>(os)
-        );
-
-    tag_inlinebinary.put_value(os.str());
+    tag_inlinebinary.put_value(encode);
 
     tag_xml.add_child(Tag_InlineBinary, tag_inlinebinary);
 }

@@ -9,8 +9,6 @@
 #define BOOST_TEST_MODULE ModuleBSONToXML
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/foreach.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/test/unit_test.hpp>
@@ -24,6 +22,7 @@
 #include <mongo/bson/bson.h>
 
 #include "ConverterBSON/XML/BSONToXML.h"
+#include "core/ConverterBase64.h"
 #include "core/ExceptionPACS.h"
 #include "services/ServicesTools.h"
 
@@ -39,13 +38,8 @@ void check_inline_binary(boost::property_tree::ptree & tree,
     int length = 0;
     std::string const initial_data = std::string(object.getField("InlineBinary").binDataClean(length));
 
-    typedef
-        boost::archive::iterators::transform_width<
-            boost::archive::iterators::binary_from_base64<std::string::const_iterator>, 8, 6
-            > binary_t;
-
     std::string const treedata = tree.data();
-    std::string dec(binary_t(treedata.begin()), binary_t(treedata.end()));
+    std::string dec = dopamine::ConverterBase64::decode(treedata);
 
     BOOST_CHECK_EQUAL(dec, initial_data);
 }

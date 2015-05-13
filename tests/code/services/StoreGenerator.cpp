@@ -106,6 +106,7 @@ struct TestDataGenerator_notallow
                                            "dataset" << builder2.obj());
         _connection.insert(_db_name + ".authorization",
                            store_value2);
+        sleep(1); // Wait for database update
     }
 
     ~TestDataGenerator_notallow()

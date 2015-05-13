@@ -6,11 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/ostream_iterator.hpp>
-
 #include "BSONToJSON.h"
+#include "core/ConverterBase64.h"
 
 namespace dopamine
 {
@@ -62,20 +59,8 @@ BSONToJSON
             int size=0;
             char const * begin = element_bson.binDataClean(size);
 
-            typedef boost::archive::iterators::base64_from_binary<
-                        boost::archive::iterators::transform_width<
-                            const char *, 6, 8>
-                        >
-                    base64_t;
-
-            std::stringstream os;
-            std::copy(
-                    base64_t(begin),
-                    base64_t(begin + size),
-                    boost::archive::iterators::ostream_iterator<char>(os)
-                );
-
-            builder << element_bson.fieldName() << os.str();
+            std::string encode = ConverterBase64::encode(std::string(begin, size));
+            builder << element_bson.fieldName() << encode;
         }
         else
         {

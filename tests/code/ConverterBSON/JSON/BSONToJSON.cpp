@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
 
     // Check result
-    std::string const result = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY";
+    std::string const result = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=";
     mongo::BSONObj objectcontrol = BSON(tag << BSON("vr" << vr << "InlineBinary" << result));
 
     BOOST_CHECK_EQUAL(objectcontrol == jsonobject, true);

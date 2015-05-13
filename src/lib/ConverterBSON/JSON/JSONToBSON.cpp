@@ -6,12 +6,10 @@
  * for details.
  ************************************************************************/
 
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-
 #include <mongo/bson/bson.h>
 #include <mongo/db/json.h>
 
+#include "core/ConverterBase64.h"
 #include "JSONToBSON.h"
 
 namespace dopamine
@@ -62,13 +60,8 @@ JSONToBSON
         {
             // Transform Base64String field into Binary
 
-            typedef
-                boost::archive::iterators::transform_width<
-                    boost::archive::iterators::binary_from_base64<std::string::const_iterator>, 8, 6
-                    > binary_t;
-
             std::string const data = element_bson.String();
-            std::string dec(binary_t(data.begin()), binary_t(data.end()));
+            std::string dec = ConverterBase64::decode(data);
 
             builder.appendBinData(element_bson.fieldName(), dec.size(),
                                   mongo::BinDataGeneral, dec.c_str());

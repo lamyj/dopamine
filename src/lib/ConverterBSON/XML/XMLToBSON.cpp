@@ -9,14 +9,13 @@
 #include <sstream>
 #include <utility>
 
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/foreach.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
 
+#include "core/ConverterBase64.h"
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "XMLToBSON.h"
@@ -314,13 +313,8 @@ XMLToBSON
 ::_add_binary_data(boost::property_tree::ptree tree,
                    mongo::BSONObjBuilder &object_builder) const
 {
-    typedef
-        boost::archive::iterators::transform_width<
-            boost::archive::iterators::binary_from_base64<std::string::const_iterator>, 8, 6
-            > binary_t;
-
     std::string const treedata = tree.data();
-    std::string dec(binary_t(treedata.begin()), binary_t(treedata.end()));
+    std::string dec = ConverterBase64::decode(treedata);
 
     object_builder.appendBinData("data", dec.size(),
                           mongo::BinDataGeneral, dec.c_str());

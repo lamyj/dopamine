@@ -567,13 +567,13 @@ BOOST_AUTO_TEST_CASE(ConversionXMLBSON_String)
     xmlstream << "        <Value number=\"2\">value02</Value>\n";
     xmlstream << "    </DicomAttribute>\n";
     xmlstream << "    <DicomAttribute tag=\"00282000\" vr=\"OB\" keyword=\"ICCProfile\">\n";
-    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=</InlineBinary>\n";
     xmlstream << "    </DicomAttribute>\n";
     xmlstream << "    <DicomAttribute tag=\"00640009\" vr=\"OF\" keyword=\"VectorGridData\">\n";
-    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=</InlineBinary>\n";
     xmlstream << "    </DicomAttribute>\n";
     xmlstream << "    <DicomAttribute tag=\"00660023\" vr=\"OW\" keyword=\"TrianglePointIndexList\">\n";
-    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY</InlineBinary>\n";
+    xmlstream << "        <InlineBinary>YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=</InlineBinary>\n";
     xmlstream << "    </DicomAttribute>\n";
     xmlstream << "    <DicomAttribute tag=\"00100010\" vr=\"PN\" keyword=\"PatientName\">\n";
     xmlstream << "        <PersonName number=\"1\">\n";
