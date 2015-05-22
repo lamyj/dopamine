@@ -8,8 +8,6 @@
 
 #include <locale>
 
-#include <errno.h>
-
 #include "BSONToDataSet.h"
 #include "core/ExceptionPACS.h"
 #include "services/ServicesTools.h"
@@ -487,35 +485,8 @@ BSONToDataSet
         it != elements.end(); ++it)
     {
         std::string const element = it->isNull() ? "" : it->String();
-        
-        if(use_utf8)
-        {
-            unsigned long size = element.size();
-            unsigned long buffer_size = size*4; // worst case: UTF-8 with only ascii->UCS-32
-            char* buffer = new char[buffer_size];
-            std::fill(buffer, buffer+buffer_size, 0);
 
-            size_t inbytesleft=size;
-            size_t outbytesleft=buffer_size;
-            char* inbuf = const_cast<char*>(&element[0]);
-            char* outbuf = buffer;
-
-            size_t const result = iconv(this->get_converter(),
-                &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-            if(result == size_t(-1))
-            {
-                throw std::runtime_error(std::string("iconv error ") +
-                                         strerror(errno));
-            }
-
-            value += OFString(buffer, buffer_size-outbytesleft);
-
-            delete[] buffer;
-        }
-        else
-        {
-            value += element.c_str();
-        }
+        value += element.c_str();
 
         if(it != last_it)
         {

@@ -6,8 +6,10 @@
  * for details.
  ************************************************************************/
 
-#include <errno.h>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
+#include "core/ConverterCharactersSet.h"
 #include "DataSetToBSON.h"
 
 namespace dopamine
@@ -379,44 +381,53 @@ DataSetToBSON::_to_bson_text(
 
     for(unsigned long i=0; i<count; ++i)
     {
+        std::vector<std::string> values;
         OFString value;
         element->getOFString(value, i);
-        char* buffer = NULL;
+        //char* buffer = NULL;
         if(use_utf8)
         {
-            unsigned long size = value.size();
-            unsigned long buffer_size = size*4; // worst case: ascii->UCS-32
-            buffer = new char[buffer_size];
-            std::fill(buffer, buffer+buffer_size, 0);
-
-            size_t inbytesleft=size;
-            size_t outbytesleft=buffer_size;
-            char* inbuf = const_cast<char*>(&value[0]);
-            char* outbuf = buffer;
-
-            size_t const result = iconv(this->get_converter(),
-                &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-            if(result == size_t(-1))
+            //std::vector<OFString> valuesof;
+            if (element->getVR() == EVR_PN)
             {
-                throw std::runtime_error(std::string("iconv error ")+strerror(errno));
+                std::vector<std::string> name_components;
+                std::string strtemp(value.c_str());
+                boost::split(name_components, strtemp,
+                             boost::is_any_of("="));
+
+                for (unsigned int i = 0; i < name_components.size(); ++i)
+                {
+                    values.push_back(characterset::convert_to_utf8(name_components[i],
+                                                                   this->_specific_character_sets,
+                                                                   i));
+                }
             }
-
-            value = OFString(buffer, buffer_size-outbytesleft);
-        }
-
-        std::string const valuestr(value.c_str());
-        if (element->getVR() == EVR_PN)
-        {
-            current_builder->append(BSON("Alphabetic" << valuestr));
+            else
+            {
+                values.push_back(characterset::convert_to_utf8(std::string(value.c_str()),
+                                                               this->_specific_character_sets));
+            }
         }
         else
         {
-            current_builder->append(valuestr);
+            values.push_back(std::string(value.c_str()));
         }
 
-        if(use_utf8)
+        if (element->getVR() == EVR_PN)
         {
-            delete[] buffer;
+            current_builder->append(BSON("Alphabetic" << values[0]));
+            if (values.size() > 1)
+            {
+                current_builder->append(BSON("Ideographic" << values[1]));
+            }
+            if (values.size() > 2)
+            {
+                current_builder->append(BSON("Phonetic" << values[2]));
+            }
+        }
+        else
+        {
+            current_builder->append(values[0]);
         }
     }
 

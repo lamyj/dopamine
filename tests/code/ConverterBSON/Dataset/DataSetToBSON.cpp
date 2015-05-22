@@ -7,6 +7,8 @@
  ************************************************************************/
 
 #define BOOST_TEST_MODULE ModuleDataSetToBSON
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
@@ -26,10 +28,10 @@ BOOST_AUTO_TEST_CASE(Constructor)
 
     // Object build
     BOOST_CHECK_EQUAL(datasettobson != NULL, true);
-    
+
     // Default value
     BOOST_CHECK_EQUAL(datasettobson->get_specific_character_set() == "", true);
-    BOOST_CHECK_EQUAL(datasettobson->get_default_filter() == 
+    BOOST_CHECK_EQUAL(datasettobson->get_default_filter() ==
                       dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE, true);
     BOOST_CHECK_EQUAL(datasettobson->get_filters().size() == 0, true);
 
@@ -59,9 +61,9 @@ BOOST_AUTO_TEST_CASE(GetterAndSetter)
     std::vector<dopamine::converterBSON::DataSetToBSON::Filter> filters;
     filters.push_back(std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_PatientName),
                       dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE));
-                      
+
     datasettobson.set_filters(filters);
-    
+
     std::vector<dopamine::converterBSON::DataSetToBSON::Filter> const getfilters =
         datasettobson.get_filters();
     // check value
@@ -945,6 +947,114 @@ BOOST_AUTO_TEST_CASE(Group_length_tag)
     BOOST_CHECK_EQUAL(query_dataset.hasField("00020000"), false);
 }
 
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Specific character set
+ */
+struct fileAndResult
+{
+    std::string _filename;
+    std::string _alphabetic;
+    std::string _ideographic;
+    std::string _phonetic;
+
+    fileAndResult(std::string filename, std::string alphabetic,
+                  std::string ideographic = "", std::string phonetic = ""):
+        _filename(filename), _alphabetic(alphabetic),
+        _ideographic(ideographic), _phonetic(phonetic) {}
+};
+
+BOOST_AUTO_TEST_CASE(Specific_charsetset)
+{
+    dopamine::converterBSON::DataSetToBSON datasettobson;
+
+    // set_default_filter
+    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+
+    // Get data directory
+    std::string datadirectory(getenv("DOPAMINE_TEST_DATA"));
+    datadirectory = datadirectory + "/charsettests/";
+
+    std::stringstream germanname;
+    germanname << "\xc3\x84neas^R\xc3\xbc" << "diger";
+
+    std::stringstream russianname;
+    russianname << "\xd0\x9b\xd1\x8e\xd0\xba" << "ce\xd0\xbc\xd0\xb1yp\xd0\xb3";
+
+    std::vector<fileAndResult> files_to_test =
+    {
+        fileAndResult("SCSARAB", "\xd9\x82\xd8\xa8\xd8\xa7\xd9\x86\xd9\x8a^\xd9\x84\xd9\x86\xd8\xb2\xd8\xa7\xd8\xb1"),
+        fileAndResult("SCSFREN", "Buc^J\xc3\xa9r\xc3\xb4me"),
+        fileAndResult("SCSGERM", germanname.str()),
+        fileAndResult("SCSGREEK", "\xce\x94\xce\xb9\xce\xbf\xce\xbd\xcf\x85\xcf\x83\xce\xb9\xce\xbf\xcf\x82"),
+        fileAndResult("SCSH31", "Yamada^Tarou", "\xe5\xb1\xb1\xe7\x94\xb0^\xe5\xa4\xaa\xe9\x83\x8e",
+                      "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0^\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86"),
+        fileAndResult("SCSH32", "\xef\xbe\x94\xef\xbe\x8f\xef\xbe\x80\xef\xbe\x9e^\xef\xbe\x80\xef\xbe\x9b\xef\xbd\xb3",
+                      "\xe5\xb1\xb1\xe7\x94\xb0^\xe5\xa4\xaa\xe9\x83\x8e",
+                      "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0^\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86"),
+        fileAndResult("SCSHBRW", "\xd7\xa9\xd7\xa8\xd7\x95\xd7\x9f^\xd7\x93\xd7\x91\xd7\x95\xd7\xa8\xd7\x94"),
+        fileAndResult("SCSI2", "Hong^Gildong",
+                      "\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e",
+                      "\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99"),
+        fileAndResult("SCSRUSS", russianname.str()),
+        fileAndResult("SCSX1", "Wang^XiaoDong", "\xe7\x8e\x8b^\xe5\xb0\x8f\xe6\x9d\xb1"),
+        fileAndResult("SCSX2", "Wang^XiaoDong", "\xe7\x8e\x8b^\xe5\xb0\x8f\xe4\xb8\x9c")
+    };
+
+    for (fileAndResult file_to_test : files_to_test)
+    {
+        std::string file = datadirectory + file_to_test._filename;
+        DcmFileFormat fileformat;
+        OFCondition result = fileformat.loadFile(file.c_str());
+        if (result.bad())
+        {
+            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(result.text()));
+        }
+        DcmDataset* dataset = fileformat.getAndRemoveDataset();
+
+        OFString ofpatientname;
+        result = dataset->findAndGetOFString(DCM_PatientName, ofpatientname);
+        BOOST_REQUIRE(result.good());
+
+        std::vector<std::string> name_components;
+        std::string strtemp(ofpatientname.c_str());
+        boost::split(name_components, strtemp,
+                     boost::is_any_of("="));
+
+        mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
+
+        BOOST_REQUIRE(query_dataset.hasField("00100010"));
+        mongo::BSONElement patientname = query_dataset.getField("00100010");
+        BOOST_REQUIRE(patientname.type() == mongo::BSONType::Object);
+        BOOST_REQUIRE(patientname.Obj().hasField("Value"));
+        mongo::BSONElement values = patientname.Obj().getField("Value");
+        BOOST_REQUIRE(values.type() == mongo::BSONType::Array);
+        BOOST_REQUIRE_EQUAL(values.Array().size(), name_components.size());
+
+        if (name_components.size() > 0)
+        {
+            BOOST_REQUIRE(values.Array()[0].Obj().hasField("Alphabetic"));
+            BOOST_CHECK_EQUAL(values.Array()[0].Obj().getField("Alphabetic").String(), file_to_test._alphabetic);
+        }
+        if (name_components.size() > 1)
+        {
+            BOOST_REQUIRE(values.Array()[1].Obj().hasField("Ideographic"));
+            BOOST_CHECK_EQUAL(values.Array()[1].Obj().getField("Ideographic").String(), file_to_test._ideographic);
+        }
+        if (name_components.size() > 2)
+        {
+            BOOST_REQUIRE(values.Array()[2].Obj().hasField("Phonetic"));
+            BOOST_CHECK_EQUAL(values.Array()[2].Obj().getField("Phonetic").String(), file_to_test._phonetic);
+        }
+        if (name_components.size() > 3)
+        {
+            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("too many values for patient's name"));
+        }
+
+        delete dataset;
+    }
+}
+
 /*************************** TEST Error *********************************/
 /**
  * Error test case: set_specific_character_set => bad value
@@ -955,20 +1065,7 @@ BOOST_AUTO_TEST_CASE(Specific_charset_badvalue)
 
     // set_specific_character_set
     BOOST_REQUIRE_THROW(datasettobson.set_specific_character_set("badvalue"),
-                        std::runtime_error);
-}
-
-/*************************** TEST Error *********************************/
-/**
- * Error test case: set_specific_character_set => multi-valued
- */
-BOOST_AUTO_TEST_CASE(Specific_charset_multiValue)
-{
-    dopamine::converterBSON::DataSetToBSON datasettobson;
-
-    // set_specific_character_set
-    BOOST_REQUIRE_THROW(datasettobson.set_specific_character_set("ISO_IR 192\\GB18030"),
-                        std::runtime_error);
+                        dopamine::ExceptionPACS);
 }
 
 /*************************** TEST Error *********************************/

@@ -1085,6 +1085,11 @@ mongo --quiet ${DIRECTORY}/create_db.js
 # Create Authorization
 mongo --quiet ${DIRECTORY}/create_authorization.js
 
+# Get data tests
+export DOPAMINE_TEST_DATA=${DIRECTORY}/Data
+wget -P ${DOPAMINE_TEST_DATA} http://www.dclunie.com/images/charset/charsettests.20070405.tar.bz2
+tar -C ${DOPAMINE_TEST_DATA} -xf ${DOPAMINE_TEST_DATA}/charsettests.20070405.tar.bz2
+
 ./src/appli/dopamine &
 
 # Execute unit tests

@@ -13,6 +13,7 @@
 #include <mongo/db/json.h>
 
 #include "ConverterBSON/Dataset/BSONToDataSet.h"
+#include "core/ExceptionPACS.h"
 
 /*************************** TEST Nominal *******************************/
 /**
@@ -864,25 +865,7 @@ BOOST_AUTO_TEST_CASE(Specific_charset_badvalue)
 
     // set_specific_character_set
     BOOST_REQUIRE_THROW(bsontodataset.set_specific_character_set("badvalue"),
-                        std::runtime_error);
-}
-
-/*************************** TEST Error *********************************/
-/**
- * Error test case: set_specific_character_set => multi-valued
- */
-BOOST_AUTO_TEST_CASE(Specific_charset_multiValue)
-{
-    // Create BSON with UT tag
-    std::string const tag = "00080005";
-    std::string const vr = "CS";
-    mongo::BSONArray const values = BSON_ARRAY("ISO_IR 192" << "GB18030");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
-
-    // Conversion
-    dopamine::converterBSON::BSONToDataSet bsontodataset;
-    BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set(), "");
-    BOOST_REQUIRE_THROW(bsontodataset.to_dataset(object), std::runtime_error);
+                        dopamine::ExceptionPACS);
 }
 
 /*************************** TEST Error *********************************/
