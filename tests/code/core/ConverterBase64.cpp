@@ -146,23 +146,12 @@ BOOST_AUTO_TEST_CASE(LineBreak)
     std::vector<std::string> lines;
     boost::split(lines, base64, boost::is_any_of("\n"));
 
-    BOOST_CHECK_NE(lines.size(), 0);
+    BOOST_CHECK_NE(lines.size(), 1);
     BOOST_CHECK_GT(lines[lines.size()-1].size(), 0); // check last line
+    BOOST_CHECK_LT(lines[lines.size()-1].size(), dopamine::ConverterBase64::DEFAULT_LINEBREAK); // check last line
     lines.pop_back(); // erase last line (size != DEFAULT_LINEBREAK)
     for (auto line : lines)
     {
         BOOST_CHECK_EQUAL(line.size(), dopamine::ConverterBase64::DEFAULT_LINEBREAK);
     }
-}
-
-/*************************** TEST Error *********************************/
-/**
- * Error test case: Invalid base 64 characters
- */
-BOOST_AUTO_TEST_CASE(InvalidCharacters)
-{
-    std::string const invalidstring = "ABCD-*+1234";
-
-    BOOST_REQUIRE_THROW(dopamine::ConverterBase64::decode(invalidstring),
-                        std::invalid_argument);
 }

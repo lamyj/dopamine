@@ -6,11 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <cassert>
-#include <cctype>
-#include <limits>
-#include <sstream>
-#include <stdexcept>
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/ofstd/ofstd.h>
 
 #include "ConverterBase64.h"
 
@@ -22,33 +19,9 @@ namespace ConverterBase64
 
 std::string encode(const std::string &bindata, unsigned int linebreak)
 {
-    if (bindata.size() > (std::numeric_limits<std::string::size_type>::max() / 4u) * 3u)
-    {
-       throw std::length_error("Converting too large a string to base64.");
-    }
-
-    const std::size_t binlen = bindata.size();
-    // Use = signs so the end is properly padded.
-    std::string retval((((binlen + 2) / 3) * 4), '=');
-    std::size_t outpos = 0;
-    int bits_collected = 0;
-    unsigned int accumulator = 0;
-
-    for (std::string::const_iterator i = bindata.begin(); i != bindata.end(); ++i)
-    {
-       accumulator = (accumulator << 8) | (*i & 0xffu);
-       bits_collected += 8;
-       while (bits_collected >= 6)
-       {
-          bits_collected -= 6;
-          retval[outpos++] = b64_table[(accumulator >> bits_collected) & 0x3fu];
-       }
-    }
-    if (bits_collected > 0)
-    { // Any trailing bits that are missing.
-       accumulator <<= 6 - bits_collected;
-       retval[outpos++] = b64_table[accumulator & 0x3fu];
-    }
+    OFString result;
+    OFStandard::encodeBase64((unsigned char*)bindata.c_str(), bindata.size(), result);
+    std::string retval(result.c_str());
 
     if (linebreak != 0)
     {
@@ -73,31 +46,9 @@ std::string encode(const std::string &bindata, unsigned int linebreak)
 
 std::string decode(const std::string &ascdata)
 {
-    std::string retval;
-    int bits_collected = 0;
-    unsigned int accumulator = 0;
-
-    for (std::string::const_iterator i = ascdata.begin(); i != ascdata.end(); ++i)
-    {
-       const int c = *i;
-       if (std::isspace(c) || c == '=')
-       {
-          // Skip whitespace and padding. Be liberal in what you accept.
-          continue;
-       }
-       if ((c > 127) || (c < 0) || (reverse_table[c] > 63))
-       {
-          throw std::invalid_argument("This contains characters not legal in a base64 encoded string.");
-       }
-       accumulator = (accumulator << 6) | reverse_table[c];
-       bits_collected += 6;
-       if (bits_collected >= 8)
-       {
-          bits_collected -= 8;
-          retval += (char)((accumulator >> bits_collected) & 0xffu);
-       }
-    }
-    return retval;
+    unsigned char* result;
+    size_t size = OFStandard::decodeBase64(OFString(ascdata.c_str()), result);
+    return std::string((char*)result, size);
 }
 
 } // namespace ConverterBase64
