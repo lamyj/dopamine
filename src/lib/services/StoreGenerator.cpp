@@ -51,8 +51,9 @@ StoreGenerator
     }
 
     // Look for user authorization
-    if ( ! is_authorized(this->_connection, this->_db_name,
-                         this->_username, Service_Store) )
+    this->_allow = is_authorized(this->_connection, this->_db_name,
+                                 this->_username, Service_Store);
+    if ( ! this->_allow )
     {
         loggerWarning() << "User '" << this->_username << "' not allowed to perform "
                         << Service_Store;

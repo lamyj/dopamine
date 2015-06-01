@@ -17,6 +17,9 @@ target_link_libraries(wado-uri cgicc libdopamine ssl crypt oflog z )
 add_executable(qido-rs "qido-rs.cpp")
 target_link_libraries(qido-rs cgicc libdopamine)
 
+add_executable(stow-rs "stow-rs.cpp")
+target_link_libraries(stow-rs cgicc libdopamine)
+
 install(TARGETS dopamine
         RUNTIME DESTINATION /usr/bin/
         COMPONENT applications)

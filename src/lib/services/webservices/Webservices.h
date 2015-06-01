@@ -20,11 +20,11 @@ namespace services
 {
 
 std::string const authentication_string = "This server could not verify that \
-                                           you are authorized to access the \
-                                           document requested. Either you supplied \
-                                           the wrong credentials (e.g., bad password), \
-                                           or your browser doesn't understand how to \
-                                           supply the credentials required.";
+you are authorized to access the \
+document requested. Either you supplied \
+the wrong credentials (e.g., bad password), \
+or your browser doesn't understand how to \
+supply the credentials required.";
 
 const std::string ATTRIBUT_BOUNDARY = "boundary=";
 const std::string ATTRIBUT_FILENAME = "filename=";

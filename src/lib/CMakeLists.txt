@@ -22,6 +22,7 @@ target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
                                   ${DCMTK_LIBRARIES}
                                   ${Boost_LIBRARIES}
                                   ${ICU_LIBRARIES}
+                                  mimetic
                                   log4cpp ldap dcmtls ssl
                                   wrap pthread)
 
