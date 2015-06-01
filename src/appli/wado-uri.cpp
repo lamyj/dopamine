@@ -48,6 +48,8 @@ int main(int argc, char** argv)
         std::stringstream headerstream;
         headerstream << dopamine::services::MIME_TYPE_APPLICATION_DICOM << std::endl
                      << "Content-Disposition: attachment; filename=" << wadouri.get_filename();
+
+        std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", 200, "OK") << "\n";
         std::cout << cgicc::HTTPContentHeader(headerstream.str());
         std::string data = wadouri.get_response();
         std::cout.write(&data[0], data.size());
@@ -61,7 +63,8 @@ int main(int argc, char** argv)
         }
         else
         {
-            std::cout << cgicc::HTTPStatusHeader(exc.status(), exc.statusmessage()) << std::endl;
+            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(), exc.statusmessage())
+                            .addHeader("Content-Type", "text/html; charset=UTF-8");
         }
 
         std::stringstream stream;
@@ -83,7 +86,8 @@ int main(int argc, char** argv)
     }
     catch (std::exception &e)
     {
-        std::cout << cgicc::HTTPStatusHeader(500, "Internal Server Error") << std::endl;
+        std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", 500, "Internal Server Error")
+                        .addHeader("Content-Type", "text/html; charset=UTF-8");
 
         std::cout << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
         std::cout << cgicc::html().set("lang", "EN").set("dir", "LTR") << std::endl;
