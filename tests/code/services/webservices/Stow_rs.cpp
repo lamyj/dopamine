@@ -183,6 +183,8 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
                 std::string::npos);
 
+    sleep(1);
+
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
@@ -354,6 +356,8 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
                 std::string::npos);
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_08) !=
                 std::string::npos);
+
+    sleep(1);
 
     // Check into database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
@@ -612,6 +616,8 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
                 std::string::npos);
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
                 std::string::npos);
+
+    sleep(1);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",

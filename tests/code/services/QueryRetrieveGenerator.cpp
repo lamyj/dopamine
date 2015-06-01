@@ -236,7 +236,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, TestDataGenerator)
         ++count;
         findedobject = generator_query.next();
     }
-    BOOST_CHECK_EQUAL(count, 4);
+    BOOST_CHECK_GE(count, 4);
 
     // Service RETRIEVE
     dopamine::services::QueryRetrieveGenerator generator_retrieve("", dopamine::services::Service_Retrieve);
@@ -252,7 +252,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, TestDataGenerator)
         ++count;
         findedobject = generator_retrieve.next();
     }
-    BOOST_CHECK_EQUAL(count, 4);
+    BOOST_CHECK_GE(count, 4);
 }
 
 /*************************** TEST Nominal *******************************/
