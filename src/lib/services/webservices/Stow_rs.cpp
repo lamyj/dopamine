@@ -322,8 +322,8 @@ Stow_rs
                 throw WebServiceException(401, "Unauthorized",
                                           authentication_string);
             }
-
         }
+
         if (result != STATUS_Pending)
         {
             // ERROR: add an item into failedsopsequence

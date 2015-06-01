@@ -375,22 +375,16 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
     BOOST_CHECK_EQUAL(ptree2.find("NativeDicomModel") != ptree2.not_found(), true);
 
     // check mandatory tag
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081190\"") != std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081197\"") != std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") != std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081150\"") != std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081155\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") != std::string::npos);
 
-    // check tag ReferencedSOPSequence is missing
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") == std::string::npos);
+    // check tag error is missing
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") == std::string::npos);
 
     // check values
     BOOST_CHECK(xmlstream2.str().find("1.2.840.10008.5.1.4.1.1.4") !=
                 std::string::npos);
     BOOST_CHECK(xmlstream2.str().find(UNIQUE_SOP_INSTANCE_UID_08) !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find("<Value number=\"1\">42752</Value>") !=
-                std::string::npos); // error code A700
 
     // Check into database (always present)
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
@@ -471,6 +465,65 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
                                        std::string(getenv("DOPAMINE_TEST_DICOMFILE_05")),
                                        std::string(getenv("DOPAMINE_TEST_DICOMFILE_06")) };
 
+    {
+    std::stringstream dataset;
+    dataset << content_type << "\n\n";
+    int count = 0;
+    for (std::string datasetfile : files)
+    {
+        dataset << "--" << boundary << "\n";
+        dataset << dopamine::services::CONTENT_TYPE
+                << dopamine::services::MIME_TYPE_APPLICATION_DICOM << "\n";
+        dataset << dopamine::services::CONTENT_DISPOSITION_ATTACHMENT << " "
+                << dopamine::services::ATTRIBUT_FILENAME << "myfile" << "\n";
+        dataset << dopamine::services::CONTENT_TRANSFER_ENCODING
+                << dopamine::services::TRANSFER_ENCODING_BINARY << "\n" << "\n";
+
+        // Open file
+        std::ifstream file(datasetfile, std::ifstream::binary | std::ifstream::in);
+        BOOST_REQUIRE(file.is_open());
+
+        // get length of file:
+        int length = boost::filesystem::file_size(boost::filesystem::path(datasetfile));
+
+        std::string output(length, '\0');
+
+        // read data as a block:
+        file.read (&output[0], output.size());
+
+        // Close file
+        file.close();
+
+        dataset << output;
+        if (count == 1)
+        {
+            dataset << "error";
+        }
+        dataset << "\n" << "\n";
+        ++count;
+    }
+    dataset << "--" << boundary << "--";
+
+    dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
+    BOOST_CHECK_NE(stowrs.get_response(), "");
+
+    BOOST_CHECK_EQUAL(stowrs.get_status(), 202);
+    BOOST_CHECK_EQUAL(stowrs.get_code(), "Accepted");
+    }
+
+    // Check into database
+    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
+                                       BSON("00080018.Value" <<
+                                            UNIQUE_SOP_INSTANCE_UID_04)), 1);
+    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
+                                       BSON("00080018.Value" <<
+                                            UNIQUE_SOP_INSTANCE_UID_05)), 1);
+    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
+                                       BSON("00080018.Value" <<
+                                            UNIQUE_SOP_INSTANCE_UID_06)), 1);
+
+    // All in error
+    {
     std::stringstream dataset;
     dataset << content_type << "\n\n";
     for (std::string datasetfile : files)
@@ -499,31 +552,12 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
         file.close();
 
         dataset << output;
+        dataset << "error";
+
         dataset << "\n" << "\n";
     }
     dataset << "--" << boundary << "--";
 
-    {
-    dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
-
-    BOOST_CHECK_EQUAL(stowrs.get_status(), 202);
-    BOOST_CHECK_EQUAL(stowrs.get_code(), "Accepted");
-    }
-
-    // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_04)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_05)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_06)), 1);
-
-    // All in error
-    {
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
     BOOST_CHECK_NE(stowrs.get_response(), "");
 

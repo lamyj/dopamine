@@ -439,35 +439,3 @@ BOOST_FIXTURE_TEST_CASE(No_SeriesInstanceUID, TestDataGenerator)
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
 }
-
-/*************************** TEST Error *********************************/
-/**
- * Error test case: SOP Instance UID already register
- */
-BOOST_FIXTURE_TEST_CASE(SOPInstanceUID_AlreadyInsert, TestDataGenerator)
-{
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    dopamine::services::create_db_connection(connection, db_name);
-
-    mongo::BSONObjBuilder builder;
-    builder << "00080018" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(UNIQUE_SOP_INSTANCE_UID))
-            << "0020000d" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(UNIQUE_STUDY_INSTANCE_UID))
-            << "0020000e" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(UNIQUE_SERIES_INSTANCE_UID));
-    mongo::BSONObj const query = builder.obj();
-
-    connection.insert(db_name + ".datasets",
-                      query);
-
-    mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
-    BOOST_CHECK_EQUAL(cursor->more(), true); // already exist
-
-    dopamine::services::StoreGenerator generator("");
-    Uint16 result = generator.set_query(query);
-    BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
-
-    connection.remove(db_name + ".datasets",
-                      BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
-}

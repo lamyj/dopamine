@@ -84,7 +84,7 @@ StoreGenerator
     {
         // We already have this SOP Instance UID, do not store it
         loggerWarning() << "Store: SOP Instance UID already register";
-        return STATUS_STORE_Refused_OutOfResources;
+        return STATUS_Pending; // Nothing to do
     }
     else if (info["ok"].Double() != 1)
     {
