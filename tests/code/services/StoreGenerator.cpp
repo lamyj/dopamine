@@ -10,6 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "core/ConfigurationPACS.h"
+#include "core/ExceptionPACS.h"
 #include "services/StoreGenerator.h"
 #include "services/ServicesTools.h"
 
@@ -106,7 +107,10 @@ struct TestDataGenerator_notallow
                                            "dataset" << builder2.obj());
         _connection.insert(_db_name + ".authorization",
                            store_value2);
-        sleep(1); // Wait for database update
+        if (_connection.getLastError(_db_name, true) != "")
+        {
+            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("An error occurred while storing object"));
+        }
     }
 
     ~TestDataGenerator_notallow()
@@ -199,8 +203,6 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, TestDataGenerator)
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
-    sleep(1); // wait for database storage
-
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
     BOOST_CHECK_EQUAL(cursor->more(), true);
@@ -276,8 +278,6 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, TestDataGenerator)
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
-    sleep(1); // wait for database storage
-
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));
     BOOST_CHECK_EQUAL(cursor->more(), true);
@@ -338,8 +338,6 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator.set_query(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
-
-    sleep(1); // wait for database storage
 
     cursor = _connection.query(_db_name + ".datasets",
                               BSON("00080018.Value" << UNIQUE_SOP_INSTANCE_UID));

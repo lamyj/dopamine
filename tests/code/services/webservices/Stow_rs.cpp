@@ -86,7 +86,11 @@ struct TestDataRequestNotAllow : public TestDataRequest
                                            "dataset" << builder2.obj());
         connection.insert(db_name + ".authorization",
                            store_value2);
-        sleep(1); // Wait for database update
+
+        if (connection.getLastError(db_name, true) != "")
+        {
+            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("An error occurred while storing object"));
+        }
     }
 
     ~TestDataRequestNotAllow()
@@ -182,8 +186,6 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
                 std::string::npos);
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
                 std::string::npos);
-
-    sleep(1);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
@@ -356,8 +358,6 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
                 std::string::npos);
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_08) !=
                 std::string::npos);
-
-    sleep(1);
 
     // Check into database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
@@ -650,8 +650,6 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
                 std::string::npos);
     BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
                 std::string::npos);
-
-    sleep(1);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",

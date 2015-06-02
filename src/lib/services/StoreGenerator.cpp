@@ -114,6 +114,12 @@ StoreGenerator
         std::stringstream stream;
         stream << this->_db_name << ".datasets";
         this->_connection.insert(stream.str(), builder.obj());
+        std::string result = this->_connection.getLastError(this->_db_name);
+        if (result != "") // empty string if no error
+        {
+            loggerError() << "An error occurred while storing file: " << result;
+            return STATUS_STORE_Refused_OutOfResources;
+        }
 
         // Create the header of the new file
         DcmFileFormat file_format(this->_dataset);
