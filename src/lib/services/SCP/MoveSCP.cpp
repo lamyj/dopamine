@@ -43,17 +43,7 @@ static void moveCallback(
 
     if (responseCount == 1)
     {
-        mongo::BSONObj object = dataset_to_bson(requestIdentifiers);
-        if (!object.isValid() || object.isEmpty())
-        {
-            status = 0xa900;
-        }
-
-        // Search into database
-        if (status == STATUS_Pending)
-        {
-            status = context->_generator->set_query(object);
-        }
+        status = context->_generator->process_dataset(requestIdentifiers, false);
 
         if (status != STATUS_Pending)
         {
@@ -95,7 +85,7 @@ static void moveCallback(
         else
         {
             OFCondition condition =
-                    context->_storeprovider->performSubOperation(bson_to_dataset(object),
+                    context->_storeprovider->performSubOperation(context->_generator->retrieve_dataset(object),
                                                                  request->Priority);
 
             if (condition.bad())

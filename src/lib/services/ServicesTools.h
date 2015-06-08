@@ -15,6 +15,8 @@
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcfilefo.h>
+#include <dcmtk/dcmdata/dcostrmb.h>
 #include <dcmtk/dcmdata/dctag.h>
 #include <dcmtk/dcmnet/dcuserid.h>
 #include <dcmtk/dcmnet/dimse.h>
@@ -34,8 +36,23 @@ std::string const Service_Store     = "Store";
 std::string const Service_Query     = "Query";
 std::string const Service_Retrieve  = "Retrieve";
 
+enum database_status
+{
+    NO_ERROR = 0,
+    NOT_CONNECTED,
+    CONVERSION_ERROR,
+    NOT_ALLOW,
+    INSERTION_FAILED
+};
+
 bool create_db_connection(mongo::DBClientConnection & connection,
                           std::string & db_name);
+
+database_status insert_dataset(mongo::DBClientConnection & connection,
+                               std::string const & db_name,
+                               std::string const & username,
+                               DcmDataset* dataset,
+                               std::string const & callingaet = "");
 
 void createStatusDetail(Uint16 const & errorCode, DcmTagKey const & key,
                         OFString const & comment, DcmDataset **statusDetail);
@@ -51,6 +68,11 @@ mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection &connection,
                                        std::string const & db_name,
                                        std::string const & username,
                                        std::string const & servicename);
+
+bool is_dataset_allowed_for_storage(mongo::DBClientConnection & connection,
+                                    std::string const & db_name,
+                                    std::string const & username,
+                                    mongo::BSONObj const & dataset);
 
 std::string bsonelement_to_string(mongo::BSONElement const & bsonelement);
 
@@ -68,7 +90,13 @@ std::string replace(std::string const & value,
 mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
                                bool isforstorage = false);
 
-DcmDataset * bson_to_dataset(mongo::BSONObj object);
+DcmDataset * bson_to_dataset(mongo::DBClientConnection &connection,
+                             const std::string &db_name,
+                             mongo::BSONObj object);
+
+std::string get_dataset_as_string(mongo::DBClientConnection &connection,
+                                  const std::string &db_name,
+                                  mongo::BSONObj object);
 
 } // namespace services
 

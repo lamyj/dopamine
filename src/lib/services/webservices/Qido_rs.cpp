@@ -16,6 +16,7 @@
 #include "ConverterBSON/JSON/BSONToJSON.h"
 #include "ConverterBSON/XML/BSONToXML.h"
 #include "Qido_rs.h"
+#include "services/QueryGenerator.h"
 #include "services/ServicesTools.h"
 #include "WebServiceException.h"
 
@@ -24,6 +25,71 @@ namespace dopamine
 
 namespace services
 {
+
+mongo::BSONObj
+check_mandatory_field_in_response(const mongo::BSONObj &response,
+                                  QueryGenerator &generator,
+                                  std::string const & query_retrieve_level,
+                                  std::vector<Attribute> attributes)
+{
+    mongo::BSONObjBuilder builderfinal;
+    builderfinal.appendElements(response);
+
+    // Add Query retrieve level
+    mongo::BSONObj queryretrievelevel =
+            BSON("00080052" << BSON("vr" << "CS" <<
+                                    "Value" << BSON_ARRAY(query_retrieve_level)));
+    builderfinal.appendElements(queryretrievelevel);
+
+    for (Attribute attribute : attributes)
+    {
+        if (attribute._tag == "00080052") continue;
+        if (!response.hasField(attribute._tag))
+        {
+            if (attribute._tag == "00080056") // Instance Availability
+            {
+                builderfinal.appendElements(generator.compute_attribute(attribute._tag, ""));
+            }
+            else if (attribute._tag == "00080061") // Modalities in Study
+            {
+                std::string const value =
+                        response["0020000d"].Obj().getField("Value").Array()[0].String();
+                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+            }
+            else if (attribute._tag == "00201206") // Number of Study Related Series
+            {
+                std::string const value =
+                        response["0020000d"].Obj().getField("Value").Array()[0].String();
+                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+            }
+            else if (attribute._tag == "00201208") // Number of Study Related Instances
+            {
+                std::string const value =
+                        response["0020000d"].Obj().getField("Value").Array()[0].String();
+                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+            }
+            else if (attribute._tag == "00201209") // Number of Series Related Instances
+            {
+                std::string const value =
+                        response["0020000e"].Obj().getField("Value").Array()[0].String();
+                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+            }
+            else
+            {
+                mongo::BSONObjBuilder builder;
+                builder << "vr" << attribute._vr;
+                builder.appendNull("Value");
+
+                mongo::BSONObj element =
+                        BSON(attribute._tag << builder.obj());
+
+                builderfinal.appendElements(element);
+            }
+        }
+    }
+
+    return builderfinal.obj();
+}
 
 Qido_rs
 ::Qido_rs(const std::string &pathinfo,
@@ -44,7 +110,7 @@ Qido_rs
     generator.set_skippedResults(this->_skippedResults);
     generator.set_fuzzymatching(this->_fuzzymatching);
 
-    Uint16 status = generator.set_query(object);
+    Uint16 status = generator.process_bson(object);
     if (status != STATUS_Pending)
     {
         if ( ! generator.is_allow())
@@ -84,7 +150,10 @@ Qido_rs
     bool isfirst = true;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
-        findedobject = this->check_mandatory_field_in_response(findedobject, generator);
+        findedobject = check_mandatory_field_in_response(findedobject,
+                                                         generator,
+                                                         this->_query_retrieve_level,
+                                                         this->get_mandatory_fields());
 
         if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
         {
@@ -466,70 +535,6 @@ Qido_rs
 
         this->_includefields.push_back(tag._tag);
     }
-}
-
-mongo::BSONObj
-Qido_rs
-::check_mandatory_field_in_response(const mongo::BSONObj &response,
-                                    QueryGenerator &generator)
-{
-    mongo::BSONObjBuilder builderfinal;
-    builderfinal.appendElements(response);
-
-    // Add Query retrieve level
-    mongo::BSONObj queryretrievelevel =
-            BSON("00080052" << BSON("vr" << "CS" <<
-                                    "Value" << BSON_ARRAY(this->_query_retrieve_level)));
-    builderfinal.appendElements(queryretrievelevel);
-
-    for (Attribute attribute : this->get_mandatory_fields())
-    {
-        if (attribute._tag == "00080052") continue;
-        if (!response.hasField(attribute._tag))
-        {
-            if (attribute._tag == "00080056") // Instance Availability
-            {
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, ""));
-            }
-            else if (attribute._tag == "00080061") // Modalities in Study
-            {
-                std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
-            }
-            else if (attribute._tag == "00201206") // Number of Study Related Series
-            {
-                std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
-            }
-            else if (attribute._tag == "00201208") // Number of Study Related Instances
-            {
-                std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
-            }
-            else if (attribute._tag == "00201209") // Number of Series Related Instances
-            {
-                std::string const value =
-                        response["0020000e"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
-            }
-            else
-            {
-                mongo::BSONObjBuilder builder;
-                builder << "vr" << attribute._vr;
-                builder.appendNull("Value");
-
-                mongo::BSONObj element =
-                        BSON(attribute._tag << builder.obj());
-
-                builderfinal.appendElements(element);
-            }
-        }
-    }
-
-    return builderfinal.obj();
 }
 
 } // namespace services

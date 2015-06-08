@@ -43,18 +43,7 @@ static void findCallback(
 
     if (responseCount == 1)
     {
-        mongo::BSONObj object = dataset_to_bson(requestIdentifiers);
-        if (!object.isValid() || object.isEmpty())
-        {
-            status = 0xa900;
-        }
-
-        // Search into database
-        if (status == STATUS_Pending)
-        {
-            status = context->set_query(object);
-        }
-
+        status = context->process_dataset(requestIdentifiers, false);
         if (status != STATUS_Pending)
         {
             createStatusDetail(status, DCM_UndefinedTagKey,
@@ -92,7 +81,7 @@ static void findCallback(
         }
         else
         {
-            (*responseIdentifiers) = bson_to_dataset(object);
+            (*responseIdentifiers) = context->retrieve_dataset(object);
 
             OFCondition condition =
                     (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,

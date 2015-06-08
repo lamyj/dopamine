@@ -51,22 +51,9 @@ static void storeCallback(
         }
         else
         {
-            Uint16 status = STATUS_Pending;
-
             StoreGenerator* context =
                     reinterpret_cast<StoreGenerator*>(callbackData);
-
-            mongo::BSONObj object = dataset_to_bson(*imageDataSet, true);
-            if (!object.isValid() || object.isEmpty())
-            {
-                status = STATUS_STORE_Refused_OutOfResources;
-            }
-
-            if (status == STATUS_Pending)
-            {
-                context->set_dataset(*imageDataSet);
-                status = context->set_query(object);
-            }
+            Uint16 status = context->process_dataset(*imageDataSet, true);
 
             if (status != STATUS_Pending)
             {

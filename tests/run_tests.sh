@@ -98,7 +98,7 @@ REMOTE=localhost:${DOPAMINE_TEST_LISTENINGPORT}
 EOF
 
 # Create Dump Dataset File for Dataset Creation
-cat > ${DIRECTORY}/dataset << EOF
+cat > ${DIRECTORY}/dopamine_test_file_01 << EOF
 
 # Dicom-File-Format
 
@@ -127,7 +127,7 @@ cat > ${DIRECTORY}/dataset << EOF
 (0008,0060) CS [MR]                                     #   2, 1 Modality
 (0008,0070) LO [Bruker BioSpin MRI GmbH]                #  24, 1 Manufacturer
 (0008,0080) LO [STRASBOURG]                             #  11, 1 InstitutionName
-(0008,0090) PN (no value available)                     #   0, 0 ReferringPhysicianName
+(0008,0090) PN [Gregory^House]                          #  14, 1 ReferringPhysicianName
 (0008,1010) SH [Station]                                #  8, 1 StationName
 (0010,0010) PN [Doe^Jane]                               #  9, 1 PatientName
 (0010,0020) LO [dopamine_test_01]                       #  17, 1 PatientID
@@ -185,7 +185,7 @@ cat > ${DIRECTORY}/dataset << EOF
 (0028,1055) LO [MinMax]                                 #   6, 1 WindowCenterWidthExplanation
 EOF
 
-cat > ${DIRECTORY}/dataset_01 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_02 << EOF
 
 # Dicom-File-Format
 
@@ -285,7 +285,7 @@ cat > ${DIRECTORY}/dataset_01 << EOF
 (0028,1054) LO [US]                                     #   2, 1 RescaleType
 EOF
 
-cat > ${DIRECTORY}/dataset_02 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_03 << EOF
 
 # Dicom-File-Format
 
@@ -385,7 +385,7 @@ cat > ${DIRECTORY}/dataset_02 << EOF
 (0028,1054) LO [US]                                     #   2, 1 RescaleType
 EOF
 
-cat > ${DIRECTORY}/dataset_03 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_04 << EOF
 
 # Dicom-File-Format
 
@@ -486,7 +486,7 @@ cat > ${DIRECTORY}/dataset_03 << EOF
 EOF
 
 
-cat > ${DIRECTORY}/dumpjohndoe << EOF
+cat > ${DIRECTORY}/dopamine_test_file_05 << EOF
 
 # Dicom-File-Format
 
@@ -573,7 +573,7 @@ cat > ${DIRECTORY}/dumpjohndoe << EOF
 (0028,1055) LO [MinMax]                                 #   6, 1 WindowCenterWidthExplanation
 EOF
 
-cat > ${DIRECTORY}/dumpjohndoe2 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_06 << EOF
 
 # Dicom-File-Format
 
@@ -660,7 +660,7 @@ cat > ${DIRECTORY}/dumpjohndoe2 << EOF
 (0028,1055) LO [MinMax]                                 #   6, 1 WindowCenterWidthExplanation
 EOF
 
-cat > ${DIRECTORY}/dopamine_test_file_04 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_07 << EOF
 
 # Dicom-File-Format
 
@@ -760,7 +760,7 @@ cat > ${DIRECTORY}/dopamine_test_file_04 << EOF
 (0028,1054) LO [US]                                     #   2, 1 RescaleType
 EOF
 
-cat > ${DIRECTORY}/dopamine_test_file_05 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_08 << EOF
 
 # Dicom-File-Format
 
@@ -860,7 +860,7 @@ cat > ${DIRECTORY}/dopamine_test_file_05 << EOF
 (0028,1054) LO [US]                                     #   2, 1 RescaleType
 EOF
 
-cat > ${DIRECTORY}/dopamine_test_file_06 << EOF
+cat > ${DIRECTORY}/dopamine_test_file_09 << EOF
 
 # Dicom-File-Format
 
@@ -960,565 +960,123 @@ cat > ${DIRECTORY}/dopamine_test_file_06 << EOF
 (0028,1054) LO [US]                                     #   2, 1 RescaleType
 EOF
 
-cat > ${DIRECTORY}/dopamine_test_file_07 << EOF
-
-# Dicom-File-Format
-
-# Dicom-Meta-Information-Header
-# Used TransferSyntax: Little Endian Explicit
-(0002,0000) UL 198                                      #   4, 1 FileMetaInformationGroupLength
-(0002,0001) OB 00\01                                    #   2, 1 FileMetaInformationVersion
-(0002,0002) UI =MRImageStorage                          #  26, 1 MediaStorageSOPClassUID
-(0002,0003) UI [1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489240] #  54, 1 MediaStorageSOPInstanceUID
-(0002,0010) UI =LittleEndianExplicit                    #  20, 1 TransferSyntaxUID
-(0002,0012) UI [1.2.276.0.7230010.3.0.3.6.0]            #  28, 1 ImplementationClassUID
-(0002,0013) SH [OFFIS_DCMTK_360]                        #  16, 1 ImplementationVersionName
-
-# Dicom-Data-Set
-# Used TransferSyntax: Little Endian Explicit
-(0008,0008) CS [ORIGINAL\PRIMARY]                       #  16, 2 ImageType
-(0008,0012) DA [20150528]                               #   8, 1 InstanceCreationDate
-(0008,0013) TM [161407]                                 #   6, 1 InstanceCreationTime
-(0008,0016) UI =MRImageStorage                          #  26, 1 SOPClassUID
-(0008,0018) UI [1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489240] #  54, 1 SOPInstanceUID
-(0008,0020) DA [20130923]                               #   8, 1 StudyDate
-(0008,0021) DA (no value available)                     #   0, 0 SeriesDate
-(0008,0022) DA [20130923]                               #   8, 1 AcquisitionDate
-(0008,0030) TM [105043]                                 #   6, 1 StudyTime
-(0008,0031) TM (no value available)                     #   0, 0 SeriesTime
-(0008,0032) TM [161443]                                 #   6, 1 AcquisitionTime
-(0008,0050) SH (no value available)                     #   0, 0 AccessionNumber
-(0008,0060) CS [MR]                                     #   2, 1 Modality
-(0008,0070) LO [Bruker BioSpin MRI GmbH]                #  24, 1 Manufacturer
-(0008,0080) LO [FLI-IAM]                                #   8, 1 InstitutionName
-(0008,0090) PN (no value available)                     #   0, 0 ReferringPhysicianName
-(0008,1010) SH [BioSpec 47/40]                          #  14, 1 StationName
-(0008,1030) LO (no value available)                     #   0, 0 StudyDescription
-(0008,103e) LO [Protocol_01]                            #  12, 1 SeriesDescription
-(0008,1050) PN [fli_iam]                                #   8, 1 PerformingPhysicianName
-(0010,0010) PN [Little^Stuart]                          #  14, 1 PatientName
-(0010,0020) LO [subject_04]                             #  10, 1 PatientID
-(0010,0030) DA (no value available)                     #   0, 0 PatientBirthDate
-(0010,0040) CS [M]                                      #   2, 1 PatientSex
-(0010,1030) DS [5]                                      #   2, 1 PatientWeight
-(0010,2201) LO [to]                                     #   2, 1 PatientSpeciesDescription
-(0010,2203) CS (no value available)                     #   0, 0 PatientSexNeutered
-(0010,2210) CS [QUADRUPED]                              #  10, 1 AnatomicalOrientationType
-(0010,2292) LO (no value available)                     #   0, 0 PatientBreedDescription
-(0010,2293) SQ (Sequence with undefined length #=0)     # u/l, 1 PatientBreedCodeSequence
-(fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
-(0010,2294) SQ (Sequence with undefined length #=0)     # u/l, 1 BreedRegistrationSequence
-(fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
-(0010,2297) PN (no value available)                     #   0, 0 ResponsiblePerson
-(0010,2299) LO (no value available)                     #   0, 0 ResponsibleOrganization
-(0010,4000) LT (no value available)                     #   0, 0 PatientComments
-(0018,0020) CS [RM\IR]                                  #   6, 2 ScanningSequence
-(0018,0021) CS [NONE]                                   #   4, 1 SequenceVariant
-(0018,0022) CS (no value available)                     #   0, 0 ScanOptions
-(0018,0023) CS [2D]                                     #   2, 1 MRAcquisitionType
-(0018,0024) SH [RARE (pvm)]                             #  10, 1 SequenceName
-(0018,0050) DS [0.8]                                    #   4, 1 SliceThickness
-(0018,0080) DS [7117.36]                                #   8, 1 RepetitionTime
-(0018,0081) DS [52.5]                                   #   4, 1 EchoTime
-(0018,0082) DS (no value available)                     #   0, 0 InversionTime
-(0018,0083) DS [2]                                      #   2, 1 NumberOfAverages
-(0018,0084) DS [200.333]                                #   8, 1 ImagingFrequency
-(0018,0085) SH [1H]                                     #   2, 1 ImagedNucleus
-(0018,0088) DS [0.8]                                    #   4, 1 SpacingBetweenSlices
-(0018,0089) IS [128]                                    #   4, 1 NumberOfPhaseEncodingSteps
-(0018,0091) IS [8]                                      #   2, 1 EchoTrainLength
-(0018,0095) DS [390.625]                                #   8, 1 PixelBandwidth
-(0018,1020) LO [ParaVision5.1]                          #  14, 1 SoftwareVersions
-(0018,1030) LO [Protocol_01]                            #  12, 1 ProtocolName
-(0018,1310) US 128\0\0\128                              #   8, 4 AcquisitionMatrix
-(0018,1312) CS [COL]                                    #   4, 1 InPlanePhaseEncodingDirection
-(0018,1314) DS [180]                                    #   4, 1 FlipAngle
-(0018,5100) CS [HFS]                                    #   4, 1 PatientPosition
-(0020,000d) UI [2.16.756.5.5.100.3611280983.14235.1379922643.24566] #  50, 1 StudyInstanceUID
-(0020,000e) UI [2.16.756.5.5.100.3611280983.31883.1379945915.30] #  48, 1 SeriesInstanceUID
-(0020,0010) SH [Study_01]                               #   8, 1 StudyID
-(0020,0011) IS [30001]                                  #   6, 1 SeriesNumber
-(0020,0013) IS [1]                                      #   2, 1 InstanceNumber
-(0020,0032) DS [-15\-15\-13.6]                          #  14, 3 ImagePositionPatient
-(0020,0037) DS [1\0\0\0\1\0]                            #  12, 6 ImageOrientationPatient
-(0020,0052) UI [2.16.756.5.5.100.3611280983.31883.1379945915.30] #  48, 1 FrameOfReferenceUID
-(0020,0060) CS (no value available)                     #   0, 0 Laterality
-(0020,1002) IS [31]                                     #   2, 1 ImagesInAcquisition
-(0020,1040) LO (no value available)                     #   0, 0 PositionReferenceIndicator
-(0020,4000) LT (no value available)                     #   0, 0 ImageComments
-(0028,0002) US 1                                        #   2, 1 SamplesPerPixel
-(0028,0004) CS [MONOCHROME2]                            #  12, 1 PhotometricInterpretation
-(0028,0010) US 128                                      #   2, 1 Rows
-(0028,0011) US 128                                      #   2, 1 Columns
-(0028,0030) DS [0.234375\0.234375]                      #  18, 2 PixelSpacing
-(0028,0100) US 16                                       #   2, 1 BitsAllocated
-(0028,0101) US 16                                       #   2, 1 BitsStored
-(0028,0102) US 15                                       #   2, 1 HighBit
-(0028,0103) US 0                                        #   2, 1 PixelRepresentation
-(0028,1052) DS [-32768]                                 #   6, 1 RescaleIntercept
-(0028,1053) DS [1]                                      #   2, 1 RescaleSlope
-(0028,1054) LO [US]                                     #   2, 1 RescaleType
-EOF
-
-cat > ${DIRECTORY}/dopamine_test_file_08 << EOF
-
-# Dicom-File-Format
-
-# Dicom-Meta-Information-Header
-# Used TransferSyntax: Little Endian Explicit
-(0002,0000) UL 198                                      #   4, 1 FileMetaInformationGroupLength
-(0002,0001) OB 00\01                                    #   2, 1 FileMetaInformationVersion
-(0002,0002) UI =MRImageStorage                          #  26, 1 MediaStorageSOPClassUID
-(0002,0003) UI [1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489271] #  54, 1 MediaStorageSOPInstanceUID
-(0002,0010) UI =LittleEndianExplicit                    #  20, 1 TransferSyntaxUID
-(0002,0012) UI [1.2.276.0.7230010.3.0.3.6.0]            #  28, 1 ImplementationClassUID
-(0002,0013) SH [OFFIS_DCMTK_360]                        #  16, 1 ImplementationVersionName
-
-# Dicom-Data-Set
-# Used TransferSyntax: Little Endian Explicit
-(0008,0008) CS [ORIGINAL\PRIMARY]                       #  16, 2 ImageType
-(0008,0012) DA [20150528]                               #   8, 1 InstanceCreationDate
-(0008,0013) TM [161407]                                 #   6, 1 InstanceCreationTime
-(0008,0016) UI =MRImageStorage                          #  26, 1 SOPClassUID
-(0008,0018) UI [1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489271] #  54, 1 SOPInstanceUID
-(0008,0020) DA [20130923]                               #   8, 1 StudyDate
-(0008,0021) DA (no value available)                     #   0, 0 SeriesDate
-(0008,0022) DA [20130923]                               #   8, 1 AcquisitionDate
-(0008,0030) TM [105131]                                 #   6, 1 StudyTime
-(0008,0031) TM (no value available)                     #   0, 0 SeriesTime
-(0008,0032) TM [180451]                                 #   6, 1 AcquisitionTime
-(0008,0050) SH (no value available)                     #   0, 0 AccessionNumber
-(0008,0060) CS [MR]                                     #   2, 1 Modality
-(0008,0070) LO [Bruker BioSpin MRI GmbH]                #  24, 1 Manufacturer
-(0008,0080) LO [FLI-IAM]                                #   8, 1 InstitutionName
-(0008,0090) PN (no value available)                     #   0, 0 ReferringPhysicianName
-(0008,1010) SH [BioSpec 47/40]                          #  14, 1 StationName
-(0008,1030) LO (no value available)                     #   0, 0 StudyDescription
-(0008,103e) LO [Protocol_10]                            #  12, 1 SeriesDescription
-(0008,1050) PN [fli_iam]                                #   8, 1 PerformingPhysicianName
-(0010,0010) PN [Little^Stuart]                          #  14, 1 PatientName
-(0010,0020) LO [subject_04]                             #  10, 1 PatientID
-(0010,0030) DA (no value available)                     #   0, 0 PatientBirthDate
-(0010,0040) CS [M]                                      #   2, 1 PatientSex
-(0010,1030) DS [5]                                      #   2, 1 PatientWeight
-(0010,2201) LO [to]                                     #   2, 1 PatientSpeciesDescription
-(0010,2203) CS (no value available)                     #   0, 0 PatientSexNeutered
-(0010,2210) CS [QUADRUPED]                              #  10, 1 AnatomicalOrientationType
-(0010,2292) LO (no value available)                     #   0, 0 PatientBreedDescription
-(0010,2293) SQ (Sequence with undefined length #=0)     # u/l, 1 PatientBreedCodeSequence
-(fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
-(0010,2294) SQ (Sequence with undefined length #=0)     # u/l, 1 BreedRegistrationSequence
-(fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
-(0010,2297) PN (no value available)                     #   0, 0 ResponsiblePerson
-(0010,2299) LO (no value available)                     #   0, 0 ResponsibleOrganization
-(0010,4000) LT (no value available)                     #   0, 0 PatientComments
-(0018,0020) CS [RM\IR]                                  #   6, 2 ScanningSequence
-(0018,0021) CS [NONE]                                   #   4, 1 SequenceVariant
-(0018,0022) CS (no value available)                     #   0, 0 ScanOptions
-(0018,0023) CS [2D]                                     #   2, 1 MRAcquisitionType
-(0018,0024) SH [RARE (pvm)]                             #  10, 1 SequenceName
-(0018,0050) DS [0.8]                                    #   4, 1 SliceThickness
-(0018,0080) DS [800]                                    #   4, 1 RepetitionTime
-(0018,0081) DS [5.39]                                   #   4, 1 EchoTime
-(0018,0082) DS (no value available)                     #   0, 0 InversionTime
-(0018,0083) DS [1]                                      #   2, 1 NumberOfAverages
-(0018,0084) DS [200.333]                                #   8, 1 ImagingFrequency
-(0018,0085) SH [1H]                                     #   2, 1 ImagedNucleus
-(0018,0088) DS [0.8]                                    #   4, 1 SpacingBetweenSlices
-(0018,0089) IS [76]                                     #   2, 1 NumberOfPhaseEncodingSteps
-(0018,0091) IS [4]                                      #   2, 1 EchoTrainLength
-(0018,0095) DS [390.625]                                #   8, 1 PixelBandwidth
-(0018,1020) LO [ParaVision5.1]                          #  14, 1 SoftwareVersions
-(0018,1030) LO [Protocol_10]                            #  12, 1 ProtocolName
-(0018,1310) US 0\76\128\0                               #   8, 4 AcquisitionMatrix
-(0018,1312) CS [ROW]                                    #   4, 1 InPlanePhaseEncodingDirection
-(0018,1314) DS [180]                                    #   4, 1 FlipAngle
-(0018,5100) CS [HFS]                                    #   4, 1 PatientPosition
-(0020,000d) UI [2.16.756.5.5.100.3611280983.14235.1379922691.24865] #  50, 1 StudyInstanceUID
-(0020,000e) UI [2.16.756.5.5.100.3611280983.9365.1379952678.29] #  46, 1 SeriesInstanceUID
-(0020,0010) SH [Study_02]                               #   8, 1 StudyID
-(0020,0011) IS [120001]                                 #   6, 1 SeriesNumber
-(0020,0013) IS [1]                                      #   2, 1 InstanceNumber
-(0020,0032) DS [-14.9986\-15.0014\-3.2]                 #  22, 3 ImagePositionPatient
-(0020,0037) DS [1\9.61179e-05\0\-9.61179e-05\1\0]       #  32, 6 ImageOrientationPatient
-(0020,0052) UI [2.16.756.5.5.100.3611280983.9365.1379952678.29] #  46, 1 FrameOfReferenceUID
-(0020,0060) CS (no value available)                     #   0, 0 Laterality
-(0020,1002) IS [125]                                    #   4, 1 ImagesInAcquisition
-(0020,1040) LO (no value available)                     #   0, 0 PositionReferenceIndicator
-(0020,4000) LT (no value available)                     #   0, 0 ImageComments
-(0028,0002) US 1                                        #   2, 1 SamplesPerPixel
-(0028,0004) CS [MONOCHROME2]                            #  12, 1 PhotometricInterpretation
-(0028,0010) US 128                                      #   2, 1 Rows
-(0028,0011) US 128                                      #   2, 1 Columns
-(0028,0030) DS [0.234375\0.234375]                      #  18, 2 PixelSpacing
-(0028,0100) US 16                                       #   2, 1 BitsAllocated
-(0028,0101) US 16                                       #   2, 1 BitsStored
-(0028,0102) US 15                                       #   2, 1 HighBit
-(0028,0103) US 0                                        #   2, 1 PixelRepresentation
-(0028,1052) DS [-32768]                                 #   6, 1 RescaleIntercept
-(0028,1053) DS [1]                                      #   2, 1 RescaleSlope
-(0028,1054) LO [US]                                     #   2, 1 RescaleType
-EOF
-
 # Export configuration file path
 export DOPAMINE_TEST_CONFIG=${DIRECTORY}/config
 export DOPAMINE_TEST_BADCONFIG=${DIRECTORY}/badconfig
-export DOPAMINE_TEST_DICOMFILE=${DIRECTORY}/temp_dir/2014/12/15/AB2411EA/3B11F27C/BE5F493E
 
-export DOPAMINE_TEST_DICOMFILE_01=${DIRECTORY}/temp_dir/2015/5/4/92582B31/21668918/91C46510
-export DOPAMINE_TEST_DICOMFILE_02=${DIRECTORY}/temp_dir/2015/5/4/92582B31/21668918/91C46526
-export DOPAMINE_TEST_DICOMFILE_03=${DIRECTORY}/temp_dir/2015/5/4/92582B31/21668918/91C46527
+# Export DICOM test file path
+export DOPAMINE_TEST_DICOMFILE_01=${DIRECTORY}/Patient01_Study01_Series01_Instance01
+export DOPAMINE_TEST_DICOMFILE_02=${DIRECTORY}/Patient02_Study01_Series01_Instance01
+export DOPAMINE_TEST_DICOMFILE_03=${DIRECTORY}/Patient02_Study01_Series01_Instance02
+export DOPAMINE_TEST_DICOMFILE_04=${DIRECTORY}/Patient02_Study01_Series01_Instance03
+export DOPAMINE_TEST_DICOMFILE_05=${DIRECTORY}/Patient03_Study01_Series01_Instance01
+export DOPAMINE_TEST_DICOMFILE_06=${DIRECTORY}/Patient03_Study02_Series01_Instance01
+export DOPAMINE_TEST_DICOMFILE_07=${DIRECTORY}/Patient04_Study01_Series01_Instance01
+export DOPAMINE_TEST_DICOMFILE_08=${DIRECTORY}/Patient04_Study01_Series01_Instance02
+export DOPAMINE_TEST_DICOMFILE_09=${DIRECTORY}/Patient04_Study01_Series01_Instance03
 
-export DOPAMINE_TEST_DICOMFILE_04=${DIRECTORY}/DicomFile_Test_04
-export DOPAMINE_TEST_DICOMFILE_05=${DIRECTORY}/DicomFile_Test_05
-export DOPAMINE_TEST_DICOMFILE_06=${DIRECTORY}/DicomFile_Test_06
-export DOPAMINE_TEST_DICOMFILE_07=${DIRECTORY}/DicomFile_Test_07
-export DOPAMINE_TEST_DICOMFILE_08=${DIRECTORY}/DicomFile_Test_08
-
-export DOPAMINE_TEST_JOHNDOE=${DIRECTORY}/JohnDoe
-export DOPAMINE_TEST_JOHNDOE2=${DIRECTORY}/JohnDoe2
-
+#Output Directory
 export DOPAMINE_TEST_OUTPUTDIR=${DIRECTORY}/output
 mkdir ${DOPAMINE_TEST_OUTPUTDIR}
 
 # Create JavaScript to initialize mongo database
 cat > ${DIRECTORY}/create_db.js << EOF
 db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "00080008" : { "vr" : "CS", "Value" : [ "ORIGINAL", "PRIMARY", "OTHER" ] }, 
-      "00080012" : { "vr" : "DA", "Value" : [ "20140827" ] }, 
-      "00080013" : { "vr" : "TM", "Value" : [ "103310" ] }, 
-      "00080016" : { "vr" : "UI", "Value" : [ "1.2.840.10008.5.1.4.1.1.4" ] }, 
-      "00080018" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462458.1.0" ] }, 
-      "00080020" : { "vr" : "DA", "Value" : [ "20130328" ] }, 
-      "00080022" : { "vr" : "DA", "Value" : [ "20130328" ] }, 
-      "00080030" : { "vr" : "TM", "Value" : [ "101009" ] }, 
-      "00080032" : { "vr" : "TM", "Value" : [ "101818" ] }, 
-      "00080050" : { "vr" : "SH", "Value" : [ null ] }, 
-      "00080060" : { "vr" : "CS", "Value" : [ "MR" ] }, 
-      "00080070" : { "vr" : "LO", "Value" : [ "Bruker BioSpin MRI GmbH" ] }, 
-      "00080080" : { "vr" : "LO", "Value" : [ "STRASBOURG" ] }, 
-      "00080090" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "Greg^House" } ] }, 
-      "00081010" : { "vr" : "SH", "Value" : [ "Station" ] }, 
-      "00100010" : { "vr" : "PN", "Value" : [ { "Alphabetic" : "Doe^Jane" } ] }, 
-      "00100020" : { "vr" : "LO", "Value" : [ "dopamine_test_01" ] }, 
-      "00100030" : { "vr" : "DA", "Value" : [ null ] }, 
-      "00100040" : { "vr" : "CS", "Value" : [ "F" ] }, 
-      "00101030" : { "vr" : "DS", "Value" : [ 5 ] }, 
-      "00180020" : { "vr" : "CS", "Value" : [ "RM", "IR" ] }, 
-      "00180021" : { "vr" : "CS", "Value" : [ "NONE" ] }, 
-      "00180022" : { "vr" : "CS", "Value" : [ null ] }, 
-      "00180023" : { "vr" : "CS", "Value" : [ "2D" ] }, 
-      "00180024" : { "vr" : "SH", "Value" : [ "FAIR_EPI (pvm)" ] }, 
-      "00180050" : { "vr" : "DS", "Value" : [ 0.8 ] }, 
-      "00180080" : { "vr" : "DS", "Value" : [ 18000 ] }, 
-      "00180081" : { "vr" : "DS", "Value" : [ 33 ] }, 
-      "00180082" : { "vr" : "DS", "Value" : [ 35.37627273 ] }, 
-      "00180083" : { "vr" : "DS", "Value" : [ 1 ] }, 
-      "00180084" : { "vr" : "DS", "Value" : [ 200.3334861 ] }, 
-      "00180085" : { "vr" : "SH", "Value" : [ "1H" ] }, 
-      "00180088" : { "vr" : "DS", "Value" : [ 0.8 ] }, 
-      "00180089" : { "vr" : "IS", "Value" : [ 107 ] }, 
-      "00180091" : { "vr" : "IS", "Value" : [ 107 ] }, 
-      "00180094" : { "vr" : "DS", "Value" : [ 100 ] }, 
-      "00180095" : { "vr" : "DS", "Value" : [ 3337.783712 ] }, 
-      "00181020" : { "vr" : "LO", "Value" : [ "ParaVision 5.1" ] }, 
-      "00181030" : { "vr" : "LO", "Value" : [ "Protocol" ] }, 
-      "00181310" : { "vr" : "US", "Value" : [ 107, 0, 0, 107 ] }, 
-      "00181312" : { "vr" : "CS", "Value" : [ "COL" ] }, 
-      "00181314" : { "vr" : "DS", "Value" : [ 90 ] }, 
-      "00185100" : { "vr" : "CS", "Value" : [ "HFS" ] }, 
-      "0020000d" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.19057.1364461809.7789" ] }, 
-      "0020000e" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462458.1" ] }, 
-      "00200010" : { "vr" : "SH", "Value" : [ "Study_id" ] }, 
-      "00200011" : { "vr" : "IS", "Value" : [ 196609 ] }, 
-      "00200012" : { "vr" : "IS", "Value" : [ 1 ] }, 
-      "00200013" : { "vr" : "IS", "Value" : [ 1 ] }, 
-      "00200032" : { "vr" : "DS", "Value" : [ -15, -15, -1.6 ] }, 
-      "00200037" : { "vr" : "DS", "Value" : [ 1, 6.123031769e-17, 0, -6.123031769e-17, 1, 0 ] }, 
-      "00200052" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462458.1.6.15.18" ] }, 
-      "00201002" : { "vr" : "IS", "Value" : [ 75 ] }, 
-      "00201040" : { "vr" : "LO", "Value" : [ null ] }, 
-      "00201041" : { "vr" : "DS", "Value" : [ -1.6 ] }, 
-      "00280002" : { "vr" : "US", "Value" : [ 1 ] }, 
-      "00280004" : { "vr" : "CS", "Value" : [ "MONOCHROME2" ] }, 
-      "00280010" : { "vr" : "US", "Value" : [ 128 ] }, 
-      "00280011" : { "vr" : "US", "Value" : [ 128 ] }, 
-      "00280030" : { "vr" : "DS", "Value" : [ 0.234375, 0.234375 ] }, 
-      "00280100" : { "vr" : "US", "Value" : [ 16 ] }, 
-      "00280101" : { "vr" : "US", "Value" : [ 16 ] }, 
-      "00280102" : { "vr" : "US", "Value" : [ 15 ] }, 
-      "00280103" : { "vr" : "US", "Value" : [ 1 ] }, 
-      "00280106" : { "vr" : "US", "Value" : [ 3 ] }, 
-      "00280107" : { "vr" : "US", "Value" : [ 32766 ] }, 
-      "00281050" : { "vr" : "DS", "Value" : [ 16385 ] }, 
-      "00281051" : { "vr" : "DS", "Value" : [ 32764 ] }, 
-      "00281055" : { "vr" : "LO", "Value" : [ "MinMax" ] }, 
-      "location" : "${DOPAMINE_TEST_DICOMFILE}" }
-db.datasets.insert(j)
-
-db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "00080008" : { vr: "CS", Value: [ "ORIGINAL", "PRIMARY" ] }, 
-      "00080012" : { vr: "DA", Value: [ "20150504" ] }, 
-      "00080013" : { vr: "TM", Value: [ "091318" ] }, 
-      "00080016" : { vr: "UI", Value: [ "1.2.840.10008.5.1.4.1.1.4" ] }, 
-      "00080018" : { vr: "UI", Value: [ "1.2.276.0.7230010.3.1.4.8323329.4396.1430723598.811429" ] }, 
-      "00080020" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080021" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080022" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080030" : { vr: "TM", Value: [ "093002" ] }, 
-      "00080031" : { vr: "TM", Value: [ "103006" ] }, 
-      "00080032" : { vr: "TM", Value: [ "102507" ] }, 
-      "00080050" : { vr: "SH", Value: null }, 
-      "00080060" : { vr: "CS", Value: [ "MR" ] }, 
-      "00080070" : { vr: "LO", Value: [ "Bruker BioSpin MRI GmbH" ] }, 
-      "00080080" : { vr: "LO", Value: [ "ICUDE Strasbourg" ] }, 
-      "00080090" : { vr: "PN", Value: [ { Alphabetic: "House^Gregory^^Dr." } ] }, 
-      "00081010" : { vr: "SH", Value: [ "Biospec" ] }, 
-      "00081030" : { vr: "LO", Value: [ "PROTOCOLE_TOUT" ] }, 
-      "0008103e" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00081050" : { vr: "PN", Value: [ { Alphabetic: "Number^thirteen" } ] }, 
-      "00100010" : { vr: "PN", Value: [ { Alphabetic: "Mouse^Mickey" } ] }, 
-      "00100020" : { vr: "LO", Value: [ "id123" ] }, 
-      "00100030" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00100040" : { vr: "CS", Value: [ "M" ] }, 
-      "00101030" : { vr: "DS", Value: [ 0.001 ] }, 
-      "00102201" : { vr: "LO", Value: [ "to" ] }, 
-      "00102203" : { vr: "CS", Value: null }, 
-      "00102210" : { vr: "CS", Value: [ "QUADRUPED" ] }, 
-      "00102292" : { vr: "LO", Value: null }, 
-      "00102293" : { vr: "SQ", Value: {} }, 
-      "00102294" : { vr: "SQ", Value: {} }, 
-      "00102297" : { vr: "PN", Value: null }, 
-      "00102299" : { vr: "LO", Value: null }, 
-      "00104000" : { vr: "LT", Value: null }, 
-      "00180020" : { vr: "CS", Value: [ "RM", "IR" ] }, 
-      "00180021" : { vr: "CS", Value: [ "NONE" ] }, 
-      "00180022" : { vr: "CS", Value: null }, 
-      "00180023" : { vr: "CS", Value: [ "2D" ] }, 
-      "00180024" : { vr: "SH", Value: [ "Bruker:RARE" ] }, 
-      "00180050" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180080" : { vr: "DS", Value: [ 6000.0 ] }, 
-      "00180081" : { vr: "DS", Value: [ 36.0 ] }, 
-      "00180082" : { vr: "DS", Value: null }, 
-      "00180083" : { vr: "DS", Value: [ 4.0 ] }, 
-      "00180084" : { vr: "DS", Value: [ 300.333 ] }, 
-      "00180085" : { vr: "SH", Value: [ "1H" ] }, 
-      "00180088" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180089" : { vr: "IS", Value: [ 96 ] }, 
-      "00180091" : { vr: "IS", Value: [ 8 ] }, 
-      "00180095" : { vr: "DS", Value: [ 156.25 ] }, 
-      "00181020" : { vr: "LO", Value: [ "ParaVision6.0" ] }, 
-      "00181030" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00181310" : { vr: "US", Value: [ 0, 0, 0, 0 ] }, 
-      "00181312" : { vr: "CS", Value: null }, 
-      "00181314" : { vr: "DS", Value: [ 90.0 ] }, 
-      "00185100" : { vr: "CS", Value: [ "HFS" ] }, 
-      "0020000d" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.19866.1424334602.23" ] }, 
-      "0020000e" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200010" : { vr: "SH", Value: [ "FLIIAM^19022015" ] }, 
-      "00200011" : { vr: "IS", Value: [ 50001 ] }, 
-      "00200013" : { vr: "IS", Value: [ 1 ] }, 
-      "00200032" : { vr: "DS", Value: [ -7.35943, -8.782920000000001, -7.85765 ] }, 
-      "00200037" : { vr: "DS", Value: [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0 ] }, 
-      "00200052" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200060" : { vr: "CS", Value: null }, 
-      "00201002" : { vr: "IS", Value: [ 3 ] }, 
-      "00201040" : { vr: "LO", Value: null }, 
-      "00204000" : { vr: "LT", Value: null }, 
-      "00280002" : { vr: "US", Value: [ 1 ] }, 
-      "00280004" : { vr: "CS", Value: [ "MONOCHROME2" ] }, 
-      "00280010" : { vr: "US", Value: [ 128 ] }, 
-      "00280011" : { vr: "US", Value: [ 128 ] }, 
-      "00280030" : { vr: "DS", Value: [ 0.125, 0.125 ] }, 
-      "00280100" : { vr: "US", Value: [ 16 ] }, 
-      "00280101" : { vr: "US", Value: [ 16 ] }, 
-      "00280102" : { vr: "US", Value: [ 15 ] }, 
-      "00280103" : { vr: "US", Value: [ 0 ] }, 
-      "00281052" : { vr: "DS", Value: [ -32768.0 ] }, 
-      "00281053" : { vr: "DS", Value: [ 1.0 ] }, 
-      "00281054" : { vr: "LO", Value: [ "US" ] }, 
-      "location" : "${DOPAMINE_TEST_DICOMFILE_01}" }
-db.datasets.insert(j)
-
-db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "00080008" : { vr: "CS", Value: [ "ORIGINAL", "PRIMARY" ] }, 
-      "00080012" : { vr: "DA", Value: [ "20150504" ] }, 
-      "00080013" : { vr: "TM", Value: [ "091318" ] }, 
-      "00080016" : { vr: "UI", Value: [ "1.2.840.10008.5.1.4.1.1.4" ] }, 
-      "00080018" : { vr: "UI", Value: [ "1.2.276.0.7230010.3.1.4.8323329.4396.1430723598.811430" ] }, 
-      "00080020" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080021" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080022" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080030" : { vr: "TM", Value: [ "093002" ] }, 
-      "00080031" : { vr: "TM", Value: [ "103006" ] }, 
-      "00080032" : { vr: "TM", Value: [ "102507" ] }, 
-      "00080050" : { vr: "SH", Value: null }, 
-      "00080060" : { vr: "CS", Value: [ "MR" ] }, 
-      "00080070" : { vr: "LO", Value: [ "Bruker BioSpin MRI GmbH" ] }, 
-      "00080080" : { vr: "LO", Value: [ "ICUDE Strasbourg" ] }, 
-      "00080090" : { vr: "PN", Value: [ { Alphabetic: "House^Gregory^^Dr." } ] }, 
-      "00081010" : { vr: "SH", Value: [ "Biospec" ] }, 
-      "00081030" : { vr: "LO", Value: [ "PROTOCOLE_TOUT" ] }, 
-      "0008103e" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00081050" : { vr: "PN", Value: [ { Alphabetic: "Number^thirteen" } ] }, 
-      "00100010" : { vr: "PN", Value: [ { Alphabetic: "Mouse^Mickey" } ] }, 
-      "00100020" : { vr: "LO", Value: [ "id123" ] }, 
-      "00100030" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00100040" : { vr: "CS", Value: [ "M" ] }, 
-      "00101030" : { vr: "DS", Value: [ 0.001 ] }, 
-      "00102201" : { vr: "LO", Value: [ "to" ] }, 
-      "00102203" : { vr: "CS", Value: null }, 
-      "00102210" : { vr: "CS", Value: [ "QUADRUPED" ] }, 
-      "00102292" : { vr: "LO", Value: null }, 
-      "00102293" : { vr: "SQ", Value: {} }, 
-      "00102294" : { vr: "SQ", Value: {} }, 
-      "00102297" : { vr: "PN", Value: null }, 
-      "00102299" : { vr: "LO", Value: null }, 
-      "00104000" : { vr: "LT", Value: null }, 
-      "00180020" : { vr: "CS", Value: [ "RM", "IR" ] }, 
-      "00180021" : { vr: "CS", Value: [ "NONE" ] }, 
-      "00180022" : { vr: "CS", Value: null }, 
-      "00180023" : { vr: "CS", Value: [ "2D" ] }, 
-      "00180024" : { vr: "SH", Value: [ "Bruker:RARE" ] }, 
-      "00180050" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180080" : { vr: "DS", Value: [ 6000.0 ] }, 
-      "00180081" : { vr: "DS", Value: [ 36.0 ] }, 
-      "00180082" : { vr: "DS", Value: null }, 
-      "00180083" : { vr: "DS", Value: [ 4.0 ] }, 
-      "00180084" : { vr: "DS", Value: [ 300.333 ] }, 
-      "00180085" : { vr: "SH", Value: [ "1H" ] }, 
-      "00180088" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180089" : { vr: "IS", Value: [ 96 ] }, 
-      "00180091" : { vr: "IS", Value: [ 8 ] }, 
-      "00180095" : { vr: "DS", Value: [ 156.25 ] }, 
-      "00181020" : { vr: "LO", Value: [ "ParaVision6.0" ] }, 
-      "00181030" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00181310" : { vr: "US", Value: [ 0, 0, 0, 0 ] }, 
-      "00181312" : { vr: "CS", Value: null }, 
-      "00181314" : { vr: "DS", Value: [ 90.0 ] }, 
-      "00185100" : { vr: "CS", Value: [ "HFS" ] }, 
-      "0020000d" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.19866.1424334602.23" ] }, 
-      "0020000e" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200010" : { vr: "SH", Value: [ "FLIIAM^19022015" ] }, 
-      "00200011" : { vr: "IS", Value: [ 50001 ] }, 
-      "00200013" : { vr: "IS", Value: [ 2 ] }, 
-      "00200032" : { vr: "DS", Value: [ -7.35943, -8.782920000000001, -7.85765 ] }, 
-      "00200037" : { vr: "DS", Value: [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0 ] }, 
-      "00200052" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200060" : { vr: "CS", Value: null }, 
-      "00201002" : { vr: "IS", Value: [ 3 ] }, 
-      "00201040" : { vr: "LO", Value: null }, 
-      "00204000" : { vr: "LT", Value: null }, 
-      "00280002" : { vr: "US", Value: [ 1 ] }, 
-      "00280004" : { vr: "CS", Value: [ "MONOCHROME2" ] }, 
-      "00280010" : { vr: "US", Value: [ 128 ] }, 
-      "00280011" : { vr: "US", Value: [ 128 ] }, 
-      "00280030" : { vr: "DS", Value: [ 0.125, 0.125 ] }, 
-      "00280100" : { vr: "US", Value: [ 16 ] }, 
-      "00280101" : { vr: "US", Value: [ 16 ] }, 
-      "00280102" : { vr: "US", Value: [ 15 ] }, 
-      "00280103" : { vr: "US", Value: [ 0 ] }, 
-      "00281052" : { vr: "DS", Value: [ -32768.0 ] }, 
-      "00281053" : { vr: "DS", Value: [ 1.0 ] }, 
-      "00281054" : { vr: "LO", Value: [ "US" ] }, 
-      "location" : "${DOPAMINE_TEST_DICOMFILE_02}" }
-db.datasets.insert(j)
-
-db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "00080008" : { vr: "CS", Value: [ "ORIGINAL", "PRIMARY" ] }, 
-      "00080012" : { vr: "DA", Value: [ "20150504" ] }, 
-      "00080013" : { vr: "TM", Value: [ "091318" ] }, 
-      "00080016" : { vr: "UI", Value: [ "1.2.840.10008.5.1.4.1.1.4" ] }, 
-      "00080018" : { vr: "UI", Value: [ "1.2.276.0.7230010.3.1.4.8323329.4396.1430723598.811431" ] }, 
-      "00080020" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080021" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080022" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00080030" : { vr: "TM", Value: [ "093002" ] }, 
-      "00080031" : { vr: "TM", Value: [ "103006" ] }, 
-      "00080032" : { vr: "TM", Value: [ "102507" ] }, 
-      "00080050" : { vr: "SH", Value: null }, 
-      "00080060" : { vr: "CS", Value: [ "MR" ] }, 
-      "00080070" : { vr: "LO", Value: [ "Bruker BioSpin MRI GmbH" ] }, 
-      "00080080" : { vr: "LO", Value: [ "ICUDE Strasbourg" ] }, 
-      "00080090" : { vr: "PN", Value: [ { Alphabetic: "House^Gregory^^Dr." } ] }, 
-      "00081010" : { vr: "SH", Value: [ "Biospec" ] }, 
-      "00081030" : { vr: "LO", Value: [ "PROTOCOLE_TOUT" ] }, 
-      "0008103e" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00081050" : { vr: "PN", Value: [ { Alphabetic: "Number^thirteen" } ] }, 
-      "00100010" : { vr: "PN", Value: [ { Alphabetic: "Mouse^Mickey" } ] }, 
-      "00100020" : { vr: "LO", Value: [ "id123" ] }, 
-      "00100030" : { vr: "DA", Value: [ "20150219" ] }, 
-      "00100040" : { vr: "CS", Value: [ "M" ] }, 
-      "00101030" : { vr: "DS", Value: [ 0.001 ] }, 
-      "00102201" : { vr: "LO", Value: [ "to" ] }, 
-      "00102203" : { vr: "CS", Value: null }, 
-      "00102210" : { vr: "CS", Value: [ "QUADRUPED" ] }, 
-      "00102292" : { vr: "LO", Value: null }, 
-      "00102293" : { vr: "SQ", Value: {} }, 
-      "00102294" : { vr: "SQ", Value: {} }, 
-      "00102297" : { vr: "PN", Value: null }, 
-      "00102299" : { vr: "LO", Value: null }, 
-      "00104000" : { vr: "LT", Value: null }, 
-      "00180020" : { vr: "CS", Value: [ "RM", "IR" ] }, 
-      "00180021" : { vr: "CS", Value: [ "NONE" ] }, 
-      "00180022" : { vr: "CS", Value: null }, 
-      "00180023" : { vr: "CS", Value: [ "2D" ] }, 
-      "00180024" : { vr: "SH", Value: [ "Bruker:RARE" ] }, 
-      "00180050" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180080" : { vr: "DS", Value: [ 6000.0 ] }, 
-      "00180081" : { vr: "DS", Value: [ 36.0 ] }, 
-      "00180082" : { vr: "DS", Value: null }, 
-      "00180083" : { vr: "DS", Value: [ 4.0 ] }, 
-      "00180084" : { vr: "DS", Value: [ 300.333 ] }, 
-      "00180085" : { vr: "SH", Value: [ "1H" ] }, 
-      "00180088" : { vr: "DS", Value: [ 0.8 ] }, 
-      "00180089" : { vr: "IS", Value: [ 96 ] }, 
-      "00180091" : { vr: "IS", Value: [ 8 ] }, 
-      "00180095" : { vr: "DS", Value: [ 156.25 ] }, 
-      "00181020" : { vr: "LO", Value: [ "ParaVision6.0" ] }, 
-      "00181030" : { vr: "LO", Value: [ "T2_TurboRARE" ] }, 
-      "00181310" : { vr: "US", Value: [ 0, 0, 0, 0 ] }, 
-      "00181312" : { vr: "CS", Value: null }, 
-      "00181314" : { vr: "DS", Value: [ 90.0 ] }, 
-      "00185100" : { vr: "CS", Value: [ "HFS" ] }, 
-      "0020000d" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.19866.1424334602.23" ] }, 
-      "0020000e" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200010" : { vr: "SH", Value: [ "FLIIAM^19022015" ] }, 
-      "00200011" : { vr: "IS", Value: [ 50001 ] }, 
-      "00200013" : { vr: "IS", Value: [ 3 ] }, 
-      "00200032" : { vr: "DS", Value: [ -7.35943, -8.782920000000001, -7.85765 ] }, 
-      "00200037" : { vr: "DS", Value: [ 1.0, 0.0, 0.0, 0.0, 1.0, 0.0 ] }, 
-      "00200052" : { vr: "UI", Value: [ "2.16.756.5.5.100.1333920868.31960.1424338206.1" ] }, 
-      "00200060" : { vr: "CS", Value: null }, 
-      "00201002" : { vr: "IS", Value: [ 3 ] }, 
-      "00201040" : { vr: "LO", Value: null }, 
-      "00204000" : { vr: "LT", Value: null }, 
-      "00280002" : { vr: "US", Value: [ 1 ] }, 
-      "00280004" : { vr: "CS", Value: [ "MONOCHROME2" ] }, 
-      "00280010" : { vr: "US", Value: [ 128 ] }, 
-      "00280011" : { vr: "US", Value: [ 128 ] }, 
-      "00280030" : { vr: "DS", Value: [ 0.125, 0.125 ] }, 
-      "00280100" : { vr: "US", Value: [ 16 ] }, 
-      "00280101" : { vr: "US", Value: [ 16 ] }, 
-      "00280102" : { vr: "US", Value: [ 15 ] }, 
-      "00280103" : { vr: "US", Value: [ 0 ] }, 
-      "00281052" : { vr: "DS", Value: [ -32768.0 ] }, 
-      "00281053" : { vr: "DS", Value: [ 1.0 ] }, 
-      "00281054" : { vr: "LO", Value: [ "US" ] }, 
-      "location" : "${DOPAMINE_TEST_DICOMFILE_03}" }
-db.datasets.insert(j)
-
 j = { "00080018" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462499.1.0" ] }, 
       "0020000d" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.19057.1364461809.9999" ] }, 
       "0020000e" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462499.1" ] }, 
-      "location" : "" }
+      "Content" : "" }
 db.datasets.insert(j)
 
 j = { "00080018" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462488.1.0" ] }, 
       "0020000d" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.19057.1364461809.8888" ] }, 
       "0020000e" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462488.1" ] }, 
-      "location" : "/tmp/error_no_file.dcm" }
+      "Content" : "not_find" }
 db.datasets.insert(j)
+EOF
+
+export DOPAMINE_TEST_ADD_JANE="mongo --quiet ${DIRECTORY}/insert_jane_doe.js"
+
+cat > ${DIRECTORY}/insert_jane_doe.js << EOF
+db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
+j = { "00080008" : { "vr" : "CS", "Value" : [  "ORIGINAL",  "PRIMARY",  "OTHER" ] }, 
+      "00080012" : { "vr" : "DA", "Value" : [  "20140827" ] }, 
+      "00080013" : { "vr" : "TM", "Value" : [  "103310" ] }, 
+      "00080016" : { "vr" : "UI", "Value" : [  "1.2.840.10008.5.1.4.1.1.4" ] }, 
+      "00080018" : { "vr" : "UI", "Value" : [  "2.16.756.5.5.100.3611280983.20092.1364462458.1.0" ] }, 
+      "00080020" : { "vr" : "DA", "Value" : [  "20130328" ] }, 
+      "00080022" : { "vr" : "DA", "Value" : [  "20130328" ] }, 
+      "00080030" : { "vr" : "TM", "Value" : [  "101009" ] }, 
+      "00080032" : { "vr" : "TM", "Value" : [  "101818" ] }, 
+      "00080050" : { "vr" : "SH", "Value" : null }, 
+      "00080060" : { "vr" : "CS", "Value" : [  "MR" ] }, 
+      "00080070" : { "vr" : "LO", "Value" : [  "Bruker BioSpin MRI GmbH" ] }, 
+      "00080080" : { "vr" : "LO", "Value" : [  "STRASBOURG" ] }, 
+      "00080090" : { "vr" : "PN", "Value" : [  {  "Alphabetic" : "Gregory^House" } ] }, 
+      "00081010" : { "vr" : "SH", "Value" : [  "Station" ] }, 
+      "00100010" : { "vr" : "PN", "Value" : [  {  "Alphabetic" : "Doe^Jane" } ] }, 
+      "00100020" : { "vr" : "LO", "Value" : [  "dopamine_test_01" ] }, 
+      "00100030" : { "vr" : "DA", "Value" : null }, 
+      "00100040" : { "vr" : "CS", "Value" : [  "F" ] }, 
+      "00101030" : { "vr" : "DS", "Value" : [  5 ] }, 
+      "00180020" : { "vr" : "CS", "Value" : [  "RM",  "IR" ] }, 
+      "00180021" : { "vr" : "CS", "Value" : [  "NONE" ] }, 
+      "00180022" : { "vr" : "CS", "Value" : null }, 
+      "00180023" : { "vr" : "CS", "Value" : [  "2D" ] }, 
+      "00180024" : { "vr" : "SH", "Value" : [  "FAIR_EPI (pvm)" ] }, 
+      "00180050" : { "vr" : "DS", "Value" : [  0.8 ] }, 
+      "00180080" : { "vr" : "DS", "Value" : [  18000 ] }, 
+      "00180081" : { "vr" : "DS", "Value" : [  33 ] }, 
+      "00180082" : { "vr" : "DS", "Value" : [  35.37627273 ] }, 
+      "00180083" : { "vr" : "DS", "Value" : [  1 ] }, 
+      "00180084" : { "vr" : "DS", "Value" : [  200.3334861 ] }, 
+      "00180085" : { "vr" : "SH", "Value" : [  "1H" ] }, 
+      "00180088" : { "vr" : "DS", "Value" : [  0.8 ] }, 
+      "00180089" : { "vr" : "IS", "Value" : [  107 ] }, 
+      "00180091" : { "vr" : "IS", "Value" : [  107 ] }, 
+      "00180094" : { "vr" : "DS", "Value" : [  100 ] }, 
+      "00180095" : { "vr" : "DS", "Value" : [  3337.783712 ] }, 
+      "00181020" : { "vr" : "LO", "Value" : [  "ParaVision 5.1" ] }, 
+      "00181030" : { "vr" : "LO", "Value" : [  "Protocol" ] }, 
+      "00181310" : { "vr" : "US", "Value" : [  107,  0,  0,  107 ] }, 
+      "00181312" : { "vr" : "CS", "Value" : [  "COL" ] }, 
+      "00181314" : { "vr" : "DS", "Value" : [  90 ] }, 
+      "00185100" : { "vr" : "CS", "Value" : [  "HFS" ] }, 
+      "0020000d" : { "vr" : "UI", "Value" : [  "2.16.756.5.5.100.3611280983.19057.1364461809.7789" ] }, 
+      "0020000e" : { "vr" : "UI", "Value" : [  "2.16.756.5.5.100.3611280983.20092.1364462458.1" ] }, 
+      "00200010" : { "vr" : "SH", "Value" : [  "Study_id" ] }, 
+      "00200011" : { "vr" : "IS", "Value" : [  196609 ] }, 
+      "00200012" : { "vr" : "IS", "Value" : [  1 ] }, 
+      "00200013" : { "vr" : "IS", "Value" : [  1 ] }, 
+      "00200032" : { "vr" : "DS", "Value" : [  -15,  -15,  -1.6 ] }, 
+      "00200037" : { "vr" : "DS", "Value" : [  1,  6.123031769e-17,  0,  -6.123031769e-17,  1,  0 ] }, 
+      "00200052" : { "vr" : "UI", "Value" : [  "2.16.756.5.5.100.3611280983.20092.1364462458.1.6.15.18" ] }, 
+      "00201002" : { "vr" : "IS", "Value" : [  75 ] }, 
+      "00201040" : { "vr" : "LO", "Value" : null }, 
+      "00201041" : { "vr" : "DS", "Value" : [  -1.6 ] }, 
+      "00280002" : { "vr" : "US", "Value" : [  1 ] }, 
+      "00280004" : { "vr" : "CS", "Value" : [  "MONOCHROME2" ] }, 
+      "00280010" : { "vr" : "US", "Value" : [  128 ] }, 
+      "00280011" : { "vr" : "US", "Value" : [  128 ] }, 
+      "00280030" : { "vr" : "DS", "Value" : [  0.234375,  0.234375 ] }, 
+      "00280100" : { "vr" : "US", "Value" : [  16 ] }, 
+      "00280101" : { "vr" : "US", "Value" : [  16 ] }, 
+      "00280102" : { "vr" : "US", "Value" : [  15 ] }, 
+      "00280103" : { "vr" : "US", "Value" : [  1 ] }, 
+      "00280106" : { "vr" : "US", "Value" : [  3 ] }, 
+      "00280107" : { "vr" : "US", "Value" : [  32766 ] }, 
+      "00281050" : { "vr" : "DS", "Value" : [  16385 ] }, 
+      "00281051" : { "vr" : "DS", "Value" : [  32764 ] }, 
+      "00281055" : { "vr" : "LO", "Value" : [  "MinMax" ] }, 
+      "Content" : BinData(0,"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") }
+db.datasets.insert(j)
+EOF
+
+export DOPAMINE_TEST_DEL_JANE="mongo --quiet ${DIRECTORY}/remove_jane_doe.js"
+
+cat > ${DIRECTORY}/remove_jane_doe.js << EOF
+db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
+db.datasets.remove( { "00080018.Value" : "2.16.756.5.5.100.3611280983.20092.1364462458.1.0" } )
 EOF
 
 export DOPAMINE_TEST_ADD_AUTH="mongo --quiet ${DIRECTORY}/create_authorization.js"
@@ -1570,22 +1128,16 @@ db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
 db.dropDatabase()
 EOF
 
-# Create sub directory for Dataset
-mkdir "${DIRECTORY}/temp_dir/" "${DIRECTORY}/temp_dir/2014/" "${DIRECTORY}/temp_dir/2014/12/" "${DIRECTORY}/temp_dir/2014/12/15/" "${DIRECTORY}/temp_dir/2014/12/15/AB2411EA/" "${DIRECTORY}/temp_dir/2014/12/15/AB2411EA/3B11F27C"
-mkdir "${DIRECTORY}/temp_dir/2015/" "${DIRECTORY}/temp_dir/2015/5/" "${DIRECTORY}/temp_dir/2015/5/4/" "${DIRECTORY}/temp_dir/2015/5/4/92582B31/" "${DIRECTORY}/temp_dir/2015/5/4/92582B31/21668918"
-
 # Create Dataset
-dump2dcm ${DIRECTORY}/dataset "${DOPAMINE_TEST_DICOMFILE}"
-dump2dcm ${DIRECTORY}/dataset_01 "${DOPAMINE_TEST_DICOMFILE_01}"
-dump2dcm ${DIRECTORY}/dataset_02 "${DOPAMINE_TEST_DICOMFILE_02}"
-dump2dcm ${DIRECTORY}/dataset_03 "${DOPAMINE_TEST_DICOMFILE_03}"
+dump2dcm ${DIRECTORY}/dopamine_test_file_01 "${DOPAMINE_TEST_DICOMFILE_01}"
+dump2dcm ${DIRECTORY}/dopamine_test_file_02 "${DOPAMINE_TEST_DICOMFILE_02}"
+dump2dcm ${DIRECTORY}/dopamine_test_file_03 "${DOPAMINE_TEST_DICOMFILE_03}"
 dump2dcm ${DIRECTORY}/dopamine_test_file_04 "${DOPAMINE_TEST_DICOMFILE_04}"
 dump2dcm ${DIRECTORY}/dopamine_test_file_05 "${DOPAMINE_TEST_DICOMFILE_05}"
 dump2dcm ${DIRECTORY}/dopamine_test_file_06 "${DOPAMINE_TEST_DICOMFILE_06}"
 dump2dcm ${DIRECTORY}/dopamine_test_file_07 "${DOPAMINE_TEST_DICOMFILE_07}"
 dump2dcm ${DIRECTORY}/dopamine_test_file_08 "${DOPAMINE_TEST_DICOMFILE_08}"
-dump2dcm ${DIRECTORY}/dumpjohndoe "${DOPAMINE_TEST_JOHNDOE}"
-dump2dcm ${DIRECTORY}/dumpjohndoe2 "${DOPAMINE_TEST_JOHNDOE2}"
+dump2dcm ${DIRECTORY}/dopamine_test_file_09 "${DOPAMINE_TEST_DICOMFILE_09}"
 
 # Make sure Database is empty
 mongo --quiet ${DIRECTORY}/delete_db.js
@@ -1602,6 +1154,8 @@ wget -P ${DOPAMINE_TEST_DATA} http://www.dclunie.com/images/charset/charsettests
 tar -C ${DOPAMINE_TEST_DATA} -xf ${DOPAMINE_TEST_DATA}/charsettests.20070405.tar.bz2
 
 ./src/appli/dopamine &
+
+sleep 1
 
 # Execute unit tests
 ctest --no-compress-output -T Test || true

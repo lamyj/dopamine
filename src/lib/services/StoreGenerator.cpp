@@ -28,8 +28,7 @@ namespace services
 
 StoreGenerator
 ::StoreGenerator(const std::string &username):
-    Generator(username), _destination_path(""),
-    _dataset(NULL)
+    Generator(username), _destination_path("")
 {
     // Nothing to do
 }
@@ -40,10 +39,9 @@ StoreGenerator
     // Nothing to do
 }
 
-Uint16
-StoreGenerator
-::set_query(const mongo::BSONObj &query_dataset)
+Uint16 StoreGenerator::process()
 {
+    // Look for database connection
     if (this->_connection.isFailed())
     {
         loggerWarning() << "Could not connect to database: " << this->_db_name;
@@ -60,24 +58,33 @@ StoreGenerator
         return STATUS_STORE_Refused_OutOfResources;
     }
 
-    // Check if we already have this dataset, based on its SOP Instance UID
-    if (!query_dataset.hasField("00080018") || // SOP Instance UID
-        !query_dataset.hasField("0020000d") || // Study Instance UID
-        !query_dataset.hasField("0020000e"))   // Series Instance UID
+    // Dataset should not be empty
+    if (this->_dataset == NULL)
     {
-        loggerWarning() << "Missing mandatory fields 00080018, 0020000d or 0020000e";
         return STATUS_STORE_Refused_OutOfResources;
     }
-    std::string sop_instance_uid = query_dataset.getField("00080018").Obj().getField("Value").Array()[0].String();
 
-    this->create_destination_path(query_dataset);
-
+    // Get the SOP Instance UID
+    OFString sopinstanceuid;
+    OFCondition condition = this->_dataset->findAndGetOFStringArray(DCM_SOPInstanceUID,
+                                                                    sopinstanceuid);
+    if (condition.bad())
+    {
+        return STATUS_STORE_Refused_OutOfResources;
+    }
     mongo::BSONObj group_command =
             BSON("count" << "datasets" << "query"
-                 << BSON("00080018.Value" << BSON_ARRAY(sop_instance_uid.c_str())));
+                 << BSON("00080018.Value" << BSON_ARRAY(sopinstanceuid.c_str())));
 
     mongo::BSONObj info;
-    this->_connection.runCommand(this->_db_name, group_command, info, 0);
+    bool ret = this->_connection.runCommand(this->_db_name, group_command, info, 0);
+
+    // If an error occurred
+    if (!ret || info["ok"].Double() != 1)
+    {
+        loggerWarning() << "Could not connect to database: " << this->_db_name;
+        return STATUS_STORE_Refused_OutOfResources;
+    }
 
     // If the command correctly executed and database entries match
     if (info["ok"].Double() == 1 && info["n"].Double() > 0)
@@ -86,52 +93,15 @@ StoreGenerator
         loggerWarning() << "Store: SOP Instance UID already register";
         return STATUS_Pending; // Nothing to do
     }
-    else if (info["ok"].Double() != 1)
+
+    if (insert_dataset(this->_connection, this->_db_name,
+                       this->_username, this->_dataset,
+                       this->_callingaptitle) != NO_ERROR)
     {
-        loggerWarning() << "Could not connect to database: " << this->_db_name;
         return STATUS_STORE_Refused_OutOfResources;
     }
-    else
-    {
-        // Check user's constraints (user's Rights)
-        if (!this->is_dataset_allowed_for_storage(query_dataset))
-        {
-            loggerError() << "User not allowed to perform STORE";
-            return STATUS_STORE_Refused_OutOfResources;
-        }
 
-        mongo::BSONObjBuilder builder;
-        builder.appendElements(query_dataset);
-
-        // Store it in the Mongo DB instance
-        mongo::OID const id(mongo::OID::gen());
-        builder << "_id" << id;
-
-        // Add DICOM file path into BSON object
-        builder << "location" << this->_destination_path;
-
-        // Store the dataset in DB
-        std::stringstream stream;
-        stream << this->_db_name << ".datasets";
-        this->_connection.insert(stream.str(), builder.obj());
-        std::string result = this->_connection.getLastError(this->_db_name);
-        if (result != "") // empty string if no error
-        {
-            loggerError() << "An error occurred while storing file: " << result;
-            return STATUS_STORE_Refused_OutOfResources;
-        }
-
-        // Create the header of the new file
-        DcmFileFormat file_format(this->_dataset);
-        file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle,
-                                                      this->_callingaptitle.c_str());
-
-        // Create DICOM file
-        boost::filesystem::create_directories(boost::filesystem::path(this->_destination_path).parent_path());
-        file_format.saveFile(this->_destination_path.c_str(),
-                             EXS_LittleEndianExplicit);
-    }
-
+    // Everything OK
     return STATUS_Pending;
 }
 
@@ -147,20 +117,6 @@ StoreGenerator
 ::get_callingaptitle() const
 {
     return this->_callingaptitle;
-}
-
-void
-StoreGenerator
-::set_dataset(DcmDataset *dataset)
-{
-    this->_dataset = dataset;
-}
-
-DcmDataset *
-StoreGenerator
-::get_dataset() const
-{
-    return this->_dataset;
 }
 
 void

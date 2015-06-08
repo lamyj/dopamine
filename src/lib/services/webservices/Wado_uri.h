@@ -64,10 +64,14 @@ public:
 
     ~Wado_uri();
 
+    std::string get_filename() const;
+
 protected:
 
 private:
     virtual mongo::BSONObj parse_string();
+
+    std::string _filename;
 
 };
 

@@ -13,6 +13,7 @@
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/ofstd/oftypes.h>
+#include <dcmtk/dcmdata/dcdatset.h>
 
 #include <mongo/client/dbclient.h>
 
@@ -53,11 +54,19 @@ public:
      */
     void cancel();
 
-    virtual Uint16 set_query(mongo::BSONObj const & query_dataset) = 0;
+    Uint16 process_dataset(DcmDataset* dataset, bool storageflags);
+
+    Uint16 process_bson(mongo::BSONObj const & query);
+
+    virtual Uint16 process() = 0;
 
     mongo::BSONObj next();
 
     bool is_allow() const;
+
+    DcmDataset * get_dataset() const;
+
+    mongo::BSONObj get_bsonquery() const;
 
 protected:
 
@@ -65,11 +74,17 @@ protected:
 
     std::string _db_name;
 
+    bool _isconnected;
+
     std::string _username;
 
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
 
     bool _allow;
+
+    DcmDataset * _dataset;
+
+    mongo:: BSONObj _bsonquery;
 
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr,

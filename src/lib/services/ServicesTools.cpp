@@ -11,6 +11,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/regex.hpp>
+
+#include <mongo/client/dbclient.h>
+#include <mongo/client/gridfs.h>
 
 #include "ConverterBSON/Dataset/BSONToDataSet.h"
 #include "ConverterBSON/Dataset/DataSetToBSON.h"
@@ -19,6 +23,9 @@
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ServicesTools.h"
+
+#include <dcmtk/dcmdata/dcfilefo.h>
+#include <dcmtk/dcmdata/dcistrmb.h>
 
 namespace dopamine
 {
@@ -310,11 +317,13 @@ dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 }
 
 DcmDataset *
-bson_to_dataset(mongo::BSONObj object)
+bson_to_dataset(mongo::DBClientConnection &connection,
+                const std::string &db_name,
+                mongo::BSONObj object)
 {
     DcmDataset* dataset = NULL;
 
-    if ( ! object.hasField("location"))
+    if ( ! object.hasField("Content"))
     {
         converterBSON::BSONToDataSet bson2dataset;
         DcmDataset result = bson2dataset.to_dataset(object);
@@ -322,7 +331,31 @@ bson_to_dataset(mongo::BSONObj object)
     }
     else
     {
-        std::string const path = object.getField("location").String();
+        std::string value = get_dataset_as_string(connection, db_name, object);
+
+        // Create buffer for DCMTK
+        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
+        inputbufferstream->setBuffer(value.c_str(), value.size());
+        inputbufferstream->setEos();
+
+        // Convert buffer into Dataset
+        DcmFileFormat fileformat;
+        fileformat.transferInit();
+        OFCondition condition = fileformat.read(*inputbufferstream);
+        fileformat.transferEnd();
+
+        delete inputbufferstream;
+
+        if (condition.bad())
+        {
+            std::stringstream streamerror;
+            streamerror << "Cannot read dataset: " << condition.text();
+            throw ExceptionPACS(streamerror.str());
+        }
+
+        dataset = fileformat.getAndRemoveDataset();
+
+        /*std::string const path = object.getField("location").String();
         DcmFileFormat fileformat;
         OFCondition result = fileformat.loadFile(path.c_str());
         if (result.bad())
@@ -331,10 +364,251 @@ bson_to_dataset(mongo::BSONObj object)
                           << result.text();
             return NULL;
         }
-        dataset = fileformat.getAndRemoveDataset();
+        dataset = fileformat.getAndRemoveDataset();*/
     }
 
     return dataset;
+}
+
+database_status
+insert_dataset(mongo::DBClientConnection &connection,
+               const std::string &db_name,
+               const std::string &username,
+               DcmDataset *dataset,
+               const std::string &callingaet)
+{
+    // Convert Dataset into BSON object
+    mongo::BSONObj object = dataset_to_bson(dataset, true);
+    if (!object.isValid() || object.isEmpty())
+    {
+        return CONVERSION_ERROR;
+    }
+
+    // Check user's constraints (user's Rights)
+    if (!is_dataset_allowed_for_storage(connection, db_name, username, object))
+    {
+        return NOT_ALLOW;
+    }
+
+    mongo::BSONObjBuilder builder;
+    builder.appendElements(object);
+
+    // Create the header of the new file
+    DcmFileFormat file_format(dataset);
+    // Keep the original transfer syntax (if available)
+    E_TransferSyntax xfer = dataset->getOriginalXfer();
+    if (xfer == EXS_Unknown)
+    {
+      // No information about the original transfer syntax: This is
+      // most probably a DICOM dataset that was read from memory.
+      xfer = EXS_LittleEndianExplicit;
+    }
+    file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle,
+                                                  callingaet.c_str());
+    OFCondition condition = file_format.validateMetaInfo(xfer);
+    if (condition.bad())
+    {
+        return CONVERSION_ERROR;
+    }
+    file_format.removeInvalidGroups();
+
+    // Create a memory buffer with the proper size
+    Uint32 size = file_format.calcElementLength(xfer, EET_ExplicitLength);
+    std::string buffer;
+    buffer.resize(size);
+
+    // Create buffer for DCMTK
+    DcmOutputBufferStream* outputstream = new DcmOutputBufferStream(&buffer[0], size);
+
+    // Fill the memory buffer with the meta-header and the dataset
+    file_format.transferInit();
+    condition = file_format.write(*outputstream, xfer,
+                                  EET_ExplicitLength, NULL);
+    file_format.transferEnd();
+
+    delete outputstream;
+
+    if (condition.bad())
+    {
+        return CONVERSION_ERROR;
+    }
+
+    std::string const sopinstanceuid = object.getField("00080018").Obj().getField("Value").Array()[0].String();
+
+    // check size
+    int totalsize = builder.len() + buffer.size();
+
+    if (totalsize > 16300) // 16 MB = 16384
+    {
+        // insert into GridSF
+        mongo::GridFS gridfs(connection, db_name);
+        mongo::BSONObj objret =
+                gridfs.storeFile(buffer.c_str(),
+                                 buffer.size(),
+                                 sopinstanceuid);
+
+        if (!objret.isValid() || objret.isEmpty())
+        {
+            // Return an error
+            return INSERTION_FAILED;
+        }
+
+        // Prepare for insertion into database
+        builder << "Content" << objret.getField("_id").OID().toString();
+    }
+    else
+    {
+        // Prepare for insertion into database
+        builder.appendBinData("Content", buffer.size(),
+                                         mongo::BinDataGeneral, buffer.c_str());
+    }
+
+    // insert into db
+    std::stringstream stream;
+    stream << db_name << ".datasets";
+    connection.insert(stream.str(), builder.obj());
+    std::string result = connection.getLastError(db_name);
+    if (result != "") // empty string if no error
+    {
+        // Rollback for GridFS
+        if (totalsize > 16300)
+        {
+            mongo::GridFS gridfs(connection, db_name);
+            gridfs.removeFile(sopinstanceuid);
+        }
+
+        // Return an error
+        return INSERTION_FAILED;
+    }
+
+    return NO_ERROR;
+}
+
+bool
+is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
+                               const std::string &db_name,
+                               const std::string &username,
+                               const mongo::BSONObj &dataset)
+{
+    // Retrieve user's Rights
+    mongo::BSONObj constraint =
+            get_constraint_for_user(connection, db_name,
+                                    username, Service_Store);
+
+    if (constraint.isEmpty())
+    {
+        // No constraint
+        return true;
+    }
+
+    // Compare with input dataset
+
+    // constraint is a Logical OR array
+    for (auto itemor : constraint["$or"].Array())
+    {
+        bool result = true;
+        // Each item is a Logical AND array
+        for (auto itemand : itemor["$and"].Array())
+        {
+            // Foreach object
+            for(mongo::BSONObj::iterator it=itemand.Obj().begin(); it.more();)
+            {
+                mongo::BSONElement const element = it.next();
+
+                // Retrieve DICOM field name
+                std::string name(element.fieldName());
+                name = name.substr(0, 8);
+
+                // Check if input dataset as this field
+                if (!dataset.hasField(name))
+                {
+                    result = false;
+                    break;
+                }
+                else
+                {
+                    // Compare the field's values
+                    auto array = dataset.getField(name).Obj().getField("Value").Array();
+                    for(auto itarray = array.begin(); itarray != array.end(); ++itarray)
+                    {
+                        mongo::BSONElement const element2 = *itarray;
+                        std::string valuestr = bsonelement_to_string(element2);
+
+                        if (element.type() == mongo::BSONType::RegEx)
+                        {
+                            std::string regex(element.regex());
+                            if (!boost::regex_match(valuestr.c_str(), boost::regex(regex.c_str())))
+                            {
+                                result = false;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            std::string elementstr = bsonelement_to_string(element);
+                            if (valuestr != elementstr)
+                            {
+                                result = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (result == false)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Stop if find dataset match with one condition
+        if (result)
+        {
+            return true;
+        }
+        // else continue
+    }
+
+    return false;
+}
+
+std::string
+get_dataset_as_string(mongo::DBClientConnection &connection,
+                      const std::string &db_name,
+                      mongo::BSONObj object)
+{
+    mongo::BSONElement const element = object.getField("Content");
+    if (element.type() == mongo::BSONType::String)
+    {std::cout << "DEBUG RLA COUCOU" << std::endl;
+        std::string const sopinstanceuid = element.String();
+        mongo::GridFS gridfs(connection, db_name);
+        std::stringstream stream;
+        mongo::unique_ptr<mongo::DBClientCursor> cursor = gridfs.list(BSON("filename" << sopinstanceuid));
+        if (cursor->more())
+        {
+            std::cout << "DEBUG RLA " << cursor->next().toString() << std::endl;
+        }
+        //auto size = files.write(stream);
+        //std::cout << "DEBUG RLA size = " << size << std::endl;
+
+        std::cout << "DEBUG RLA size = " << stream.str() << std::endl;
+        return stream.str();
+    }
+    else if (element.type() == mongo::BSONType::BinData)
+    {
+        int size=0;
+        char const * begin = element.binDataClean(size);
+
+        return std::string(begin, size);
+    }
+    else
+    {
+        std::stringstream streamerror;
+        streamerror << "Unknown type '" << element.type() << "' for Content attribute";
+        throw ExceptionPACS(streamerror.str());
+    }
+
+    return "";
 }
 
 } // namespace services

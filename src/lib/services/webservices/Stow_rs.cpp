@@ -295,9 +295,6 @@ Stow_rs
 
         // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
-        // Get BSON object from DcmDataset
-        mongo::BSONObj object = dataset_to_bson(dataset, true);
-
         Uint16 result = STATUS_Pending;
         // Check StudyInstanceUID
         if (!studyinstanceuid.isEmpty())
@@ -314,8 +311,7 @@ Stow_rs
         {
             // Insert dataset into DataBase
             StoreGenerator generator(this->_username);
-            generator.set_dataset(dataset);
-            result = generator.set_query(object);
+            result = generator.process_dataset(dataset, true);
 
             if ( ! generator.is_allow())
             {

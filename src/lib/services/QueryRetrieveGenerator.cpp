@@ -29,13 +29,11 @@ QueryRetrieveGenerator
     // Nothing to do
 }
 
-Uint16
-QueryRetrieveGenerator
-::set_query(mongo::BSONObj const & query_dataset)
+Uint16 QueryRetrieveGenerator::process()
 {
     this->_allow = true;
 
-    if (this->_connection.isFailed())
+    if (!this->_isconnected || this->_connection.isFailed())
     {
         loggerWarning() << "Could not connect to database: " << this->_db_name;
         if (this->_service_name == Service_Query)
@@ -67,10 +65,10 @@ QueryRetrieveGenerator
                                                         this->_username,
                                                         this->_service_name);
 
-    mongo::BSONObj query_object = query_dataset;
+    mongo::BSONObj query_object = this->_bsonquery;
 
     // Always include the keys for the query level and its higher levels
-    if (!query_dataset.hasField("00080052"))
+    if (!this->_bsonquery.hasField("00080052"))
     {
         dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel";
         if (this->_service_name == Service_Query)
@@ -80,7 +78,7 @@ QueryRetrieveGenerator
         return 0xa701; // STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches or
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
-    this->_query_retrieve_level = query_dataset.getField("00080052").Obj().getField("Value").Array()[0].String();
+    this->_query_retrieve_level = this->_bsonquery.getField("00080052").Obj().getField("Value").Array()[0].String();
 
     // Remove unused elements
     query_object = query_object.removeField("00080005"); // DCM_SpecificCharacterSet
@@ -128,8 +126,8 @@ QueryRetrieveGenerator
 
     if (this->_service_name != Service_Query)
     {
-        // retrieve 'location' field
-        fields_builder << "location" << 1;
+        // retrieve 'Content' field
+        fields_builder << "Content" << 1;
     }
 
     // Always include Specific Character Set in results.
@@ -148,12 +146,14 @@ QueryRetrieveGenerator
     {
         fields_builder << "0020000d" << 1;
     }
-    if((this->_query_retrieve_level=="SERIES" ||
-        this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+    if ((this->_query_retrieve_level=="SERIES" ||
+         this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
     {
         fields_builder << "0020000e" << 1;
     }
-    if(this->_query_retrieve_level=="IMAGE" && !fields_builder.hasField("00080018"))
+    if ((this->_service_name != Service_Query ||
+         this->_query_retrieve_level=="IMAGE") &&
+        !fields_builder.hasField("00080018"))
     {
         fields_builder << "00080018" << 1;
     }
@@ -195,6 +195,30 @@ QueryRetrieveGenerator
                                             this->_skippedResults, &fields);
 
     return STATUS_Pending;
+}
+
+std::string QueryRetrieveGenerator::retrieve_dataset_as_string(const mongo::BSONObj &object)
+{
+    mongo::BSONObj localobject = object;
+    if (this->_query_retrieve_level != "IMAGE" &&
+        std::find(this->_includefields.begin(),
+                  this->_includefields.end(), "00080018") != this->_includefields.end())
+    {
+        localobject.removeField("00080018");
+    }
+    return get_dataset_as_string(this->_connection, this->_db_name, localobject);
+}
+
+DcmDataset *QueryRetrieveGenerator::retrieve_dataset(const mongo::BSONObj &object)
+{
+    mongo::BSONObj localobject = object;
+    if (this->_query_retrieve_level != "IMAGE" &&
+        std::find(this->_includefields.begin(),
+                  this->_includefields.end(), "00080018") != this->_includefields.end())
+    {
+        localobject.removeField("00080018");
+    }
+    return bson_to_dataset(this->_connection, this->_db_name, localobject);
 }
 
 std::vector<std::string>

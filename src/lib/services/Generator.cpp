@@ -234,10 +234,11 @@ Generator
 
 Generator
 ::Generator(const std::string &username):
-    _username(username), _allow(false)
+    _isconnected(false), _username(username), _allow(false),
+    _dataset(NULL)
 {
     // Create DataBase Connection
-    create_db_connection(this->_connection, this->_db_name);
+    this->_isconnected = create_db_connection(this->_connection, this->_db_name);
 }
 
 Generator
@@ -270,6 +271,20 @@ Generator
 ::is_allow() const
 {
     return this->_allow;
+}
+
+DcmDataset *
+Generator
+::get_dataset() const
+{
+    return this->_dataset;
+}
+
+mongo::BSONObj
+Generator
+::get_bsonquery() const
+{
+    return this->_bsonquery;
 }
 
 Generator::Match::Type
@@ -388,6 +403,34 @@ Generator
     }
 
     return function;
+}
+
+Uint16
+Generator
+::process_dataset(DcmDataset *dataset, bool storageflags)
+{
+    this->_dataset = dataset;
+
+    mongo::BSONObj object = mongo::BSONObj();
+    if (storageflags == false)
+    {
+        object = dataset_to_bson(dataset);
+        if (!object.isValid() || object.isEmpty())
+        {
+            return 0xa900;
+        }
+    }
+
+    return this->process_bson(object);
+}
+
+Uint16
+Generator
+::process_bson(const mongo::BSONObj &query)
+{
+    this->_bsonquery = query;
+
+    return this->process();
 }
 
 } // namespace services

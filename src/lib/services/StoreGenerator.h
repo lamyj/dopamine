@@ -28,22 +28,16 @@ public:
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
-    virtual Uint16 set_query(mongo::BSONObj const & query_dataset);
+    virtual Uint16 process();
 
     void set_callingaptitle(std::string const & callingaptitle);
 
     std::string get_callingaptitle() const;
 
-    void set_dataset(DcmDataset * dataset);
-
-    DcmDataset * get_dataset() const;
-
 private:
     std::string _destination_path;
 
     std::string _callingaptitle;
-
-    DcmDataset * _dataset;
 
     void create_destination_path(const mongo::BSONObj & query_dataset);
 

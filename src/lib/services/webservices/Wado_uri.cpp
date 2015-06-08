@@ -25,13 +25,13 @@ namespace services
 
 Wado_uri
 ::Wado_uri(const std::string &querystring, const std::string &remoteuser):
-    Wado("", querystring, remoteuser)
+    Wado("", querystring, remoteuser), _filename("")
 {
     mongo::BSONObj object = this->parse_string();
 
     RetrieveGenerator generator(this->_username);
 
-    Uint16 status = generator.set_query(object);
+    Uint16 status = generator.process_bson(object);
     if (status != STATUS_Pending)
     {
         if ( ! generator.is_allow())
@@ -50,13 +50,27 @@ Wado_uri
         throw WebServiceException(404, "Not Found", "No Dataset");
     }
 
-    this->_response = this->get_dataset(findedobject);
+    try
+    {
+        this->_response = generator.retrieve_dataset_as_string(findedobject);
+    }
+    catch (ExceptionPACS exc)
+    {
+        throw WebServiceException(500, "Internal Server Error", exc.what());
+    }
 }
 
 Wado_uri
 ::~Wado_uri()
 {
     // Nothing to do
+}
+
+std::string
+Wado_uri
+::get_filename() const
+{
+    return this->_filename;
 }
 
 mongo::BSONObj
@@ -120,6 +134,8 @@ Wado_uri
     }
 
     // Request is valid
+
+    this->_filename = variables[SOP_INSTANCE_UID];
 
     // Conditions
     mongo::BSONObjBuilder db_query;

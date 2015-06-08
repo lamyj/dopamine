@@ -12,7 +12,7 @@ class TestStoreSCP(TestBase):
     #################################################
     def test_run_storescu(self):
         try:
-            johndoe = os.environ["DOPAMINE_TEST_JOHNDOE"]
+            johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_05"]
             
             # Send a Get request
             subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 
@@ -39,7 +39,7 @@ class TestStoreSCP(TestBase):
         thread_spec.wait()
         
         try:
-            johndoe = os.environ["DOPAMINE_TEST_JOHNDOE2"]
+            johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_06"]
             
             # Send a Get request
             subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 
@@ -68,7 +68,7 @@ class TestStoreSCP(TestBase):
         thread_remove.wait()
         
         try:
-            johndoe = os.environ["DOPAMINE_TEST_JOHNDOE2"]
+            johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_06"]
             
             # Send a Get request
             subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 

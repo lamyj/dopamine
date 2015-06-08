@@ -26,12 +26,7 @@ public:
 
     virtual ~Wado();
 
-    std::string get_filename() const;
-
 protected:
-    std::string _filename;
-
-    std::string get_dataset(mongo::BSONObj const & object);
 
 private:
 

@@ -23,7 +23,11 @@ public:
     QueryRetrieveGenerator(std::string const & username,
                            std::string const & service_name);
 
-    virtual Uint16 set_query(mongo::BSONObj const & query_dataset);
+    virtual Uint16 process();
+
+    std::string retrieve_dataset_as_string(mongo::BSONObj const & object);
+
+    DcmDataset* retrieve_dataset(mongo::BSONObj const & object);
 
     std::vector<std::string> get_instance_count_tags() const;
 

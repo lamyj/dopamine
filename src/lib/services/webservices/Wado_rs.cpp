@@ -31,7 +31,7 @@ Wado_rs
 
     RetrieveGenerator generator(this->_username);
 
-    Uint16 status = generator.set_query(object);
+    Uint16 status = generator.process_bson(object);
     if (status != STATUS_Pending)
     {
         if ( ! generator.is_allow())
@@ -56,12 +56,22 @@ Wado_rs
     std::stringstream stream;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
-        std::string const currentdata = this->get_dataset(findedobject);
+        std::string currentdata;
+        try
+        {
+            currentdata = generator.retrieve_dataset_as_string(findedobject);
+        }
+        catch (ExceptionPACS exc)
+        {
+            throw WebServiceException(500, "Internal Server Error", exc.what());
+        }
+
+        std::string filename = findedobject.getField("00080018").Obj().getField("Value").Array()[0].String();
 
         stream << "--" << this->_boundary << "\n";
         stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
         stream << CONTENT_DISPOSITION_ATTACHMENT << " "
-               << ATTRIBUT_FILENAME << this->_filename << "\n";
+               << ATTRIBUT_FILENAME << filename << "\n";
         stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
 
         stream << currentdata << "\n" << "\n";

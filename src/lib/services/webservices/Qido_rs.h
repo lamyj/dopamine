@@ -9,7 +9,6 @@
 #ifndef _bfc0e3cc_01f0_402b_9e96_a8c825466940
 #define _bfc0e3cc_01f0_402b_9e96_a8c825466940
 
-#include "services/QueryGenerator.h"
 #include "Webservices.h"
 
 namespace dopamine
@@ -101,8 +100,6 @@ private:
     std::vector<Attribute> get_mandatory_fields() const;
 
     void add_mandatory_fields(mongo::BSONObj const & queryobject);
-
-    mongo::BSONObj check_mandatory_field_in_response(mongo::BSONObj const & response, QueryGenerator & generator);
 
 };
 

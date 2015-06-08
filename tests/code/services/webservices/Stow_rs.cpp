@@ -7,43 +7,32 @@
  ************************************************************************/
 
 #define BOOST_TEST_MODULE ModuleQido_rs
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/test/unit_test.hpp>
 
 #include <fstream>
 #include <string>
+
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 #include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcistrmb.h>
 
-#include "core/ConfigurationPACS.h"
 #include "services/ServicesTools.h"
 #include "services/webservices/Stow_rs.h"
 #include "services/webservices/WebServiceException.h"
+#include "../ServicesTestClass.h"
 
-std::string const UNIQUE_SOP_INSTANCE_UID_04 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489112";
-std::string const UNIQUE_SOP_INSTANCE_UID_05 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489113";
-std::string const UNIQUE_SOP_INSTANCE_UID_06 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489114";
-std::string const UNIQUE_SOP_INSTANCE_UID_07 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489240";
-std::string const UNIQUE_SOP_INSTANCE_UID_08 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822447.489271";
-std::string const UNIQUE_STUDY_INSTANCE_UID = "2.16.756.5.5.100.3611280983.14235.1379922643.24566";
-
-struct TestDataRequest
+class TestDataRequest : public ServicesTestClass
 {
+public:
     std::string path_info;
     std::string content_type;
     std::string boundary;
-    mongo::DBClientConnection connection;
-    std::string db_name;
 
-    TestDataRequest()
+    TestDataRequest() : ServicesTestClass()
     {
-        std::string NetworkConfFILE(getenv("DOPAMINE_TEST_CONFIG"));
-        dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
-
         path_info = "/studies";
         boundary = "4EMVgTUJNpDOGeP";
 
@@ -53,55 +42,32 @@ struct TestDataRequest
                            << dopamine::services::MIME_TYPE_APPLICATION_DICOM << "; "
                            << dopamine::services::ATTRIBUT_BOUNDARY << boundary;
         content_type = content_typestream.str();
-
-        // Create DataBase Connection
-        dopamine::services::create_db_connection(connection, db_name);
     }
 
-    ~TestDataRequest()
+    virtual ~TestDataRequest()
     {
-        dopamine::ConfigurationPACS::delete_instance();
-        sleep(1);
+        // Nothing to do
     }
 };
 
-struct TestDataRequestNotAllow : public TestDataRequest
+class TestDataRequestNotAllow : public TestDataRequest
 {
+public:
     TestDataRequestNotAllow():
         TestDataRequest()
     {
         mongo::BSONObjBuilder builder;
         builder.appendRegex("00080018", "Unknown");
-        mongo::BSONObj store_value = BSON("principal_name" << "root" <<
-                                          "principal_type" << "" <<
-                                          "service" << "Store" <<
-                                          "dataset" << builder.obj());
-        connection.update(db_name + ".authorization", BSON("service" << "Store"), store_value);
+        this->set_authorization("Store", "root", builder.obj());
 
         mongo::BSONObjBuilder builder2;
         builder2 << "00080060" << "NotMR";
-        mongo::BSONObj store_value2 = BSON("principal_name" << "not_me" <<
-                                           "principal_type" << "" <<
-                                           "service" << "Store" <<
-                                           "dataset" << builder2.obj());
-        connection.insert(db_name + ".authorization",
-                           store_value2);
-
-        if (connection.getLastError(db_name, true) != "")
-        {
-            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("An error occurred while storing object"));
-        }
+        this->add_constraint("Store", "not_me", builder2.obj());
     }
 
-    ~TestDataRequestNotAllow()
+    virtual ~TestDataRequestNotAllow()
     {
-        connection.remove(db_name + ".authorization", BSON("principal_name" << "not_me"));
-
-        mongo::BSONObj store_value = BSON("principal_name" << "" <<
-                                          "principal_type" << "" <<
-                                          "service" << "Store" <<
-                                          "dataset" << mongo::BSONObj());
-        connection.update(db_name + ".authorization", BSON("service" << "Store"), store_value);
+        // Nothing to do
     }
 };
 
@@ -117,7 +83,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_boundary(), "");
+    BOOST_REQUIRE(stowrs.get_boundary() != "");
     BOOST_CHECK_EQUAL(stowrs.get_content_type(),
                       dopamine::services::MIME_TYPE_APPLICATION_DICOM);
     BOOST_CHECK_EQUAL(stowrs.get_status(), 200);
@@ -133,9 +99,9 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -164,7 +130,7 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -184,17 +150,13 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
     // check values
     BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_03_01_01_01) !=
                 std::string::npos);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_07)), 1);
-
-    // remove dataset
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_07));
+                                            SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -206,17 +168,17 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_04)), 0);
+                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_05)), 0);
+                                              SOP_INSTANCE_UID_04_01_01_02)), 0);
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_06)), 0);
+                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
 
-    std::vector<std::string> files = { std::string(getenv("DOPAMINE_TEST_DICOMFILE_04")),
-                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_05")),
-                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_06")) };
+    std::vector<std::string> files = { std::string(getenv("DOPAMINE_TEST_DICOMFILE_07")),
+                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_08")),
+                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_09")) };
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -252,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -272,31 +234,23 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
     // check values
     BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_04) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_04_01_01_01) !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_05) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_04_01_01_02) !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_06) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_04_01_01_03) !=
                 std::string::npos);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_04)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_05)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_06)), 1);
-
-    // remove dataset
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_04));
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_05));
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_06));
+                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -308,8 +262,81 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_08)), 0);
+                                              SOP_INSTANCE_UID_01_01_01_01)), 1);
 
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_01"));
+
+    std::stringstream dataset;
+    dataset << content_type << "\n\n";
+    dataset << "--" << boundary << "\n";
+    dataset << dopamine::services::CONTENT_TYPE
+            << dopamine::services::MIME_TYPE_APPLICATION_DICOM << "\n";
+    dataset << dopamine::services::CONTENT_DISPOSITION_ATTACHMENT << " "
+            << dopamine::services::ATTRIBUT_FILENAME << "myfile" << "\n";
+    dataset << dopamine::services::CONTENT_TRANSFER_ENCODING
+            << dopamine::services::TRANSFER_ENCODING_BINARY << "\n" << "\n";
+
+    // Open file
+    std::ifstream file(datasetfile, std::ifstream::binary | std::ifstream::in);
+    BOOST_REQUIRE(file.is_open());
+    // get length of file:
+    int length = boost::filesystem::file_size(boost::filesystem::path(datasetfile));
+    std::string output(length, '\0');
+    // read data as a block:
+    file.read (&output[0], output.size());
+    // Close file
+    file.close();
+
+    dataset << output;
+    dataset << "\n" << "\n";
+    dataset << "--" << boundary << "--";
+
+    // Then try to register another time
+    dopamine::services::Stow_rs stowrsagain(path_info, "", dataset.str());
+    BOOST_REQUIRE(stowrsagain.get_response() != "");
+
+    boost::property_tree::ptree ptree2;
+    std::stringstream xmlstream2;
+    xmlstream2 << stowrsagain.get_response();
+    boost::property_tree::read_xml(xmlstream2, ptree2);
+    BOOST_CHECK_EQUAL(ptree2.find("NativeDicomModel") != ptree2.not_found(), true);
+
+    // check mandatory tag
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") != std::string::npos);
+
+    // check tag error is missing
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") == std::string::npos);
+
+    // check values
+    BOOST_CHECK(xmlstream2.str().find("1.2.840.10008.5.1.4.1.1.4") !=
+                std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find(SOP_INSTANCE_UID_01_01_01_01) !=
+                std::string::npos);
+
+    // Check into database (always present)
+    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
+                                       BSON("00080018.Value" <<
+                                            SOP_INSTANCE_UID_01_01_01_01)), 1);
+}
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: stow_rs check return status code
+ */
+BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
+{
+    // Check SOP Instance UID not present in database
+    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
+                                         BSON("00080018.Value" <<
+                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
+                                         BSON("00080018.Value" <<
+                                              SOP_INSTANCE_UID_04_01_01_02)), 0);
+    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
+                                         BSON("00080018.Value" <<
+                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
+
+    {
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_08"));
 
     std::stringstream dataset;
@@ -339,111 +366,7 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
 
     // First, insert into database
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
-
-    boost::property_tree::ptree ptree;
-    std::stringstream xmlstream;
-    xmlstream << stowrs.get_response();
-    boost::property_tree::read_xml(xmlstream, ptree);
-    BOOST_CHECK_EQUAL(ptree.find("NativeDicomModel") != ptree.not_found(), true);
-
-    // check mandatory tag
-    BOOST_CHECK(xmlstream.str().find("tag=\"00081199\"") != std::string::npos);
-
-    // check tag error is missing
-    BOOST_CHECK(xmlstream.str().find("tag=\"00081198\"") == std::string::npos);
-
-    // check values
-    BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
-                std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_08) !=
-                std::string::npos);
-
-    // Check into database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_08)), 1);
-
-    // Then try to register another time
-    dopamine::services::Stow_rs stowrsagain(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrsagain.get_response(), "");
-
-    boost::property_tree::ptree ptree2;
-    std::stringstream xmlstream2;
-    xmlstream2 << stowrsagain.get_response();
-    boost::property_tree::read_xml(xmlstream2, ptree2);
-    BOOST_CHECK_EQUAL(ptree2.find("NativeDicomModel") != ptree2.not_found(), true);
-
-    // check mandatory tag
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") != std::string::npos);
-
-    // check tag error is missing
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") == std::string::npos);
-
-    // check values
-    BOOST_CHECK(xmlstream2.str().find("1.2.840.10008.5.1.4.1.1.4") !=
-                std::string::npos);
-    BOOST_CHECK(xmlstream2.str().find(UNIQUE_SOP_INSTANCE_UID_08) !=
-                std::string::npos);
-
-    // Check into database (always present)
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_08)), 1);
-
-    // remove dataset
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_08));
-}
-
-/*************************** TEST Nominal *******************************/
-/**
- * Nominal test case: stow_rs check return status code
- */
-BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
-{
-    // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_04)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_05)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_06)), 0);
-
-    {
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
-
-    std::stringstream dataset;
-    dataset << content_type << "\n\n";
-    dataset << "--" << boundary << "\n";
-    dataset << dopamine::services::CONTENT_TYPE
-            << dopamine::services::MIME_TYPE_APPLICATION_DICOM << "\n";
-    dataset << dopamine::services::CONTENT_DISPOSITION_ATTACHMENT << " "
-            << dopamine::services::ATTRIBUT_FILENAME << "myfile" << "\n";
-    dataset << dopamine::services::CONTENT_TRANSFER_ENCODING
-            << dopamine::services::TRANSFER_ENCODING_BINARY << "\n" << "\n";
-
-    // Open file
-    std::ifstream file(datasetfile, std::ifstream::binary | std::ifstream::in);
-    BOOST_REQUIRE(file.is_open());
-    // get length of file:
-    int length = boost::filesystem::file_size(boost::filesystem::path(datasetfile));
-    std::string output(length, '\0');
-    // read data as a block:
-    file.read (&output[0], output.size());
-    // Close file
-    file.close();
-
-    dataset << output;
-    dataset << "\n" << "\n";
-    dataset << "--" << boundary << "--";
-
-    // First, insert into database
-    dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     BOOST_CHECK_EQUAL(stowrs.get_status(), 200);
     BOOST_CHECK_EQUAL(stowrs.get_code(), "OK");
@@ -451,19 +374,19 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     // Check into database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_04)), 0);
+                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_05)), 1);
+                                              SOP_INSTANCE_UID_04_01_01_02)), 1);
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_06)), 0);
+                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
     }
 
     {
-    std::vector<std::string> files = { std::string(getenv("DOPAMINE_TEST_DICOMFILE_04")),
-                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_05")),
-                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_06")) };
+    std::vector<std::string> files = { std::string(getenv("DOPAMINE_TEST_DICOMFILE_07")),
+                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_08")),
+                                       std::string(getenv("DOPAMINE_TEST_DICOMFILE_09")) };
 
     {
     std::stringstream dataset;
@@ -505,7 +428,7 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     dataset << "--" << boundary << "--";
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     BOOST_CHECK_EQUAL(stowrs.get_status(), 202);
     BOOST_CHECK_EQUAL(stowrs.get_code(), "Accepted");
@@ -514,13 +437,13 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_04)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_05)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_06)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
 
     // All in error
     {
@@ -559,7 +482,7 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     dataset << "--" << boundary << "--";
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     BOOST_CHECK_EQUAL(stowrs.get_status(), 409);
     BOOST_CHECK_EQUAL(stowrs.get_code(), "Conflict");
@@ -568,22 +491,14 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_04)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_05)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_06)), 1);
+                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
     }
-
-    // remove dataset
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_04));
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_05));
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_06));
 }
 
 /*************************** TEST Nominal *******************************/
@@ -595,9 +510,9 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -625,10 +540,10 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
     dataset << "--" << boundary << "--";
 
     std::stringstream path_info_study;
-    path_info_study << path_info << "/" << UNIQUE_STUDY_INSTANCE_UID;
+    path_info_study << path_info << "/" << STUDY_INSTANCE_UID_03_01;
     dopamine::services::Stow_rs stowrs(path_info_study.str(), "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -648,17 +563,13 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
     // check values
     BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_03_01_01_01) !=
                 std::string::npos);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_07)), 1);
-
-    // remove dataset
-    connection.remove(db_name + ".datasets", BSON("00080018.Value" <<
-                                                  UNIQUE_SOP_INSTANCE_UID_07));
+                                            SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -670,9 +581,9 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -703,7 +614,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
     path_info_study << path_info << "/" << "bad_value";
     dopamine::services::Stow_rs stowrs(path_info_study.str(), "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -726,13 +637,13 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
                 std::string::npos); // error code A700
     BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
                 std::string::npos);
-    BOOST_CHECK(xmlstream.str().find(UNIQUE_SOP_INSTANCE_UID_07) !=
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_03_01_01_01) !=
                 std::string::npos);
 
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -744,9 +655,9 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -774,7 +685,7 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
     dataset << "--" << boundary << "--";
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -799,7 +710,7 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -811,9 +722,9 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -842,7 +753,7 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
 
     dopamine::services::Stow_rs stowrs(path_info, "", dataset.str());
 
-    BOOST_CHECK_NE(stowrs.get_response(), "");
+    BOOST_REQUIRE(stowrs.get_response() != "");
 
     boost::property_tree::ptree ptree;
     std::stringstream xmlstream;
@@ -867,7 +778,7 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
     // Check into database
     BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
                                        BSON("00080018.Value" <<
-                                            UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
 /*************************** TEST Error *********************************/
@@ -938,9 +849,9 @@ BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 
-    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_07"));
+    std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
     std::stringstream dataset;
     dataset << content_type << "\n\n";
@@ -976,7 +887,7 @@ BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
     // Check SOP Instance UID not present in database
     BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
                                          BSON("00080018.Value" <<
-                                              UNIQUE_SOP_INSTANCE_UID_07)), 0);
+                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
 /*************************** TEST Error *********************************/
