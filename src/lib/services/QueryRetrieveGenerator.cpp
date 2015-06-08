@@ -29,7 +29,9 @@ QueryRetrieveGenerator
     // Nothing to do
 }
 
-Uint16 QueryRetrieveGenerator::process()
+Uint16
+QueryRetrieveGenerator
+::process()
 {
     this->_allow = true;
 
@@ -197,7 +199,9 @@ Uint16 QueryRetrieveGenerator::process()
     return STATUS_Pending;
 }
 
-std::string QueryRetrieveGenerator::retrieve_dataset_as_string(const mongo::BSONObj &object)
+std::string
+QueryRetrieveGenerator
+::retrieve_dataset_as_string(const mongo::BSONObj &object)
 {
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&
@@ -209,7 +213,9 @@ std::string QueryRetrieveGenerator::retrieve_dataset_as_string(const mongo::BSON
     return get_dataset_as_string(this->_connection, this->_db_name, localobject);
 }
 
-DcmDataset *QueryRetrieveGenerator::retrieve_dataset(const mongo::BSONObj &object)
+DcmDataset *
+QueryRetrieveGenerator
+::retrieve_dataset(const mongo::BSONObj &object)
 {
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&

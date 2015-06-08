@@ -354,17 +354,6 @@ bson_to_dataset(mongo::DBClientConnection &connection,
         }
 
         dataset = fileformat.getAndRemoveDataset();
-
-        /*std::string const path = object.getField("location").String();
-        DcmFileFormat fileformat;
-        OFCondition result = fileformat.loadFile(path.c_str());
-        if (result.bad())
-        {
-            loggerError() << "Cannot load dataset '" << path << "': "
-                          << result.text();
-            return NULL;
-        }
-        dataset = fileformat.getAndRemoveDataset();*/
     }
 
     return dataset;
@@ -438,7 +427,7 @@ insert_dataset(mongo::DBClientConnection &connection,
     // check size
     int totalsize = builder.len() + buffer.size();
 
-    if (totalsize > 16300) // 16 MB = 16384
+    if (totalsize > 16777000) // 16 MB = 16777216
     {
         // insert into GridSF
         mongo::GridFS gridfs(connection, db_name);
@@ -471,7 +460,7 @@ insert_dataset(mongo::DBClientConnection &connection,
     if (result != "") // empty string if no error
     {
         // Rollback for GridFS
-        if (totalsize > 16300)
+        if (totalsize > 16777000)
         {
             mongo::GridFS gridfs(connection, db_name);
             gridfs.removeFile(sopinstanceuid);
@@ -579,19 +568,27 @@ get_dataset_as_string(mongo::DBClientConnection &connection,
 {
     mongo::BSONElement const element = object.getField("Content");
     if (element.type() == mongo::BSONType::String)
-    {std::cout << "DEBUG RLA COUCOU" << std::endl;
-        std::string const sopinstanceuid = element.String();
-        mongo::GridFS gridfs(connection, db_name);
-        std::stringstream stream;
-        mongo::unique_ptr<mongo::DBClientCursor> cursor = gridfs.list(BSON("filename" << sopinstanceuid));
-        if (cursor->more())
-        {
-            std::cout << "DEBUG RLA " << cursor->next().toString() << std::endl;
-        }
-        //auto size = files.write(stream);
-        //std::cout << "DEBUG RLA size = " << size << std::endl;
+    {
+        std::string const filesid = element.String();
 
-        std::cout << "DEBUG RLA size = " << stream.str() << std::endl;
+        // Retrieve Filename
+        mongo::BSONObjBuilder builder;
+        mongo::OID oid(filesid);
+        builder.appendOID(std::string("_id"), &oid);
+        mongo::Query query = builder.obj();
+        mongo::BSONObj fields = BSON("filename" << 1);
+        mongo::BSONObj sopinstanceuidobj = connection.findOne(db_name + ".fs.files", query, &fields);
+        std::string const sopinstanceuid = sopinstanceuidobj.getField("filename").String();
+
+        // Create GridFS interface
+        mongo::GridFS gridfs(connection, db_name);
+
+        // Get the GridFile corresponding to the filename
+        mongo::GridFile file = gridfs.findFile(sopinstanceuid);
+
+        // Get the binary content
+        std::stringstream stream;
+        auto size = file.write(stream);
         return stream.str();
     }
     else if (element.type() == mongo::BSONType::BinData)

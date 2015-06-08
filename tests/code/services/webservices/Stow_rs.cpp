@@ -58,11 +58,13 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder.appendRegex("00080018", "Unknown");
-        this->set_authorization("Store", "root", builder.obj());
+        this->set_authorization(dopamine::services::Service_Store,
+                                "root", builder.obj());
 
         mongo::BSONObjBuilder builder2;
         builder2 << "00080060" << "NotMR";
-        this->add_constraint("Store", "not_me", builder2.obj());
+        this->add_constraint(dopamine::services::Service_Store,
+                             "not_me", builder2.obj());
     }
 
     virtual ~TestDataRequestNotAllow()
@@ -252,6 +254,151 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
                                        BSON("00080018.Value" <<
                                             SOP_INSTANCE_UID_04_01_01_03)), 1);
 }
+
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: wado_rs request Big dataset
+ */
+BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
+{
+    // Check SOP Instance UID not present in database
+    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
+                                         BSON("00080018.Value" <<
+                                              SOP_INSTANCE_UID_BIG_02)), 0);
+
+    std::stringstream datasetstring;
+    datasetstring << content_type << "\n\n";
+
+    OFCondition condition = EC_Normal;
+
+    // Create the dataset
+    DcmDataset * dataset = new DcmDataset();
+    condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
+                                                   OFString(SOP_INSTANCE_UID_BIG_02.c_str()));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
+                                                   OFString(STUDY_INSTANCE_UID_BIG_02.c_str()));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
+                                                   OFString(SERIES_INSTANCE_UID_BIG_02.c_str()));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_PatientName,
+                                                   OFString("Big^Data"));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_Modality, OFString("MR"));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_SOPClassUID, OFString(UID_MRImageStorage));
+    BOOST_REQUIRE(condition.good());
+    condition = dataset->putAndInsertOFStringArray(DCM_PatientID, "123");
+    BOOST_REQUIRE(condition.good());
+    // Binary
+    size_t vectorsize = 4096*4096;
+    std::vector<Uint8> value(vectorsize, 0);
+    condition = dataset->putAndInsertUint8Array(DCM_PixelData, &value[0], vectorsize);
+    BOOST_REQUIRE(condition.good());
+
+    // Create Dataset with Header
+    DcmFileFormat fileformat(dataset);
+
+    // Keep the original transfer syntax (if available)
+    E_TransferSyntax xfer = fileformat.getMetaInfo()->getOriginalXfer();
+    if (xfer == EXS_Unknown)
+    {
+      // No information about the original transfer syntax: This is
+      // most probably a DICOM dataset that was read from memory.
+      xfer = EXS_LittleEndianExplicit;
+    }
+    fileformat.validateMetaInfo(xfer);
+    fileformat.removeInvalidGroups();
+
+    // Create a memory buffer with the proper size
+    uint32_t size = fileformat.calcElementLength(xfer, EET_ExplicitLength);
+    std::string buffer;
+    buffer.resize(size);
+
+    // Create buffer for DCMTK
+    DcmOutputBufferStream* outputstream = new DcmOutputBufferStream(&buffer[0], size);
+
+    // Fill the memory buffer with the meta-header and the dataset
+    fileformat.transferInit();
+    condition = fileformat.write(*outputstream,
+                                 xfer,
+                                 EET_ExplicitLength, NULL);
+    fileformat.transferEnd();
+
+    delete outputstream;
+
+    if (condition.bad())
+    {
+        BOOST_FAIL(condition.text());
+    }
+
+    datasetstring << "--" << boundary << "\n";
+    datasetstring << dopamine::services::CONTENT_TYPE
+                  << dopamine::services::MIME_TYPE_APPLICATION_DICOM << "\n";
+    datasetstring << dopamine::services::CONTENT_DISPOSITION_ATTACHMENT << " "
+                  << dopamine::services::ATTRIBUT_FILENAME << "myfile" << "\n";
+    datasetstring << dopamine::services::CONTENT_TRANSFER_ENCODING
+                  << dopamine::services::TRANSFER_ENCODING_BINARY << "\n" << "\n";
+    datasetstring << buffer;
+    datasetstring << "\n" << "\n";
+    datasetstring << "--" << boundary << "--";
+
+    dopamine::services::Stow_rs stowrs(path_info, "", datasetstring.str());
+
+    BOOST_REQUIRE(stowrs.get_response() != "");
+
+    boost::property_tree::ptree ptree;
+    std::stringstream xmlstream;
+    xmlstream << stowrs.get_response();
+    boost::property_tree::read_xml(xmlstream, ptree);
+    BOOST_CHECK_EQUAL(ptree.find("NativeDicomModel") != ptree.not_found(), true);
+
+    // check mandatory tag
+    BOOST_CHECK(xmlstream.str().find("tag=\"00081190\"") != std::string::npos);
+    BOOST_CHECK(xmlstream.str().find("tag=\"00081199\"") != std::string::npos);
+    BOOST_CHECK(xmlstream.str().find("tag=\"00081150\"") != std::string::npos);
+    BOOST_CHECK(xmlstream.str().find("tag=\"00081155\"") != std::string::npos);
+
+    // check tag error is missing
+    BOOST_CHECK(xmlstream.str().find("tag=\"00081198\"") == std::string::npos);
+
+    // check values
+    BOOST_CHECK(xmlstream.str().find("1.2.840.10008.5.1.4.1.1.4") !=
+                std::string::npos);
+    BOOST_CHECK(xmlstream.str().find(SOP_INSTANCE_UID_BIG_02) !=
+                std::string::npos);
+
+    // Check into database
+    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
+                                       BSON("00080018.Value" <<
+                                            SOP_INSTANCE_UID_BIG_02)), 1);
+
+    mongo::Query query = BSON("00080018.Value" << SOP_INSTANCE_UID_BIG_02);
+    mongo::BSONObj fields = BSON("Content" << 1);
+    mongo::BSONObj sopinstanceuidobj = connection.findOne(db_name + ".datasets", query, &fields);
+
+    BOOST_REQUIRE(sopinstanceuidobj.hasField("Content"));
+    BOOST_REQUIRE(sopinstanceuidobj.getField("Content").type() == mongo::BSONType::String);
+
+    // Retrieve Filename
+    mongo::BSONObjBuilder builder;
+    mongo::OID oid(sopinstanceuidobj.getField("Content").String());
+    builder.appendOID(std::string("_id"), &oid);
+    mongo::Query query_ = builder.obj();
+    mongo::BSONObj fields_ = BSON("filename" << 1);
+    mongo::BSONObj sopinstanceuidobj_ = connection.findOne(db_name + ".fs.files", query_, &fields_);
+    std::string const sopinstanceuid = sopinstanceuidobj_.getField("filename").String();
+
+    // Create GridFS interface
+    mongo::GridFS gridfs(connection, db_name);
+
+    // Get the GridFile corresponding to the filename
+    mongo::GridFile file = gridfs.findFile(sopinstanceuid);
+
+    BOOST_CHECK_EQUAL(file.getContentLength(), 16777742);
+}
+
 
 /*************************** TEST Nominal *******************************/
 /**

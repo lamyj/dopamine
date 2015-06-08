@@ -165,6 +165,103 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: wado_rs request Big dataset
+ */
+BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
+{
+    std::stringstream stream;
+    stream << "/";
+    stream << "studies" << "/" << STUDY_INSTANCE_UID_BIG << "/";
+    stream << "series" << "/" << SERIES_INSTANCE_UID_BIG << "/";
+    stream << "instances" << "/" << SOP_INSTANCE_UID_BIG_01;
+
+    // Create the response
+    dopamine::services::Wado_rs wadors(stream.str());
+
+    std::string const response = wadors.get_response();
+    std::string const boundary = wadors.get_boundary();
+
+    BOOST_REQUIRE(response != "");
+    BOOST_REQUIRE_EQUAL(response.size(), 16777915);
+    BOOST_REQUIRE(response.find(SOP_INSTANCE_UID_BIG_01) !=
+                  std::string::npos);
+
+    // Parse MIME Message
+    std::stringstream streamresponse;
+    streamresponse << dopamine::services::MIME_VERSION << "\n"
+                   << dopamine::services::CONTENT_TYPE
+                   << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
+                   << dopamine::services::ATTRIBUT_BOUNDARY
+                   << boundary << "\n" << "\n";
+    streamresponse << response << "\n";
+    mimetic::MimeEntity entity(streamresponse);
+
+    // Check Header
+    mimetic::Header& h = entity.header();
+    BOOST_CHECK(h.contentType().isMultipart());
+    std::string content_type = h.contentType().str();
+    BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+                std::string::npos);
+
+    // Check each parts
+    mimetic::MimeEntityList& parts = entity.body().parts();
+    for(mimetic::MimeEntityList::iterator mbit = parts.begin();
+        mbit != parts.end(); ++mbit)
+    {
+        // check Header
+        mimetic::Header& header = (*mbit)->header();
+        std::stringstream contenttypestream;
+        contenttypestream << header.contentType();
+
+        BOOST_REQUIRE_EQUAL(contenttypestream.str(),
+                            dopamine::services::MIME_TYPE_APPLICATION_DICOM);
+
+        // check Body
+        mimetic::Body& body = (*mbit)->body();
+
+        // remove the ended boundary
+        std::string temp(body.c_str(), body.size());
+        temp = temp.substr(0, temp.rfind("\n\n--"));
+
+        // remove ended '\n'
+        while (temp[temp.size()-1] == '\n')
+        {
+            temp = temp.substr(0, temp.rfind("\n"));
+        }
+
+        // Create buffer for DCMTK
+        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
+        inputbufferstream->setBuffer(temp.c_str(), temp.size());
+        inputbufferstream->setEos();
+
+        // Convert buffer into Dataset
+        DcmFileFormat fileformat;
+        fileformat.transferInit();
+        OFCondition condition = fileformat.read(*inputbufferstream);
+        fileformat.transferEnd();
+
+        delete inputbufferstream;
+        BOOST_REQUIRE(condition.good());
+
+        // check sop instance
+        OFString sopinstanceuid;
+        condition = fileformat.getDataset()->findAndGetOFStringArray(DCM_SOPInstanceUID,
+                                                         sopinstanceuid);
+        BOOST_REQUIRE(condition.good());
+        BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+                          SOP_INSTANCE_UID_BIG_01);
+
+        DcmElement* element = NULL;
+        condition = fileformat.getDataset()->findAndGetElement(DCM_PixelData, element);
+        BOOST_REQUIRE(condition.good());
+        DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
+        BOOST_REQUIRE(byte_string != NULL);
+        BOOST_CHECK_EQUAL(byte_string->getLength(), 16777216); // 4096*4096
+    }
+}
+
 /*************************** TEST Error *********************************/
 /**
  * Error test case: No parameter

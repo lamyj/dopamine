@@ -39,7 +39,9 @@ StoreGenerator
     // Nothing to do
 }
 
-Uint16 StoreGenerator::process()
+Uint16
+StoreGenerator
+::process()
 {
     // Look for database connection
     if (this->_connection.isFailed())
