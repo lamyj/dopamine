@@ -19,7 +19,7 @@ public:
     TestDataGenerator_badconnection()
     {
         std::string NetworkConfFILE(getenv("DOPAMINE_TEST_BADCONFIG"));
-        dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
+        dopamine::ConfigurationPACS::get_instance().parse(NetworkConfFILE);
     }
 
     ~TestDataGenerator_badconnection()
@@ -78,18 +78,18 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_EQUAL(generator.get_instance_count_tags().size(), 0);
     BOOST_CHECK_EQUAL(generator.get_convert_modalities_in_study(), false);
     BOOST_CHECK_EQUAL(generator.get_query_retrieve_level(), "");
-    BOOST_CHECK_EQUAL(generator.get_maximumResults(), 0);
-    BOOST_CHECK_EQUAL(generator.get_skippedResults(), 0);
-    BOOST_CHECK_EQUAL(generator.get_fuzzymatching(), false);
+    BOOST_CHECK_EQUAL(generator.get_maximum_results(), 0);
+    BOOST_CHECK_EQUAL(generator.get_skipped_results(), 0);
+    BOOST_CHECK_EQUAL(generator.get_fuzzy_matching(), false);
     BOOST_CHECK_EQUAL(generator.is_allow(), false);
 
     // Setter
-    generator.set_maximumResults(5);
-    BOOST_CHECK_EQUAL(generator.get_maximumResults(), 5);
-    generator.set_skippedResults(2);
-    BOOST_CHECK_EQUAL(generator.get_skippedResults(), 2);
-    generator.set_fuzzymatching(true);
-    BOOST_CHECK_EQUAL(generator.get_fuzzymatching(), true);
+    generator.set_maximum_results(5);
+    BOOST_CHECK_EQUAL(generator.get_maximum_results(), 5);
+    generator.set_skipped_results(2);
+    BOOST_CHECK_EQUAL(generator.get_skipped_results(), 2);
+    generator.set_fuzzy_matching(true);
+    BOOST_CHECK_EQUAL(generator.get_fuzzy_matching(), true);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -395,7 +395,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 1);
 
     // Second with fields
-    generator_query.set_includefields(fields_to_get);
+    generator_query.set_include_fields(fields_to_get);
 
     result = generator_query.process_bson(query);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);

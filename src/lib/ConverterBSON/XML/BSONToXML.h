@@ -79,11 +79,17 @@ namespace dopamine
 namespace converterBSON
 {
 
+/**
+ * @brief The BSONToXML class
+ * Convert a BSON Object into XML object
+ */
 class BSONToXML : public ConverterBSONXML
 {
 public:
+    /// Create an instance of BSONToXML
     BSONToXML();
 
+    /// Destroy the instance of BSONToXML
     ~BSONToXML();
 
     /**
@@ -91,17 +97,17 @@ public:
      * @param bson: BSON object to convert
      * @return converted XML dataset
      */
-     boost::property_tree::ptree to_ptree(mongo::BSONObj const & bson);
+     boost::property_tree::ptree to_ptree(mongo::BSONObj const & bson) const;
 
      /**
       * to_string
       * @param bson: BSON object to convert
       * @return converted XML dataset as string
       */
-     std::string to_string(mongo::BSONObj const & bson);
+     std::string to_string(mongo::BSONObj const & bson) const;
 
 protected:
-     bool is_Dicom_field(std::string const & field_name);
+     bool is_dicom_field(std::string const & field_name) const;
 
 private:
      template<typename TBSONType>
@@ -111,19 +117,19 @@ private:
      };
 
      void _to_dicom_attribute(mongo::BSONElement const & bson,
-                              boost::property_tree::ptree & tag_xml);
+                              boost::property_tree::ptree & tag_xml) const;
 
      void _to_dicom_model(mongo::BSONObj const & bson,
-                          boost::property_tree::ptree & tag_xml);
+                          boost::property_tree::ptree & tag_xml) const;
 
      void _to_item(mongo::BSONElement const & bson,
-                   boost::property_tree::ptree & tag_xml);
+                   boost::property_tree::ptree & tag_xml) const;
 
      void _to_person_name(mongo::BSONElement const & bson,
-                          boost::property_tree::ptree & tag_xml);
+                          boost::property_tree::ptree & tag_xml) const;
 
      void _to_raw(mongo::BSONElement const & bson,
-                  boost::property_tree::ptree & tag_xml);
+                  boost::property_tree::ptree & tag_xml) const;
 
      template<typename TBSONType>
      void _to_value(mongo::BSONElement const & bson,

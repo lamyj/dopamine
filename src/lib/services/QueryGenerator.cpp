@@ -16,7 +16,7 @@ namespace services
 {
 
 QueryGenerator
-::QueryGenerator(const std::string &username):
+::QueryGenerator(std::string const & username):
     QueryRetrieveGenerator(username, Service_Query) // base class initialisation
 {
     // Nothing to do

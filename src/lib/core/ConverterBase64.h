@@ -22,7 +22,7 @@ unsigned int const NO_LINEBREAK = 0;
 
 std::string encode(std::string const & bindata, unsigned int linebreak = NO_LINEBREAK);
 
-std::string decode(const std::string &ascdata);
+std::string decode(std::string const & ascdata);
 
 } // namespace ConverterBase64
 

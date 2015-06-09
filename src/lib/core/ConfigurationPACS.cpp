@@ -55,98 +55,98 @@ ConfigurationPACS
 
 void 
 ConfigurationPACS
-::Parse(std::string const & file)
+::parse(std::string const & file)
 {
     if ( ! boost::filesystem::exists(file.c_str()))
     {
         throw ExceptionPACS("Trying to parse non-existing file: " + file);
     }
     
-    boost::property_tree::ini_parser::read_ini(file, this->_confptree);
+    boost::property_tree::ini_parser::read_ini(file, this->_configuration_node);
     
     // read allowed AETitle
-    this->_AETitles.clear();
-    if (!this->HasValue("dicom.allowed_peers"))
+    this->_aetitles.clear();
+    if (!this->has_value("dicom.allowed_peers"))
     {
         throw ExceptionPACS("Missing mandatory node: dicom.allowed_peers");
     }
-    std::string value = this->GetValue("dicom.allowed_peers");
-    boost::split(this->_AETitles, value, boost::is_any_of(","));
+    std::string value = this->get_value("dicom.allowed_peers");
+    boost::split(this->_aetitles, value, boost::is_any_of(","));
     
     // read list of addresses and ports
     this->_addressPortList.clear();
     std::vector<std::string> templist;
-    value = this->GetValue("listAddressPort.allowed");
+    value = this->get_value("listAddressPort.allowed");
     boost::split(templist, value, boost::is_any_of(","));
     for (auto aetitle : templist)
     {
-        std::string addressport = this->GetValue("listAddressPort", aetitle);
+        std::string addressport = this->get_value("listAddressPort", aetitle);
         this->_addressPortList.insert(std::pair<std::string, std::string>(aetitle, addressport));
     }
 }
 
 std::string 
 ConfigurationPACS
-::GetValue(std::string const & key)
+::get_value(std::string const & key)
 {
-    if (!this->HasValue(key))
+    if (!this->has_value(key))
     {
         return "";
     }
-    return this->_confptree.get<std::string>(key);
+    return this->_configuration_node.get<std::string>(key);
 }
 
 std::string 
 ConfigurationPACS
-::GetValue(std::string const & section, std::string const & key)
+::get_value(std::string const & section, std::string const & key)
 {
-    return this->GetValue(section + "." + key);
+    return this->get_value(section + "." + key);
 }
 
 bool 
 ConfigurationPACS
-::HasValue(std::string const & key)
+::has_value(std::string const & key)
 {
-    auto child = this->_confptree.get_optional<std::string>( key );
+    auto child = this->_configuration_node.get_optional<std::string>( key );
     return child;
 }
 
 bool 
 ConfigurationPACS
-::HasValue(std::string const & section, std::string const & key)
+::has_value(std::string const & section, std::string const & key)
 {
-    return this->HasValue(section + "." + key);
+    return this->has_value(section + "." + key);
 }
 
 bool 
 ConfigurationPACS
-::peerInAETitle(std::string const & peer)
+::peer_in_aetitle(std::string const & peer)
 {
     // '*' => everybody allowed
-    if (std::find(this->_AETitles.begin(), this->_AETitles.end(), "*") 
-            != this->_AETitles.end())
+    if (std::find(this->_aetitles.begin(), this->_aetitles.end(), "*")
+            != this->_aetitles.end())
     {
         return true;
     }
         
     // search for specific AETitle
-    return (std::find(this->_AETitles.begin(), 
-                      this->_AETitles.end(), 
-                      peer.c_str()) != this->_AETitles.end());
+    return (std::find(this->_aetitles.begin(),
+                      this->_aetitles.end(),
+                      peer.c_str()) != this->_aetitles.end());
 }
 
 bool 
 ConfigurationPACS
-::peerForAETitle(std::string const & AETitle, std::string & addressPort) const
+::peer_for_aetitle(std::string const & aetitle, std::string & address_and_port) const
 {
-    auto item = this->_addressPortList.find(AETitle);
+    auto item = this->_addressPortList.find(aetitle);
     
     if (item != this->_addressPortList.end())
     {
-        addressPort = item->second;
+        address_and_port = item->second;
         return true;
     }
-    addressPort = "";
+    address_and_port = "";
     return false;
 }
 

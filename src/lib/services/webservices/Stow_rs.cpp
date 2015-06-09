@@ -44,17 +44,17 @@ Stow_rs
     // First add unreferenced DICOM Tag
     DcmDataDictionary &dictionary = dcmDataDict.wrlock();
     dictionary.addEntry(new DcmDictEntry(0x0008, 0x1190, DcmVR("UT"), "RetrieveURL",
-                                     1, 1, NULL, OFTrue, NULL));
+                                         1, 1, NULL, OFTrue, NULL));
     dcmDataDict.unlock();
 
     // Decode entries
-    mongo::BSONObj object = this->parse_string();
+    mongo::BSONObj object = this->_parse_string();
 
     // Multipart Response
-    this->create_boundary();
+    this->_create_boundary();
 
     // Parse MIME data and store dataset
-    this->process(postdata, object);
+    this->_process(postdata, object);
 }
 
 Stow_rs
@@ -86,7 +86,7 @@ Stow_rs
 
 mongo::BSONObj
 Stow_rs
-::parse_string()
+::_parse_string()
 {
     // Parse the path info
     // WARNING: inadequate method (TODO: find other method)
@@ -141,7 +141,7 @@ Stow_rs
 
 std::string
 Stow_rs
-::find_content_type(std::string const & contenttype)
+::_find_content_type(std::string const & contenttype)
 {
     if (contenttype.find(MIME_TYPE_APPLICATION_DICOMXML) != std::string::npos)
     {// search this before MIME_TYPE_APPLICATION_DICOM
@@ -172,7 +172,7 @@ Stow_rs
 
 void
 Stow_rs
-::process(const std::string &postdata, const mongo::BSONObj &studyinstanceuid)
+::_process(std::string const & postdata, mongo::BSONObj const & studyinstanceuid)
 {
     // Parse MIME Message
     std::stringstream stream;
@@ -187,7 +187,7 @@ Stow_rs
         throw WebServiceException(400, "Bad Request",
                                   "Content-type should be multipart/related");
     }
-    this->_content_type = this->find_content_type(h.contentType().str());
+    this->_content_type = this->_find_content_type(h.contentType().str());
 
     DcmDataset responseDataset;
     OFCondition condition = responseDataset.insertEmptyElement(DCM_RetrieveURL, true);

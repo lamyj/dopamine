@@ -24,9 +24,9 @@ namespace characterset
 {
 
 std::string
-convert(const std::string &input,
-        const std::string &from,
-        const std::string &to)
+convert(std::string const & input,
+        std::string const & from,
+        std::string const & to)
 {
     if (to == "UTF-8")
     {
@@ -140,8 +140,8 @@ convert_to_utf8_with_escape(std::string const & input,
 }
 
 std::string
-convert_to_utf8(const std::string &input,
-                const std::vector<std::string> &from,
+convert_to_utf8(std::string const & input,
+                std::vector<std::string> const & from,
                 unsigned int position)
 {
     std::vector<std::string> input_character_sets = from;
@@ -156,7 +156,7 @@ convert_to_utf8(const std::string &input,
         default_charset = 1;
     }
 
-    std::string default_character_set = input_character_sets[default_charset];
+    std::string const default_character_set = input_character_sets[default_charset];
     std::string current_character_set = default_character_set;
     std::string next_character_set = "";
     size_t current_begin = 0;
@@ -215,7 +215,8 @@ convert_to_utf8(const std::string &input,
 
         // Next
         current_begin = next_escape;
-        next_escape = find_next_escape(input, current_begin+1, input_character_sets, next_character_set);
+        next_escape = find_next_escape(input, current_begin+1,
+                                       input_character_sets, next_character_set);
     }
 
     return returnstream.str();

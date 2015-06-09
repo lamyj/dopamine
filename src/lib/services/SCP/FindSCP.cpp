@@ -28,7 +28,7 @@ namespace services
  * @param responseIdentifiers: find response identifiers (out)
  * @param stDetail: status detail for find response (out)
  */
-static void findCallback(
+static void find_callback(
         /* in */
         void *callbackData, OFBool cancelled, T_DIMSE_C_FindRQ *request,
         DcmDataset *requestIdentifiers, int responseCount,
@@ -46,9 +46,9 @@ static void findCallback(
         status = context->process_dataset(requestIdentifiers, false);
         if (status != STATUS_Pending)
         {
-            createStatusDetail(status, DCM_UndefinedTagKey,
-                               OFString("An error occured while processing Find operation"),
-                               stDetail);
+            create_status_detail(status, DCM_UndefinedTagKey,
+                                 OFString("An error occured while processing Find operation"),
+                                 stDetail);
         }
     }
 
@@ -70,14 +70,14 @@ static void findCallback(
         }
         else if (object.hasField("$err"))
         {
-            dopamine::loggerError() << "An error occured while processing Find operation: "
-                                    << object.getField("$err").String();
+            dopamine::logger_error() << "An error occured while processing Find operation: "
+                                     << object.getField("$err").String();
 
             status = STATUS_FIND_Failed_UnableToProcess;
 
-            createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                               DCM_UndefinedTagKey,
-                               OFString(object.getField("$err").String().c_str()), stDetail);
+            create_status_detail(STATUS_FIND_Failed_UnableToProcess,
+                                 DCM_UndefinedTagKey,
+                                 OFString(object.getField("$err").String().c_str()), stDetail);
         }
         else
         {
@@ -89,13 +89,14 @@ static void findCallback(
 
             if (condition.bad())
             {
-                dopamine::loggerError() << "Cannot insert DCM_QueryRetrieveLevel: "
-                                        << condition .text();
+                dopamine::logger_error() << "Cannot insert DCM_QueryRetrieveLevel: "
+                                         << condition .text();
 
                 status = STATUS_FIND_Failed_UnableToProcess;
 
-                createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                                   DCM_QueryRetrieveLevel, OFString(condition.text()), stDetail);
+                create_status_detail(STATUS_FIND_Failed_UnableToProcess,
+                                     DCM_QueryRetrieveLevel,
+                                     OFString(condition.text()), stDetail);
             }
 
             if (status == STATUS_Pending && object.hasField("instance_count"))
@@ -108,14 +109,14 @@ static void findCallback(
 
                 if (condition.bad())
                 {
-                    dopamine::loggerError() << "Cannot insert "
-                                            << context->get_instance_count_tag().getGroup() << ","
-                                            << context->get_instance_count_tag().getElement() << ": "
-                                            << condition .text();
+                    dopamine::logger_error() << "Cannot insert "
+                                             << context->get_instance_count_tag().getGroup() << ","
+                                             << context->get_instance_count_tag().getElement() << ": "
+                                             << condition .text();
 
                     status = STATUS_FIND_Failed_UnableToProcess;
 
-                    createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
+                    create_status_detail(STATUS_FIND_Failed_UnableToProcess,
                                        context->get_instance_count_tag(),
                                        OFString(condition.text()), stDetail);
                 }*/
@@ -140,14 +141,14 @@ static void findCallback(
 
                 if (condition.bad())
                 {
-                    dopamine::loggerError() << "Cannot insert DCM_ModalitiesInStudy: "
-                                            << condition .text();
+                    dopamine::logger_error() << "Cannot insert DCM_ModalitiesInStudy: "
+                                             << condition .text();
 
                     status = STATUS_FIND_Failed_UnableToProcess;
 
-                    createStatusDetail(STATUS_FIND_Failed_UnableToProcess,
-                                       DCM_ModalitiesInStudy,
-                                       OFString(condition.text()), stDetail);
+                    create_status_detail(STATUS_FIND_Failed_UnableToProcess,
+                                         DCM_ModalitiesInStudy,
+                                         OFString(condition.text()), stDetail);
                 }
             }
         }
@@ -162,10 +163,11 @@ static void findCallback(
 }
     
 FindSCP
-::FindSCP(T_ASC_Association * assoc, 
-          T_ASC_PresentationContextID presID, 
-          T_DIMSE_C_FindRQ * req):
-    SCP(assoc, presID), _request(req) // base class initialisation
+::FindSCP(T_ASC_Association * association,
+          T_ASC_PresentationContextID presentation_context_id,
+          T_DIMSE_C_FindRQ * request):
+    SCP(association, presentation_context_id), // base class initialisation
+    _request(request)
 {
     // nothing to do
 }
@@ -180,15 +182,15 @@ OFCondition
 FindSCP
 ::process()
 {
-    dopamine::loggerInfo() << "Received Find SCP: MsgID "
+    dopamine::logger_info() << "Received Find SCP: MsgID "
                                 << this->_request->MessageID;
 
     std::string const username =
            get_username(this->_association->params->DULparams.reqUserIdentNeg);
     QueryGenerator context(username);
     
-    return DIMSE_findProvider(this->_association, this->_presentationID,
-                              this->_request, findCallback, &context, 
+    return DIMSE_findProvider(this->_association, this->_presentation_context_id,
+                              this->_request, find_callback, &context,
                               DIMSE_BLOCKING, 30);
 }
 

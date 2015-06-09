@@ -250,11 +250,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONJSON, TestDataConversionBSONJSON)
 {
     // Convert original BSON to JSON
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const json = bsontojson.to_JSON(bsonobject);
+    mongo::BSONObj const json = bsontojson.to_json(bsonobject);
 
     // Convert JSON to new BSON
     dopamine::converterBSON::JSONToBSON jsontobson;
-    mongo::BSONObj const newbson = jsontobson.from_JSON(json);
+    mongo::BSONObj const newbson = jsontobson.from_json(json);
 
     // Compare original BSON with new
     isEqual(bsonobject, newbson);
@@ -488,11 +488,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionJSONBSON, TestDataConversionJSONBSON)
 {
     // Convert original BSON to Dataset
     dopamine::converterBSON::JSONToBSON jsontobson;
-    mongo::BSONObj const bson_ = jsontobson.from_JSON(jsonobject);
+    mongo::BSONObj const bson_ = jsontobson.from_json(jsonobject);
 
     // Convert Dataset to new BSON
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const newjson = bsontojson.to_JSON(bson_);
+    mongo::BSONObj const newjson = bsontojson.to_json(bson_);
 
     // Compare original JSON with new
     isEqual(jsonobject, newjson);

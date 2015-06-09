@@ -20,24 +20,24 @@ namespace authenticator
 {
     
 AuthenticatorCSV
-::AuthenticatorCSV(std::string const & ifileName):
+::AuthenticatorCSV(std::string const & fileName):
     AuthenticatorBase() // base class initialisation
 {
-    if ( ! boost::filesystem::exists(ifileName.c_str()))
+    if ( ! boost::filesystem::exists(fileName.c_str()))
     {
-        std::stringstream stream;
-        stream << "Trying to parse non-existing file: " << ifileName;
-        throw ExceptionPACS(stream.str());
+        std::stringstream streamerror;
+        streamerror << "Trying to parse non-existing file: " << fileName;
+        throw ExceptionPACS(streamerror.str());
     }
     
     // Open file
-    std::ifstream stream(ifileName.c_str());
-    while(!stream.eof())
+    std::ifstream file(fileName.c_str());
+    while(!file.eof())
     {
         // Store user / password
         std::string user;
         std::string password;
-        stream >> user >> password;
+        file >> user >> password;
         if (user != "" && password != "")
         {
             if (this->_table.find(user) == this->_table.end())
@@ -48,11 +48,13 @@ AuthenticatorCSV
         }
         //else ignore empty line
     }
+    file.close();
 }
 
 AuthenticatorCSV
 ::~AuthenticatorCSV()
 {
+    // Nothing to do
 }
 
 bool 
@@ -72,7 +74,7 @@ AuthenticatorCSV
             Uint16 user_length;
             identity->getPrimField(user, user_length);
             // user is not NULL-terminated
-            std::string userstr = std::string(user, user_length);
+            std::string const userstr = std::string(user, user_length);
             
             // Search in map
             std::map<std::string, std::string>::const_iterator const it = 
@@ -81,11 +83,12 @@ AuthenticatorCSV
             if(it != this->_table.end())
             {
                 // Get password
-                char * password; Uint16 password_length;
+                char * password;
+                Uint16 password_length;
                 identity->getSecField(password, password_length);
                 
                 // password is not NULL-terminated
-                std::string passwordstr = std::string(password, password_length);
+                std::string const passwordstr(password, password_length);
             
                 authorized = it->second == passwordstr;
                 

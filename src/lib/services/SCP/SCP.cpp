@@ -15,8 +15,10 @@ namespace services
 {
     
 SCP
-::SCP(T_ASC_Association * assoc, T_ASC_PresentationContextID presID):
-    _association(assoc), _presentationID(presID)
+::SCP(T_ASC_Association * association,
+      T_ASC_PresentationContextID presentation_context_id):
+    _association(association),
+    _presentation_context_id(presentation_context_id)
 {
     // nothing to do
 }
@@ -25,6 +27,13 @@ SCP
 ::~SCP()
 {
     // nothing to do
+}
+
+T_ASC_Association *
+SCP
+::get_association() const
+{
+    return this->_association;
 }
 
 } // namespace services

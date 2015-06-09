@@ -58,7 +58,7 @@ private :
     };
 
     void _add_element(mongo::BSONElement const & bson,
-                      DcmDataset & dataset);
+                      DcmDataset & dataset) const;
 
     template<DcmEVR VVR>
     void _to_dcmtk(mongo::BSONElement const & bson, 

@@ -17,10 +17,12 @@ namespace dopamine
 namespace ConverterBase64
 {
 
-std::string encode(const std::string &bindata, unsigned int linebreak)
+std::string
+encode(std::string const & bindata, unsigned int linebreak)
 {
     OFString result;
-    OFStandard::encodeBase64((unsigned char*)bindata.c_str(), bindata.size(), result);
+    OFStandard::encodeBase64((unsigned char*)bindata.c_str(),
+                             bindata.size(), result);
     std::string retval(result.c_str());
 
     if (linebreak != 0)
@@ -44,7 +46,8 @@ std::string encode(const std::string &bindata, unsigned int linebreak)
     return retval;
 }
 
-std::string decode(const std::string &ascdata)
+std::string
+decode(std::string const & ascdata)
 {
     unsigned char* result;
     size_t size = OFStandard::decodeBase64(OFString(ascdata.c_str()), result);

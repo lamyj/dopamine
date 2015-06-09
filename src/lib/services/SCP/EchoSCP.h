@@ -29,9 +29,9 @@ public:
      * @param presID: linked presentation context
      * @param req: C-ECHO request
      */
-    EchoSCP(T_ASC_Association * assoc, 
-            T_ASC_PresentationContextID presID,
-            T_DIMSE_C_EchoRQ * req);
+    EchoSCP(T_ASC_Association * association,
+            T_ASC_PresentationContextID presentation_context_id,
+            T_DIMSE_C_EchoRQ * request);
     
     /// Destroy the SCP
     virtual ~EchoSCP();

@@ -20,12 +20,12 @@ namespace services
 {
 
 Webservices
-::Webservices(const std::string &pathinfo,
-              const std::string &querystring,
-              const std::string &username):
+::Webservices(std::string const & pathinfo,
+              std::string const & querystring,
+              std::string const & username):
     _pathinfo(pathinfo), _querystring(querystring),
     _username(username), _response(""), _boundary(""),
-    _maximumResults(0), _skippedResults(0), _fuzzymatching(false)
+    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
 {
     // Nothing to do
 }
@@ -52,7 +52,7 @@ Webservices
 
 void
 Webservices
-::create_boundary()
+::_create_boundary()
 {
     std::string const chars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
     boost::random::random_device rng;

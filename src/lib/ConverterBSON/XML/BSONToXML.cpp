@@ -39,7 +39,7 @@ BSONToXML
 
 boost::property_tree::ptree
 BSONToXML
-::to_ptree(const mongo::BSONObj &bson)
+::to_ptree(mongo::BSONObj const & bson) const
 {
     // root element
     boost::property_tree::ptree bsonxml;
@@ -57,9 +57,9 @@ BSONToXML
 
 std::string
 BSONToXML
-::to_string(const mongo::BSONObj &bson)
+::to_string(mongo::BSONObj const & bson) const
 {
-    boost::property_tree::ptree ptree = this->to_ptree(bson);
+    boost::property_tree::ptree const ptree = this->to_ptree(bson);
 
     std::stringstream xmldataset;
     boost::property_tree::xml_writer_settings<char> settings(' ', 4);
@@ -70,7 +70,7 @@ BSONToXML
 
 bool
 BSONToXML
-::is_Dicom_field(const std::string &field_name)
+::is_dicom_field(std::string const & field_name) const
 {
     bool isdicom = (field_name.size() == 8);
 
@@ -97,11 +97,11 @@ BSONToXML
 template<>
 void
 BSONToXML
-::_to_value<int>(mongo::BSONElement const & bson, const std::string &vr,
+::_to_value<int>(mongo::BSONElement const & bson, std::string const & vr,
             boost::property_tree::ptree & tag_xml,
             typename BSONGetterType<int>::Type getter) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     unsigned int count = 0;
 
@@ -124,11 +124,11 @@ BSONToXML
 template<typename TBSONType>
 void
 BSONToXML
-::_to_value(mongo::BSONElement const & bson, const std::string &vr,
+::_to_value(mongo::BSONElement const & bson, std::string const & vr,
             boost::property_tree::ptree & tag_xml,
             typename BSONGetterType<TBSONType>::Type getter) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     unsigned int count = 0;
 
@@ -150,8 +150,8 @@ BSONToXML
 
 void
 BSONToXML
-::_to_dicom_attribute(const mongo::BSONElement &bson,
-                      boost::property_tree::ptree &tag_xml)
+::_to_dicom_attribute(mongo::BSONElement const & bson,
+                      boost::property_tree::ptree &tag_xml) const
 {
     // Create : <DicomAttribute tag="GGGGEEEE" vr="VR" keyword="...."/>
 
@@ -222,13 +222,13 @@ BSONToXML
     else if(evr == EVR_OW) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
     else if(evr == EVR_PN) this->_to_person_name(element, tag_xml);                                             // Object containing Person Name component groups as strings
     else if(evr == EVR_SH) this->_to_value<std::string>(element, "SH", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_SL) this->_to_value<long long>(element, "SL", tag_xml, &mongo::BSONElement::Long);             // Number
+    else if(evr == EVR_SL) this->_to_value<long long>(element, "SL", tag_xml, &mongo::BSONElement::Long);       // Number
     else if(evr == EVR_SQ) this->_to_item(element, tag_xml);                                                    // Array containing DICOM JSON Objects
     else if(evr == EVR_SS) this->_to_value<int>(element, "SS", tag_xml, &mongo::BSONElement::Int);              // Number
     else if(evr == EVR_ST) this->_to_value<std::string>(element, "ST", tag_xml, &mongo::BSONElement::String);   // String
     else if(evr == EVR_TM) this->_to_value<std::string>(element, "TM", tag_xml, &mongo::BSONElement::String);   // String
     else if(evr == EVR_UI) this->_to_value<std::string>(element, "UI", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_UL) this->_to_value<long long>(element, "UL", tag_xml, &mongo::BSONElement::Long);              // Number
+    else if(evr == EVR_UL) this->_to_value<long long>(element, "UL", tag_xml, &mongo::BSONElement::Long);       // Number
     else if(evr == EVR_UN) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
     else if(evr == EVR_US) this->_to_value<int>(element, "US", tag_xml, &mongo::BSONElement::Int);              // Number
     else if(evr == EVR_UT) this->_to_value<std::string>(element, "UT", tag_xml, &mongo::BSONElement::String);   // String
@@ -242,8 +242,8 @@ BSONToXML
 
 void
 BSONToXML
-::_to_dicom_model(const mongo::BSONObj &bson,
-                  boost::property_tree::ptree &tag_xml)
+::_to_dicom_model(mongo::BSONObj const & bson,
+                  boost::property_tree::ptree & tag_xml) const
 {
     // Foreach bson element
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
@@ -258,7 +258,7 @@ BSONToXML
 
         // Skip elements that do not look like DICOM tags
         std::string const field_name = element_bson.fieldName();
-        if (!this->is_Dicom_field(field_name))
+        if (!this->is_dicom_field(field_name))
         {
             continue;
         }
@@ -271,10 +271,10 @@ BSONToXML
 
 void
 BSONToXML
-::_to_item(const mongo::BSONElement &bson,
-           boost::property_tree::ptree &tag_xml)
+::_to_item(mongo::BSONElement const & bson,
+           boost::property_tree::ptree & tag_xml) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     unsigned int count = 0;
 
@@ -296,10 +296,10 @@ BSONToXML
 
 void
 BSONToXML
-::_to_person_name(const mongo::BSONElement &bson,
-                  boost::property_tree::ptree &tag_xml)
+::_to_person_name(mongo::BSONElement const & bson,
+                  boost::property_tree::ptree & tag_xml) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     unsigned int count = 0;
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
@@ -315,9 +315,10 @@ BSONToXML
             {
                 boost::property_tree::ptree tag_alphabetic;
 
-                std::string name = it->Obj().getField(Tag_Alphabetic).String();
+                std::string const name = it->Obj().getField(Tag_Alphabetic).String();
                 std::vector<std::string> name_components;
-                boost::split(name_components, name, boost::is_any_of("^"), boost::token_compress_off);
+                boost::split(name_components, name, boost::is_any_of("^"),
+                             boost::token_compress_off);
 
                 if (name_components.size() > 0)
                 {
@@ -360,8 +361,8 @@ BSONToXML
 
 void
 BSONToXML
-::_to_raw(const mongo::BSONElement &bson,
-          boost::property_tree::ptree &tag_xml)
+::_to_raw(mongo::BSONElement const & bson,
+          boost::property_tree::ptree & tag_xml) const
 {
     // process only one item
     boost::property_tree::ptree tag_inlinebinary;
@@ -369,7 +370,7 @@ BSONToXML
     int size=0;
     char const * begin = bson.binDataClean(size);
 
-    std::string encode = ConverterBase64::encode(std::string(begin, size));
+    std::string const encode = ConverterBase64::encode(std::string(begin, size));
 
     tag_inlinebinary.put_value(encode);
 
@@ -378,10 +379,10 @@ BSONToXML
 
 void
 BSONToXML
-::_to_value_string_number(const mongo::BSONElement &bson,
+::_to_value_string_number(mongo::BSONElement const & bson,
                           boost::property_tree::ptree &tag_xml) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     unsigned int count = 0;
 

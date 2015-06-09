@@ -30,9 +30,9 @@ public:
      * @param presID: linked presentation context
      * @param req: C-STORE request
      */
-    MoveSCP(T_ASC_Association * assoc, 
-            T_ASC_PresentationContextID presID,
-            T_DIMSE_C_MoveRQ * req);
+    MoveSCP(T_ASC_Association * association,
+            T_ASC_PresentationContextID presentation_context_id,
+            T_DIMSE_C_MoveRQ * request);
     
     /// Destroy the SCP
     virtual ~MoveSCP();

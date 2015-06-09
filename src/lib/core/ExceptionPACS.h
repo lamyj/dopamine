@@ -26,7 +26,7 @@ public:
      * @param message: content of the exception
      */
     ExceptionPACS(const std::string& message):
-        m_message(message) {}
+        _message(message) {}
 
     /// Destroy the exception
     ~ExceptionPACS() throw() {}
@@ -36,12 +36,12 @@ public:
      * @return message
      */
     virtual const char* what() const throw() {
-        return m_message.c_str();
+        return _message.c_str();
     }
     
 protected:
     /// Exception description
-    std::string m_message;
+    std::string _message;
 
 private:
 

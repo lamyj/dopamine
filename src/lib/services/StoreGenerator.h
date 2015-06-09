@@ -20,9 +20,16 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The StoreGenerator class
+ */
 class StoreGenerator : public Generator
 {
 public:
+    /**
+     * @brief Create an instance of StoreGenerator
+     * @param username
+     */
     StoreGenerator(std::string const & username);
 
     /// Destroy the store response generator
@@ -30,18 +37,14 @@ public:
 
     virtual Uint16 process();
 
-    void set_callingaptitle(std::string const & callingaptitle);
+    void set_calling_aptitle(std::string const & callingaptitle);
 
-    std::string get_callingaptitle() const;
+    std::string get_calling_aptitle() const;
 
 private:
     std::string _destination_path;
 
-    std::string _callingaptitle;
-
-    void create_destination_path(const mongo::BSONObj & query_dataset);
-
-    bool is_dataset_allowed_for_storage(mongo::BSONObj const & dataset);
+    std::string _calling_aptitle;
 
 };
 

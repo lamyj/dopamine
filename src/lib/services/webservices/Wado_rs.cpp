@@ -24,10 +24,10 @@ namespace services
 {
 
 Wado_rs
-::Wado_rs(const std::string &pathinfo, const std::string &remoteuser):
+::Wado_rs(std::string const & pathinfo, std::string const & remoteuser):
     Wado(pathinfo, "", remoteuser)
 {
-    mongo::BSONObj object = this->parse_string();
+    mongo::BSONObj const object = this->_parse_string();
 
     RetrieveGenerator generator(this->_username);
 
@@ -45,7 +45,7 @@ Wado_rs
     }
 
     // Multipart Response
-    this->create_boundary();
+    this->_create_boundary();
 
     mongo::BSONObj findedobject = generator.next();
     if (!findedobject.isValid() || findedobject.isEmpty())
@@ -66,7 +66,7 @@ Wado_rs
             throw WebServiceException(500, "Internal Server Error", exc.what());
         }
 
-        std::string filename = findedobject.getField("00080018").Obj().getField("Value").Array()[0].String();
+        std::string const filename = findedobject.getField("00080018").Obj().getField("Value").Array()[0].String();
 
         stream << "--" << this->_boundary << "\n";
         stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
@@ -85,12 +85,15 @@ Wado_rs
     this->_response = stream.str();
 }
 
-Wado_rs::~Wado_rs()
+Wado_rs
+::~Wado_rs()
 {
     // Nothing to do
 }
 
-mongo::BSONObj Wado_rs::parse_string()
+mongo::BSONObj
+Wado_rs
+::_parse_string()
 {
     std::string study_instance_uid;
     std::string series_instance_uid;

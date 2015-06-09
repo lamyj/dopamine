@@ -62,7 +62,7 @@ public:
     {
         // Load configuration
         dopamine::ConfigurationPACS::
-                get_instance().Parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
+                get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
         // Create DataBase Connection
         dopamine::services::create_db_connection(connection, db_name);

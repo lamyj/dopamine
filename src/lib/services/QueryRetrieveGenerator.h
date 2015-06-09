@@ -17,11 +17,22 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The QueryRetrieveGenerator class
+ */
 class QueryRetrieveGenerator : public Generator
 {
 public:
+    /**
+     * @brief Create an instance of QueryRetrieveGenerator
+     * @param username
+     * @param service_name
+     */
     QueryRetrieveGenerator(std::string const & username,
                            std::string const & service_name);
+
+    /// Destroy the instance of QueryRetrieveGenerator
+    virtual ~QueryRetrieveGenerator();
 
     virtual Uint16 process();
 
@@ -35,19 +46,19 @@ public:
 
     std::string get_query_retrieve_level() const;
 
-    void set_includefields(std::vector<std::string> includefields);
+    void set_include_fields(std::vector<std::string> include_fields);
 
-    void set_maximumResults(int maximumResults);
+    void set_maximum_results(int maximum_results);
 
-    int get_maximumResults() const;
+    int get_maximum_results() const;
 
-    void set_skippedResults(int skippedResults);
+    void set_skipped_results(int skipped_results);
 
-    int get_skippedResults() const;
+    int get_skipped_results() const;
 
-    void set_fuzzymatching(bool fuzzymatching);
+    void set_fuzzy_matching(bool fuzzy_matching);
 
-    bool get_fuzzymatching() const;
+    bool get_fuzzy_matching() const;
 
     mongo::BSONObj compute_attribute(std::string const & attribute,
                                      std::string const & value);
@@ -63,15 +74,15 @@ protected:
     bool _convert_modalities_in_study;
 
 private:
-    std::vector<std::string> _includefields;
+    std::vector<std::string> _include_fields;
 
-    int _maximumResults;
-    int _skippedResults;
-    bool _fuzzymatching;
+    int _maximum_results;
+    int _skipped_results;
+    bool _fuzzy_matching;
 
-    unsigned int get_count(const std::string &relatedElement,
-                           const std::string &ofElement,
-                           const std::string &value);
+    unsigned int _get_count(std::string const & relatedElement,
+                            std::string const & ofElement,
+                            std::string const & value);
 
 };
 

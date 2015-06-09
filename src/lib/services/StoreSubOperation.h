@@ -21,18 +21,28 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The StoreSubOperation class
+ */
 class StoreSubOperation
 {
 public:
+    /**
+     * @brief Create an instance of StoreSubOperation
+     * @param network
+     * @param request_association
+     * @param messageID
+     */
     StoreSubOperation(T_ASC_Network * network,
                       T_ASC_Association * request_association,
                       DIC_US messageID);
 
+    /// Destroy the instance of StoreSubOperation
     virtual ~StoreSubOperation();
 
-    OFCondition buildSubAssociation(DIC_AE destinationAETitle);
+    OFCondition build_sub_association(DIC_AE destination_aetitle);
 
-    OFCondition performSubOperation(DcmDataset* dataset, T_DIMSE_Priority priority);
+    OFCondition perform_sub_operation(DcmDataset* dataset, T_DIMSE_Priority priority);
 
 protected:
 
@@ -47,9 +57,9 @@ private:
     T_ASC_Association * _response_association;
 
     /// original AE Title
-    DIC_AE _originalAETitle;
+    DIC_AE _original_aetitle;
 
-    DIC_US _originalMsgID;
+    DIC_US _original_message_id;
 
     bool _new_association;
 
@@ -58,7 +68,7 @@ private:
      * @param params: association parameters
      * @return EC_Normal if successful, an error code otherwise
      */
-    OFCondition addAllStoragePresentationContext(T_ASC_Parameters* params);
+    OFCondition _add_all_storage_presentation_context(T_ASC_Parameters* params);
 
 };
 

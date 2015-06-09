@@ -27,7 +27,7 @@ namespace services
  * @param stDetail: status detail for move response (out)
  * @param responseIdentifiers: move response identifiers (out)
  */
-static void moveCallback(
+static void move_callback(
         /* in */
         void *callbackData,
         OFBool cancelled, T_DIMSE_C_MoveRQ* request,
@@ -43,23 +43,23 @@ static void moveCallback(
 
     if (responseCount == 1)
     {
-        status = context->_generator->process_dataset(requestIdentifiers, false);
+        status = context->get_generator()->process_dataset(requestIdentifiers, false);
 
         if (status != STATUS_Pending)
         {
-            createStatusDetail(status, DCM_UndefinedTagKey,
-                               OFString("An error occured while processing Move operation"),
-                               stDetail);
+            create_status_detail(status, DCM_UndefinedTagKey,
+                                 OFString("An error occured while processing Move operation"),
+                                 stDetail);
         }
 
         // Create Move SubAssociation
-        OFCondition condition = context->_storeprovider->buildSubAssociation(request->MoveDestination);
+        OFCondition condition = context->get_storeprovider()->build_sub_association(request->MoveDestination);
         if (condition.bad())
         {
-            dopamine::loggerError() << "Cannot create sub association: "
+            dopamine::logger_error() << "Cannot create sub association: "
                                     << condition.text();
-            createStatusDetail(0xc000, DCM_UndefinedTagKey,
-                               OFString(condition.text()), stDetail);
+            create_status_detail(0xc000, DCM_UndefinedTagKey,
+                                 OFString(condition.text()), stDetail);
 
             status = 0xc000; // Unable to process
         }
@@ -69,13 +69,13 @@ static void moveCallback(
     if (cancelled && status == STATUS_Pending)
     {
         // Todo: not implemented yet
-        context->_generator->cancel();
+        context->get_generator()->cancel();
     }
 
     /* Process next result */
     if (status == STATUS_Pending)
     {
-        mongo::BSONObj object = context->_generator->next();
+        mongo::BSONObj const object = context->get_generator()->next();
 
         if (object.isValid() && object.isEmpty())
         {
@@ -85,15 +85,15 @@ static void moveCallback(
         else
         {
             OFCondition condition =
-                    context->_storeprovider->performSubOperation(context->_generator->retrieve_dataset(object),
-                                                                 request->Priority);
+                context->get_storeprovider()->perform_sub_operation(context->get_generator()->retrieve_dataset(object),
+                                                                    request->Priority);
 
             if (condition.bad())
             {
-                dopamine::loggerError() << "Cannot process sub association: "
-                                        << condition.text();
-                createStatusDetail(0xc000, DCM_UndefinedTagKey,
-                                   OFString(condition.text()), stDetail);
+                dopamine::logger_error() << "Cannot process sub association: "
+                                         << condition.text();
+                create_status_detail(0xc000, DCM_UndefinedTagKey,
+                                     OFString(condition.text()), stDetail);
 
                 status = 0xc000; // Unable to process
             }
@@ -110,10 +110,11 @@ static void moveCallback(
 }
     
 MoveSCP
-::MoveSCP(T_ASC_Association * assoc, 
-          T_ASC_PresentationContextID presID,
-          T_DIMSE_C_MoveRQ * req):
-    services::SCP(assoc, presID), _request(req) // base class initialisation
+::MoveSCP(T_ASC_Association * association,
+          T_ASC_PresentationContextID presentation_context_id,
+          T_DIMSE_C_MoveRQ * request):
+    services::SCP(association, presentation_context_id), // base class initialisation
+    _request(request)
 {
     // Nothing to do
 }
@@ -128,7 +129,7 @@ OFCondition
 MoveSCP
 ::process()
 {
-   dopamine::loggerInfo() << "Received Move SCP: MsgID "
+   dopamine::logger_info() << "Received Move SCP: MsgID "
                                << this->_request->MessageID;
 
     std::string const username =
@@ -140,8 +141,8 @@ MoveSCP
 
     RetrieveContext context(&generator, &storeprovider);
     
-    return DIMSE_moveProvider(this->_association, this->_presentationID, 
-                              this->_request, moveCallback, &context, 
+    return DIMSE_moveProvider(this->_association, this->_presentation_context_id,
+                              this->_request, move_callback, &context,
                               DIMSE_BLOCKING, 0);
 }
 

@@ -30,9 +30,9 @@ public:
      * @param presID: linked presentation context
      * @param req: C-GET request
      */
-    GetSCP(T_ASC_Association * assoc, 
-           T_ASC_PresentationContextID presID,
-           T_DIMSE_C_GetRQ * req);
+    GetSCP(T_ASC_Association * association,
+           T_ASC_PresentationContextID presentation_context_id,
+           T_DIMSE_C_GetRQ * request);
     
     /// Destroy the SCP
     virtual ~GetSCP();

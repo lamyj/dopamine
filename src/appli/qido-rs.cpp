@@ -28,11 +28,11 @@ int main(int argc, char** argv)
         // Read configuration file
         if (boost::filesystem::exists(boost::filesystem::path("../../../configuration/dopamine_conf.ini")))
         {
-            dopamine::ConfigurationPACS::get_instance().Parse("../../../configuration/dopamine_conf.ini");
+            dopamine::ConfigurationPACS::get_instance().parse("../../../configuration/dopamine_conf.ini");
         }
         else
         {
-            dopamine::ConfigurationPACS::get_instance().Parse("/etc/dopamine/dopamine_conf.ini");
+            dopamine::ConfigurationPACS::get_instance().parse("/etc/dopamine/dopamine_conf.ini");
         }
 
         cgicc::Cgicc cgi;

@@ -27,7 +27,7 @@ namespace services
  * @param stDetail: status detail for get response (out)
  * @param responseIdentifiers: get response identifiers (out)
  */
-static void getCallback(
+static void get_callback(
         /* in */
         void *callbackData,
         OFBool cancelled, T_DIMSE_C_GetRQ *request,
@@ -44,13 +44,13 @@ static void getCallback(
 
     if (responseCount == 1)
     {
-        status = context->_generator->process_dataset(requestIdentifiers, false);
+        status = context->get_generator()->process_dataset(requestIdentifiers, false);
 
         if (status != STATUS_Pending)
         {
-            createStatusDetail(status, DCM_UndefinedTagKey,
-                               OFString("An error occured while processing Get operation"),
-                               stDetail);
+            create_status_detail(status, DCM_UndefinedTagKey,
+                                 OFString("An error occured while processing Get operation"),
+                                 stDetail);
         }
     }
 
@@ -58,13 +58,13 @@ static void getCallback(
     if (cancelled && status == STATUS_Pending)
     {
         // Todo: not implemented yet
-        context->_generator->cancel();
+        context->get_generator()->cancel();
     }
 
     /* Process next result */
     if (status == STATUS_Pending)
     {
-        mongo::BSONObj object = context->_generator->next();
+        mongo::BSONObj const object = context->get_generator()->next();
 
         if (object.isValid() && object.isEmpty())
         {
@@ -74,15 +74,15 @@ static void getCallback(
         else
         {
             OFCondition condition =
-                    context->_storeprovider->performSubOperation(context->_generator->retrieve_dataset(object),
-                                                                 request->Priority);
+                context->get_storeprovider()->perform_sub_operation(context->get_generator()->retrieve_dataset(object),
+                                                                    request->Priority);
 
             if (condition.bad())
             {
-                dopamine::loggerError() << "Cannot process sub association: "
-                                        << condition.text();
-                createStatusDetail(0xc000, DCM_UndefinedTagKey,
-                                   OFString(condition.text()), stDetail);
+                dopamine::logger_error() << "Cannot process sub association: "
+                                         << condition.text();
+                create_status_detail(0xc000, DCM_UndefinedTagKey,
+                                     OFString(condition.text()), stDetail);
 
                 status = 0xc000; // Unable to process
             }
@@ -99,10 +99,11 @@ static void getCallback(
 }
     
 GetSCP
-::GetSCP(T_ASC_Association * assoc, 
-         T_ASC_PresentationContextID presID, 
-         T_DIMSE_C_GetRQ * req):
-    services::SCP(assoc, presID), _request(req) // base class initialisation
+::GetSCP(T_ASC_Association * association,
+         T_ASC_PresentationContextID presentation_context_id,
+         T_DIMSE_C_GetRQ * request):
+    services::SCP(association, presentation_context_id), // base class initialisation
+    _request(request)
 {
     // nothing to do
 }
@@ -117,7 +118,7 @@ OFCondition
 GetSCP
 ::process()
 {
-    dopamine::loggerInfo() << "Received Get SCP: MsgID "
+    dopamine::logger_info() << "Received Get SCP: MsgID "
                                 << this->_request->MessageID;
 
     std::string const username =
@@ -129,8 +130,8 @@ GetSCP
 
     RetrieveContext context(&generator, &storeprovider);
 
-    return DIMSE_getProvider(this->_association, this->_presentationID, 
-                             this->_request, getCallback, &context, 
+    return DIMSE_getProvider(this->_association, this->_presentation_context_id,
+                             this->_request, get_callback, &context,
                              DIMSE_BLOCKING, 0);
 }
 

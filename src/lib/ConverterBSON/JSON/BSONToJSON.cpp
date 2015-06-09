@@ -30,7 +30,7 @@ BSONToJSON
 
 mongo::BSONObj
 BSONToJSON
-::to_JSON(const mongo::BSONObj &bson)
+::to_json(mongo::BSONObj const & bson)
 {
     mongo::BSONObjBuilder builder;
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
@@ -39,7 +39,7 @@ BSONToJSON
 
         if (element_bson.type() == mongo::Object)
         {
-            mongo::BSONObj object = this->to_JSON(element_bson.Obj());
+            mongo::BSONObj object = this->to_json(element_bson.Obj());
             builder << element_bson.fieldName() << object;
         }
         else if (element_bson.type() == mongo::Array)
@@ -47,7 +47,7 @@ BSONToJSON
             mongo::BSONArrayBuilder arraybuilder;
             for (auto element : element_bson.Array())
             {
-                mongo::BSONObj const tempobject = this->to_JSON(BSON("data" << element));
+                mongo::BSONObj const tempobject = this->to_json(BSON("data" << element));
                 arraybuilder << tempobject.getField("data");
             }
             builder << element_bson.fieldName() << arraybuilder.arr();
@@ -56,7 +56,7 @@ BSONToJSON
         {
             // Transform Binary field into Base64String
 
-            int size=0;
+            int size = 0;
             char const * begin = element_bson.binDataClean(size);
 
             std::string encode = ConverterBase64::encode(std::string(begin, size));
@@ -74,10 +74,10 @@ BSONToJSON
 
 std::string
 BSONToJSON
-::to_string(const mongo::BSONObj &bson)
+::to_string(mongo::BSONObj const & bson)
 {
     // Convert BSON to JSON
-    mongo::BSONObj objectjson = this->to_JSON(bson);
+    mongo::BSONObj const objectjson = this->to_json(bson);
     // Write json
     return objectjson.jsonString();
 }

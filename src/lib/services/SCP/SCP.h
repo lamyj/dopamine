@@ -26,7 +26,8 @@ class SCP
 {
 public:
     /// Create a default.
-    SCP(T_ASC_Association * assoc, T_ASC_PresentationContextID presID);
+    SCP(T_ASC_Association * association,
+        T_ASC_PresentationContextID presentation_context_id);
     
     /// Destroy the SCP.
     virtual ~SCP();
@@ -35,7 +36,7 @@ public:
      * Return current association
      * @return association
      */
-    T_ASC_Association* get_association() const { return this->_association; }
+    T_ASC_Association* get_association() const;
 
     /**
      * Send response
@@ -47,7 +48,7 @@ protected:
     /// Linked association
     mutable T_ASC_Association * _association;
     /// Linked presentation context
-    T_ASC_PresentationContextID _presentationID;
+    T_ASC_PresentationContextID _presentation_context_id;
 
 private:
     

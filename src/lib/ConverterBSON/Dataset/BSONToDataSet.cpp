@@ -20,7 +20,7 @@ namespace converterBSON
 
 BSONToDataSet
 ::BSONToDataSet()
-: ConverterBSONDataSet(false)
+    : ConverterBSONDataSet(false)
 {
     this->set_specific_character_set("");
 }
@@ -33,7 +33,7 @@ BSONToDataSet
 
 DcmDataset
 BSONToDataSet
-::to_dataset(const mongo::BSONObj &bson)
+::to_dataset(mongo::BSONObj const & bson)
 {
     if(bson.hasField("00080005") && !bson["00080005"].isNull())
     {
@@ -370,7 +370,7 @@ BSONToDataSet
 
 void
 BSONToDataSet
-::_add_element(mongo::BSONElement const & bson, DcmDataset & dataset)
+::_add_element(mongo::BSONElement const & bson, DcmDataset & dataset) const
 {
     // Get the tag from the field name
     std::string const field_name = bson.fieldName();
@@ -476,7 +476,7 @@ BSONToDataSet
 ::_to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
            DcmDataset & dataset, DcmTag const & tag) const
 {
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     OFString value;
 
@@ -630,7 +630,7 @@ BSONToDataSet
     std::ostringstream stream;
     stream.imbue(std::locale("C"));
 
-    std::vector<mongo::BSONElement> elements = bson.Array();
+    std::vector<mongo::BSONElement> const elements = bson.Array();
 
     std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();

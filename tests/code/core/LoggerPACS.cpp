@@ -23,10 +23,10 @@ BOOST_AUTO_TEST_CASE(No_Initialization)
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);
@@ -41,17 +41,17 @@ BOOST_AUTO_TEST_CASE(No_Initialization)
 BOOST_AUTO_TEST_CASE(InitializeLogger_Error)
 {
     // Initialize logger
-    dopamine::InitializeLogger("ERROR");
+    dopamine::initialize_logger("ERROR");
 
     // redirect standard output to stringstream
     std::stringstream stream;
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);
@@ -71,17 +71,17 @@ BOOST_AUTO_TEST_CASE(InitializeLogger_Error)
 BOOST_AUTO_TEST_CASE(InitializeLogger_Warning)
 {
     // Initialize logger
-    dopamine::InitializeLogger("WARNING");
+    dopamine::initialize_logger("WARNING");
 
     // redirect standard output to stringstream
     std::stringstream stream;
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);
@@ -101,17 +101,17 @@ BOOST_AUTO_TEST_CASE(InitializeLogger_Warning)
 BOOST_AUTO_TEST_CASE(InitializeLogger_Info)
 {
     // Initialize logger
-    dopamine::InitializeLogger("INFO");
+    dopamine::initialize_logger("INFO");
 
     // redirect standard output to stringstream
     std::stringstream stream;
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);
@@ -131,17 +131,17 @@ BOOST_AUTO_TEST_CASE(InitializeLogger_Info)
 BOOST_AUTO_TEST_CASE(InitializeLogger_Debug)
 {
     // Initialize logger
-    dopamine::InitializeLogger("DEBUG");
+    dopamine::initialize_logger("DEBUG");
 
     // redirect standard output to stringstream
     std::stringstream stream;
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);
@@ -161,17 +161,17 @@ BOOST_AUTO_TEST_CASE(InitializeLogger_Debug)
 BOOST_AUTO_TEST_CASE(InitializeLogger_Default)
 {
     // Initialize logger
-    dopamine::InitializeLogger("");
+    dopamine::initialize_logger("");
 
     // redirect standard output to stringstream
     std::stringstream stream;
     std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
 
     // Test
-    dopamine::loggerError() << " test ";
-    dopamine::loggerWarning() << " test ";
-    dopamine::loggerInfo() << " test ";
-    dopamine::loggerDebug() << " test ";
+    dopamine::logger_error() << " test ";
+    dopamine::logger_warning() << " test ";
+    dopamine::logger_info() << " test ";
+    dopamine::logger_debug() << " test ";
 
     // set the default output
     std::cout.rdbuf(OldBuf);

@@ -39,18 +39,20 @@ XMLToBSON
     // Nothing to do
 }
 
-mongo::BSONObj XMLToBSON::from_ptree(boost::property_tree::ptree tree)
+mongo::BSONObj
+XMLToBSON
+::from_ptree(boost::property_tree::ptree tree) const
 {
     mongo::BSONObjBuilder builder;
 
     bool find_tag_nativedicommodel = false;
-    BOOST_FOREACH(boost::property_tree::ptree::value_type &it_nativedicommodel,
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &native_dicom_model,
                   tree)
     {
-        if (it_nativedicommodel.first != Tag_NativeDicomModel)
+        if (native_dicom_model.first != Tag_NativeDicomModel)
         {
             std::stringstream streamerror;
-            streamerror << "Unkown main XML node " << it_nativedicommodel.first;
+            streamerror << "Unkown main XML node " << native_dicom_model.first;
             throw ExceptionPACS(streamerror.str());
         }
 
@@ -63,20 +65,20 @@ mongo::BSONObj XMLToBSON::from_ptree(boost::property_tree::ptree tree)
 
         find_tag_nativedicommodel = true;
 
-        BOOST_FOREACH(boost::property_tree::ptree::value_type &it_dicomattribute,
-                      it_nativedicommodel.second)
+        BOOST_FOREACH(boost::property_tree::ptree::value_type &dicom_attribute,
+                      native_dicom_model.second)
         {
-            if (it_dicomattribute.first == "<xmlattr>") {} // ignore it
-            else if (it_dicomattribute.first != Tag_DicomAttribute)
+            if (dicom_attribute.first == "<xmlattr>") {} // ignore it
+            else if (dicom_attribute.first != Tag_DicomAttribute)
             {
                 std::stringstream streamerror;
-                streamerror << "Unkown XML sub-node " << it_dicomattribute.first
+                streamerror << "Unkown XML sub-node " << dicom_attribute.first
                             << " for XML node " << Tag_NativeDicomModel;
                 throw ExceptionPACS(streamerror.str());
             }
             else
             {
-                this->_add_element(it_dicomattribute.second, builder);
+                this->_add_element(dicom_attribute.second, builder);
             }
         }
     }
@@ -86,7 +88,7 @@ mongo::BSONObj XMLToBSON::from_ptree(boost::property_tree::ptree tree)
 
 mongo::BSONObj
 XMLToBSON
-::from_string(const std::string &xml)
+::from_string(const std::string &xml) const
 {
     boost::property_tree::ptree ptree;
 
@@ -204,7 +206,7 @@ void
 XMLToBSON
 ::_add_component_name(boost::property_tree::ptree tree,
                       mongo::BSONObjBuilder &object_builder,
-                      const std::string &tag_name) const
+                      std::string const & tag_name) const
 {
     std::string family_name = "";
     std::string given_name = "";
@@ -450,12 +452,12 @@ XMLToBSON
 
     if (vr != response.getVR().getValidVRName())
     {
-        loggerWarning() << "VR is ambigous for tag " << response.getXTag()
+        logger_warning() << "VR is ambigous for tag " << response.getXTag()
                         << ". Use DcmVR = " << response.getVR().getValidVRName();
     }
     if (keyword_ && keyword_.get() != response.getTagName())
     {
-        loggerWarning() << "Keyword is ambigous for tag " << response.getXTag();
+        logger_warning() << "Keyword is ambigous for tag " << response.getXTag();
     }
 
     unsigned int count_value_node = 0;

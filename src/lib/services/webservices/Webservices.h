@@ -26,25 +26,35 @@ the wrong credentials (e.g., bad password), \
 or your browser doesn't understand how to \
 supply the credentials required.";
 
-const std::string ATTRIBUT_BOUNDARY = "boundary=";
-const std::string ATTRIBUT_FILENAME = "filename=";
-const std::string CONTENT_DISPOSITION_ATTACHMENT = "Content-Disposition: attachment;";
-const std::string CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding: ";
-const std::string CONTENT_TYPE = "Content-Type: ";
-const std::string MIME_TYPE_APPLICATION_DICOM = "application/dicom";
-const std::string MIME_TYPE_APPLICATION_DICOMXML = "application/dicom+xml";
-const std::string MIME_TYPE_APPLICATION_JSON = "application/json";
-const std::string MIME_TYPE_MULTIPART_RELATED = "multipart/related";
-const std::string MIME_VERSION = "MIME-Version: 1.0";
-const std::string TRANSFER_ENCODING_BINARY = "binary";
+std::string const ATTRIBUT_BOUNDARY = "boundary=";
+std::string const ATTRIBUT_FILENAME = "filename=";
+std::string const CONTENT_DISPOSITION_ATTACHMENT = "Content-Disposition: attachment;";
+std::string const CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding: ";
+std::string const CONTENT_TYPE = "Content-Type: ";
+std::string const MIME_TYPE_APPLICATION_DICOM = "application/dicom";
+std::string const MIME_TYPE_APPLICATION_DICOMXML = "application/dicom+xml";
+std::string const MIME_TYPE_APPLICATION_JSON = "application/json";
+std::string const MIME_TYPE_MULTIPART_RELATED = "multipart/related";
+std::string const MIME_VERSION = "MIME-Version: 1.0";
+std::string const TRANSFER_ENCODING_BINARY = "binary";
 
+/**
+ * @brief The Webservices class
+ */
 class Webservices
 {
 public:
+    /**
+     * @brief Create an instance of Webservices
+     * @param pathinfo
+     * @param querystring
+     * @param username
+     */
     Webservices(std::string const & pathinfo,
                 std::string const & querystring,
                 std::string const & username);
 
+    /// Destroy the instance of Webservices
     virtual ~Webservices();
 
     std::string get_response() const;
@@ -58,13 +68,13 @@ protected:
     std::string _response;
     std::string _boundary;
 
-    int _maximumResults;
-    int _skippedResults;
-    bool _fuzzymatching;
+    int _maximum_results;
+    int _skipped_results;
+    bool _fuzzy_matching;
 
-    void create_boundary();
+    void _create_boundary();
 
-    virtual mongo::BSONObj parse_string() = 0;
+    virtual mongo::BSONObj _parse_string() = 0;
 
 private:
 

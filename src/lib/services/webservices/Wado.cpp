@@ -6,13 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <fstream>
-#include <sstream>
-
-#include <boost/filesystem.hpp>
-
 #include "Wado.h"
-#include "WebServiceException.h"
 
 namespace dopamine
 {
@@ -21,7 +15,8 @@ namespace services
 {
 
 Wado
-::Wado(std::string const & pathinfo, std::string const & querystring,
+::Wado(std::string const & pathinfo,
+       std::string const & querystring,
        std::string const & username):
     Webservices(pathinfo, querystring, username)
 {

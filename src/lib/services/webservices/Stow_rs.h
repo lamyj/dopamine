@@ -21,14 +21,25 @@ namespace services
 {
 
 // see PS3.18 6.6 STOW-RS Request/Response
+/**
+ * @brief The Stow_rs class
+ */
 class Stow_rs : public Webservices
 {
 public:
+    /**
+     * @brief Create an instance of Stow_rs
+     * @param pathinfo
+     * @param querystring
+     * @param postdata
+     * @param remoteuser
+     */
     Stow_rs(std::string const & pathinfo,
             std::string const & querystring,
             std::string const & postdata,
             std::string const & remoteuser = "");
 
+    /// Destroy the instance of Stow_rs
     ~Stow_rs();
 
     std::string get_content_type() const;
@@ -40,11 +51,12 @@ public:
 protected:
 
 private:
-    virtual mongo::BSONObj parse_string();
+    virtual mongo::BSONObj _parse_string();
 
-    std::string find_content_type(std::string const & contenttype);
+    std::string _find_content_type(std::string const & contenttype);
 
-    void process(std::string const & postdata, mongo::BSONObj const & studyinstanceuid);
+    void _process(std::string const & postdata,
+                  mongo::BSONObj const & studyinstanceuid);
 
     std::string _content_type;
 

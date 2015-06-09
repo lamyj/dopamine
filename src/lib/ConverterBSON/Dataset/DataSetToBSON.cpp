@@ -373,7 +373,7 @@ DataSetToBSON::_to_bson_text(
     DcmByteString * element, mongo::BSONObjBuilder & builder,
     bool use_utf8) const
 {
-    unsigned long count = element->getVM();
+    unsigned long const count = element->getVM();
 
     mongo::BSONArrayBuilder sub_builder;
 
@@ -391,7 +391,7 @@ DataSetToBSON::_to_bson_text(
             if (element->getVR() == EVR_PN)
             {
                 std::vector<std::string> name_components;
-                std::string strtemp(value.c_str());
+                std::string const strtemp(value.c_str());
                 boost::split(name_components, strtemp,
                              boost::is_any_of("="));
 
@@ -436,11 +436,12 @@ DataSetToBSON::_to_bson_text(
 
 template<typename TDICOMValue, typename TBSONValue>
 void
-DataSetToBSON::_to_bson_number(DcmElement * element,
+DataSetToBSON
+::_to_bson_number(DcmElement * element,
     OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
     mongo::BSONObjBuilder & builder) const
 {
-    unsigned long count = element->getVM();
+    unsigned long const count = element->getVM();
     mongo::BSONArrayBuilder sub_builder;
     for(unsigned long i=0; i<count; ++i)
     {
@@ -452,8 +453,9 @@ DataSetToBSON::_to_bson_number(DcmElement * element,
 }
 
 void
-DataSetToBSON::_to_bson_binary(DcmElement * element,
-                               mongo::BSONObjBuilder & builder) const
+DataSetToBSON
+::_to_bson_binary(DcmElement * element,
+                  mongo::BSONObjBuilder & builder) const
 {
     DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
     if(element->getVR() == EVR_OF || byte_string != NULL)
@@ -490,7 +492,7 @@ void
 DataSetToBSON
 ::_to_bson_at(DcmAttributeTag *element, mongo::BSONObjBuilder &builder) const
 {
-    unsigned long count = element->getVM();
+    unsigned long const count = element->getVM();
     mongo::BSONArrayBuilder sub_builder;
     for(unsigned long i=0; i<count; ++i)
     {

@@ -19,23 +19,35 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The parameters struct
+ */
 struct parameters
 {
+public:
+    parameters(bool mandatory, bool used):
+        _mandatory(mandatory), _used(used) {}
+
+    bool is_mandatory() const
+            { return this->_mandatory; }
+
+    bool is_used() const
+            { return this->_used; }
+
+private:
     bool _mandatory;
     bool _used;
 
-    parameters(bool mandatory, bool used):
-        _mandatory(mandatory), _used(used) {}
 };
 
 // Mandatory Request Parameters
-const std::string REQUEST_TYPE = "requestType";
-const std::string STUDY_INSTANCE_UID = "studyUID";
-const std::string SERIES_INSTANCE_UID = "seriesUID";
-const std::string SOP_INSTANCE_UID = "objectUID";
+std::string const REQUEST_TYPE = "requestType";
+std::string const STUDY_INSTANCE_UID = "studyUID";
+std::string const SERIES_INSTANCE_UID = "seriesUID";
+std::string const SOP_INSTANCE_UID = "objectUID";
 
 // List of Request Parameters: see PS3.17 Table HHH.1-1
-const std::map<std::string, parameters> RequestParameters = {
+std::map<std::string, parameters> const RequestParameters = {
     { REQUEST_TYPE, parameters(true, true) },
     { STUDY_INSTANCE_UID, parameters(true, true) },
     { SERIES_INSTANCE_UID, parameters(true, true) },
@@ -56,12 +68,21 @@ const std::map<std::string, parameters> RequestParameters = {
     { "frameNumber", parameters(false, false) }
 };
 
+/**
+ * @brief The Wado_uri class
+ */
 class Wado_uri : public Wado
 {
 public:
+    /**
+     * @brief Create an instance of Wado_uri
+     * @param querystring
+     * @param remoteuser
+     */
     Wado_uri(std::string const & querystring,
              std::string const & remoteuser = "");
 
+    /// Destroy the instance of Wado_uri
     ~Wado_uri();
 
     std::string get_filename() const;
@@ -69,7 +90,7 @@ public:
 protected:
 
 private:
-    virtual mongo::BSONObj parse_string();
+    virtual mongo::BSONObj _parse_string();
 
     std::string _filename;
 

@@ -27,7 +27,7 @@ namespace services
  * @param rsp: final store response (out)
  * @param stDetail: status detail for find response (out)
  */
-static void storeCallback(
+static void store_callback(
     /* in */
     void *callbackData,
     T_DIMSE_StoreProgress *progress,    /* progress state */
@@ -44,10 +44,10 @@ static void storeCallback(
         {
             /* callback will send back sop class not supported status */
             rsp->DimseStatus = STATUS_STORE_Refused_SOPClassNotSupported;
-            createStatusDetail(STATUS_STORE_Refused_SOPClassNotSupported,
-                               DCM_UndefinedTagKey,
-                               OFString("An error occured while processing Storage"),
-                               stDetail);
+            create_status_detail(STATUS_STORE_Refused_SOPClassNotSupported,
+                                 DCM_UndefinedTagKey,
+                                 OFString("An error occured while processing Storage"),
+                                 stDetail);
         }
         else
         {
@@ -58,9 +58,9 @@ static void storeCallback(
             if (status != STATUS_Pending)
             {
                 rsp->DimseStatus = status;
-                createStatusDetail(status, DCM_UndefinedTagKey,
-                                   OFString("An error occured while processing Storage"),
-                                   stDetail);
+                create_status_detail(status, DCM_UndefinedTagKey,
+                                     OFString("An error occured while processing Storage"),
+                                     stDetail);
             }
             else
             {
@@ -72,10 +72,11 @@ static void storeCallback(
 }
 
 StoreSCP
-::StoreSCP(T_ASC_Association * assoc, 
-           T_ASC_PresentationContextID presID, 
-           T_DIMSE_C_StoreRQ * req):
-    SCP(assoc, presID), _request(req) // base class initialisation
+::StoreSCP(T_ASC_Association * association,
+           T_ASC_PresentationContextID presentation_context_id,
+           T_DIMSE_C_StoreRQ * request):
+    SCP(association, presentation_context_id), // base class initialisation
+    _request(request)
 {
     // nothing to do
 }
@@ -90,7 +91,7 @@ OFCondition
 StoreSCP
 ::process()
 {
-    dopamine::loggerInfo() << "Received Store SCP: MsgID "
+    dopamine::logger_info() << "Received Store SCP: MsgID "
                                 << this->_request->MessageID;
 
     std::string const username =
@@ -103,14 +104,14 @@ StoreSCP
     {
         callingaptitle = this->_association->params->DULparams.callingAPTitle;
     }
-    context.set_callingaptitle(callingaptitle);
+    context.set_calling_aptitle(callingaptitle);
 
     /* we must still retrieve the data set even if some error has occured */
     DcmDataset dset;
     DcmDataset * dset_ptr = &dset;
-    return DIMSE_storeProvider(this->_association, this->_presentationID, 
+    return DIMSE_storeProvider(this->_association, this->_presentation_context_id,
                                this->_request, (char *)NULL, 1,
-                               &dset_ptr, storeCallback, (void*)&context,
+                               &dset_ptr, store_callback, (void*)&context,
                                DIMSE_BLOCKING, 0);
 }
 

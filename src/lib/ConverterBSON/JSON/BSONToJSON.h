@@ -17,19 +17,25 @@ namespace dopamine
 namespace converterBSON
 {
 
+/**
+ * @brief The BSONToJSON class
+ * Convert a BSON Object into JSON object
+ */
 class BSONToJSON : public ConverterBSONJSON
 {
 public:
+    /// Create an instance of BSONToJSON
     BSONToJSON();
 
+    /// Destroy the instance of BSONToJSON
     ~BSONToJSON();
 
     /**
-     * to_JSON
+     * to_json
      * @param bson: BSON object to convert
      * @return converted JSON Object
      */
-     mongo::BSONObj to_JSON(mongo::BSONObj const & bson);
+     mongo::BSONObj to_json(mongo::BSONObj const & bson);
 
      /**
       * to_string
@@ -37,6 +43,10 @@ public:
       * @return converted JSON Object as String
       */
       std::string to_string(mongo::BSONObj const & bson);
+
+protected:
+
+private:
 
 };
 

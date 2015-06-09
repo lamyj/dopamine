@@ -74,7 +74,7 @@ static const std::map<std::string, std::pair<std::string, std::string> >
 size_t find_next_escape(std::string const & input,
                         size_t begin,
                         std::vector<std::string> character_sets,
-                        std::string &find_character_set);
+                        std::string & find_character_set);
 
 std::string convert(std::string const & input, std::string const & from,
                     std::string const & to);

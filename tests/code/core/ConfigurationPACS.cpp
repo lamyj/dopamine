@@ -66,9 +66,9 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.GetValue("dicom.port"), "11112");
+    BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
 }
 
 /*************************** TEST OK 03 *******************************/
@@ -79,10 +79,10 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.GetValue("dicom.port"), "11112");
-    BOOST_CHECK_EQUAL(confpacs.GetValue("database", "port"), "27017");
+    BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
+    BOOST_CHECK_EQUAL(confpacs.get_value("database", "port"), "27017");
 }
 
 /*************************** TEST OK 04 *******************************/
@@ -93,13 +93,13 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK02)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.HasValue("dicom.port"), true);
-    BOOST_CHECK_EQUAL(confpacs.HasValue("database", "port"), true);
+    BOOST_CHECK_EQUAL(confpacs.has_value("dicom.port"), true);
+    BOOST_CHECK_EQUAL(confpacs.has_value("database", "port"), true);
     
-    BOOST_CHECK_EQUAL(confpacs.HasValue("badsection.port"), false);
-    BOOST_CHECK_EQUAL(confpacs.HasValue("database", "badfield"), false);
+    BOOST_CHECK_EQUAL(confpacs.has_value("badsection.port"), false);
+    BOOST_CHECK_EQUAL(confpacs.has_value("database", "badfield"), false);
 }
 
 /*************************** TEST OK 05 *******************************/
@@ -110,12 +110,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK02)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK02)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("VALUE"), true);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("LOCAL"), true);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("NOERROR"), true);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle(""), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("VALUE"), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("LOCAL"), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("NOERROR"), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle(""), true);
 }
  
 /*************************** TEST OK 06 *******************************/
@@ -160,12 +160,12 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK02)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("USER1"), true);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("USER3"), true);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle("USER2"), false);
-    BOOST_CHECK_EQUAL(confpacs.peerInAETitle(""), false);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("USER1"), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("USER3"), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("USER2"), false);
+    BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle(""), false);
 }
 
 /*************************** TEST OK 07 *******************************/
@@ -176,18 +176,18 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK06)
 BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK06)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    confpacs.Parse(filename);
+    confpacs.parse(filename);
     
     std::string address;
-    BOOST_CHECK_EQUAL(confpacs.peerForAETitle("LANGUEDOC", address), true);
+    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("LANGUEDOC", address), true);
     BOOST_CHECK_EQUAL(address, "languedoc:11113");
     
     address = "value";
-    BOOST_CHECK_EQUAL(confpacs.peerForAETitle("ERROR", address), false);
+    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("ERROR", address), false);
     BOOST_CHECK_EQUAL(address, "");
     
     address = "value";
-    BOOST_CHECK_EQUAL(confpacs.peerForAETitle("", address), false);
+    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("", address), false);
     BOOST_CHECK_EQUAL(address, "");
 }
 
@@ -198,7 +198,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_07, TestDataOK06)
 BOOST_AUTO_TEST_CASE(TEST_KO_01)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    BOOST_REQUIRE_THROW(confpacs.Parse("badfilename"), 
+    BOOST_REQUIRE_THROW(confpacs.parse("badfilename"),
                         dopamine::ExceptionPACS);
     dopamine::ConfigurationPACS::delete_instance();
 }
@@ -244,6 +244,6 @@ BOOST_AUTO_TEST_CASE(TEST_KO_01)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
     dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
-    BOOST_REQUIRE_THROW(confpacs.Parse(filename), 
+    BOOST_REQUIRE_THROW(confpacs.parse(filename),
                         dopamine::ExceptionPACS);
 }

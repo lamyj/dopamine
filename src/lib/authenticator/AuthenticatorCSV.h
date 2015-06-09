@@ -28,14 +28,12 @@ class AuthenticatorCSV : public AuthenticatorBase
 {
 public:
     /**
-     * Constructor
-     * @param ifileName : CSV file path
+     * Create an instance of AuthenticatorCSV
+     * @param fileName : CSV file path
      */
-    AuthenticatorCSV(std::string const & ifileName);
+    AuthenticatorCSV(std::string const & fileName);
     
-    /**
-     * Destructor
-     */
+    /// Destroy the instance of AuthenticatorCSV
     virtual ~AuthenticatorCSV();
 
     /**

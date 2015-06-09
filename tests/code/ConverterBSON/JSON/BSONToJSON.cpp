@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject, true);
 }
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject, true);
 }
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     // Check result
     std::string const result = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=";
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject, true);
 }
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject, true);
 }
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(ConversionNull)
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
-    mongo::BSONObj const jsonobject = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject, true);
 
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(ConversionNull)
     object = BSON(tag << builder2.obj());
 
     // Conversion
-    mongo::BSONObj const jsonobject2 = bsontojson.to_JSON(object);
+    mongo::BSONObj const jsonobject2 = bsontojson.to_json(object);
 
     BOOST_CHECK_EQUAL(object == jsonobject2, true);
 }

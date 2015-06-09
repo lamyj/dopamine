@@ -11,7 +11,8 @@
 namespace dopamine
 {
 
-void InitializeLogger(std::string const & priority)
+void
+initialize_logger(std::string const & priority)
 {
     log4cpp::Appender *appender1 = new log4cpp::OstreamAppender("console", &std::cout);
     appender1->setLayout(new log4cpp::BasicLayout());
@@ -30,31 +31,36 @@ void InitializeLogger(std::string const & priority)
     root.addAppender(appender1);
 }
 
-log4cpp::CategoryStream getLogger(const log4cpp::Priority::PriorityLevel &level)
+log4cpp::CategoryStream
+get_logger(log4cpp::Priority::PriorityLevel const & level)
 {
     log4cpp::Category& root = log4cpp::Category::getRoot();
 
     return root << level;
 }
 
-log4cpp::CategoryStream loggerDebug()
+log4cpp::CategoryStream
+logger_debug()
 {
-    return getLogger(log4cpp::Priority::DEBUG);
+    return get_logger(log4cpp::Priority::DEBUG);
 }
 
-log4cpp::CategoryStream loggerError()
+log4cpp::CategoryStream
+logger_error()
 {
-    return getLogger(log4cpp::Priority::ERROR);
+    return get_logger(log4cpp::Priority::ERROR);
 }
 
-log4cpp::CategoryStream loggerInfo()
+log4cpp::CategoryStream
+logger_info()
 {
-    return getLogger(log4cpp::Priority::INFO);
+    return get_logger(log4cpp::Priority::INFO);
 }
 
-log4cpp::CategoryStream loggerWarning()
+log4cpp::CategoryStream
+logger_warning()
 {
-    return getLogger(log4cpp::Priority::WARN);
+    return get_logger(log4cpp::Priority::WARN);
 }
 
 } // namespace dopamine

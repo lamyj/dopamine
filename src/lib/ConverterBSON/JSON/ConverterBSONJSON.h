@@ -17,11 +17,17 @@ namespace dopamine
 namespace converterBSON
 {
 
+/**
+ * @brief The ConverterBSONJSON class
+ * Base class for converter BSON <-> JSON
+ */
 class ConverterBSONJSON
 {
 public:
+    /// Create an instance of ConverterBSONJSON
     ConverterBSONJSON();
 
+    /// Destroy the instance of ConverterBSONJSON
     virtual ~ConverterBSONJSON();
 
 protected:

@@ -104,11 +104,11 @@ protected:
      *  @param assoc incoming association
      *  @return EC_Normal if successful, an error code otherwise
      */
-    OFCondition negotiateAssociation(T_ASC_Association * assoc);
+    OFCondition _negotiate_association(T_ASC_Association * assoc);
   
-    void refuseAssociation(T_ASC_Association ** assoc, CTN_RefuseReason reason);
+    void _refuse_association(T_ASC_Association ** assoc, CTN_RefuseReason reason);
     
-    void handleAssociation(T_ASC_Association * assoc);
+    void _handle_association(T_ASC_Association * assoc);
 
 private:
     /// Create an instance of NetworkPACS and initialize the network
@@ -130,13 +130,13 @@ private:
     T_ASC_Network * _network;
     
     /// flag indicating if while loop should be Stop
-    bool _forceStop;
+    bool _force_stop;
     
     /// Waiting time-out
     int _timeout;
     
     /// Initialize the authenticator manager
-    void create_authenticator();
+    void _create_authenticator();
 
 };
     

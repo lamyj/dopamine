@@ -16,7 +16,7 @@ namespace authenticator
 
 AuthenticatorNone
 ::AuthenticatorNone():
-    AuthenticatorBase()
+    AuthenticatorBase() // base class initialisation
 {
     // Nothing to do
 }

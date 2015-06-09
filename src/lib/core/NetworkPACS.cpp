@@ -53,20 +53,21 @@ NetworkPACS
 ::NetworkPACS():
     _authenticator(NULL),
     _network(NULL),
-    _forceStop(false),
+    _force_stop(false),
     _timeout(1000)
 {
-    this->create_authenticator();
+    this->_create_authenticator();
 
     services::create_db_connection(this->_connection, this->_db_name);
     
-    int port = std::atoi(ConfigurationPACS::get_instance().GetValue("dicom.port").c_str());
+    int port = std::atoi(ConfigurationPACS::get_instance().get_value("dicom.port").c_str());
     
-    OFCondition cond = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR, (int)port, 30, &this->_network);
-    if (cond.bad()) 
+    OFCondition condition = ASC_initializeNetwork(NET_ACCEPTORREQUESTOR,
+                                                  (int)port, 30, &this->_network);
+    if (condition.bad())
     {
         std::stringstream stream;
-        stream << "cannot initialize network: " << cond.text();
+        stream << "cannot initialize network: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
 }
@@ -74,33 +75,34 @@ NetworkPACS
 NetworkPACS
 ::~NetworkPACS()
 {
-    OFCondition cond = ASC_dropNetwork(&this->_network);
-    if (cond.bad()) 
+    OFCondition condition = ASC_dropNetwork(&this->_network);
+    if (condition.bad())
     {
         std::stringstream stream;
-        stream << "cannot drop network: " << cond.text();
+        stream << "cannot drop network: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
 }
 
 void 
 NetworkPACS
-::create_authenticator()
+::_create_authenticator()
 {
-    std::string type = ConfigurationPACS::get_instance().GetValue("authenticator.type");
+    ConfigurationPACS & instance = ConfigurationPACS::get_instance();
+    std::string const type = instance.get_value("authenticator.type");
     if(type == "CSV")
     {
         this->_authenticator = new authenticator::AuthenticatorCSV
-            (ConfigurationPACS::get_instance().GetValue("authenticator.filepath"));
+            (instance.get_value("authenticator.filepath"));
     }
     else if (type == "LDAP")
     {
         this->_authenticator = new authenticator::AuthenticatorLDAP
             (
-                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_server"),
-                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_bind_user"),
-                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_base"),
-                ConfigurationPACS::get_instance().GetValue("authenticator.ldap_filter")
+                instance.get_value("authenticator.ldap_server"),
+                instance.get_value("authenticator.ldap_bind_user"),
+                instance.get_value("authenticator.ldap_base"),
+                instance.get_value("authenticator.ldap_filter")
             );
     }
     else if (type == "None")
@@ -120,22 +122,22 @@ NetworkPACS
 ::run()
 {
     // todo multiprocess
-    while (!this->_forceStop)
+    while (!this->_force_stop)
     {
         if (ASC_associationWaiting(this->_network, this->_timeout))
         {
             bool continue_ = true;
             T_ASC_Association * assoc;
-            OFCondition cond = ASC_receiveAssociation(this->_network, &assoc, ASC_DEFAULTMAXPDU);
-            if (cond.bad())
+            OFCondition condition = ASC_receiveAssociation(this->_network, &assoc, ASC_DEFAULTMAXPDU);
+            if (condition.bad())
             {
-                dopamine::loggerError() << "Failed to receive association: "
-                                             << cond.text();
+                dopamine::logger_error() << "Failed to receive association: "
+                                             << condition.text();
             }
             else
             {
                 time_t t = time(NULL);
-                dopamine::loggerInfo() << "Association Received ("
+                dopamine::logger_info() << "Association Received ("
                                             << assoc->params->DULparams.callingPresentationAddress
                                             << ":" << assoc->params->DULparams.callingAPTitle << " -> "
                                             << assoc->params->DULparams.calledAPTitle << ") " << ctime(&t);
@@ -150,52 +152,52 @@ NetworkPACS
                     // Authentication User / Password
                     if( ! (*this->_authenticator)(assoc->params->DULparams.reqUserIdentNeg))
                     {
-                        dopamine::loggerWarning() << "Refusing Association: Bad Authentication";
-                        this->refuseAssociation(&assoc, CTN_NoReason);
+                        dopamine::logger_warning() << "Refusing Association: Bad Authentication";
+                        this->_refuse_association(&assoc, CTN_NoReason);
                         continue_ = false;
                     }
-                    dopamine::loggerDebug() << "Authentication Status: " << continue_;
+                    dopamine::logger_debug() << "Authentication Status: " << continue_;
                 }
                 
                 if (continue_)
                 {
                     /* Application Context Name */
                     char buf[BUFSIZ];
-                    cond = ASC_getApplicationContextName(assoc->params, buf);
-                    if (cond.bad() || std::string(buf) != DICOM_STDAPPLICATIONCONTEXT)
+                    condition = ASC_getApplicationContextName(assoc->params, buf);
+                    if (condition.bad() || std::string(buf) != DICOM_STDAPPLICATIONCONTEXT)
                     {
                         /* reject: the application context name is not supported */
-                        dopamine::loggerWarning() << "Bad AppContextName: " << buf;
-                        this->refuseAssociation(&assoc, CTN_BadAppContext);
+                        dopamine::logger_warning() << "Bad AppContextName: " << buf;
+                        this->_refuse_association(&assoc, CTN_BadAppContext);
                         continue_ = false;
                     }
-                    dopamine::loggerDebug() << "Application Context Name Status: " << continue_;
+                    dopamine::logger_debug() << "Application Context Name Status: " << continue_;
                 }
                 
                 if (continue_)
                 {
                     /* Does peer AE have access to required service ?? */
-                    if (! ConfigurationPACS::get_instance().peerInAETitle
+                    if (! ConfigurationPACS::get_instance().peer_in_aetitle
                                 (assoc->params->DULparams.callingAPTitle))
                     {
-                        dopamine::loggerWarning() << "Bad AE Service";
-                        this->refuseAssociation(&assoc, CTN_BadAEService);
+                        dopamine::logger_warning() << "Bad AE Service";
+                        this->_refuse_association(&assoc, CTN_BadAEService);
                         continue_ = false;
                     }
-                    dopamine::loggerDebug() << "AE Service Status: " << continue_;
+                    dopamine::logger_debug() << "AE Service Status: " << continue_;
                 }
                 
                 if (continue_)
                 {
-                    cond = this->negotiateAssociation(assoc);
-                    if (cond.good() || cond == ASC_SHUTDOWNAPPLICATION)
+                    condition = this->_negotiate_association(assoc);
+                    if (condition.good() || condition == ASC_SHUTDOWNAPPLICATION)
                     {
-                        bool shutdown = cond == ASC_SHUTDOWNAPPLICATION;
-                        cond = ASC_acknowledgeAssociation(assoc);
-                        if (cond.good())
+                        bool shutdown = condition == ASC_SHUTDOWNAPPLICATION;
+                        condition = ASC_acknowledgeAssociation(assoc);
+                        if (condition.good())
                         {
                             // dispatch
-                            this->handleAssociation(assoc);
+                            this->_handle_association(assoc);
                         }
                         if (shutdown)
                         {
@@ -204,13 +206,13 @@ NetworkPACS
                         }
                     }
 
-                    if (cond.bad())
+                    if (condition.bad())
                     {
-                        dopamine::loggerWarning() << "Association error: "
-                                                       << cond.text();
+                        dopamine::logger_warning() << "Association error: "
+                                                       << condition.text();
                     }
 
-                    continue_ = cond.good();
+                    continue_ = condition.good();
                 }
             }
 
@@ -218,18 +220,18 @@ NetworkPACS
             if (!continue_)
             {
                 /* the child will handle the association, we can drop it */
-                cond = ASC_dropAssociation(assoc);
-                if (cond.bad())
+                condition = ASC_dropAssociation(assoc);
+                if (condition.bad())
                 {
                     std::stringstream stream;
-                    stream << "Cannot Drop Association: " << cond.text();
+                    stream << "Cannot Drop Association: " << condition.text();
                     throw ExceptionPACS(stream.str());
                 }
-                cond = ASC_destroyAssociation(&assoc);
-                if (cond.bad())
+                condition = ASC_destroyAssociation(&assoc);
+                if (condition.bad())
                 {
                     std::stringstream stream;
-                    stream << "Cannot Destroy Association: " << cond.text();
+                    stream << "Cannot Destroy Association: " << condition.text();
                     throw ExceptionPACS(stream.str());
                 }
             }
@@ -240,7 +242,7 @@ NetworkPACS
 
 void 
 NetworkPACS
-::refuseAssociation(T_ASC_Association ** assoc, CTN_RefuseReason reason)
+::_refuse_association(T_ASC_Association ** assoc, CTN_RefuseReason reason)
 {
     const char *reason_string;
     switch (reason)
@@ -267,7 +269,7 @@ NetworkPACS
           reason_string = "???";
           break;
     }
-    dopamine::loggerError() << "Refusing Association ("
+    dopamine::logger_error() << "Refusing Association ("
                                  << reason_string << ")";
 
     T_ASC_RejectParameters rej;
@@ -306,41 +308,41 @@ NetworkPACS
         break;
     }
 
-    OFCondition cond = ASC_rejectAssociation(*assoc, &rej);
-    if (cond.bad())
+    OFCondition condition = ASC_rejectAssociation(*assoc, &rej);
+    if (condition.bad())
     {
         std::stringstream stream;
-        stream << "Association Reject Failed: " << cond.text();
+        stream << "Association Reject Failed: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
 
-    cond = ASC_dropAssociation(*assoc);
-    if (cond.bad())
+    condition = ASC_dropAssociation(*assoc);
+    if (condition.bad())
     {
         std::stringstream stream;
-        stream << "Cannot Drop Association: " << cond.text();
+        stream << "Cannot Drop Association: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
-    cond = ASC_destroyAssociation(assoc);
-    if (cond.bad())
+    condition = ASC_destroyAssociation(assoc);
+    if (condition.bad())
     {
         std::stringstream stream;
-        stream << "Cannot Destroy Association: " << cond.text();
+        stream << "Cannot Destroy Association: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
 }
 
 OFCondition
 NetworkPACS
-::negotiateAssociation(T_ASC_Association * assoc)
+::_negotiate_association(T_ASC_Association * assoc)
 {
-    OFCondition cond = EC_Normal;
+    OFCondition condition = EC_Normal;
 
     DIC_AE calledAETitle;
-    cond = ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
-    if (cond.bad())
+    condition = ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
+    if (condition.bad())
     {
-        dopamine::loggerError() << "Cannot retrieve AP Titles";
+        dopamine::logger_error() << "Cannot retrieve AP Titles";
     }
 
     const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
@@ -381,17 +383,17 @@ NetworkPACS
 
     const int numberOfNonStorageSyntaxes = DIM_OF(nonStorageSyntaxes);
     /*  accept any of the non-storage syntaxes */
-    cond = ASC_acceptContextsWithPreferredTransferSyntaxes(assoc->params,
+    condition = ASC_acceptContextsWithPreferredTransferSyntaxes(assoc->params,
                                                            (const char**)nonStorageSyntaxes,
                                                            numberOfNonStorageSyntaxes,
                                                            (const char**)transferSyntaxes,
                                                            numTransferSyntaxes,
                                                            ASC_SC_ROLE_SCUSCP);
-    if (cond.bad())
+    if (condition.bad())
     {
         OFString temp_str;
-        dopamine::loggerInfo() << "Cannot accept presentation contexts: "
-                                    << DimseCondition::dump(temp_str, cond);
+        dopamine::logger_info() << "Cannot accept presentation contexts: "
+                                    << DimseCondition::dump(temp_str, condition);
     }
 
     /* accept storage syntaxes with proposed role */
@@ -423,9 +425,9 @@ NetworkPACS
                     */
                     if (std::string(pc.proposedTransferSyntaxes[j]) == std::string(transferSyntaxes[k]))
                     {
-                        cond = ASC_acceptPresentationContext(
+                        condition = ASC_acceptPresentationContext(
                         assoc->params, pc.presentationContextID, transferSyntaxes[k], role);
-                        if (cond.bad()) return cond;
+                        if (condition.bad()) return condition;
                     }
                 }
             }
@@ -437,7 +439,7 @@ NetworkPACS
      */
     if (0 != ASC_findAcceptedPresentationContextID(assoc, UID_PrivateShutdownSOPClass))
     {
-        dopamine::loggerInfo() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
+        dopamine::logger_info() << "Shutting down server ... (negotiated private \"shut down\" SOP class)";
         return ASC_SHUTDOWNAPPLICATION;
     }
 
@@ -466,86 +468,88 @@ NetworkPACS
                             queryRetrievePairs[i].findSyntax);
             if (findpid == 0) 
             {
-                dopamine::loggerInfo() << "Move Presentation Context but no Find (accepting for now)";
+                dopamine::logger_info() << "Move Presentation Context but no Find (accepting for now)";
             }
         }
     }
 
-    return cond;
+    return condition;
 }
 
 void
 NetworkPACS
-::handleAssociation(T_ASC_Association * assoc)
+::_handle_association(T_ASC_Association * assoc)
 {
-    DIC_NODENAME        peerHostName;
-    DIC_AE              peerAETitle;
-    DIC_AE              myAETitle;
+    DIC_NODENAME        peer_host_name;
+    DIC_AE              peer_aetitle;
+    DIC_AE              this_aetitle;
 
-    ASC_getPresentationAddresses(assoc->params, peerHostName, NULL);
-    ASC_getAPTitles(assoc->params, peerAETitle, myAETitle, NULL);
+    ASC_getPresentationAddresses(assoc->params, peer_host_name, NULL);
+    ASC_getAPTitles(assoc->params, peer_aetitle, this_aetitle, NULL);
 
     // this while loop is executed exactly once unless the "keepDBHandleDuringAssociation_"
     // flag is not set, in which case the inner loop is executed only once and this loop
     // repeats for each incoming DIMSE command. In this case, the DB handle is created
     // and released for each DIMSE command.
-    OFCondition cond = EC_Normal;
-    while (cond.good())
+    OFCondition condition = EC_Normal;
+    while (condition.good())
     {
-        T_ASC_PresentationContextID presID;
+        T_ASC_PresentationContextID presentation_context_id;
         T_DIMSE_Message msg;
-        cond = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0, &presID, &msg, NULL);
+        condition = DIMSE_receiveCommand(assoc, DIMSE_BLOCKING, 0,
+                                         &presentation_context_id, &msg, NULL);
 
         /* did peer release, abort, or do we have a valid message ? */
-        if (cond.good())
+        if (condition.good())
         {
             /* process command */
             switch (msg.CommandField) {
             case DIMSE_C_ECHO_RQ:
             {
-                services::EchoSCP echoscp(assoc, presID, &msg.msg.CEchoRQ);
-                cond = echoscp.process();
+                services::EchoSCP echoscp(assoc, presentation_context_id, &msg.msg.CEchoRQ);
+                condition = echoscp.process();
                 break;
             }
             case DIMSE_C_STORE_RQ:
             {
-                services::StoreSCP storescp(assoc, presID, &msg.msg.CStoreRQ);
-                cond = storescp.process();
+                services::StoreSCP storescp(assoc, presentation_context_id, &msg.msg.CStoreRQ);
+                condition = storescp.process();
                 break;
             }
             case DIMSE_C_FIND_RQ:
             {
-                services::FindSCP findscp(assoc, presID, &msg.msg.CFindRQ);
-                cond = findscp.process();
+                services::FindSCP findscp(assoc, presentation_context_id, &msg.msg.CFindRQ);
+                condition = findscp.process();
                 break;
             }
             case DIMSE_C_GET_RQ:
             {
-                services::GetSCP getscp(assoc, presID, &msg.msg.CGetRQ);
-                cond = getscp.process();
+                services::GetSCP getscp(assoc, presentation_context_id, &msg.msg.CGetRQ);
+                condition = getscp.process();
                 break;
             }
             case DIMSE_C_MOVE_RQ:
             {
-                services::MoveSCP movescp(assoc, presID, &msg.msg.CMoveRQ);
+                services::MoveSCP movescp(assoc, presentation_context_id, &msg.msg.CMoveRQ);
                 movescp.set_network(this->_network);
-                cond = movescp.process();
+                condition = movescp.process();
                 break;
             }
             case DIMSE_C_CANCEL_RQ:
                 /* This is a late cancel request, just ignore it */
-                dopamine::loggerInfo() << "dispatch: late C-CANCEL-RQ, ignoring";
+                dopamine::logger_info() << "dispatch: late C-CANCEL-RQ, ignoring";
                 break;
             default:
                 /* we cannot handle this kind of message */
-                cond = DIMSE_BADCOMMANDTYPE;
-                dopamine::loggerError() << "Cannot handle command: 0x"
+                condition = DIMSE_BADCOMMANDTYPE;
+                dopamine::logger_error() << "Cannot handle command: 0x"
                                              << STD_NAMESPACE hex
                                              << (unsigned)msg.CommandField;
                 /* the condition will be returned, the caller will abort the association. */
             }
         }
-        else if ((cond == DUL_PEERREQUESTEDRELEASE)||(cond == DUL_PEERABORTEDASSOCIATION))
+        else if ((condition == DUL_PEERREQUESTEDRELEASE) ||
+                 (condition == DUL_PEERABORTEDASSOCIATION))
         {
             // association gone
         }
@@ -556,38 +560,38 @@ NetworkPACS
     }
     
     /* clean up on association termination */
-    if (cond == DUL_PEERREQUESTEDRELEASE) 
+    if (condition == DUL_PEERREQUESTEDRELEASE)
     {
-        dopamine::loggerInfo() << "Association Release";
-        cond = ASC_acknowledgeRelease(assoc);
+        dopamine::logger_info() << "Association Release";
+        condition = ASC_acknowledgeRelease(assoc);
         ASC_dropSCPAssociation(assoc);
     } 
-    else if (cond == DUL_PEERABORTEDASSOCIATION) 
+    else if (condition == DUL_PEERABORTEDASSOCIATION)
     {
-        dopamine::loggerInfo() << "Association Aborted";
+        dopamine::logger_info() << "Association Aborted";
     } 
     else 
     {
         OFString temp_str;
-        dopamine::loggerError() << "DIMSE Failure (aborting association): "
-                                     << DimseCondition::dump(temp_str, cond);
+        dopamine::logger_error() << "DIMSE Failure (aborting association): "
+                                     << DimseCondition::dump(temp_str, condition);
         /* some kind of error so abort the association */
-        cond = ASC_abortAssociation(assoc);
+        condition = ASC_abortAssociation(assoc);
     }
 
-    cond = ASC_dropAssociation(assoc);
-    if (cond.bad()) 
+    condition = ASC_dropAssociation(assoc);
+    if (condition.bad())
     {
         OFString temp_str;
-        dopamine::loggerError() << "Cannot Drop Association: "
-                                     << DimseCondition::dump(temp_str, cond);
+        dopamine::logger_error() << "Cannot Drop Association: "
+                                     << DimseCondition::dump(temp_str, condition);
     }
-    cond = ASC_destroyAssociation(&assoc);
-    if (cond.bad()) 
+    condition = ASC_destroyAssociation(&assoc);
+    if (condition.bad())
     {
         OFString temp_str;
-        dopamine::loggerError() << "Cannot Destroy Association: "
-                                     << DimseCondition::dump(temp_str, cond);
+        dopamine::logger_error() << "Cannot Destroy Association: "
+                                     << DimseCondition::dump(temp_str, condition);
     }
 }
 
@@ -595,7 +599,7 @@ void
 NetworkPACS
 ::force_stop()
 {
-    this->_forceStop = true;
+    this->_force_stop = true;
 }
 
 } // namespace dopamine

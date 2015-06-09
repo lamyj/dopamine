@@ -44,7 +44,10 @@ public :
 
     typedef std::pair<Condition::Pointer, FilterAction::Type> Filter;
 
+    /// Create an instance of DataSetToBSON
     DataSetToBSON();
+
+    /// Destroy the instance of DataSetToBSON
     ~DataSetToBSON();
 
     /// @brief Filter action applied if no filter matches, defaults to include.

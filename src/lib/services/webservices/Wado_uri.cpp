@@ -24,14 +24,15 @@ namespace services
 {
 
 Wado_uri
-::Wado_uri(const std::string &querystring, const std::string &remoteuser):
+::Wado_uri(std::string const & querystring,
+           std::string const & remoteuser):
     Wado("", querystring, remoteuser), _filename("")
 {
-    mongo::BSONObj object = this->parse_string();
+    mongo::BSONObj const object = this->_parse_string();
 
     RetrieveGenerator generator(this->_username);
 
-    Uint16 status = generator.process_bson(object);
+    Uint16 const status = generator.process_bson(object);
     if (status != STATUS_Pending)
     {
         if ( ! generator.is_allow())
@@ -75,7 +76,7 @@ Wado_uri
 
 mongo::BSONObj
 Wado_uri
-::parse_string()
+::_parse_string()
 {
     // Parse the query string
     // WARNING: inadequate method (TODO: find other method)
@@ -106,7 +107,7 @@ Wado_uri
          ++it)
     {
         // Look for mandatory information
-        if (it->second._mandatory &&
+        if (it->second.is_mandatory() &&
             variables.find(it->first) == variables.end())
         {
             std::stringstream stream;
@@ -114,7 +115,7 @@ Wado_uri
             throw WebServiceException(400, "Bad Request", stream.str());
         }
         // Look for not implemented parameters
-        else if (it->second._used == false &&
+        else if (it->second.is_used() == false &&
                  variables.find(it->first) != variables.end())
         {
             std::stringstream stream;

@@ -17,18 +17,27 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The Wado_rs class
+ */
 class Wado_rs: public Wado
 {
 public:
+    /**
+     * @brief Create an instance of Wado_rs
+     * @param pathinfo
+     * @param remoteuser
+     */
     Wado_rs(std::string const & pathinfo,
             std::string const & remoteuser = "");
 
+    /// Destroy the instance of Wado_rs
     ~Wado_rs();
 
 protected:
 
 private:
-    virtual mongo::BSONObj parse_string();
+    virtual mongo::BSONObj _parse_string();
 
 };
 

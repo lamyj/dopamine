@@ -20,11 +20,17 @@ namespace services
 {
 
 QueryRetrieveGenerator
-::QueryRetrieveGenerator(const std::string &username,
-                         const std::string &service_name):
+::QueryRetrieveGenerator(std::string const & username,
+                         std::string const & service_name):
     Generator(username), _service_name(service_name),
     _query_retrieve_level(""), _convert_modalities_in_study(false),
-    _maximumResults(0), _skippedResults(0), _fuzzymatching(false)
+    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
+{
+    // Nothing to do
+}
+
+QueryRetrieveGenerator
+::~QueryRetrieveGenerator()
 {
     // Nothing to do
 }
@@ -37,7 +43,7 @@ QueryRetrieveGenerator
 
     if (!this->_isconnected || this->_connection.isFailed())
     {
-        loggerWarning() << "Could not connect to database: " << this->_db_name;
+        logger_warning() << "Could not connect to database: " << this->_db_name;
         if (this->_service_name == Service_Query)
         {
             return 0xa700; // STATUS_FIND_Refused_OutOfResources
@@ -52,7 +58,7 @@ QueryRetrieveGenerator
     // Look for user authorization
     if ( ! this->_allow )
     {
-        loggerWarning() << "User '" << this->_username << "' not allowed to perform "
+        logger_warning() << "User '" << this->_username << "' not allowed to perform "
                         << this->_service_name;
         if (this->_service_name == Service_Query)
         {
@@ -62,17 +68,17 @@ QueryRetrieveGenerator
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
 
-    mongo::BSONObj constraint = get_constraint_for_user(this->_connection,
-                                                        this->_db_name,
-                                                        this->_username,
-                                                        this->_service_name);
+    mongo::BSONObj const constraint = get_constraint_for_user(this->_connection,
+                                                              this->_db_name,
+                                                              this->_username,
+                                                              this->_service_name);
 
     mongo::BSONObj query_object = this->_bsonquery;
 
     // Always include the keys for the query level and its higher levels
     if (!this->_bsonquery.hasField("00080052"))
     {
-        dopamine::loggerError() << "Cannot find DCM_QueryRetrieveLevel";
+        dopamine::logger_error() << "Cannot find DCM_QueryRetrieveLevel";
         if (this->_service_name == Service_Query)
         {
             return 0xa700; // STATUS_FIND_Refused_OutOfResources
@@ -80,7 +86,11 @@ QueryRetrieveGenerator
         return 0xa701; // STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches or
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
-    this->_query_retrieve_level = this->_bsonquery.getField("00080052").Obj().getField("Value").Array()[0].String();
+    // Read the Query Retrieve Level
+    {
+    mongo::BSONObj const field_00080052 = this->_bsonquery.getField("00080052").Obj();
+    this->_query_retrieve_level = field_00080052.getField("Value").Array()[0].String();
+    }
 
     // Remove unused elements
     query_object = query_object.removeField("00080005"); // DCM_SpecificCharacterSet
@@ -160,18 +170,18 @@ QueryRetrieveGenerator
         fields_builder << "00080018" << 1;
     }
 
-    for (unsigned int i = 0; i < this->_includefields.size(); ++i)
+    for (std::string const field : this->_include_fields)
     {
-        if (!fields_builder.hasField(this->_includefields.at(i)))
+        if (!fields_builder.hasField(field))
         {
-            fields_builder << this->_includefields.at(i) << 1;
+            fields_builder << field << 1;
         }
     }
 
     // Number of XXX Related Instances (0020,120X)
-    std::vector<std::string> tags = {"00201200", "00201202", "00201204",
-                                     "00201206", "00201208", "00201209"};
-    for (auto tag : tags)
+    std::vector<std::string> const tags = {"00201200", "00201202", "00201204",
+                                           "00201206", "00201208", "00201209"};
+    for (std::string const tag : tags)
     {
         if (query_object.hasField(tag))
         {
@@ -186,27 +196,27 @@ QueryRetrieveGenerator
     // Create Query
     mongo::BSONArrayBuilder finalquerybuilder;
     finalquerybuilder << constraint << db_query.obj();
-    mongo::Query query(BSON("$and" << finalquerybuilder.arr()));
+    mongo::Query const query(BSON("$and" << finalquerybuilder.arr()));
 
     // Get fields to retrieve
     mongo::BSONObj const fields = fields_builder.obj();
 
     // Searching into database...
     this->_cursor = this->_connection.query(this->_db_name + ".datasets",
-                                            query, this->_maximumResults,
-                                            this->_skippedResults, &fields);
+                                            query, this->_maximum_results,
+                                            this->_skipped_results, &fields);
 
     return STATUS_Pending;
 }
 
 std::string
 QueryRetrieveGenerator
-::retrieve_dataset_as_string(const mongo::BSONObj &object)
+::retrieve_dataset_as_string(mongo::BSONObj const & object)
 {
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&
-        std::find(this->_includefields.begin(),
-                  this->_includefields.end(), "00080018") != this->_includefields.end())
+        std::find(this->_include_fields.begin(),
+                  this->_include_fields.end(), "00080018") != this->_include_fields.end())
     {
         localobject.removeField("00080018");
     }
@@ -215,12 +225,12 @@ QueryRetrieveGenerator
 
 DcmDataset *
 QueryRetrieveGenerator
-::retrieve_dataset(const mongo::BSONObj &object)
+::retrieve_dataset(mongo::BSONObj const & object)
 {
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&
-        std::find(this->_includefields.begin(),
-                  this->_includefields.end(), "00080018") != this->_includefields.end())
+        std::find(this->_include_fields.begin(),
+                  this->_include_fields.end(), "00080018") != this->_include_fields.end())
     {
         localobject.removeField("00080018");
     }
@@ -250,73 +260,74 @@ QueryRetrieveGenerator
 
 void
 QueryRetrieveGenerator
-::set_includefields(std::vector<std::string> includefields)
+::set_include_fields(std::vector<std::string> include_fields)
 {
-    this->_includefields = includefields;
+    this->_include_fields = include_fields;
 }
 
 void
 QueryRetrieveGenerator
-::set_maximumResults(int maximumResults)
+::set_maximum_results(int maximum_results)
 {
-    this->_maximumResults = maximumResults;
+    this->_maximum_results = maximum_results;
 }
 
 int
 QueryRetrieveGenerator
-::get_maximumResults() const
+::get_maximum_results() const
 {
-    return this->_maximumResults;
+    return this->_maximum_results;
 }
 
 void
 QueryRetrieveGenerator
-::set_skippedResults(int skippedResults)
+::set_skipped_results(int skipped_results)
 {
-    this->_skippedResults = skippedResults;
+    this->_skipped_results = skipped_results;
 }
 
 int
 QueryRetrieveGenerator
-::get_skippedResults() const
+::get_skipped_results() const
 {
-    return this->_skippedResults;
+    return this->_skipped_results;
 }
 
 void
 QueryRetrieveGenerator
-::set_fuzzymatching(bool fuzzymatching)
+::set_fuzzy_matching(bool fuzzy_matching)
 {
-    this->_fuzzymatching = fuzzymatching;
+    this->_fuzzy_matching = fuzzy_matching;
 }
 
 bool
 QueryRetrieveGenerator
-::get_fuzzymatching() const
+::get_fuzzy_matching() const
 {
-    return this->_fuzzymatching;
+    return this->_fuzzy_matching;
 }
 
 unsigned int
 QueryRetrieveGenerator
-::get_count(std::string const & relatedElement,
-            std::string const & ofElement,
-            std::string const & value)
+::_get_count(std::string const & relatedElement,
+             std::string const & ofElement,
+             std::string const & value)
 {
-    mongo::BSONObj object = BSON("distinct" << "datasets" << "key" << relatedElement <<
-                                  "query" << BSON(ofElement << value));
+    mongo::BSONObj const object = BSON("distinct" << "datasets" <<
+                                       "key" << relatedElement <<
+                                       "query" << BSON(ofElement << value));
 
     mongo::BSONObj info;
     bool ret = this->_connection.runCommand(this->_db_name,
-                                   object, info);
+                                            object, info);
 
     return info["values"].Array().size();
 }
 
 mongo::BSONObj
 QueryRetrieveGenerator
-::compute_attribute(const std::string &attribute,
-                    const std::string &value)
+::compute_attribute(std::string const & attribute,
+                    std::string const & value)
 {
     if (attribute == "00080056") // Instance Availability
     {
@@ -324,8 +335,9 @@ QueryRetrieveGenerator
     }
     else if (attribute == "00080061") // Modalities in Study
     {
-        mongo::BSONObj object = BSON("distinct" << "datasets" << "key" << "00080060.Value" <<
-                                      "query" << BSON("0020000d.Value" << value));
+        mongo::BSONObj const object = BSON("distinct" << "datasets" <<
+                                           "key" << "00080060.Value" <<
+                                           "query" << BSON("0020000d.Value" << value));
 
         mongo::BSONObj info;
         bool ret = this->_connection.runCommand(this->_db_name,
@@ -335,37 +347,37 @@ QueryRetrieveGenerator
     }
     else if (attribute == "00201200") // Number of Patient Related Study
     {
-        unsigned int size = this->get_count("0020000d", "00100020.Value", value);
+        unsigned int size = this->_get_count("0020000d", "00100020.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201202") // Number of Patient Related Series
     {
-        unsigned int size = this->get_count("0020000e", "00100020.Value", value);
+        unsigned int size = this->_get_count("0020000e", "00100020.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201204") // Number of Patient Related Instances
     {
-        unsigned int size = this->get_count("00080018", "00100020.Value", value);
+        unsigned int size = this->_get_count("00080018", "00100020.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201206") // Number of Study Related Series
     {
-        unsigned int size = this->get_count("0020000e", "0020000d.Value", value);
+        unsigned int size = this->_get_count("0020000e", "0020000d.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201208") // Number of Study Related Instances
     {
-        unsigned int size = this->get_count("00080018", "0020000d.Value", value);
+        unsigned int size = this->_get_count("00080018", "0020000d.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201209") // Number of Series Related Instances
     {
-        unsigned int size = this->get_count("00080018", "0020000e.Value", value);
+        unsigned int size = this->_get_count("00080018", "0020000e.Value", value);
 
         return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
     }

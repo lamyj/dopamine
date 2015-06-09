@@ -27,7 +27,7 @@ namespace services
 {
 
 mongo::BSONObj
-check_mandatory_field_in_response(const mongo::BSONObj &response,
+check_mandatory_field_in_response(mongo::BSONObj const & response,
                                   QueryGenerator &generator,
                                   std::string const & query_retrieve_level,
                                   std::vector<Attribute> attributes)
@@ -43,45 +43,45 @@ check_mandatory_field_in_response(const mongo::BSONObj &response,
 
     for (Attribute attribute : attributes)
     {
-        if (attribute._tag == "00080052") continue;
-        if (!response.hasField(attribute._tag))
+        if (attribute.get_tag() == "00080052") continue;
+        if (!response.hasField(attribute.get_tag()))
         {
-            if (attribute._tag == "00080056") // Instance Availability
+            if (attribute.get_tag() == "00080056") // Instance Availability
             {
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, ""));
+                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), ""));
             }
-            else if (attribute._tag == "00080061") // Modalities in Study
-            {
-                std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
-            }
-            else if (attribute._tag == "00201206") // Number of Study Related Series
+            else if (attribute.get_tag() == "00080061") // Modalities in Study
             {
                 std::string const value =
                         response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
             }
-            else if (attribute._tag == "00201208") // Number of Study Related Instances
+            else if (attribute.get_tag() == "00201206") // Number of Study Related Series
             {
                 std::string const value =
                         response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
             }
-            else if (attribute._tag == "00201209") // Number of Series Related Instances
+            else if (attribute.get_tag() == "00201208") // Number of Study Related Instances
+            {
+                std::string const value =
+                        response["0020000d"].Obj().getField("Value").Array()[0].String();
+                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
+            }
+            else if (attribute.get_tag() == "00201209") // Number of Series Related Instances
             {
                 std::string const value =
                         response["0020000e"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute._tag, value));
+                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
             }
             else
             {
                 mongo::BSONObjBuilder builder;
-                builder << "vr" << attribute._vr;
+                builder << "vr" << attribute.get_vr();
                 builder.appendNull("Value");
 
                 mongo::BSONObj element =
-                        BSON(attribute._tag << builder.obj());
+                        BSON(attribute.get_tag() << builder.obj());
 
                 builderfinal.appendElements(element);
             }
@@ -92,23 +92,23 @@ check_mandatory_field_in_response(const mongo::BSONObj &response,
 }
 
 Qido_rs
-::Qido_rs(const std::string &pathinfo,
-          const std::string &querystring,
-          const std::string &contenttype,
-          const std::string &remoteuser):
+::Qido_rs(std::string const & pathinfo,
+          std::string const & querystring,
+          std::string const & contenttype,
+          std::string const & remoteuser):
     Webservices(pathinfo, querystring, remoteuser),
     _contenttype(contenttype), _study_instance_uid_present(false),
     _series_instance_uid_present(false)
 {
-    mongo::BSONObj object = this->parse_string();
+    mongo::BSONObj object = this->_parse_string();
 
-    this->add_mandatory_fields(object);
+    this->_add_mandatory_fields(object);
 
     QueryGenerator generator(this->_username);
-    generator.set_includefields(this->_includefields);
-    generator.set_maximumResults(this->_maximumResults);
-    generator.set_skippedResults(this->_skippedResults);
-    generator.set_fuzzymatching(this->_fuzzymatching);
+    generator.set_include_fields(this->_includefields);
+    generator.set_maximum_results(this->_maximum_results);
+    generator.set_skipped_results(this->_skipped_results);
+    generator.set_fuzzy_matching(this->_fuzzy_matching);
 
     Uint16 status = generator.process_bson(object);
     if (status != STATUS_Pending)
@@ -124,7 +124,7 @@ Qido_rs
     }
 
     // Multipart Response
-    this->create_boundary();
+    this->_create_boundary();
 
     std::stringstream stream;
 
@@ -153,7 +153,7 @@ Qido_rs
         findedobject = check_mandatory_field_in_response(findedobject,
                                                          generator,
                                                          this->_query_retrieve_level,
-                                                         this->get_mandatory_fields());
+                                                         this->_get_mandatory_fields());
 
         if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
         {
@@ -216,7 +216,7 @@ Qido_rs
 
 mongo::BSONObj
 Qido_rs
-::parse_string()
+::_parse_string()
 {
     // Parse the path info
     // WARNING: inadequate method (TODO: find other method)
@@ -365,27 +365,27 @@ Qido_rs
         if (tag == "includefield")
         {
             mongo::BSONObjBuilder tempbuilder;
-            this->add_to_builder(tempbuilder, data[1], "");
+            this->_add_to_builder(tempbuilder, data[1], "");
             this->_includefields.push_back(tempbuilder.obj().firstElementFieldName());
         }
         else if (tag == "limit")
         {
-            this->_maximumResults = std::atoi(data[1].c_str());
+            this->_maximum_results = std::atoi(data[1].c_str());
         }
         else if (tag == "offset")
         {
-            this->_skippedResults = std::atoi(data[1].c_str());
-            if (this->_skippedResults < 0)
+            this->_skipped_results = std::atoi(data[1].c_str());
+            if (this->_skipped_results < 0)
             {
-                this->_skippedResults = 0;
+                this->_skipped_results = 0;
             }
         }
         else if (tag == "fuzzymatching")
         {
             // Not supported
-            this->_fuzzymatching = (data[1] == "true");
+            this->_fuzzy_matching = (data[1] == "true");
 
-            if (this->_fuzzymatching)
+            if (this->_fuzzy_matching)
             {
                 // 6.7.1.2.1 Matching
                 // If the "fuzzymatching=true" query key/value is included in the request and it is not supported,
@@ -396,7 +396,7 @@ Qido_rs
         }
         else
         {
-            this->add_to_builder(db_query, tag, data[1]);
+            this->_add_to_builder(db_query, tag, data[1]);
         }
     }
     arraytemp.clear();
@@ -412,8 +412,9 @@ Qido_rs
 
 void
 Qido_rs
-::add_to_builder(mongo::BSONObjBuilder &builder,
-                 const std::string &tag, const std::string &value)
+::_add_to_builder(mongo::BSONObjBuilder &builder,
+                  std::string const & tag,
+                  std::string const & value)
 {
     std::string tagstr = tag;
 
@@ -475,7 +476,9 @@ Qido_rs
     }
 }
 
-std::vector<Attribute> Qido_rs::get_mandatory_fields() const
+std::vector<Attribute>
+Qido_rs
+::_get_mandatory_fields() const
 {
     std::vector<Attribute> tag_to_add;
     if (this->_query_retrieve_level == "STUDY")
@@ -520,20 +523,20 @@ std::vector<Attribute> Qido_rs::get_mandatory_fields() const
 
 void
 Qido_rs
-::add_mandatory_fields(const mongo::BSONObj &queryobject)
+::_add_mandatory_fields(mongo::BSONObj const & queryobject)
 {
     // Add tags
-    for (Attribute tag : this->get_mandatory_fields())
+    for (Attribute tag : this->_get_mandatory_fields())
     {
         // tag not already added
         if (std::find(this->_includefields.begin(),
-                      this->_includefields.end(), tag._tag) != this->_includefields.end() ||
-            queryobject.hasField(tag._tag))
+                      this->_includefields.end(), tag.get_tag()) != this->_includefields.end() ||
+            queryobject.hasField(tag.get_tag()))
         {
             continue;
         }
 
-        this->_includefields.push_back(tag._tag);
+        this->_includefields.push_back(tag.get_tag());
     }
 }
 

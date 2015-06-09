@@ -17,16 +17,32 @@ namespace dopamine
 namespace converterBSON
 {
 
+/**
+ * @brief The XMLToBSON class
+ * Convert a XML object into BSON Object
+ */
 class XMLToBSON : public ConverterBSONXML
 {
 public:
+    /// Create an instance of
     XMLToBSON();
 
+    /// Destroy the instance of
     ~XMLToBSON();
 
-    mongo::BSONObj from_ptree(boost::property_tree::ptree tree);
+    /**
+     * @brief from_ptree
+     * @param tree: XML object to convert
+     * @return Converted BSON Object
+     */
+    mongo::BSONObj from_ptree(boost::property_tree::ptree tree) const;
 
-    mongo::BSONObj from_string(std::string const & xml);
+    /**
+     * @brief from_string
+     * @param xml: XML object as string to convert
+     * @return Converted BSON Object
+     */
+    mongo::BSONObj from_string(std::string const & xml) const;
 
 protected:
 

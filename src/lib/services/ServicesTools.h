@@ -54,8 +54,8 @@ database_status insert_dataset(mongo::DBClientConnection & connection,
                                DcmDataset* dataset,
                                std::string const & callingaet = "");
 
-void createStatusDetail(Uint16 const & errorCode, DcmTagKey const & key,
-                        OFString const & comment, DcmDataset **statusDetail);
+void create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
+                          OFString const & comment, DcmDataset **statusDetail);
 
 std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg);
 
@@ -91,11 +91,11 @@ mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
                                bool isforstorage = false);
 
 DcmDataset * bson_to_dataset(mongo::DBClientConnection &connection,
-                             const std::string &db_name,
+                             std::string const & db_name,
                              mongo::BSONObj object);
 
 std::string get_dataset_as_string(mongo::DBClientConnection &connection,
-                                  const std::string &db_name,
+                                  std::string const & db_name,
                                   mongo::BSONObj object);
 
 } // namespace services

@@ -18,11 +18,19 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The RetrieveGenerator class
+ */
 class RetrieveGenerator : public QueryRetrieveGenerator
 {
 public:
+    /**
+     * @brief Create an instance of RetrieveGenerator
+     * @param username
+     */
     RetrieveGenerator(std::string const & username);
 
+    /// Destroy the get response generator
     virtual ~RetrieveGenerator();
 
 protected:
@@ -31,14 +39,26 @@ private:
 
 };
 
+/**
+ * @brief The RetrieveContext struct
+ */
 struct RetrieveContext
 {
-    RetrieveGenerator* _generator;
-    StoreSubOperation* _storeprovider;
-
+public:
     RetrieveContext(RetrieveGenerator * generator,
                     StoreSubOperation * storeprovider):
         _generator(generator), _storeprovider(storeprovider) {}
+
+    RetrieveGenerator * get_generator() const
+            { return this->_generator; }
+
+    StoreSubOperation * get_storeprovider() const
+            { return this->_storeprovider; }
+
+private:
+    RetrieveGenerator* _generator;
+    StoreSubOperation* _storeprovider;
+
 };
 
 } // namespace services

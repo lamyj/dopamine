@@ -84,7 +84,7 @@ void terminateNetwork()
     TestDataOK01()
     {
         create_configuration_file("None");
-        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+        dopamine::ConfigurationPACS::get_instance().parse(configfile);
     }
  
     ~TestDataOK01()
@@ -112,7 +112,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_None, TestDataOK01)
     TestDataOK02()
     {
         create_configuration_file("CSV");
-        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+        dopamine::ConfigurationPACS::get_instance().parse(configfile);
 
         csvfile = "./authentest.csv";
 
@@ -147,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_CSV, TestDataOK02)
     TestDataOK03()
     {
         create_configuration_file("LDAP");
-        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+        dopamine::ConfigurationPACS::get_instance().parse(configfile);
     }
 
     ~TestDataOK03()
@@ -204,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(Shutdown_Request, TestDataOK01)
     TestDataKO01()
     {
         create_configuration_file("BADVALUE");
-        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+        dopamine::ConfigurationPACS::get_instance().parse(configfile);
     }
  
     ~TestDataKO01()
@@ -248,7 +248,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
         
-        dopamine::ConfigurationPACS::get_instance().Parse(configfile);
+        dopamine::ConfigurationPACS::get_instance().parse(configfile);
     }
  
     ~TestDataKO02()

@@ -23,11 +23,11 @@ namespace authenticator
 {
 
 AuthenticatorLDAP
-::AuthenticatorLDAP(const std::string &ldap_server,
-                    const std::string &ldap_bind_user,
-                    const std::string &ldap_base,
-                    const std::string &ldap_filter):
-    AuthenticatorBase(),
+::AuthenticatorLDAP(std::string const & ldap_server,
+                    std::string const & ldap_bind_user,
+                    std::string const & ldap_base,
+                    std::string const & ldap_filter):
+    AuthenticatorBase(), // base class initialisation
     _ldap_server(ldap_server), _ldap_bind_user(ldap_bind_user),
     _ldap_base(ldap_base), _ldap_filter(ldap_filter)
 {
@@ -71,7 +71,7 @@ AuthenticatorLDAP
         Uint16 user_length;
         identity->getPrimField(user, user_length);
         // user is not NULL-terminated
-        std::string userstr = std::string(user, user_length);
+        std::string const userstr = std::string(user, user_length);
 
         std::string bind_dn = this->_ldap_bind_user;
         boost::replace_all(bind_dn, "%user", userstr.c_str());

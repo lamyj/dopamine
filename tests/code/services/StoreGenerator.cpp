@@ -36,7 +36,7 @@ public:
     TestDataGenerator_badconnection()
     {
         std::string NetworkConfFILE(getenv("DOPAMINE_TEST_BADCONFIG"));
-        dopamine::ConfigurationPACS::get_instance().Parse(NetworkConfFILE);
+        dopamine::ConfigurationPACS::get_instance().parse(NetworkConfFILE);
     }
 
     ~TestDataGenerator_badconnection()
@@ -91,15 +91,15 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     dopamine::services::StoreGenerator generator("");
 
     // Default initialization
-    BOOST_CHECK_EQUAL(generator.get_callingaptitle(), "");
+    BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "");
     BOOST_CHECK_EQUAL(generator.get_dataset() == NULL, true);
     BOOST_CHECK_EQUAL(generator.is_allow(), false);
 
     DcmDataset* dataset = new DcmDataset();
 
     // Setter
-    generator.set_callingaptitle("LOCAL");
-    BOOST_CHECK_EQUAL(generator.get_callingaptitle(), "LOCAL");
+    generator.set_calling_aptitle("LOCAL");
+    BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "LOCAL");
 
     delete dataset;
 }

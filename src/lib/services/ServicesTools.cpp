@@ -37,13 +37,16 @@ bool
 create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
 {
     // Get all indexes
-    std::string indexlist = ConfigurationPACS::get_instance().GetValue("database.indexlist");
+    std::string const indexlist =
+            ConfigurationPACS::get_instance().get_value("database.indexlist");
     std::vector<std::string> indexeslist;
     boost::split(indexeslist, indexlist, boost::is_any_of(";"));
 
-    db_name = ConfigurationPACS::get_instance().GetValue("database.dbname");
-    std::string db_host = ConfigurationPACS::get_instance().GetValue("database.hostname");
-    std::string db_port = ConfigurationPACS::get_instance().GetValue("database.port");
+    db_name = ConfigurationPACS::get_instance().get_value("database.dbname");
+    std::string const db_host =
+            ConfigurationPACS::get_instance().get_value("database.hostname");
+    std::string const db_port =
+            ConfigurationPACS::get_instance().get_value("database.port");
 
     if (db_name == "" || db_host == "" || db_port == "")
     {
@@ -65,9 +68,9 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     for (auto currentIndex : indexeslist)
     {
         DcmTag dcmtag;
-        OFCondition ret = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
+        OFCondition condition = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
 
-        if (ret.good())
+        if (condition.good())
         {
             // convert Uint16 => string XXXXYYYY
             char buffer[9];
@@ -90,30 +93,30 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
 }
 
 void
-createStatusDetail(const Uint16 &errorCode, const DcmTagKey &key,
-                   const OFString &comment, DcmDataset **statusDetail)
+create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
+                     OFString const & comment, DcmDataset **statusDetail)
 {
     DcmElement * element;
     std::vector<Uint16> vect;
-    OFCondition cond;
+    OFCondition condition;
 
     (*statusDetail) = new DcmDataset();
 
-    cond = (*statusDetail)->insertEmptyElement(DCM_Status);
-    cond = (*statusDetail)->findAndGetElement(DCM_Status, element);
+    condition = (*statusDetail)->insertEmptyElement(DCM_Status);
+    condition = (*statusDetail)->findAndGetElement(DCM_Status, element);
     vect.clear();
     vect.push_back(errorCode);
-    cond = element->putUint16Array(&vect[0], vect.size());
+    condition = element->putUint16Array(&vect[0], vect.size());
 
-    cond = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
-    cond = (*statusDetail)->findAndGetElement(DCM_OffendingElement, element);
+    condition = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
+    condition = (*statusDetail)->findAndGetElement(DCM_OffendingElement, element);
     vect.clear();
     vect.push_back(key.getGroup());
     vect.push_back(key.getElement());
-    cond = element->putUint16Array(&vect[0], vect.size()/2);
+    condition = element->putUint16Array(&vect[0], vect.size()/2);
 
-    cond = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                      comment);
+    condition = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
+                                                           comment);
 }
 
 std::string
@@ -127,7 +130,8 @@ get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
          userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD))
     {
         // Get user name
-        char * user; Uint16 user_length;
+        char * user;
+        Uint16 user_length;
         userIdentNeg->getPrimField(user, user_length);
         // user is not NULL-terminated
         lcurrentUser = std::string(user, user_length);
@@ -138,7 +142,7 @@ get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
 }
 
 bool
-is_authorized(mongo::DBClientConnection &connection,
+is_authorized(mongo::DBClientConnection & connection,
               std::string const & db_name,
               std::string const & username,
               std::string const & servicename)
@@ -154,7 +158,8 @@ is_authorized(mongo::DBClientConnection &connection,
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
                    << "service" << BSON("$in" << BSON_ARRAY(Service_All << servicename));
 
-    mongo::BSONObj group_command = BSON("count" << "authorization" << "query" << fields_builder.obj());
+    mongo::BSONObj const group_command = BSON("count" << "authorization" <<
+                                              "query" << fields_builder.obj());
 
     mongo::BSONObj info;
     connection.runCommand(db_name, group_command, info, 0);
@@ -170,8 +175,8 @@ is_authorized(mongo::DBClientConnection &connection,
 }
 
 mongo::BSONObj
-get_constraint_for_user(mongo::DBClientConnection &connection, const std::string &db_name,
-                        const std::string &username, const std::string &servicename)
+get_constraint_for_user(mongo::DBClientConnection &connection, std::string const & db_name,
+                        std::string const & username, std::string const & servicename)
 {
     mongo::BSONArrayBuilder builder;
     if (username != "")
@@ -185,7 +190,7 @@ get_constraint_for_user(mongo::DBClientConnection &connection, const std::string
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
                    << "service" << BSON("$in" << BSON_ARRAY(Service_All << servicename));
     mongo::BSONObjBuilder initial_builder;
-    mongo::BSONObj group_command = BSON("group" << BSON(
+    mongo::BSONObj const group_command = BSON("group" << BSON(
         "ns" << "authorization" << "key" << BSON("dataset" << 1) << "cond" << fields_builder.obj() <<
         "$reduce" << "function(current, result) { }" << "initial" << initial_builder.obj()
     ));
@@ -278,8 +283,8 @@ bsonelement_to_string(mongo::BSONElement const & bsonelement)
 }
 
 std::string
-replace(const std::string &value, const std::string &old,
-        const std::string &new_)
+replace(std::string const & value, std::string const & old,
+        std::string const & new_)
 {
     std::string result(value);
     size_t begin=0;
@@ -318,7 +323,7 @@ dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 
 DcmDataset *
 bson_to_dataset(mongo::DBClientConnection &connection,
-                const std::string &db_name,
+                std::string const & db_name,
                 mongo::BSONObj object)
 {
     DcmDataset* dataset = NULL;
@@ -361,10 +366,10 @@ bson_to_dataset(mongo::DBClientConnection &connection,
 
 database_status
 insert_dataset(mongo::DBClientConnection &connection,
-               const std::string &db_name,
-               const std::string &username,
+               std::string const & db_name,
+               std::string const & username,
                DcmDataset *dataset,
-               const std::string &callingaet)
+               std::string const & callingaet)
 {
     // Convert Dataset into BSON object
     mongo::BSONObj object = dataset_to_bson(dataset, true);
@@ -425,7 +430,7 @@ insert_dataset(mongo::DBClientConnection &connection,
     std::string const sopinstanceuid = object.getField("00080018").Obj().getField("Value").Array()[0].String();
 
     // check size
-    int totalsize = builder.len() + buffer.size();
+    int const totalsize = builder.len() + buffer.size();
 
     if (totalsize > 16777000) // 16 MB = 16777216
     {
@@ -475,9 +480,9 @@ insert_dataset(mongo::DBClientConnection &connection,
 
 bool
 is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
-                               const std::string &db_name,
-                               const std::string &username,
-                               const mongo::BSONObj &dataset)
+                               std::string const & db_name,
+                               std::string const & username,
+                               mongo::BSONObj const & dataset)
 {
     // Retrieve user's Rights
     mongo::BSONObj constraint =
@@ -563,7 +568,7 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
 
 std::string
 get_dataset_as_string(mongo::DBClientConnection &connection,
-                      const std::string &db_name,
+                      std::string const & db_name,
                       mongo::BSONObj object)
 {
     mongo::BSONElement const element = object.getField("Content");
@@ -575,8 +580,8 @@ get_dataset_as_string(mongo::DBClientConnection &connection,
         mongo::BSONObjBuilder builder;
         mongo::OID oid(filesid);
         builder.appendOID(std::string("_id"), &oid);
-        mongo::Query query = builder.obj();
-        mongo::BSONObj fields = BSON("filename" << 1);
+        mongo::Query const query = builder.obj();
+        mongo::BSONObj const fields = BSON("filename" << 1);
         mongo::BSONObj sopinstanceuidobj = connection.findOne(db_name + ".fs.files", query, &fields);
         std::string const sopinstanceuid = sopinstanceuidobj.getField("filename").String();
 
@@ -584,7 +589,7 @@ get_dataset_as_string(mongo::DBClientConnection &connection,
         mongo::GridFS gridfs(connection, db_name);
 
         // Get the GridFile corresponding to the filename
-        mongo::GridFile file = gridfs.findFile(sopinstanceuid);
+        mongo::GridFile const file = gridfs.findFile(sopinstanceuid);
 
         // Get the binary content
         std::stringstream stream;

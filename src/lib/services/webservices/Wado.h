@@ -17,13 +17,23 @@ namespace dopamine
 namespace services
 {
 
+/**
+ * @brief The Wado class
+ */
 class Wado : public Webservices
 {
 public:
+    /**
+     * @brief Create an instance of Wado
+     * @param pathinfo
+     * @param querystring
+     * @param username
+     */
     Wado(std::string const & pathinfo,
          std::string const & querystring,
          std::string const & username);
 
+    /// Destroy the instance of Wado
     virtual ~Wado();
 
 protected:

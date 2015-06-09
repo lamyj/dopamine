@@ -42,14 +42,14 @@ public:
      * Parse a given configuration file
      * @param file: configuration file path
      */
-    void Parse(std::string const & file);
+    void parse(std::string const & file);
     
     /**
      * Get value of a given key
      * @param key: searched key (like 'Section.key')
      * @return value of the given key, empty string if key does not exist
      */
-    std::string GetValue(std::string const & key);
+    std::string get_value(std::string const & key);
     
     /**
      * Get value of a given key
@@ -57,14 +57,14 @@ public:
      * @param key: searched key
      * @return value of the given key, empty string if key does not exist
      */
-    std::string GetValue(std::string const & section, std::string const & key);
+    std::string get_value(std::string const & section, std::string const & key);
     
     /**
      * Check if key is in configuration file
      * @param key: searched key
      * @return true if key exist, false otherwise
      */
-    bool HasValue(std::string const & key);
+    bool has_value(std::string const & key);
     
     /**
      * Check if key is in configuration file
@@ -72,22 +72,22 @@ public:
      * @param key: searched key
      * @return true if key exist, false otherwise
      */
-    bool HasValue(std::string const & section, std::string const & key);
+    bool has_value(std::string const & section, std::string const & key);
     
     /**
      * Check if a given peer is in allowed AE Title
      * @param peer: searched AE Title
      * @return true if AE Title is allowed, false otherwise
      */
-    bool peerInAETitle(std::string const & peer);
+    bool peer_in_aetitle(std::string const & peer);
     
     /**
      * Get network address and port for a given AE Title
-     * @param AETitle: searched AE Title (in)
-     * @param addressPort: corresponding network address ('address:port') (out)
-     * @return true if AETitle is listed in configuration, false otherwise
+     * @param aetitle: searched AE Title (in)
+     * @param address_and_port: corresponding network address ('address:port') (out)
+     * @return true if aetitle is listed in configuration, false otherwise
      */
-    bool peerForAETitle(std::string const & AETitle, std::string & addressPort) const;
+    bool peer_for_aetitle(std::string const & aetitle, std::string & address_and_port) const;
 
 protected:
 
@@ -99,10 +99,10 @@ private:
     static ConfigurationPACS * _instance;
     
     /// Configuration nodes
-    boost::property_tree::ptree _confptree;
+    boost::property_tree::ptree _configuration_node;
     
     /// Allowed AE Titles
-    std::vector<std::string> _AETitles;
+    std::vector<std::string> _aetitles;
     
     /// List of known network (AETitle <=> address)
     std::map<std::string, std::string> _addressPortList;

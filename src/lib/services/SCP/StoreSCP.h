@@ -29,9 +29,9 @@ public:
      * @param presID: linked presentation context
      * @param req: C-STORE request
      */
-    StoreSCP(T_ASC_Association * assoc, 
-             T_ASC_PresentationContextID presID,
-             T_DIMSE_C_StoreRQ * req);
+    StoreSCP(T_ASC_Association * association,
+             T_ASC_PresentationContextID presentation_context_id,
+             T_DIMSE_C_StoreRQ * request);
     
     /// Destroy the SCP
     virtual ~StoreSCP();

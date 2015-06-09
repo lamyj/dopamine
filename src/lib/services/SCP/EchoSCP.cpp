@@ -17,10 +17,11 @@ namespace services
 {
     
 EchoSCP
-::EchoSCP(T_ASC_Association * assoc, 
-          T_ASC_PresentationContextID presID, 
-          T_DIMSE_C_EchoRQ * req):
-    SCP(assoc, presID), _request(req) // base class initialisation
+::EchoSCP(T_ASC_Association * association,
+          T_ASC_PresentationContextID presentation_context_id,
+          T_DIMSE_C_EchoRQ * request):
+    SCP(association, presentation_context_id), // base class initialisation
+    _request(request)
 {
     // nothing to do
 }
@@ -35,12 +36,12 @@ OFCondition
 EchoSCP
 ::process()
 {
-    loggerInfo() << "Received Echo SCP RQ: MsgID "
+    logger_info() << "Received Echo SCP RQ: MsgID "
                  << this->_request->MessageID;
 
     mongo::DBClientConnection connection;
     std::string db_name;
-    bool connection_state = create_db_connection(connection, db_name);
+    bool const connection_state = create_db_connection(connection, db_name);
 
     // Default response is SUCCESS
     DIC_US status = STATUS_Success;
@@ -54,26 +55,26 @@ EchoSCP
         if ( ! is_authorized(connection, db_name, username, Service_Echo) )
         {
             status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
-            loggerWarning() << "User not allowed to perform ECHO";
+            logger_warning() << "User not allowed to perform ECHO";
 
-            createStatusDetail(0xa700, DCM_UndefinedTagKey,
-                               OFString("User not allowed to perform ECHO"),
-                               &details);
+            create_status_detail(0xa700, DCM_UndefinedTagKey,
+                                 OFString("User not allowed to perform ECHO"),
+                                 &details);
         }
     }
     else
     {
         status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
-        loggerWarning() << "Could not connect to database: " << db_name;
+        logger_warning() << "Could not connect to database: " << db_name;
 
-        createStatusDetail(0xa700, DCM_UndefinedTagKey,
-                           OFString("Could not connect to database"),
-                           &details);
+        create_status_detail(0xa700, DCM_UndefinedTagKey,
+                             OFString("Could not connect to database"),
+                             &details);
     }
 
     // Send the response
     return DIMSE_sendEchoResponse(this->_association,
-                                  this->_presentationID, 
+                                  this->_presentation_context_id,
                                   this->_request, 
                                   status, details);
 }

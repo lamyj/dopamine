@@ -18,17 +18,17 @@
 namespace dopamine
 {
 
-void InitializeLogger(std::string const & priority);
+void initialize_logger(std::string const & priority);
 
-log4cpp::CategoryStream getLogger(log4cpp::Priority::PriorityLevel const & level);
+log4cpp::CategoryStream get_logger(log4cpp::Priority::PriorityLevel const & level);
 
-log4cpp::CategoryStream loggerDebug();
+log4cpp::CategoryStream logger_debug();
 
-log4cpp::CategoryStream loggerError();
+log4cpp::CategoryStream logger_error();
 
-log4cpp::CategoryStream loggerInfo();
+log4cpp::CategoryStream logger_info();
 
-log4cpp::CategoryStream loggerWarning();
+log4cpp::CategoryStream logger_warning();
 
 } // namespace dopamine
 

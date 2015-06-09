@@ -42,11 +42,17 @@ const std::string Tag_PersonName            = "PersonName";
 const std::string Tag_Phonetic              = "Phonetic";
 const std::string Tag_Value                 = "Value";
 
+/**
+ * @brief The ConverterBSONXML class
+ * Base class for converter BSON <-> XML
+ */
 class ConverterBSONXML
 {
 public:
+    /// Create an instance of ConverterBSONXML
     ConverterBSONXML();
 
+    /// Destroy the instance of ConverterBSONXML
     virtual ~ConverterBSONXML();
 
 protected:

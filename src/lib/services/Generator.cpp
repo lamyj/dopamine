@@ -19,9 +19,9 @@ namespace services
 template<>
 void
 Generator
-::add_value_to_builder<Sint32>(mongo::BSONObjBuilder &builder,
-                       const std::string &field,
-                       const std::string &value) const
+::_add_value_to_builder<Sint32>(mongo::BSONObjBuilder &builder,
+                                std::string const & field,
+                                std::string const & value) const
 {
     // Fix compilation error for i386
     builder.appendIntOrLL(field, boost::lexical_cast<Sint32>(value));
@@ -30,9 +30,9 @@ Generator
 template<>
 void
 Generator
-::add_value_to_builder<Uint32>(mongo::BSONObjBuilder &builder,
-                       const std::string &field,
-                       const std::string &value) const
+::_add_value_to_builder<Uint32>(mongo::BSONObjBuilder &builder,
+                                std::string const & field,
+                                std::string const & value) const
 {
     // Fix compilation error for i386
     builder.appendIntOrLL(field, boost::lexical_cast<Uint32>(value));
@@ -41,9 +41,9 @@ Generator
 template<typename TType>
 void
 Generator
-::add_value_to_builder(mongo::BSONObjBuilder &builder,
-                       const std::string &field,
-                       const std::string &value) const
+::_add_value_to_builder(mongo::BSONObjBuilder &builder,
+                        std::string const & field,
+                        std::string const & value) const
 {
     builder << field << boost::lexical_cast<TType>(value);
 }
@@ -60,7 +60,7 @@ Generator
     if (vr == "OB" || vr == "OF" || vr == "OW" || vr == "UN")
     {
         int length = 0;
-        const char * data = value.binDataClean(length);
+        char const * data = value.binDataClean(length);
         builder.appendBinData(field, length, mongo::BinDataGeneral, data);
     }
     else
@@ -87,14 +87,14 @@ Generator
         }
     }
 
-    if (vr == "DS") this->add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FD") this->add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FL") this->add_value_to_builder<Float32>(builder, field, value.String());
-    else if (vr == "IS") this->add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SL") this->add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SS") this->add_value_to_builder<Sint16>(builder, field, value.String());
-    else if (vr == "UL") this->add_value_to_builder<Uint32>(builder, field, value.String());
-    else if (vr == "US") this->add_value_to_builder<Uint16>(builder, field, value.String());
+    if      (vr == "DS") this->_add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FD") this->_add_value_to_builder<Float64>(builder, field, value.String());
+    else if (vr == "FL") this->_add_value_to_builder<Float32>(builder, field, value.String());
+    else if (vr == "IS") this->_add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SL") this->_add_value_to_builder<Sint32>(builder, field, value.String());
+    else if (vr == "SS") this->_add_value_to_builder<Sint16>(builder, field, value.String());
+    else if (vr == "UL") this->_add_value_to_builder<Uint32>(builder, field, value.String());
+    else if (vr == "US") this->_add_value_to_builder<Uint16>(builder, field, value.String());
     else
     {
         builder << field << value.String();
@@ -110,7 +110,7 @@ Generator
     mongo::BSONObjBuilder & builder) const
 {
     mongo::BSONArrayBuilder or_builder;
-    std::vector<mongo::BSONElement> or_terms = value.Array();
+    std::vector<mongo::BSONElement> const or_terms = value.Array();
     for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
         or_it!=or_terms.end(); ++or_it)
     {
@@ -233,7 +233,7 @@ Generator
 }
 
 Generator
-::Generator(const std::string &username):
+::Generator(std::string const & username):
     _isconnected(false), _username(username), _allow(false),
     _dataset(NULL)
 {
@@ -251,7 +251,7 @@ void
 Generator
 ::cancel()
 {
-    loggerWarning() << "Function Not implemented: Generator::cancel()";
+    logger_warning() << "Function Not implemented: Generator::cancel()";
 }
 
 mongo::BSONObj
@@ -426,7 +426,7 @@ Generator
 
 Uint16
 Generator
-::process_bson(const mongo::BSONObj &query)
+::process_bson(mongo::BSONObj const & query)
 {
     this->_bsonquery = query;
 
