@@ -11,175 +11,151 @@
 
 #include "core/LoggerPACS.h"
 
-/*************************** TEST OK 01 *******************************/
+struct TestDataLogger
+{
+    std::stringstream stream;
+    std::streambuf* OldBuf;
+
+    TestDataLogger()
+    {
+        // redirect standard output to stringstream
+        OldBuf = std::cout.rdbuf(stream.rdbuf());
+    }
+
+    ~TestDataLogger()
+    {
+        // set the default output
+        std::cout.rdbuf(OldBuf);
+    }
+};
+
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Logger Not Initialize
  *                    This test should be done in first.
  */
-BOOST_AUTO_TEST_CASE(No_Initialization)
+BOOST_FIXTURE_TEST_CASE(No_Initialization, TestDataLogger)
 {
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
-
-    // set the default output
-    std::cout.rdbuf(OldBuf);
 
     BOOST_CHECK_EQUAL(stream.str(), "");
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: InitializeLogger (ERROR)
  */
-BOOST_AUTO_TEST_CASE(InitializeLogger_Error)
+BOOST_FIXTURE_TEST_CASE(InitializeLogger_Error, TestDataLogger)
 {
     // Initialize logger
     dopamine::initialize_logger("ERROR");
 
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
 
-    // set the default output
-    std::cout.rdbuf(OldBuf);
+    BOOST_REQUIRE(stream.str() != "");
 
-    BOOST_CHECK_EQUAL(stream.str() != "", true);
-
-    BOOST_CHECK_EQUAL(stream.str().find("ERROR") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("WARN") == std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("INFO") == std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("DEBUG") == std::string::npos, true);
+    BOOST_CHECK(stream.str().find("ERROR") != std::string::npos);
+    BOOST_CHECK(stream.str().find("WARN") == std::string::npos);
+    BOOST_CHECK(stream.str().find("INFO") == std::string::npos);
+    BOOST_CHECK(stream.str().find("DEBUG") == std::string::npos);
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: InitializeLogger (WARNING)
  */
-BOOST_AUTO_TEST_CASE(InitializeLogger_Warning)
+BOOST_FIXTURE_TEST_CASE(InitializeLogger_Warning, TestDataLogger)
 {
     // Initialize logger
     dopamine::initialize_logger("WARNING");
 
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
 
-    // set the default output
-    std::cout.rdbuf(OldBuf);
+    BOOST_REQUIRE(stream.str() != "");
 
-    BOOST_CHECK_EQUAL(stream.str() != "", true);
-
-    BOOST_CHECK_EQUAL(stream.str().find("ERROR") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("WARN") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("INFO") == std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("DEBUG") == std::string::npos, true);
+    BOOST_CHECK(stream.str().find("ERROR") != std::string::npos);
+    BOOST_CHECK(stream.str().find("WARN") != std::string::npos);
+    BOOST_CHECK(stream.str().find("INFO") == std::string::npos);
+    BOOST_CHECK(stream.str().find("DEBUG") == std::string::npos);
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: InitializeLogger (INFO)
  */
-BOOST_AUTO_TEST_CASE(InitializeLogger_Info)
+BOOST_FIXTURE_TEST_CASE(InitializeLogger_Info, TestDataLogger)
 {
     // Initialize logger
     dopamine::initialize_logger("INFO");
 
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
 
-    // set the default output
-    std::cout.rdbuf(OldBuf);
+    BOOST_REQUIRE(stream.str() != "");
 
-    BOOST_CHECK_EQUAL(stream.str() != "", true);
-
-    BOOST_CHECK_EQUAL(stream.str().find("ERROR") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("WARN") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("INFO") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("DEBUG") == std::string::npos, true);
+    BOOST_CHECK(stream.str().find("ERROR") != std::string::npos);
+    BOOST_CHECK(stream.str().find("WARN") != std::string::npos);
+    BOOST_CHECK(stream.str().find("INFO") != std::string::npos);
+    BOOST_CHECK(stream.str().find("DEBUG") == std::string::npos);
 }
 
-/*************************** TEST OK 05 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: InitializeLogger (DEBUG)
  */
-BOOST_AUTO_TEST_CASE(InitializeLogger_Debug)
+BOOST_FIXTURE_TEST_CASE(InitializeLogger_Debug, TestDataLogger)
 {
     // Initialize logger
     dopamine::initialize_logger("DEBUG");
 
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
 
-    // set the default output
-    std::cout.rdbuf(OldBuf);
+    BOOST_REQUIRE(stream.str() != "");
 
-    BOOST_CHECK_EQUAL(stream.str() != "", true);
-
-    BOOST_CHECK_EQUAL(stream.str().find("ERROR") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("WARN") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("INFO") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("DEBUG") != std::string::npos, true);
+    BOOST_CHECK(stream.str().find("ERROR") != std::string::npos);
+    BOOST_CHECK(stream.str().find("WARN") != std::string::npos);
+    BOOST_CHECK(stream.str().find("INFO") != std::string::npos);
+    BOOST_CHECK(stream.str().find("DEBUG") != std::string::npos);
 }
 
-/*************************** TEST OK 06 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: InitializeLogger (DEFAULT)
  */
-BOOST_AUTO_TEST_CASE(InitializeLogger_Default)
+BOOST_FIXTURE_TEST_CASE(InitializeLogger_Default, TestDataLogger)
 {
     // Initialize logger
     dopamine::initialize_logger("");
 
-    // redirect standard output to stringstream
-    std::stringstream stream;
-    std::streambuf* OldBuf = std::cout.rdbuf(stream.rdbuf());
-
     // Test
     dopamine::logger_error() << " test ";
     dopamine::logger_warning() << " test ";
     dopamine::logger_info() << " test ";
     dopamine::logger_debug() << " test ";
 
-    // set the default output
-    std::cout.rdbuf(OldBuf);
+    BOOST_REQUIRE(stream.str() != "");
 
-    BOOST_CHECK_EQUAL(stream.str() != "", true);
-
-    BOOST_CHECK_EQUAL(stream.str().find("ERROR") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("WARN") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("INFO") != std::string::npos, true);
-    BOOST_CHECK_EQUAL(stream.str().find("DEBUG") != std::string::npos, true);
+    BOOST_CHECK(stream.str().find("ERROR") != std::string::npos);
+    BOOST_CHECK(stream.str().find("WARN") != std::string::npos);
+    BOOST_CHECK(stream.str().find("INFO") != std::string::npos);
+    BOOST_CHECK(stream.str().find("DEBUG") != std::string::npos);
 }

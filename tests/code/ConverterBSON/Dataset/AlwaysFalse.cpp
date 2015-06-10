@@ -11,11 +11,11 @@
 
 #include "ConverterBSON/Dataset/AlwaysFalse.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(Evaluate)
 {
     auto alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
     

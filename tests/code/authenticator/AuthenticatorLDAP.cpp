@@ -24,11 +24,7 @@
  *          * TEST_LDAP_PASSWORD
  */
 
-/*************************** TEST OK 01 *******************************/
-/**
- * Nominal test case: Get authorization => true
- */
-struct TestDataOK01
+struct TestDataLDAP
 {
     UserIdentityNegotiationSubItemRQ * identity = NULL;
     std::string ldap_server;
@@ -36,7 +32,7 @@ struct TestDataOK01
     std::string ldap_base;
     std::string ldap_filter;
 
-    TestDataOK01()
+    TestDataLDAP()
     {
         std::string ldapserver(getenv("TEST_LDAP_SERVER"));
         std::string ldapbase(getenv("TEST_LDAP_BASE"));
@@ -61,249 +57,126 @@ struct TestDataOK01
         identity->setSecField(password.c_str(), password.length());
     }
 
-    ~TestDataOK01()
+    ~TestDataLDAP()
     {
         if (identity != NULL)
+        {
             delete identity;
+        }
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Get authorization => true
+ */
+BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
             new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
                                                            ldap_bind_user,
                                                            ldap_base,
                                                            ldap_filter);
+
+    BOOST_REQUIRE(authenticatorldap != NULL);
 
     BOOST_CHECK_EQUAL((*authenticatorldap)(identity), true);
 
     delete authenticatorldap;
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Get authorization => false (No Identity)
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataLDAP)
 {
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
-    BOOST_CHECK_EQUAL((*authenticatorldap)(NULL), false);
-
-    delete authenticatorldap;
+    BOOST_CHECK_EQUAL(authenticatorldap(NULL), false);
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Get authorization => false (bad Identity type)
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
 {
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
     identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
-    BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
-
-    delete authenticatorldap;
+    BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Get authorization => false (request failed)
  */
-struct TestDataOK04
+BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
 {
-    UserIdentityNegotiationSubItemRQ * identity = NULL;
-    std::string ldap_server;
-    std::string ldap_bind_user;
-    std::string ldap_base;
-    std::string ldap_filter;
+    ldap_filter = "(uid=UnkownValue)";
 
-    TestDataOK04()
-    {
-        std::string ldapserver(getenv("TEST_LDAP_SERVER"));
-        std::string ldapbase(getenv("TEST_LDAP_BASE"));
-        std::string bind(getenv("TEST_LDAP_BIND"));
-        std::string user(getenv("TEST_LDAP_USER"));
-        std::string password(getenv("TEST_LDAP_PASSWORD"));
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
-        if (ldapserver == "" || ldapbase == "" || bind == "" ||
-            user == "" || password == "")
-        {
-            throw dopamine::ExceptionPACS("Missing Environment Variables");
-        }
-
-        ldap_server = ldapserver;
-        ldap_base = ldapbase;
-        ldap_bind_user = bind;
-        ldap_filter = "(uid=UnkownValue)";
-
-        identity = new UserIdentityNegotiationSubItemRQ();
-        identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-        identity->setPrimField(user.c_str(), user.length());
-        identity->setSecField(password.c_str(), password.length());
-    }
-
-    ~TestDataOK04()
-    {
-        if (identity != NULL)
-            delete identity;
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK04)
-{
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
-
-    BOOST_CHECK_EQUAL((*authenticatorldap)(identity), false);
-
-    delete authenticatorldap;
+    BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Authentication failed: Bad Server address
  */
-struct TestDataKO01
+BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
 {
-    UserIdentityNegotiationSubItemRQ * identity = NULL;
-    std::string ldap_server;
-    std::string ldap_bind_user;
-    std::string ldap_base;
-    std::string ldap_filter;
+    ldap_server = "bad_value";
+    ldap_filter = "(cn=%user)";
 
-   TestDataKO01()
-   {
-       std::string ldapserver(getenv("TEST_LDAP_SERVER"));
-       std::string ldapbase(getenv("TEST_LDAP_BASE"));
-       std::string bind(getenv("TEST_LDAP_BIND"));
-       std::string user(getenv("TEST_LDAP_USER"));
-       std::string password(getenv("TEST_LDAP_PASSWORD"));
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
-       if (ldapserver == "" || ldapbase == "" || bind == "" ||
-           user == "" || password == "")
-       {
-           throw dopamine::ExceptionPACS("Missing Environment Variables");
-       }
-
-       ldap_server = "bad_value";
-       ldap_base = ldapbase;
-       ldap_bind_user = bind;
-       ldap_filter = "(cn=%user)";
-
-       identity = new UserIdentityNegotiationSubItemRQ();
-       identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-       identity->setPrimField(user.c_str(), user.length());
-       identity->setSecField(password.c_str(), password.length());
-   }
-
-   ~TestDataKO01()
-   {
-       if (identity != NULL)
-           delete identity;
-   }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
-{
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
-
-    BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
+    BOOST_REQUIRE_THROW(authenticatorldap(identity),
                         dopamine::ExceptionPACS);
-
-    delete authenticatorldap;
 }
 
-/*************************** TEST KO 02 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Authentication failed: Bad Credential
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
 {
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
     identity->setPrimField("bad_user", 8);
-    BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
+    BOOST_REQUIRE_THROW(authenticatorldap(identity),
                         dopamine::ExceptionPACS);
-
-    delete authenticatorldap;
 }
 
-/*************************** TEST KO 03 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Authentication failed: Bad filter
  */
-struct TestDataKO03
+BOOST_FIXTURE_TEST_CASE(BadFilter, TestDataLDAP)
 {
-    UserIdentityNegotiationSubItemRQ * identity = NULL;
-    std::string ldap_server;
-    std::string ldap_bind_user;
-    std::string ldap_base;
-    std::string ldap_filter;
+    ldap_filter = "(cbad=%user";
 
-   TestDataKO03()
-   {
-       std::string ldapserver(getenv("TEST_LDAP_SERVER"));
-       std::string ldapbase(getenv("TEST_LDAP_BASE"));
-       std::string bind(getenv("TEST_LDAP_BIND"));
-       std::string user(getenv("TEST_LDAP_USER"));
-       std::string password(getenv("TEST_LDAP_PASSWORD"));
+    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
+                                                                 ldap_bind_user,
+                                                                 ldap_base,
+                                                                 ldap_filter);
 
-       if (ldapserver == "" || ldapbase == "" || bind == "" ||
-           user == "" || password == "")
-       {
-           throw dopamine::ExceptionPACS("Missing Environment Variables");
-       }
-
-       ldap_server = ldapserver;
-       ldap_base = ldapbase;
-       ldap_bind_user = bind;
-       ldap_filter = "(cbad=%user";
-
-       identity = new UserIdentityNegotiationSubItemRQ();
-       identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-       identity->setPrimField(user.c_str(), user.length());
-       identity->setSecField(password.c_str(), password.length());
-   }
-
-   ~TestDataKO03()
-   {
-       if (identity != NULL)
-           delete identity;
-   }
-};
-
-BOOST_FIXTURE_TEST_CASE(TEST_KO_03, TestDataKO03)
-{
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
-
-    BOOST_REQUIRE_THROW((*authenticatorldap)(identity),
+    BOOST_REQUIRE_THROW(authenticatorldap(identity),
                         dopamine::ExceptionPACS);
-
-    delete authenticatorldap;
 }

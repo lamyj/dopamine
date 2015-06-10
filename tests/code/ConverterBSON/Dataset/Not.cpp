@@ -10,59 +10,60 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcvrat.h>
 
 #include "ConverterBSON/Dataset/AlwaysFalse.h"
 #include "ConverterBSON/Dataset/AlwaysTrue.h"
 #include "ConverterBSON/Dataset/Not.h"
 #include "core/ExceptionPACS.h"
 
-struct TestDataOK01
+struct TestDataNotOperator
 {
     DcmElement * element;
     dopamine::converterBSON::AlwaysTrue::Pointer alwaystrue;
     dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
  
-    TestDataOK01()
+    TestDataNotOperator()
     {
         element     = new DcmAttributeTag(DcmTag(0010,0010));
         alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
         alwaysfalse = dopamine::converterBSON::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
-    ~TestDataOK01()
+    ~TestDataNotOperator()
     {
         delete element;
     }
 };
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Not True => False
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(NotTrue, TestDataNotOperator)
 {
     auto not_ = dopamine::converterBSON::Not::New(alwaystrue);
     
     BOOST_CHECK_EQUAL((*not_)(element), false);
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Not False => True
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(NotFalse, TestDataNotOperator)
 {
     auto not_ = dopamine::converterBSON::Not::New(alwaysfalse);
     
     BOOST_CHECK_EQUAL((*not_)(element), true);
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Element is null
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(EmptyElement, TestDataNotOperator)
 {
     auto not_ = dopamine::converterBSON::Not::New(alwaystrue);
     

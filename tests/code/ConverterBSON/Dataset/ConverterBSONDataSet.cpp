@@ -21,7 +21,7 @@
 #include "ConverterBSON/Dataset/BSONToDataSet.h"
 #include "ConverterBSON/Dataset/DataSetToBSON.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Converter BSON <-> Dataset
  */
@@ -266,7 +266,7 @@ BOOST_FIXTURE_TEST_CASE(ConversionBSONDataset, TestDataConversionBSONDataset)
     isEqual(newbson, bsonobject);
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Converter Dataset <-> BSON
  */

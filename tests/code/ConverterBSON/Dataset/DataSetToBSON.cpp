@@ -27,13 +27,13 @@ BOOST_AUTO_TEST_CASE(Constructor)
             new dopamine::converterBSON::DataSetToBSON();
 
     // Object build
-    BOOST_CHECK_EQUAL(datasettobson != NULL, true);
+    BOOST_CHECK(datasettobson != NULL);
 
     // Default value
-    BOOST_CHECK_EQUAL(datasettobson->get_specific_character_set() == "", true);
-    BOOST_CHECK_EQUAL(datasettobson->get_default_filter() ==
-                      dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE, true);
-    BOOST_CHECK_EQUAL(datasettobson->get_filters().size() == 0, true);
+    BOOST_CHECK(datasettobson->get_specific_character_set() == "");
+    BOOST_CHECK(datasettobson->get_default_filter() ==
+                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    BOOST_CHECK(datasettobson->get_filters().size() == 0);
 
     delete datasettobson;
 }
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(GetterAndSetter)
     // set_specific_character_set
     datasettobson.set_specific_character_set("ISO_IR 192");
     // Default value
-    BOOST_CHECK_EQUAL(datasettobson.get_specific_character_set() == "ISO_IR 192", true);
+    BOOST_CHECK(datasettobson.get_specific_character_set() == "ISO_IR 192");
 
     // set_default_filter
     datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
@@ -134,7 +134,8 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
     DcmElement * element = NULL;
     dataset->insertEmptyElement(DCM_DimensionIndexPointer);
     dataset->findAndGetElement(DCM_DimensionIndexPointer, element);
-    std::vector<Uint16> vectoruint16 = { DCM_PatientName.getGroup() , DCM_PatientName.getElement() };
+    std::vector<Uint16> vectoruint16 = { DCM_PatientName.getGroup() ,
+                                         DCM_PatientName.getElement() };
     element->putUint16Array(&vectoruint16[0], 1);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
@@ -386,7 +387,8 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
 {
     DcmDataset* dataset = new DcmDataset();
     // Be carefull: putAndInsertOFStringArray for LT add only 1 value !!!
-    dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory,
+                                       "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -398,8 +400,8 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
     BOOST_CHECK_EQUAL(element.fieldName(), "001021b0");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "LT");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "value01\\value02");
-    //BOOST_CHECK_EQUAL(object.getField("Value").Array()[1].String(), "value02");
+    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(),
+            "value01\\value02");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -415,9 +417,10 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 {
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertUint8Array(DCM_ICCProfile,
-                                                            reinterpret_cast<Uint8 const *>(value.c_str()),
-                                                            32);
+    OFCondition condition =
+            dataset->putAndInsertUint8Array(DCM_ICCProfile,
+                                            reinterpret_cast<Uint8 const *>(value.c_str()),
+                                            32);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -428,7 +431,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     mongo::BSONObj object = element.Obj();
     BOOST_CHECK_EQUAL(element.fieldName(), "00282000");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OB");
-    BOOST_CHECK_EQUAL(object.getField("InlineBinary").type() == mongo::BSONType::BinData, true);
+    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -461,7 +464,7 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     mongo::BSONObj object = elementbson.Obj();
     BOOST_CHECK_EQUAL(elementbson.fieldName(), "00640009");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OF");
-    BOOST_CHECK_EQUAL(object.getField("InlineBinary").type() == mongo::BSONType::BinData, true);
+    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -483,8 +486,9 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     DcmElement * element = NULL;
     dataset->insertEmptyElement(DCM_TrianglePointIndexList);
     dataset->findAndGetElement(DCM_TrianglePointIndexList, element);
-    OFCondition condition = element->putUint16Array(reinterpret_cast<Uint16 const *>(value.c_str()),
-                                                    16);
+    OFCondition condition =
+            element->putUint16Array(reinterpret_cast<Uint16 const *>(value.c_str()),
+                                    16);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -495,7 +499,7 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     mongo::BSONObj object = elementbson.Obj();
     BOOST_CHECK_EQUAL(elementbson.fieldName(), "00660023");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OW");
-    BOOST_CHECK_EQUAL(object.getField("InlineBinary").type() == mongo::BSONType::BinData, true);
+    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -694,7 +698,6 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "ST");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
     BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "value01\\value02");
-    //BOOST_CHECK_EQUAL(object.getField("Value").Array()[1].String(), "value02");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -847,7 +850,6 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "UT");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
     BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "value01\\value02");
-    //BOOST_CHECK_EQUAL(object.getField("Value").Array()[1].String(), "value02");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 

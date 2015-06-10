@@ -25,10 +25,10 @@ BOOST_AUTO_TEST_CASE(Constructor)
             new dopamine::converterBSON::BSONToDataSet();
 
     // Object build
-    BOOST_CHECK_EQUAL(bsontodataset != NULL, true);
+    BOOST_CHECK(bsontodataset != NULL);
     
     // Default value
-    BOOST_CHECK_EQUAL(bsontodataset->get_specific_character_set() == "", true);
+    BOOST_CHECK(bsontodataset->get_specific_character_set() == "");
 
     delete bsontodataset;
 }
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(GetterAndSetter)
     bsontodataset.set_specific_character_set("ISO_IR 192");
     
     // Default value
-    BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set() == "ISO_IR 192", true);
+    BOOST_CHECK(bsontodataset.get_specific_character_set() == "ISO_IR 192");
 }
 
 /*************************** TEST Nominal *******************************/
@@ -66,7 +66,8 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_RetrieveAETitle, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_RetrieveAETitle,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_RetrieveAETitle, value, 1);
@@ -118,7 +119,8 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_DimensionIndexPointer, value, 0);
+    OFCondition condition =
+            dataset.findAndGetOFString(DCM_DimensionIndexPointer, value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "(0010,0010)");
     condition = dataset.findAndGetOFString(DCM_DimensionIndexPointer, value, 1);
@@ -170,7 +172,8 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_PatientBirthDate, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_PatientBirthDate,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_PatientBirthDate, value, 1);
@@ -196,7 +199,8 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_PatientWeight, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_PatientWeight,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "11.11");
     condition = dataset.findAndGetOFString(DCM_PatientWeight, value, 1);
@@ -222,10 +226,12 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime, value, 0);
+    OFCondition condition =
+            dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime, value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
-    condition = dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime, value, 1);
+    condition = dataset.findAndGetOFString(DCM_FrameAcquisitionDateTime,
+                                           value, 1);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value2");
 }
@@ -274,10 +280,13 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
 
     // Check result
     Float32 value;
-    OFCondition condition = dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat, value, 0);
+    OFCondition condition =
+            dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat,
+                                      value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_CLOSE(value, 77.7, 0.001);
-    condition = dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat, value, 1);
+    condition = dataset.findAndGetFloat32(DCM_RecommendedDisplayFrameRateInFloat,
+                                          value, 1);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_CLOSE(value, 88.8, 0.001);
 }
@@ -326,7 +335,8 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_Manufacturer, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_Manufacturer,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_Manufacturer, value, 1);
@@ -352,13 +362,11 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_AdditionalPatientHistory, value, 0);
+    OFCondition condition =
+            dataset.findAndGetOFString(DCM_AdditionalPatientHistory, value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     // Be carefull: putAndInsertOFStringArray for LT add only 1 value !!!
     BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
-    /*condition = dataset.findAndGetOFString(DCM_AdditionalPatientHistory, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");*/
 }
 
 /*************************** TEST Nominal *******************************/
@@ -388,7 +396,8 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     for (unsigned long i = 0; i < 32; ++i)
     {
         Uint8 values;
-        OFCondition condition = dataset.findAndGetUint8(DCM_ICCProfile, values, i);
+        OFCondition condition = dataset.findAndGetUint8(DCM_ICCProfile,
+                                                        values, i);
         BOOST_CHECK_EQUAL(condition == EC_Normal, true);
         stream << values;
     }
@@ -454,7 +463,8 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
 
     // Check result
     DcmElement* element = NULL;
-    OFCondition condition = dataset.findAndGetElement(DCM_TrianglePointIndexList, element);
+    OFCondition condition = dataset.findAndGetElement(DCM_TrianglePointIndexList,
+                                                      element);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
 
     void* begin(NULL);
@@ -476,7 +486,9 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     std::string const tag = "00100010";
     std::string const vr = "PN";
     mongo::BSONArray const values =
-            BSON_ARRAY(BSON("Alphabetic" << "Doe^John^Wallas^Rev.^Chief Executive Officer")
+            BSON_ARRAY(BSON("Alphabetic" << "Doe^John^Wallas^Rev.^Chief Executive Officer" <<
+                            "Ideographic" << "\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e" <<
+                            "Phonetic" << "\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99")
                     << BSON("Alphabetic" << "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
@@ -486,9 +498,10 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_PatientName, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_PatientName,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(value.c_str(), "Doe^John^Wallas^Rev.^Chief Executive Officer");
+    BOOST_CHECK_EQUAL(value.c_str(), "Doe^John^Wallas^Rev.^Chief Executive Officer=\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e=\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99");
     condition = dataset.findAndGetOFString(DCM_PatientName, value, 1);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "Smith^Jane^Scarlett^Ms.^Goddess");
@@ -512,7 +525,8 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_EthnicGroup, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_EthnicGroup,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_EthnicGroup, value, 1);
@@ -538,7 +552,8 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
 
     // Check result
     Sint32 value;
-    OFCondition condition = dataset.findAndGetSint32(DCM_ReferencePixelX0, value, 0);
+    OFCondition condition = dataset.findAndGetSint32(DCM_ReferencePixelX0,
+                                                     value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value, 1001);
     condition = dataset.findAndGetSint32(DCM_ReferencePixelX0, value, 1);
@@ -580,7 +595,8 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 
     // Check result
     DcmItem* item = NULL;
-    OFCondition condition = dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence, item, 0);
+    OFCondition condition =
+            dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence, item, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(item != NULL, true);
 
@@ -600,7 +616,8 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     BOOST_CHECK_EQUAL(value.c_str(), "valueCS2");
 
     item = NULL;
-    condition = dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence, item, 1);
+    condition = dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence,
+                                               item, 1);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(item != NULL, true);
 
@@ -637,7 +654,8 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
 
     // Check result
     Sint16 value;
-    OFCondition condition = dataset.findAndGetSint16(DCM_TagAngleSecondAxis, value, 0);
+    OFCondition condition = dataset.findAndGetSint16(DCM_TagAngleSecondAxis,
+                                                     value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value, 555);
     condition = dataset.findAndGetSint16(DCM_TagAngleSecondAxis, value, 1);
@@ -667,9 +685,6 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     // Be carefull: putAndInsertOFStringArray for ST add only 1 value !!!
     BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
-    /*condition = dataset.findAndGetOFString(DCM_InstitutionAddress, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(value.c_str(), "value2");*/
 }
 
 /*************************** TEST Nominal *******************************/
@@ -690,7 +705,8 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_InstanceCreationTime, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_InstanceCreationTime,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_InstanceCreationTime, value, 1);
@@ -742,7 +758,8 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
 
     // Check result
     Uint32 value;
-    OFCondition condition = dataset.findAndGetUint32(DCM_SimpleFrameList, value, 0);
+    OFCondition condition = dataset.findAndGetUint32(DCM_SimpleFrameList,
+                                                     value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value, 111);
     condition = dataset.findAndGetUint32(DCM_SimpleFrameList, value, 1);
@@ -777,7 +794,8 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
 
     // Check result
     Uint16 value;
-    OFCondition condition = dataset.findAndGetUint16(DCM_FailureReason, value, 0);
+    OFCondition condition = dataset.findAndGetUint16(DCM_FailureReason,
+                                                     value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value, 77);
     condition = dataset.findAndGetUint16(DCM_FailureReason, value, 1);
@@ -803,13 +821,11 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_PixelDataProviderURL, value, 0);
+    OFCondition condition =
+            dataset.findAndGetOFString(DCM_PixelDataProviderURL, value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     // Be carefull: putAndInsertOFStringArray for UT add only 1 value !!!
     BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
-    /*condition = dataset.findAndGetOFString(DCM_PixelDataProviderURL, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(value.c_str(), "value2");*/
 }
 
 /*************************** TEST Nominal *******************************/
@@ -831,7 +847,8 @@ BOOST_AUTO_TEST_CASE(Set_Specific_Character_Set)
     BOOST_CHECK_EQUAL(bsontodataset.get_specific_character_set(), "ISO_IR 192");
 
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_SpecificCharacterSet, value, 0);
+    OFCondition condition =
+            dataset.findAndGetOFString(DCM_SpecificCharacterSet, value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "ISO_IR 192");
 }

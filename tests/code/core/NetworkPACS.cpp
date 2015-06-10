@@ -75,7 +75,7 @@ void terminateNetwork()
     myProcess->waitForFinished(5000);
 }
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Constructor (None)
  */
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_None, TestDataOK01)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Constructor (CSV)
  */
@@ -138,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_CSV, TestDataOK02)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Constructor (LDAP)
  */
@@ -164,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_LDAP, TestDataOK03)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Run
  */
@@ -178,7 +178,7 @@ BOOST_FIXTURE_TEST_CASE(Run_forceStop, TestDataOK01)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST OK 05 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Run and send Shutdown request
  */
@@ -195,7 +195,7 @@ BOOST_FIXTURE_TEST_CASE(Shutdown_Request, TestDataOK01)
     BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Bad authenticator type
  */
@@ -221,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
                         dopamine::ExceptionPACS);
 }
 
-/*************************** TEST KO 02 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Bad Port
  */

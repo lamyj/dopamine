@@ -12,145 +12,132 @@
 #include "authenticator/AuthenticatorCSV.h"
 #include "core/ExceptionPACS.h"
 
-/*************************** TEST OK 01 *******************************/
-/**
- * Nominal test case: Constructor
- */
- struct TestDataOK01
+struct TestDataCSV
 {
-    std::string filename;
- 
-    TestDataOK01()
-    {
-        filename = "./tmp_test_moduleAuthenticatorCSV.csv";
-        
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << "user1\tpassword1\n";
-        myfile << "user2\tpassword2\n";
-        myfile.close();
-    }
- 
-    ~TestDataOK01()
-    {
-        remove(filename.c_str());
-    }
+   std::string filename;
+
+   TestDataCSV()
+   {
+       filename = "./tmp_test_moduleAuthenticatorCSV.csv";
+
+       std::ofstream myfile;
+       myfile.open(filename);
+       myfile << "user1\tpassword1\n";
+       myfile << "user2\tpassword2\n";
+       myfile.close();
+   }
+
+   ~TestDataCSV()
+   {
+       remove(filename.c_str());
+   }
 };
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+/*************************** TEST Nominal *******************************/
+/**
+ * Nominal test case: Constructor / Destructor
+ */
+BOOST_FIXTURE_TEST_CASE(Constructor, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV* authenticatorcsv =
             new dopamine::authenticator::AuthenticatorCSV(filename);
+
+    BOOST_REQUIRE(authenticatorcsv != NULL);
     
     BOOST_CHECK_EQUAL(authenticatorcsv->get_table_count(), 2);
     
     delete authenticatorcsv;
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Get authorization => true
  */
- struct TestDataOK02
+BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
 {
-    std::string filename;
-    dopamine::authenticator::AuthenticatorCSV* authenticatorcsv;
- 
-    TestDataOK02()
-    {
-        filename = "./tmp_test_moduleAuthenticatorCSV.csv";
-        
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << "user1\tpassword1\n";
-        myfile << "user2\tpassword2\n";
-        myfile.close();
-        
-        authenticatorcsv = new dopamine::authenticator::AuthenticatorCSV(filename);
-    }
- 
-    ~TestDataOK02()
-    {
-        remove(filename.c_str());
-        delete authenticatorcsv;
-    }
-};
+    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK02)
-{
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("user2", 5);
     identity->setSecField("password2", 9);
     
-    BOOST_CHECK_EQUAL((*authenticatorcsv)(identity), true);
+    BOOST_CHECK_EQUAL(authenticatorcsv(identity), true);
     
     delete identity;
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Empty identity => false
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK02)
+BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataCSV)
 {
-    BOOST_CHECK_EQUAL((*authenticatorcsv)(NULL), false);
+    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
+
+    BOOST_CHECK_EQUAL(authenticatorcsv(NULL), false);
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Request with Bad user => false
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK02)
+BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
 {
+    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
+
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("baduser", 5);
     identity->setSecField("password2", 9);
-    
-    BOOST_CHECK_EQUAL((*authenticatorcsv)(identity), false);
-    
+
+    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
+
     delete identity;
 }
 
-/*************************** TEST OK 05 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Request with Bad password => false
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_05, TestDataOK02)
+BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
 {
+    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
+
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("user2", 5);
     identity->setSecField("badpassword", 9);
-    
-    BOOST_CHECK_EQUAL((*authenticatorcsv)(identity), false);
-    
+
+    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
+
     delete identity;
 }
 
-/*************************** TEST OK 06 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Request with Bad identity type => false
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_06, TestDataOK02)
+BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
 {
+    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
+
     UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_KERBEROS);
     identity->setPrimField("user2", 5);
     identity->setSecField("password2", 9);
-    
-    BOOST_CHECK_EQUAL((*authenticatorcsv)(identity), false);
-    
+
+    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
+
     delete identity;
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Construction failure => Unknown file
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_01)
+BOOST_AUTO_TEST_CASE(BadFilename)
 {
-    BOOST_REQUIRE_THROW(new dopamine::authenticator::AuthenticatorCSV("badfilename"),
+    BOOST_REQUIRE_THROW(dopamine::authenticator::AuthenticatorCSV("badfilename"),
                         dopamine::ExceptionPACS);
 }

@@ -75,7 +75,8 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     std::string const tag = "00282000";
     std::string const vr = "OB";
     std::string const value = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY";
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "InlineBinary" << value));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "InlineBinary" << value));
 
     // Conversion
     dopamine::converterBSON::JSONToBSON jsontobson;
@@ -85,7 +86,8 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     std::string const result = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", result.size(),
-                                      mongo::BinDataGeneral, (void*)(result.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(result.c_str()));
     mongo::BSONObj objectcontrol =
             BSON(tag <<
                  BSON("vr" << vr <<
@@ -128,11 +130,15 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     std::string const tagCS = "00100022";
     std::string const vrCS = "CS";
     mongo::BSONArray const valuesCS = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
-    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
     // Create BSON with SQ tag
     std::string const tag = "00101002";

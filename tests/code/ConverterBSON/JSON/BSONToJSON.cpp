@@ -89,7 +89,8 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 
     // Check result
     std::string const result = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY=";
-    mongo::BSONObj objectcontrol = BSON(tag << BSON("vr" << vr << "InlineBinary" << result));
+    mongo::BSONObj objectcontrol = BSON(tag << BSON("vr" << vr <<
+                                                    "InlineBinary" << result));
 
     BOOST_CHECK_EQUAL(objectcontrol == jsonobject, true);
 }
@@ -128,11 +129,15 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     std::string const tagCS = "00100022";
     std::string const vrCS = "CS";
     mongo::BSONArray const valuesCS = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
-    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
     // Create BSON with SQ tag
     std::string const tag = "00101002";

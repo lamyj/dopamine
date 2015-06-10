@@ -389,7 +389,8 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
 BOOST_AUTO_TEST_CASE(ConversionFL)
 {
     std::vector<Float32> values = { 77.7, 88.8 };
-    create_test_value("00089459", "FL", "Recommended​Display​Frame​Rate​InFloat", values);
+    create_test_value("00089459", "FL", "Recommended​Display​Frame​Rate​InFloat",
+                      values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -504,7 +505,8 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     attributeLO.put(dopamine::converterBSON::Attribute_Keyword, "PatientID");
     attributeLO.add_child(dopamine::converterBSON::Tag_Value, value);
 
-    std::vector<boost::property_tree::ptree> values = { attributeLO, attributeLO };
+    std::vector<boost::property_tree::ptree> values = { attributeLO,
+                                                        attributeLO };
     create_test_sequence("00101002", "Other​Patient​IDs​Sequence", values);
 }
 
@@ -598,39 +600,46 @@ BOOST_AUTO_TEST_CASE(Null_value)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00080060");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "CS");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "Modality");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "Modality");
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
-    tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
+    tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel,
+                   nativetree);
 
     // Conversion
     dopamine::converterBSON::XMLToBSON xmltobson;
     mongo::BSONObj const object_value = xmltobson.from_ptree(tree);
 
-    BOOST_CHECK_EQUAL(object_value["00080060"].Obj().getField("Value").isNull(), true);
+    BOOST_CHECK(object_value["00080060"].Obj().getField("Value").isNull());
     }
 
     // InlineBinary
     {
     boost::property_tree::ptree dicomattributeBinary;
-    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag, "00282000");
+    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag,
+                             "00282000");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_VR, "OB");
-    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword, "ICC​Profile");
+    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword,
+                             "ICC​Profile");
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeBinary);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattributeBinary);
 
     boost::property_tree::ptree tree;
-    tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
+    tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel,
+                   nativetree);
 
     // Conversion
     dopamine::converterBSON::XMLToBSON xmltobson;
     mongo::BSONObj const object_bson = xmltobson.from_ptree(tree);
 
-    BOOST_CHECK_EQUAL(object_bson["00282000"].Obj().getField("InlineBinary").isNull(), true);
+    BOOST_CHECK(object_bson["00282000"].Obj().getField("InlineBinary").isNull());
     }
 }
 
@@ -695,7 +704,8 @@ BOOST_AUTO_TEST_CASE(Bad_PersonName_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -721,7 +731,8 @@ BOOST_AUTO_TEST_CASE(Bad_PersonName_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -740,7 +751,8 @@ BOOST_AUTO_TEST_CASE(Bad_Sequence_SubNode)
     boost::property_tree::ptree dicomattributeSQ;
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_Tag, "00101002");
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_VR, "SQ");
-    dicomattributeSQ.put(dopamine::converterBSON::Attribute_Keyword, "Other​Patient​IDs​Sequence");
+    dicomattributeSQ.put(dopamine::converterBSON::Attribute_Keyword,
+                         "Other​Patient​IDs​Sequence");
 
     boost::property_tree::ptree value;
     value.put(dopamine::converterBSON::Attribute_Number, "1");
@@ -759,7 +771,8 @@ BOOST_AUTO_TEST_CASE(Bad_Sequence_SubNode)
     dicomattributeSQ.add_child(dopamine::converterBSON::Tag_Value, item); // BadValue
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeSQ);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattributeSQ);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -778,7 +791,8 @@ BOOST_AUTO_TEST_CASE(Bad_Alphabetic_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -804,7 +818,8 @@ BOOST_AUTO_TEST_CASE(Bad_Alphabetic_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -823,7 +838,8 @@ BOOST_AUTO_TEST_CASE(TooMany_FamilyName_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -840,7 +856,8 @@ BOOST_AUTO_TEST_CASE(TooMany_FamilyName_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -859,7 +876,8 @@ BOOST_AUTO_TEST_CASE(TooMany_GivenName_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -876,7 +894,8 @@ BOOST_AUTO_TEST_CASE(TooMany_GivenName_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -895,7 +914,8 @@ BOOST_AUTO_TEST_CASE(TooMany_MiddleName_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -912,7 +932,8 @@ BOOST_AUTO_TEST_CASE(TooMany_MiddleName_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -931,7 +952,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NamePrefix_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -948,7 +970,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NamePrefix_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -967,7 +990,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NameSuffix_SubNode)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00100010");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "PatientName");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "PatientName");
 
     boost::property_tree::ptree componentname;
     boost::property_tree::ptree firstname;
@@ -984,7 +1008,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NameSuffix_SubNode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -1012,7 +1037,8 @@ BOOST_AUTO_TEST_CASE(Bad_DicomAttribute_Tag)
     dicomattribute.add_child(dopamine::converterBSON::Tag_Value, tagvalue);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -1040,7 +1066,8 @@ BOOST_AUTO_TEST_CASE(Not_Value_SubNode)
     dicomattribute.add_child("BadValue", tagvalue);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -1075,7 +1102,8 @@ BOOST_AUTO_TEST_CASE(TooMany_Different_Subnode)
     dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -1095,14 +1123,19 @@ BOOST_AUTO_TEST_CASE(TooMany_InlineBinary_Subnode)
     inlinebinary.put_value<std::string>("YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY");
 
     boost::property_tree::ptree dicomattributeBinary;
-    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag, "00282000");
+    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag,
+                             "00282000");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_VR, "OB");
-    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword, "ICC​Profile");
-    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary, inlinebinary);
-    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary, inlinebinary);
+    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword,
+                             "ICC​Profile");
+    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary,
+                                   inlinebinary);
+    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary,
+                                   inlinebinary);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeBinary);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattributeBinary);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -1130,7 +1163,8 @@ BOOST_AUTO_TEST_CASE(Unknown_VR)
     dicomattribute.add_child(dopamine::converterBSON::Tag_Value, tagvalue);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);

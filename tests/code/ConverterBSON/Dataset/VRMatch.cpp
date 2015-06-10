@@ -14,11 +14,11 @@
 
 #include "ConverterBSON/Dataset/VRMatch.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: VR Match
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(Matching)
 {
     auto vrmatch = dopamine::converterBSON::VRMatch::New(DcmVR("PN").getEVR());
     
@@ -28,11 +28,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
     delete element;
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: VR not Match
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_AUTO_TEST_CASE(NotMatching)
 {
     auto vrmatch = dopamine::converterBSON::VRMatch::New(DcmVR("PN").getEVR());
     
@@ -42,11 +42,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
     delete element;
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Element is null
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_01)
+BOOST_AUTO_TEST_CASE(EmptyElement)
 {
     auto vrmatch = dopamine::converterBSON::VRMatch::New(DcmVR("PN").getEVR());
     

@@ -29,14 +29,16 @@
 /****************************** TOOLS ***********************************/
 
 // Declaration
-void check_dicom_attribute(boost::property_tree::ptree &tree, const mongo::BSONObj &object);
+void check_dicom_attribute(boost::property_tree::ptree &tree,
+                           mongo::BSONObj const & object);
 
 // Check the xml nodes InlineBinary
 void check_inline_binary(boost::property_tree::ptree & tree,
                          mongo::BSONObj const & object)
 {
     int length = 0;
-    std::string const initial_data = std::string(object.getField("InlineBinary").binDataClean(length));
+    std::string const initial_data =
+            std::string(object.getField("InlineBinary").binDataClean(length));
 
     std::string const treedata = tree.data();
     std::string dec = dopamine::ConverterBase64::decode(treedata);
@@ -483,9 +485,10 @@ void check_property_tree(boost::property_tree::ptree & tree,
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::converterBSON::BSONToXML * bsontoxml = new dopamine::converterBSON::BSONToXML();
+    dopamine::converterBSON::BSONToXML * bsontoxml =
+            new dopamine::converterBSON::BSONToXML();
 
-    BOOST_CHECK_EQUAL(bsontoxml != NULL, true);
+    BOOST_CHECK(bsontoxml != NULL);
 
     delete bsontoxml;
 }
@@ -500,7 +503,8 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
     std::string const tag = "00080054";
     std::string const vr = "AE";
     mongo::BSONArray const values = BSON_ARRAY("value1" << "value2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -520,7 +524,8 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
     std::string const tag = "00101010";
     std::string const vr = "AS";
     mongo::BSONArray const values = BSON_ARRAY("valueAS1" << "valueAS2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -540,7 +545,8 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
     std::string const tag = "00209165";
     std::string const vr = "AT";
     mongo::BSONArray const values = BSON_ARRAY("valueAT1" << "valueAT2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -560,7 +566,8 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
     std::string const tag = "00080060";
     std::string const vr = "CS";
     mongo::BSONArray const values = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -580,7 +587,8 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
     std::string const tag = "00100030";
     std::string const vr = "DA";
     mongo::BSONArray const values = BSON_ARRAY("value1" << "value2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -600,7 +608,8 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
     std::string const tag = "00101030";
     std::string const vr = "DS";
     mongo::BSONArray const values = BSON_ARRAY(11.11 << 22.22);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -620,7 +629,8 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
     std::string const tag = "00189074";
     std::string const vr = "DT";
     mongo::BSONArray const values = BSON_ARRAY("valueDT1" << "valueDT2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -640,7 +650,8 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
     std::string const tag = "00460044";
     std::string const vr = "FD";
     mongo::BSONArray const values = BSON_ARRAY(44.4 << 55.5);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -660,7 +671,8 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
     std::string const tag = "00089459";
     std::string const vr = "FL";
     mongo::BSONArray const values = BSON_ARRAY(77.7 << 88.8);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -680,7 +692,8 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
     std::string const tag = "00082122";
     std::string const vr = "IS";
     mongo::BSONArray const values = BSON_ARRAY(111 << 222);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -700,7 +713,8 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
     std::string const tag = "00080070";
     std::string const vr = "LO";
     mongo::BSONArray const values = BSON_ARRAY("valueLO1" << "valueLO2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -720,7 +734,8 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
     std::string const tag = "001021b0";
     std::string const vr = "LT";
     mongo::BSONArray const values = BSON_ARRAY("valueLT1" << "valueLT2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -742,11 +757,13 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" <<
+                      binary_data_builder.obj().getField("data")));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -768,11 +785,13 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" <<
+                      binary_data_builder.obj().getField("data")));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -794,11 +813,13 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" <<
+                      binary_data_builder.obj().getField("data")));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -818,8 +839,10 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     std::string const tag = "00100010";
     std::string const vr = "PN";
     mongo::BSONArray const values =
-            BSON_ARRAY(BSON(dopamine::converterBSON::Tag_Alphabetic << "Doe^John^Wallas^Rev.^Chief Executive Officer")
-                    << BSON(dopamine::converterBSON::Tag_Alphabetic << "Smith^Jane^Scarlett^Ms.^Goddess"));
+            BSON_ARRAY(BSON(dopamine::converterBSON::Tag_Alphabetic <<
+                            "Doe^John^Wallas^Rev.^Chief Executive Officer")
+                    << BSON(dopamine::converterBSON::Tag_Alphabetic <<
+                            "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
     // Conversion
@@ -840,7 +863,8 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
     std::string const tag = "00102160";
     std::string const vr = "SH";
     mongo::BSONArray const values = BSON_ARRAY("valueSH1" << "valueSH2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -859,8 +883,10 @@ BOOST_AUTO_TEST_CASE(ConversionSL)
     // Create BSON with SL tag
     std::string const tag = "00186020";
     std::string const vr = "SL";
-    mongo::BSONArray const values = BSON_ARRAY((long long)1001 << (long long)2002);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONArray const values = BSON_ARRAY((long long)1001 <<
+                                               (long long)2002);
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -883,11 +909,15 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     std::string const tagCS = "00100022";
     std::string const vrCS = "CS";
     mongo::BSONArray const valuesCS = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
-    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
     // Create BSON with SQ tag
     std::string const tag = "00101002";
@@ -914,7 +944,8 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
     std::string const tag = "00189219";
     std::string const vr = "SS";
     mongo::BSONArray const values = BSON_ARRAY(555 << 666);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -934,7 +965,8 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     std::string const tag = "00080081";
     std::string const vr = "ST";
     mongo::BSONArray const values = BSON_ARRAY("valueST1" << "valueST2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -954,7 +986,8 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
     std::string const tag = "00080013";
     std::string const vr = "TM";
     mongo::BSONArray const values = BSON_ARRAY("valueTM1" << "valueTM2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -974,7 +1007,8 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
     std::string const tag = "00080016";
     std::string const vr = "UI";
     mongo::BSONArray const values = BSON_ARRAY("valueUI1" << "valueUI2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -993,8 +1027,10 @@ BOOST_AUTO_TEST_CASE(ConversionUL)
     // Create BSON with UL tag
     std::string const tag = "00081161";
     std::string const vr = "UL";
-    mongo::BSONArray const values = BSON_ARRAY((long long)111 << (long long)333);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONArray const values = BSON_ARRAY((long long)111 <<
+                                               (long long)333);
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -1023,7 +1059,8 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
     std::string const tag = "00081197";
     std::string const vr = "US";
     mongo::BSONArray const values = BSON_ARRAY(77 << 88);
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -1043,7 +1080,8 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     std::string const tag = "00287fe0";
     std::string const vr = "UT";
     mongo::BSONArray const values = BSON_ARRAY("valueUT1" << "valueUT2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;
@@ -1063,7 +1101,8 @@ BOOST_AUTO_TEST_CASE(Bad_DICOM_tag)
     std::string const tag = "X0080060";
     std::string const vr = "CS";
     mongo::BSONArray const values = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
+    mongo::BSONObj object = BSON(tag << BSON("vr" << vr <<
+                                             "Value" << values));
 
     // Conversion
     dopamine::converterBSON::BSONToXML bsontoxml;

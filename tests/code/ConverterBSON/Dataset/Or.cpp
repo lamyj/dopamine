@@ -10,37 +10,38 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcvrat.h>
 
 #include "ConverterBSON/Dataset/AlwaysFalse.h"
 #include "ConverterBSON/Dataset/AlwaysTrue.h"
 #include "ConverterBSON/Dataset/Or.h"
 #include "core/ExceptionPACS.h"
 
-struct TestDataOK01
+struct TestDataOrOperator
 {
     DcmElement * element;
     dopamine::converterBSON::AlwaysTrue::Pointer alwaystrue;
     dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
  
-    TestDataOK01()
+    TestDataOrOperator()
     {
         element     = new DcmAttributeTag(DcmTag(0010,0010));
         alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
         alwaysfalse = dopamine::converterBSON::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
     }
  
-    ~TestDataOK01()
+    ~TestDataOrOperator()
     {
         delete element;
     }
 };
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: True Or True => True
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(TrueOrTrue, TestDataOrOperator)
 {
     auto or_ = dopamine::converterBSON::Or::New();
     or_->insert_condition(alwaystrue);
@@ -49,11 +50,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_01, TestDataOK01)
     BOOST_CHECK_EQUAL((*or_)(element), true);
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: True Or False => True
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(TrueOrFalse, TestDataOrOperator)
 {
     auto or_ = dopamine::converterBSON::Or::New();
     or_->insert_condition(alwaystrue);
@@ -62,11 +63,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_02, TestDataOK01)
     BOOST_CHECK_EQUAL((*or_)(element), true);
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: False Or True => True
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(FalseOrTrue, TestDataOrOperator)
 {
     auto or_ = dopamine::converterBSON::Or::New();
     or_->insert_condition(alwaysfalse);
@@ -75,11 +76,11 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_03, TestDataOK01)
     BOOST_CHECK_EQUAL((*or_)(element), true);
 }
 
-/*************************** TEST OK 04 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: False Or False => False
  */
-BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(FalseOrFalse, TestDataOrOperator)
 {
     auto or_ = dopamine::converterBSON::Or::New();
     or_->insert_condition(alwaysfalse);
@@ -92,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_OK_04, TestDataOK01)
 /**
  * Error test case: Element is null
  */
-BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataOK01)
+BOOST_FIXTURE_TEST_CASE(EmptyElement, TestDataOrOperator)
 {
     auto or_ = dopamine::converterBSON::Or::New();
     or_->insert_condition(alwaystrue);

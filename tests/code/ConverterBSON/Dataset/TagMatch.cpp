@@ -10,15 +10,16 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcvrat.h>
 
 #include "ConverterBSON/Dataset/TagMatch.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Tag Match
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(Matching)
 {
     auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0010));
     
@@ -28,11 +29,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
     delete element;
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Tag not Match => different Group
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_AUTO_TEST_CASE(DifferentGroup)
 {
     auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0008, 0x0010));
     
@@ -42,11 +43,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
     delete element;
 }
 
-/*************************** TEST OK 03 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Tag not Match => different Element
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_03)
+BOOST_AUTO_TEST_CASE(DifferentElement)
 {
     auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0020));
     
@@ -56,11 +57,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_03)
     delete element;
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Element is null
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_01)
+BOOST_AUTO_TEST_CASE(EmptyElement)
 {
     auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0010));
     

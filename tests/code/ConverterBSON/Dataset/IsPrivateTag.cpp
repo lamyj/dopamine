@@ -10,16 +10,17 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcvrat.h>
 
 #include "ConverterBSON/Dataset/IsPrivateTag.h"
 #include "core/ExceptionPACS.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Private Tag
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(PrivateTag)
 {
     auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     
@@ -29,11 +30,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
     delete element;
 }
 
-/*************************** TEST OK 02 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Public Tag
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_02)
+BOOST_AUTO_TEST_CASE(PublicTag)
 {
     auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     
@@ -43,11 +44,11 @@ BOOST_AUTO_TEST_CASE(TEST_OK_02)
     delete element;
 }
 
-/*************************** TEST KO 01 *******************************/
+/*************************** TEST Error *********************************/
 /**
  * Error test case: Empty element
  */
-BOOST_AUTO_TEST_CASE(TEST_KO_01)
+BOOST_AUTO_TEST_CASE(EmptyElement)
 {
     auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
     

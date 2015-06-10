@@ -11,12 +11,14 @@
 
 #include "core/ExceptionPACS.h"
 
-/*************************** TEST OK 01 *******************************/
+/*************************** TEST Nominal *******************************/
 /**
  * Nominal test case: Throw exception
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(ThrowException)
 {
+    bool isthrow = false;
+
     try
     {
         throw dopamine::ExceptionPACS("MyText");
@@ -24,5 +26,8 @@ BOOST_AUTO_TEST_CASE(TEST_OK_01)
     catch (dopamine::ExceptionPACS& exception)
     {
         BOOST_CHECK_EQUAL(exception.what(), "MyText");
+        isthrow = true;
     }
+
+    BOOST_REQUIRE(isthrow);
 }

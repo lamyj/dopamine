@@ -225,7 +225,7 @@ struct TestDataConversionBSONXML
    }
 };
 
-void isEqual(const mongo::BSONObj &firstbson, const mongo::BSONObj &secondbson)
+void isEqual(mongo::BSONObj const & firstbson, mongo::BSONObj const & secondbson)
 {
     for(mongo::BSONObj::iterator it = firstbson.begin(); it.more();)
     {

@@ -258,10 +258,31 @@ BSONToDataSet
     mongo::BSONArrayBuilder arraybuilder;
     for (auto value : bson.Array())
     {
+        std::stringstream streamname;
         if (value.Obj().hasField("Alphabetic"))
         {
-            arraybuilder << value.Obj().getField("Alphabetic");
+            streamname << value.Obj().getField("Alphabetic").String();
         }
+        if (value.Obj().hasField("Ideographic") || value.Obj().hasField("Phonetic"))
+        {
+            // Add separation
+            streamname << "=";
+
+            if (value.Obj().hasField("Ideographic"))
+            {
+                streamname << value.Obj().getField("Ideographic").String();
+            }
+
+            if (value.Obj().hasField("Phonetic"))
+            {
+                // Add separation
+                streamname << "=";
+
+                streamname << value.Obj().getField("Phonetic").String();
+            }
+        }
+
+        arraybuilder << streamname.str();
     }
 
     this->_to_text(BSON("data" << arraybuilder.arr()).getField("data"), true, ' ', dataset, tag);
