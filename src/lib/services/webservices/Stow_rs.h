@@ -22,7 +22,7 @@ namespace services
 
 // see PS3.18 6.6 STOW-RS Request/Response
 /**
- * @brief The Stow_rs class
+ * @brief \class The Stow_rs class
  */
 class Stow_rs : public Webservices
 {

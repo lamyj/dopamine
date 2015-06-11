@@ -20,7 +20,8 @@ namespace dopamine
 
 void initialize_logger(std::string const & priority);
 
-log4cpp::CategoryStream get_logger(log4cpp::Priority::PriorityLevel const & level);
+log4cpp::CategoryStream get_logger(
+        log4cpp::Priority::PriorityLevel const & level);
 
 log4cpp::CategoryStream logger_debug();
 

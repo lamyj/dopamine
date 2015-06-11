@@ -20,7 +20,8 @@ namespace ConverterBase64
 unsigned int const DEFAULT_LINEBREAK = 72;
 unsigned int const NO_LINEBREAK = 0;
 
-std::string encode(std::string const & bindata, unsigned int linebreak = NO_LINEBREAK);
+std::string encode(std::string const & bindata,
+                   unsigned int linebreak = NO_LINEBREAK);
 
 std::string decode(std::string const & ascdata);
 

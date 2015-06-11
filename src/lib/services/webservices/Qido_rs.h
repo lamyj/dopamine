@@ -80,7 +80,7 @@ std::vector<Attribute> const mandatory_instance_attributes =
 };
 
 /**
- * @brief The Qido_rs class
+ * @brief \class The Qido_rs class
  */
 class Qido_rs : public Webservices
 {

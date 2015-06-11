@@ -20,11 +20,11 @@ namespace converterBSON
 {
 
 /**
- * @brief Not Condition
+ * @brief \class Not Condition
  */
 class Not : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<Not> Pointer;
     
     /**
@@ -43,7 +43,8 @@ public :
      * @return true if condition is false, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
 protected:
 

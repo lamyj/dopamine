@@ -20,11 +20,11 @@ namespace converterBSON
 {
 
 /**
- * @brief IsPrivateTag Condition
+ * @brief \class IsPrivateTag Condition
  */
 class IsPrivateTag : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<IsPrivateTag> Pointer;
     
     /// Create pointer to new instance of IsPrivateTag
@@ -39,7 +39,8 @@ public :
      * @return true if element is Private, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
 protected:
 

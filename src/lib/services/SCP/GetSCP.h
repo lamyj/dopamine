@@ -19,7 +19,7 @@ namespace services
 {
     
 /**
- * @brief SCP for C-GET services
+ * @brief \class SCP for C-GET services
  */
 class GetSCP : public services::SCP
 {
@@ -39,7 +39,7 @@ public:
     
     /**
      * Send the C-GET response
-     * @return EC_Normal if successful, an error code otherwise 
+     * @return EC_Normal if successful, an error code otherwise
      */
     virtual OFCondition process();
 

@@ -24,7 +24,7 @@ TagMatch
 }
 
 TagMatch
-::TagMatch(DcmTagKey tag): 
+::TagMatch(DcmTagKey tag):
     Condition(), _tag(tag)
 {
     // Nothing else.

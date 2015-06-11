@@ -18,7 +18,7 @@ namespace services
 {
 
 /**
- * @brief The Wado class
+ * @brief \class The Wado class
  */
 class Wado : public Webservices
 {

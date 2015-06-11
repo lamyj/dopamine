@@ -18,11 +18,11 @@ namespace services
 {
 
 /**
- * @brief Response Generator for C-FIND services.
+ * @brief \class Response Generator for C-FIND services.
  */
 class QueryGenerator : public QueryRetrieveGenerator
 {
-public :
+public:
     /// Create a default find response generator
     QueryGenerator(std::string const & username);
     
@@ -31,7 +31,7 @@ public :
 
 protected:
 
-private :
+private:
     
 };
 

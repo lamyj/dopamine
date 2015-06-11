@@ -28,7 +28,8 @@ supply the credentials required.";
 
 std::string const ATTRIBUT_BOUNDARY = "boundary=";
 std::string const ATTRIBUT_FILENAME = "filename=";
-std::string const CONTENT_DISPOSITION_ATTACHMENT = "Content-Disposition: attachment;";
+std::string const CONTENT_DISPOSITION_ATTACHMENT =
+        "Content-Disposition: attachment;";
 std::string const CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding: ";
 std::string const CONTENT_TYPE = "Content-Type: ";
 std::string const MIME_TYPE_APPLICATION_DICOM = "application/dicom";
@@ -39,7 +40,7 @@ std::string const MIME_VERSION = "MIME-Version: 1.0";
 std::string const TRANSFER_ENCODING_BINARY = "binary";
 
 /**
- * @brief The Webservices class
+ * @brief \class The Webservices class
  */
 class Webservices
 {

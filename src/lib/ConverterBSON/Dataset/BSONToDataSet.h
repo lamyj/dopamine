@@ -24,11 +24,11 @@ namespace converterBSON
 {
 
 /**
- * @brief Convert a BSON object to a DCMTK DataSet.
+ * @brief \class Convert a BSON object to a DCMTK DataSet.
  */
 class BSONToDataSet : public ConverterBSONDataSet
 {
-public :
+public:
     /// Create an instance of BSONToDataSet
     BSONToDataSet();
     
@@ -44,7 +44,7 @@ public :
     
 protected:
     
-private :
+private:
     template<typename TBSONType>
     struct BSONGetterType
     {
@@ -54,14 +54,15 @@ private :
     template<typename TDCMTKType>
     struct DCMTKSetterType
     {
-        typedef OFCondition (DcmElement::*Type)(TDCMTKType const *, const unsigned long);
+        typedef OFCondition (DcmElement::*Type)(TDCMTKType const *,
+                                                const unsigned long);
     };
 
     void _add_element(mongo::BSONElement const & bson,
                       DcmDataset & dataset) const;
 
     template<DcmEVR VVR>
-    void _to_dcmtk(mongo::BSONElement const & bson, 
+    void _to_dcmtk(mongo::BSONElement const & bson,
                    DcmDataset & dataset, DcmTag const & tag) const;
 
     void _to_text(mongo::BSONElement const & bson, bool use_utf8, char padding,
@@ -76,7 +77,7 @@ private :
     void _to_raw(mongo::BSONElement const & bson, DcmDataset & dataset,
                  DcmTag const & tag) const;
 
-    void _to_number_string(mongo::BSONElement const & bson, 
+    void _to_number_string(mongo::BSONElement const & bson,
                            DcmDataset & dataset, DcmTag const & tag) const;
 };
 

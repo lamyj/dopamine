@@ -31,7 +31,9 @@ convert(std::string const & input,
     if (to == "UTF-8")
     {
         std::string result;
-        UnicodeString(input.c_str(), input.size(), from.c_str()).toUTF8String(result);
+        UnicodeString(input.c_str(),
+                      input.size(),
+                      from.c_str()).toUTF8String(result);
         return result;
     }
 
@@ -48,11 +50,13 @@ convert(std::string const & input,
         throw ExceptionPACS(streamerror.str());
     }
 
-    UChar * convDest = new UChar[2*input.length()]; //ucnv_toUChars will use up to 2*length
+    //ucnv_toUChars will use up to 2*length
+    UChar * convDest = new UChar[2*input.length()];
 
     // convert to Unicode
-    int resultLen = (int)ucnv_toUChars(conv_to_unicode, convDest, 2*input.length(),
-                                       input.c_str(), input.length(), &status);
+    int resultLen = (int)ucnv_toUChars(conv_to_unicode, convDest,
+                                       2*input.length(), input.c_str(),
+                                       input.length(), &status);
     if (U_FAILURE(status))
     {
         std::stringstream streamerror;
@@ -115,9 +119,10 @@ convert_to_utf8_with_escape(std::string const & input,
             // translate
             if (to_translate.str().size() > 0)
             {
-                returnstream << convert(to_translate.str(),
-                                        _dicom_to_iconv.find(character_set)->second.first,
-                                        "UTF-8");
+                returnstream
+                    << convert(to_translate.str(),
+                               _dicom_to_iconv.find(character_set)->second.first,
+                               "UTF-8");
             }
             to_translate.str(std::string()); // clear the stringstream
 
@@ -131,9 +136,10 @@ convert_to_utf8_with_escape(std::string const & input,
     // translate the end of buffer
     if (to_translate.str().size() > 0)
     {
-        returnstream << convert(to_translate.str(),
-                                _dicom_to_iconv.find(character_set)->second.first,
-                                "UTF-8");
+        returnstream
+            << convert(to_translate.str(),
+                       _dicom_to_iconv.find(character_set)->second.first,
+                       "UTF-8");
     }
 
     return returnstream.str();
@@ -156,12 +162,14 @@ convert_to_utf8(std::string const & input,
         default_charset = 1;
     }
 
-    std::string const default_character_set = input_character_sets[default_charset];
+    std::string const default_character_set =
+            input_character_sets[default_charset];
     std::string current_character_set = default_character_set;
     std::string next_character_set = "";
     size_t current_begin = 0;
     size_t next_escape = find_next_escape(input, current_begin,
-                                          input_character_sets, next_character_set);
+                                          input_character_sets,
+                                          next_character_set);
     size_t delta = 0;
 
     if (next_escape = 0)
@@ -169,7 +177,8 @@ convert_to_utf8(std::string const & input,
         if (next_character_set != "")
         {
             current_character_set = next_character_set;
-            delta = _dicom_to_iconv.find(next_character_set)->second.second.size();
+            delta = _dicom_to_iconv.find(
+                        next_character_set)->second.second.size();
         }
     }
 
@@ -184,12 +193,14 @@ convert_to_utf8(std::string const & input,
              current_character_set == "") &&
             to_translate.size() >= delta)
         {
-            to_translate = to_translate.substr(delta, to_translate.size() - delta);
+            to_translate = to_translate.substr(delta,
+                                               to_translate.size() - delta);
         }
 
         if (to_translate.size() > 0)
         {
-            if (_dicom_to_iconv.find(current_character_set) == _dicom_to_iconv.end())
+            if (_dicom_to_iconv.find(current_character_set) ==
+                _dicom_to_iconv.end())
             {
                 std::stringstream streamerror;
                 streamerror << "Could not convert to " << current_character_set
@@ -206,7 +217,8 @@ convert_to_utf8(std::string const & input,
         if (next_character_set != "")
         {
             current_character_set = next_character_set;
-            delta = _dicom_to_iconv.find(next_character_set)->second.second.size();
+            delta = _dicom_to_iconv.find(
+                        next_character_set)->second.second.size();
         }
         else
         {
@@ -216,7 +228,8 @@ convert_to_utf8(std::string const & input,
         // Next
         current_begin = next_escape;
         next_escape = find_next_escape(input, current_begin+1,
-                                       input_character_sets, next_character_set);
+                                       input_character_sets,
+                                       next_character_set);
     }
 
     return returnstream.str();
@@ -239,7 +252,8 @@ find_next_escape(std::string const & input,
 
     for (std::string const character_set : character_sets)
     {
-        std::string search_pattern = _dicom_to_iconv.find(character_set)->second.second;
+        std::string const search_pattern =
+                _dicom_to_iconv.find(character_set)->second.second;
 
         if (search_pattern.size() == 0)
         {
@@ -252,7 +266,8 @@ find_next_escape(std::string const & input,
             continue;
         }
 
-        for (unsigned int i = begin; i <= input.size()-search_pattern.size(); ++i)
+        for (unsigned int i = begin;
+             i <= input.size()-search_pattern.size(); ++i)
         {
             bool find = true;
             for (unsigned int j = 0; j < search_pattern.size(); ++j)
@@ -270,7 +285,8 @@ find_next_escape(std::string const & input,
                 find_character_set = character_set;
                 if (character_set == "") // default
                 {
-                    find_character_set = "ISO 2022 IR 6"; // use default with code extensions
+                    // use default with code extensions
+                    find_character_set = "ISO 2022 IR 6";
                 }
             }
             if (find)

@@ -44,10 +44,11 @@ static void store_callback(
         {
             /* callback will send back sop class not supported status */
             rsp->DimseStatus = STATUS_STORE_Refused_SOPClassNotSupported;
-            create_status_detail(STATUS_STORE_Refused_SOPClassNotSupported,
-                                 DCM_UndefinedTagKey,
-                                 OFString("An error occured while processing Storage"),
-                                 stDetail);
+            create_status_detail(
+                    STATUS_STORE_Refused_SOPClassNotSupported,
+                    DCM_UndefinedTagKey,
+                    OFString("An error occured while processing Storage"),
+                    stDetail);
         }
         else
         {
@@ -58,9 +59,10 @@ static void store_callback(
             if (status != STATUS_Pending)
             {
                 rsp->DimseStatus = status;
-                create_status_detail(status, DCM_UndefinedTagKey,
-                                     OFString("An error occured while processing Storage"),
-                                     stDetail);
+                create_status_detail(
+                        status, DCM_UndefinedTagKey,
+                        OFString("An error occured while processing Storage"),
+                        stDetail);
             }
             else
             {
@@ -87,7 +89,7 @@ StoreSCP
     // nothing to do
 }
 
-OFCondition 
+OFCondition
 StoreSCP
 ::process()
 {
@@ -109,7 +111,8 @@ StoreSCP
     /* we must still retrieve the data set even if some error has occured */
     DcmDataset dset;
     DcmDataset * dset_ptr = &dset;
-    return DIMSE_storeProvider(this->_association, this->_presentation_context_id,
+    return DIMSE_storeProvider(this->_association,
+                               this->_presentation_context_id,
                                this->_request, (char *)NULL, 1,
                                &dset_ptr, store_callback, (void*)&context,
                                DIMSE_BLOCKING, 0);

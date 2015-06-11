@@ -22,11 +22,11 @@ namespace converterBSON
 {
 
 /**
- * @brief Or condition
+ * @brief \class Or condition
  */
 class Or : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<Or> Pointer;
     
     /// Create pointer to new instance of Or
@@ -41,7 +41,8 @@ public :
      * @return true if one condition is true, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
     /**
      * Add a new condition

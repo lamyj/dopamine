@@ -33,7 +33,7 @@ static void get_callback(
         OFBool cancelled, T_DIMSE_C_GetRQ *request,
         DcmDataset *requestIdentifiers, int responseCount,
         /* out */
-        T_DIMSE_C_GetRSP *response, 
+        T_DIMSE_C_GetRSP *response,
         DcmDataset **stDetail,
         DcmDataset **responseIdentifiers)
 {
@@ -44,13 +44,15 @@ static void get_callback(
 
     if (responseCount == 1)
     {
-        status = context->get_generator()->process_dataset(requestIdentifiers, false);
+        status = context->get_generator()->process_dataset(requestIdentifiers,
+                                                           false);
 
         if (status != STATUS_Pending)
         {
-            create_status_detail(status, DCM_UndefinedTagKey,
-                                 OFString("An error occured while processing Get operation"),
-                                 stDetail);
+            create_status_detail(
+                    status, DCM_UndefinedTagKey,
+                    OFString("An error occured while processing Get operation"),
+                    stDetail);
         }
     }
 
@@ -74,8 +76,9 @@ static void get_callback(
         else
         {
             OFCondition condition =
-                context->get_storeprovider()->perform_sub_operation(context->get_generator()->retrieve_dataset(object),
-                                                                    request->Priority);
+                context->get_storeprovider()->perform_sub_operation(
+                        context->get_generator()->retrieve_dataset(object),
+                        request->Priority);
 
             if (condition.bad())
             {
@@ -102,7 +105,7 @@ GetSCP
 ::GetSCP(T_ASC_Association * association,
          T_ASC_PresentationContextID presentation_context_id,
          T_DIMSE_C_GetRQ * request):
-    services::SCP(association, presentation_context_id), // base class initialisation
+    services::SCP(association, presentation_context_id),
     _request(request)
 {
     // nothing to do
@@ -114,7 +117,7 @@ GetSCP
     // nothing to do
 }
 
-OFCondition 
+OFCondition
 GetSCP
 ::process()
 {

@@ -18,7 +18,7 @@ namespace dopamine
 {
 
 /**
- * @brief Class to create and manage the Configuration
+ * @brief \class to create and manage the Configuration
  *        Configuration is based on INI file
  */
 class ConfigurationPACS
@@ -84,10 +84,11 @@ public:
     /**
      * Get network address and port for a given AE Title
      * @param aetitle: searched AE Title (in)
-     * @param address_and_port: corresponding network address ('address:port') (out)
+     * @param address_and_port: network address ('address:port') (out)
      * @return true if aetitle is listed in configuration, false otherwise
      */
-    bool peer_for_aetitle(std::string const & aetitle, std::string & address_and_port) const;
+    bool peer_for_aetitle(std::string const & aetitle,
+                          std::string & address_and_port) const;
 
 protected:
 

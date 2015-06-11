@@ -9,7 +9,8 @@
 #ifndef _783b07e2_38f1_4021_a423_6fe8d0934681
 #define _783b07e2_38f1_4021_a423_6fe8d0934681
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/assoc.h>
@@ -22,7 +23,7 @@ namespace services
 {
 
 /**
- * @brief The StoreSubOperation class
+ * @brief \class The StoreSubOperation class
  */
 class StoreSubOperation
 {
@@ -42,7 +43,8 @@ public:
 
     OFCondition build_sub_association(DIC_AE destination_aetitle);
 
-    OFCondition perform_sub_operation(DcmDataset* dataset, T_DIMSE_Priority priority);
+    OFCondition perform_sub_operation(DcmDataset* dataset,
+                                      T_DIMSE_Priority priority);
 
 protected:
 

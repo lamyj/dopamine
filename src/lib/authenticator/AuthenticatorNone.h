@@ -18,7 +18,7 @@ namespace authenticator
 {
 
 /**
- * @brief The AuthenticatorNone class
+ * @brief \class The AuthenticatorNone class
  */
 class AuthenticatorNone : public AuthenticatorBase
 {

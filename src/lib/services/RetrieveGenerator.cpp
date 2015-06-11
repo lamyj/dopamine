@@ -17,7 +17,7 @@ namespace services
 
 RetrieveGenerator
 ::RetrieveGenerator(std::string const & username):
-    QueryRetrieveGenerator(username, Service_Retrieve) // base class initialization
+    QueryRetrieveGenerator(username, Service_Retrieve)
 {
 }
 

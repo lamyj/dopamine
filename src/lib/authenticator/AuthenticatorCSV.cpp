@@ -44,7 +44,7 @@ AuthenticatorCSV
             {
                 this->_table[user] = password;
             }
-            //else ignore duplicate key 
+            //else ignore duplicate key
         }
         //else ignore empty line
     }
@@ -57,7 +57,7 @@ AuthenticatorCSV
     // Nothing to do
 }
 
-bool 
+bool
 AuthenticatorCSV
 ::operator ()(UserIdentityNegotiationSubItemRQ * identity) const
 {
@@ -70,14 +70,14 @@ AuthenticatorCSV
         if (identity->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
         {
             // Get user
-            char * user; 
+            char * user;
             Uint16 user_length;
             identity->getPrimField(user, user_length);
             // user is not NULL-terminated
             std::string const userstr = std::string(user, user_length);
             
             // Search in map
-            std::map<std::string, std::string>::const_iterator const it = 
+            std::map<std::string, std::string>::const_iterator const it =
                 this->_table.find(userstr.c_str());
             // If User exist
             if(it != this->_table.end())
@@ -101,7 +101,7 @@ AuthenticatorCSV
     return authorized;
 }
 
-unsigned int 
+unsigned int
 AuthenticatorCSV
 ::get_table_count() const
 {

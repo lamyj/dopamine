@@ -18,7 +18,7 @@ namespace services
 {
 
 /**
- * @brief Base class for PACS Exception
+ * @brief \class Base class for PACS Exception
  */
 class WebServiceException: public ExceptionPACS
 {
@@ -38,17 +38,15 @@ public:
      * Get exception Status
      * @return status
      */
-    virtual const int status() const throw() {
-        return this->_status;
-    }
+    virtual const int status() const throw()
+        { return this->_status; }
 
     /**
      * Get exception Status Message
      * @return status description
      */
-    virtual const std::string statusmessage() const throw() {
-        return this->_statusmessage;
-    }
+    virtual const std::string statusmessage() const throw()
+        { return this->_statusmessage; }
 
 protected:
     /// HTTP Exception Status
@@ -66,4 +64,3 @@ private:
 } // namespace dopamine
 
 #endif // _118bbc30_77c6_4065_b8c9_056bf7b8ad43
-

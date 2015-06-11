@@ -29,10 +29,10 @@ public:
         _mandatory(mandatory), _used(used) {}
 
     bool is_mandatory() const
-            { return this->_mandatory; }
+        { return this->_mandatory; }
 
     bool is_used() const
-            { return this->_used; }
+        { return this->_used; }
 
 private:
     bool _mandatory;
@@ -69,7 +69,7 @@ std::map<std::string, parameters> const RequestParameters = {
 };
 
 /**
- * @brief The Wado_uri class
+ * @brief \class The Wado_uri class
  */
 class Wado_uri : public Wado
 {

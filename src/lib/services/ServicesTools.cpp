@@ -57,7 +57,7 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     // Disconnect is automatic when it calls the destructors
     std::string errormsg = "";
     if ( ! connection.connect(mongo::HostAndPort(db_host + ":" + db_port),
-                                     errormsg) )
+                              errormsg) )
     {
         return false;
     }
@@ -68,13 +68,15 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     for (auto currentIndex : indexeslist)
     {
         DcmTag dcmtag;
-        OFCondition condition = DcmTag::findTagFromName(currentIndex.c_str(), dcmtag);
+        OFCondition condition = DcmTag::findTagFromName(currentIndex.c_str(),
+                                                        dcmtag);
 
         if (condition.good())
         {
             // convert Uint16 => string XXXXYYYY
             char buffer[9];
-            snprintf(buffer, 9, "%04x%04x", dcmtag.getGroup(), dcmtag.getElement());
+            snprintf(buffer, 9, "%04x%04x",
+                     dcmtag.getGroup(), dcmtag.getElement());
 
             std::stringstream stream;
             stream << "\"" << buffer << "\"";
@@ -109,7 +111,8 @@ create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
     condition = element->putUint16Array(&vect[0], vect.size());
 
     condition = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
-    condition = (*statusDetail)->findAndGetElement(DCM_OffendingElement, element);
+    condition = (*statusDetail)->findAndGetElement(DCM_OffendingElement,
+                                                   element);
     vect.clear();
     vect.push_back(key.getGroup());
     vect.push_back(key.getElement());
@@ -156,7 +159,8 @@ is_authorized(mongo::DBClientConnection & connection,
 
     mongo::BSONObjBuilder fields_builder;
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << servicename));
+                   << "service" << BSON("$in" << BSON_ARRAY(Service_All <<
+                                                            servicename));
 
     mongo::BSONObj const group_command = BSON("count" << "authorization" <<
                                               "query" << fields_builder.obj());
@@ -175,8 +179,10 @@ is_authorized(mongo::DBClientConnection & connection,
 }
 
 mongo::BSONObj
-get_constraint_for_user(mongo::DBClientConnection &connection, std::string const & db_name,
-                        std::string const & username, std::string const & servicename)
+get_constraint_for_user(mongo::DBClientConnection &connection,
+                        std::string const & db_name,
+                        std::string const & username,
+                        std::string const & servicename)
 {
     mongo::BSONArrayBuilder builder;
     if (username != "")
@@ -188,11 +194,15 @@ get_constraint_for_user(mongo::DBClientConnection &connection, std::string const
     // Create Query with user's authorization
     mongo::BSONObjBuilder fields_builder;
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All << servicename));
+                   << "service" << BSON("$in" << BSON_ARRAY(Service_All <<
+                                                            servicename));
     mongo::BSONObjBuilder initial_builder;
-    mongo::BSONObj const group_command = BSON("group" << BSON(
-        "ns" << "authorization" << "key" << BSON("dataset" << 1) << "cond" << fields_builder.obj() <<
-        "$reduce" << "function(current, result) { }" << "initial" << initial_builder.obj()
+    mongo::BSONObj const group_command =
+            BSON("group" << BSON("ns" << "authorization" <<
+                                 "key" << BSON("dataset" << 1) <<
+                                 "cond" << fields_builder.obj() <<
+                                 "$reduce" << "function(current, result) { }" <<
+                                 "initial" << initial_builder.obj()
     ));
 
     mongo::BSONObj result;
@@ -202,7 +212,8 @@ get_constraint_for_user(mongo::DBClientConnection &connection, std::string const
     {
         // Create a constraint to deny all actions
         mongo::BSONObjBuilder builder_none;
-        builder_none << "00080018.Value" << BSON_ARRAY("_db8eeea6_e0eb_48b8_9a02_a94926b76992");
+        builder_none << "00080018.Value"
+                     << BSON_ARRAY("_db8eeea6_e0eb_48b8_9a02_a94926b76992");
 
         return builder_none.obj();
     }
@@ -211,28 +222,36 @@ get_constraint_for_user(mongo::DBClientConnection &connection, std::string const
     for (auto item : result["retval"].Array())
     {
         // if dataset: "" or dataset: {} => all is allowed
-        if ((item["dataset"].type() == mongo::BSONType::String && item["dataset"].String() == "") ||
-            (item["dataset"].type() == mongo::BSONType::Object && item["dataset"].Obj().isEmpty()))
+        if ((item["dataset"].type() == mongo::BSONType::String &&
+             item["dataset"].String() == "") ||
+            (item["dataset"].type() == mongo::BSONType::Object &&
+             item["dataset"].Obj().isEmpty()))
         {
             // No constraint
             return mongo::BSONObj();
         }
 
-        // Warning: throw an exception if item["dataset"].type() != mongo::BSONType::Object
+        /*
+         * Warning: throw an exception if
+         * item["dataset"].type() != mongo::BSONType::Object
+         */
 
         mongo::BSONArrayBuilder andarray;
-        for(mongo::BSONObj::iterator it=item["dataset"].Obj().begin(); it.more();)
+        for(mongo::BSONObj::iterator it = item["dataset"].Obj().begin();
+            it.more();)
         {
             mongo::BSONElement const element = it.next();
 
             mongo::BSONObjBuilder object;
             if (element.type() == mongo::BSONType::RegEx)
             {
-                object.appendRegex(std::string(element.fieldName())+".Value", element.regex(), "");
+                object.appendRegex(std::string(element.fieldName())+".Value",
+                                   element.regex(), "");
             }
             else
             {
-                object << std::string(element.fieldName())+".Value" << bsonelement_to_string(element);
+                object << std::string(element.fieldName())+".Value"
+                       << bsonelement_to_string(element);
             }
             andarray << object.obj();
         }
@@ -252,31 +271,31 @@ bsonelement_to_string(mongo::BSONElement const & bsonelement)
     std::stringstream builder;
     switch (bsonelement.type())
     {
-    case mongo::BSONType::NumberDouble:
-    {
-        builder << bsonelement.numberDouble();
-        break;
-    }
-    case mongo::BSONType::String:
-    {
-        builder << bsonelement.String();
-        break;
-    }
-    case mongo::BSONType::NumberInt:
-    {
-        builder << bsonelement.Int();
-        break;
-    }
-    case mongo::BSONType::NumberLong:
-    {
-        builder << bsonelement.Long();
-        break;
-    }
-    default:
-    {
-        builder << bsonelement.toString(false);
-        break;
-    }
+        case mongo::BSONType::NumberDouble:
+        {
+            builder << bsonelement.numberDouble();
+            break;
+        }
+        case mongo::BSONType::String:
+        {
+            builder << bsonelement.String();
+            break;
+        }
+        case mongo::BSONType::NumberInt:
+        {
+            builder << bsonelement.Int();
+            break;
+        }
+        case mongo::BSONType::NumberLong:
+        {
+            builder << bsonelement.Long();
+            break;
+        }
+        default:
+        {
+            builder << bsonelement.toString(false);
+            break;
+        }
     }
 
     return builder.str();
@@ -306,17 +325,23 @@ dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
     if (isforstorage)
     {
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::IsPrivateTag::New(), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::IsPrivateTag::New(),
+            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OB), converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OB),
+            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OF), converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OF),
+            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OW), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_OW),
+            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
         dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_UN), converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
+            converterBSON::VRMatch::New(EVR_UN),
+            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
     }
-    dataset_to_bson.set_default_filter(converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    dataset_to_bson.set_default_filter(
+                converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     return dataset_to_bson.from_dataset(dataset);
 }
@@ -397,8 +422,8 @@ insert_dataset(mongo::DBClientConnection &connection,
       // most probably a DICOM dataset that was read from memory.
       xfer = EXS_LittleEndianExplicit;
     }
-    file_format.getMetaInfo()->putAndInsertString(DCM_SourceApplicationEntityTitle,
-                                                  callingaet.c_str());
+    file_format.getMetaInfo()->putAndInsertString(
+                DCM_SourceApplicationEntityTitle, callingaet.c_str());
     OFCondition condition = file_format.validateMetaInfo(xfer);
     if (condition.bad())
     {
@@ -412,7 +437,8 @@ insert_dataset(mongo::DBClientConnection &connection,
     buffer.resize(size);
 
     // Create buffer for DCMTK
-    DcmOutputBufferStream* outputstream = new DcmOutputBufferStream(&buffer[0], size);
+    DcmOutputBufferStream* outputstream =
+            new DcmOutputBufferStream(&buffer[0], size);
 
     // Fill the memory buffer with the meta-header and the dataset
     file_format.transferInit();
@@ -427,7 +453,8 @@ insert_dataset(mongo::DBClientConnection &connection,
         return CONVERSION_ERROR;
     }
 
-    std::string const sopinstanceuid = object.getField("00080018").Obj().getField("Value").Array()[0].String();
+    std::string const sopinstanceuid =
+            object["00080018"].Obj().getField("Value").Array()[0].String();
 
     // check size
     int const totalsize = builder.len() + buffer.size();
@@ -522,8 +549,9 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
                 else
                 {
                     // Compare the field's values
-                    auto array = dataset.getField(name).Obj().getField("Value").Array();
-                    for(auto itarray = array.begin(); itarray != array.end(); ++itarray)
+                    auto array = dataset[name].Obj().getField("Value").Array();
+                    for(auto itarray = array.begin();
+                        itarray != array.end(); ++itarray)
                     {
                         mongo::BSONElement const element2 = *itarray;
                         std::string valuestr = bsonelement_to_string(element2);
@@ -531,7 +559,8 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
                         if (element.type() == mongo::BSONType::RegEx)
                         {
                             std::string regex(element.regex());
-                            if (!boost::regex_match(valuestr.c_str(), boost::regex(regex.c_str())))
+                            if (!boost::regex_match(valuestr.c_str(),
+                                                    boost::regex(regex.c_str())))
                             {
                                 result = false;
                                 break;
@@ -539,7 +568,8 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
                         }
                         else
                         {
-                            std::string elementstr = bsonelement_to_string(element);
+                            std::string const elementstr =
+                                    bsonelement_to_string(element);
                             if (valuestr != elementstr)
                             {
                                 result = false;
@@ -582,8 +612,10 @@ get_dataset_as_string(mongo::DBClientConnection &connection,
         builder.appendOID(std::string("_id"), &oid);
         mongo::Query const query = builder.obj();
         mongo::BSONObj const fields = BSON("filename" << 1);
-        mongo::BSONObj sopinstanceuidobj = connection.findOne(db_name + ".fs.files", query, &fields);
-        std::string const sopinstanceuid = sopinstanceuidobj.getField("filename").String();
+        mongo::BSONObj const sopinstanceuidobj =
+                connection.findOne(db_name + ".fs.files", query, &fields);
+        std::string const sopinstanceuid =
+                sopinstanceuidobj.getField("filename").String();
 
         // Create GridFS interface
         mongo::GridFS gridfs(connection, db_name);
@@ -606,7 +638,8 @@ get_dataset_as_string(mongo::DBClientConnection &connection,
     else
     {
         std::stringstream streamerror;
-        streamerror << "Unknown type '" << element.type() << "' for Content attribute";
+        streamerror << "Unknown type '" << element.type()
+                    << "' for Content attribute";
         throw ExceptionPACS(streamerror.str());
     }
 

@@ -44,19 +44,22 @@ StoreSubOperation
 {
     if (this->_new_association && this->_response_association != NULL)
     {
-        OFCondition condition = ASC_releaseAssociation(this->_response_association);
+        OFCondition condition =
+                ASC_releaseAssociation(this->_response_association);
         if (condition.bad())
         {
             OFString temp_str;
             dopamine::logger_error() << "Cannot Release Association: "
-                                     << DimseCondition::dump(temp_str, condition);
+                                     << DimseCondition::dump(temp_str,
+                                                             condition);
         }
         condition = ASC_destroyAssociation(&this->_response_association);
         if (condition.bad())
         {
             OFString temp_str;
             dopamine::logger_error() << "Cannot Destroy Association: "
-                                     << DimseCondition::dump(temp_str, condition);
+                                     << DimseCondition::dump(temp_str,
+                                                             condition);
         }
     }
 }
@@ -71,8 +74,9 @@ StoreSubOperation
                     this->_original_aetitle, aeTitle, NULL);
 
     std::string dstHostNamePort;
-    if (!ConfigurationPACS::get_instance().peer_for_aetitle(std::string(destination_aetitle),
-                                                            dstHostNamePort))
+    if (!ConfigurationPACS::
+            get_instance().peer_for_aetitle(std::string(destination_aetitle),
+                                            dstHostNamePort))
     {
         dopamine::logger_error() << "Invalid Peer for move operation";
         return EC_IllegalParameter;
@@ -102,7 +106,9 @@ StoreSubOperation
     }
 
     // Create Association
-    condition = ASC_requestAssociation(this->_network, params, &this->_response_association);
+    condition = ASC_requestAssociation(this->_network,
+                                       params,
+                                       &this->_response_association);
 
     if(condition.bad())
     {
@@ -113,11 +119,13 @@ StoreSubOperation
             T_ASC_RejectParameters rej;
             ASC_getRejectParameters(params, &rej);
 
-            dopamine::logger_error() << ASC_printRejectParameters(empty, &rej).c_str();
+            dopamine::logger_error()
+                    << ASC_printRejectParameters(empty, &rej).c_str();
         }
         else
         {
-            dopamine::logger_error() << DimseCondition::dump(empty, condition).c_str();
+            dopamine::logger_error()
+                    << DimseCondition::dump(empty, condition).c_str();
         }
     }
 
@@ -144,19 +152,21 @@ StoreSubOperation
                                             sopinstanceuid);
     if (condition.bad())
     {
-        dopamine::logger_error() << "Cannot retrieve SOPInstanceUID from dataset: "
-                                 << condition.text();
+        dopamine::logger_error()
+                << "Cannot retrieve SOPInstanceUID from dataset: "
+                << condition.text();
         return condition;
     }
 
     /* which presentation context should be used */
-    T_ASC_PresentationContextID presentation_id;
-    presentation_id = ASC_findAcceptedPresentationContextID(this->_response_association,
-                                                            sopclassuid.c_str());
+    T_ASC_PresentationContextID presentation_id =
+            ASC_findAcceptedPresentationContextID(this->_response_association,
+                                                  sopclassuid.c_str());
     if (presentation_id == 0)
     {
         dopamine::logger_error() << "No presentation context for: "
-                                 << dcmSOPClassUIDToModality(sopclassuid.c_str(), "OT");
+                                 << dcmSOPClassUIDToModality(sopclassuid.c_str(),
+                                                             "OT");
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     else if (!this->_new_association)
@@ -164,8 +174,9 @@ StoreSubOperation
         /* make sure that we can send images in this presentation context */
         T_ASC_PresentationContext pc;
         OFCondition condition =
-                ASC_findAcceptedPresentationContext(this->_response_association->params,
-                                                    presentation_id, &pc);
+                ASC_findAcceptedPresentationContext(
+                    this->_response_association->params,
+                    presentation_id, &pc);
         if (condition.bad())
         {
             return condition;
@@ -174,8 +185,9 @@ StoreSubOperation
         if (pc.acceptedRole != ASC_SC_ROLE_SCP &&
             pc.acceptedRole != ASC_SC_ROLE_SCUSCP)
         {
-            dopamine::logger_error() << "No presentation context with requestor SCP role for: "
-                                     << dcmSOPClassUIDToModality(sopclassuid.c_str(), "OT");
+            dopamine::logger_error()
+                    << "No presentation context with requestor SCP role for: "
+                    << dcmSOPClassUIDToModality(sopclassuid.c_str(), "OT");
             return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
         }
     }
@@ -191,7 +203,8 @@ StoreSubOperation
     if (this->_new_association)
     {
         req.opts = O_STORE_MOVEORIGINATORAETITLE | O_STORE_MOVEORIGINATORID;
-        strcpy(req.MoveOriginatorApplicationEntityTitle, this->_original_aetitle);
+        strcpy(req.MoveOriginatorApplicationEntityTitle,
+               this->_original_aetitle);
         req.MoveOriginatorID = this->_original_message_id;
     }
 
@@ -200,9 +213,9 @@ StoreSubOperation
     T_DIMSE_DetectedCancelParameters cancelParameters;
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
-    return DIMSE_storeUser(this->_response_association, presentation_id, &req, NULL,
-                           dataset, sub_process_callback, this,
-                           DIMSE_BLOCKING, 0, &rsp, &stdetail,
+    return DIMSE_storeUser(this->_response_association, presentation_id,
+                           &req, NULL, dataset, sub_process_callback,
+                           this, DIMSE_BLOCKING, 0, &rsp, &stdetail,
                            &cancelParameters);
 }
 
@@ -214,23 +227,27 @@ StoreSubOperation
     int numTransferSyntaxes = 0;
     if (gLocalByteOrder == EBO_LittleEndian)  /* defined in dcxfer.h */
     {
-      transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
-      transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
-    } else {
-      transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
-      transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
+        transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
+        transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
+    }
+    else
+    {
+        transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
+        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
     }
     transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
     numTransferSyntaxes = 3;
 
     OFCondition condition = EC_Normal;
     int pid = 1;
-    for (int i = 0; i < numberOfDcmLongSCUStorageSOPClassUIDs && condition.good(); i++)
+    for (int i = 0;
+         i < numberOfDcmLongSCUStorageSOPClassUIDs && condition.good(); i++)
     {
-        condition = ASC_addPresentationContext(params, pid,
-                                               dcmLongSCUStorageSOPClassUIDs[i],
-                                               transferSyntaxes,
-                                               numTransferSyntaxes);
+        condition =
+                ASC_addPresentationContext(params, pid,
+                                           dcmLongSCUStorageSOPClassUIDs[i],
+                                           transferSyntaxes,
+                                           numTransferSyntaxes);
         pid += 2;
     }
 

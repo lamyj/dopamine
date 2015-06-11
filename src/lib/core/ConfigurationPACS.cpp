@@ -53,7 +53,7 @@ ConfigurationPACS
     // nothing to do
 }
 
-void 
+void
 ConfigurationPACS
 ::parse(std::string const & file)
 {
@@ -81,11 +81,12 @@ ConfigurationPACS
     for (auto aetitle : templist)
     {
         std::string addressport = this->get_value("listAddressPort", aetitle);
-        this->_addressPortList.insert(std::pair<std::string, std::string>(aetitle, addressport));
+        this->_addressPortList.insert(
+                    std::pair<std::string, std::string>(aetitle, addressport));
     }
 }
 
-std::string 
+std::string
 ConfigurationPACS
 ::get_value(std::string const & key)
 {
@@ -96,14 +97,14 @@ ConfigurationPACS
     return this->_configuration_node.get<std::string>(key);
 }
 
-std::string 
+std::string
 ConfigurationPACS
 ::get_value(std::string const & section, std::string const & key)
 {
     return this->get_value(section + "." + key);
 }
 
-bool 
+bool
 ConfigurationPACS
 ::has_value(std::string const & key)
 {
@@ -111,14 +112,14 @@ ConfigurationPACS
     return child;
 }
 
-bool 
+bool
 ConfigurationPACS
 ::has_value(std::string const & section, std::string const & key)
 {
     return this->has_value(section + "." + key);
 }
 
-bool 
+bool
 ConfigurationPACS
 ::peer_in_aetitle(std::string const & peer)
 {
@@ -135,9 +136,10 @@ ConfigurationPACS
                       peer.c_str()) != this->_aetitles.end());
 }
 
-bool 
+bool
 ConfigurationPACS
-::peer_for_aetitle(std::string const & aetitle, std::string & address_and_port) const
+::peer_for_aetitle(std::string const & aetitle,
+                   std::string & address_and_port) const
 {
     auto item = this->_addressPortList.find(aetitle);
     

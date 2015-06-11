@@ -54,7 +54,11 @@ void
 Webservices
 ::_create_boundary()
 {
-    std::string const chars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
+    std::stringstream charsstream;
+    charsstream << "abcdefghijklmnopqrstuvwxyz"
+                << "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                << "1234567890";
+    std::string const chars(charsstream.str());
     boost::random::random_device rng;
     boost::random::uniform_int_distribution<> index_dist(0, chars.size() - 1);
 

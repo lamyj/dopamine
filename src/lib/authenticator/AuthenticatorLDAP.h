@@ -20,7 +20,7 @@ namespace authenticator
 {
 
 /**
- * @brief The AuthenticatorLDAP class
+ * @brief \class The AuthenticatorLDAP class
  */
 class AuthenticatorLDAP : public AuthenticatorBase
 {

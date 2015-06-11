@@ -76,8 +76,8 @@ BSONToXML
 
     if(isdicom)
     {
-        for(std::string::const_iterator field_name_it=field_name.begin();
-            field_name_it!=field_name.end(); ++field_name_it)
+        for(std::string::const_iterator field_name_it = field_name.begin();
+            field_name_it != field_name.end(); ++field_name_it)
         {
             if(!((*field_name_it>='0' && *field_name_it<='9') ||
                  (*field_name_it>='a' && *field_name_it<='f') ||
@@ -93,7 +93,8 @@ BSONToXML
 }
 
 
-// Warning: problem with mongo::DBClientConnection::query => convert int into double
+// Warning: problem with
+// mongo::DBClientConnection::query => convert int into double
 template<>
 void
 BSONToXML
@@ -169,10 +170,14 @@ BSONToXML
         throw ExceptionPACS(stream.str());
     }
 
-    tag_xml.put(Attribute_Tag, field_name);                                 // Mandatory
-    tag_xml.put(Attribute_VR, bson.Obj().getField("vr").String());          // Mandatory
-    tag_xml.put(Attribute_Keyword, response.getTagName());                  // Optional
-    //tag_xml.put(Attribute_PrivateCreator, response.getPrivateCreator());  // Optional
+    tag_xml.put(Attribute_Tag,
+                field_name);                         // Mandatory
+    tag_xml.put(Attribute_VR,
+                bson.Obj().getField("vr").String()); // Mandatory
+    tag_xml.put(Attribute_Keyword,
+                response.getTagName());              // Optional
+    //tag_xml.put(Attribute_PrivateCreator,
+    //            response.getPrivateCreator());     // Optional
 
     // Add values
     mongo::BSONElement element;
@@ -204,39 +209,140 @@ BSONToXML
     DcmEVR const evr(vr.getEVR());
 
     // See PS3.18 Section F.2 Table F.2.3-1 DICOM VR to JSON Data Type Mapping
-    if     (evr == EVR_AE) this->_to_value<std::string>(element, "AE", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_AS) this->_to_value<std::string>(element, "AS", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_AT) this->_to_value<std::string>(element, "AT", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_CS) this->_to_value<std::string>(element, "CS", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_DA) this->_to_value<std::string>(element, "DA", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_DS) this->_to_value_string_number(element, tag_xml);                                     // Number
-    else if(evr == EVR_DT) this->_to_value<std::string>(element, "DT", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_FD) this->_to_value<double>(element, "FD", tag_xml, &mongo::BSONElement::Double);        // Number
-    else if(evr == EVR_FL) this->_to_value<double>(element, "FL", tag_xml, &mongo::BSONElement::Double);        // Number
-    else if(evr == EVR_IS) this->_to_value_string_number(element, tag_xml);                                     // Number
-    else if(evr == EVR_LO) this->_to_value<std::string>(element, "LO", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_LT) this->_to_value<std::string>(element, "LT", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_OB) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
-    // unknown VR !!! else if(evr == EVR_OD) this->_to_raw(element, tag_xml);                                   // Base64 encoded string
-    else if(evr == EVR_OF) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
-    else if(evr == EVR_OW) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
-    else if(evr == EVR_PN) this->_to_person_name(element, tag_xml);                                             // Object containing Person Name component groups as strings
-    else if(evr == EVR_SH) this->_to_value<std::string>(element, "SH", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_SL) this->_to_value<long long>(element, "SL", tag_xml, &mongo::BSONElement::Long);       // Number
-    else if(evr == EVR_SQ) this->_to_item(element, tag_xml);                                                    // Array containing DICOM JSON Objects
-    else if(evr == EVR_SS) this->_to_value<int>(element, "SS", tag_xml, &mongo::BSONElement::Int);              // Number
-    else if(evr == EVR_ST) this->_to_value<std::string>(element, "ST", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_TM) this->_to_value<std::string>(element, "TM", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_UI) this->_to_value<std::string>(element, "UI", tag_xml, &mongo::BSONElement::String);   // String
-    else if(evr == EVR_UL) this->_to_value<long long>(element, "UL", tag_xml, &mongo::BSONElement::Long);       // Number
-    else if(evr == EVR_UN) this->_to_raw(element, tag_xml);                                                     // Base64 encoded string
-    else if(evr == EVR_US) this->_to_value<int>(element, "US", tag_xml, &mongo::BSONElement::Int);              // Number
-    else if(evr == EVR_UT) this->_to_value<std::string>(element, "UT", tag_xml, &mongo::BSONElement::String);   // String
+    if     (evr == EVR_AE)      // String
+    {
+        this->_to_value<std::string>(element, "AE", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_AS)      // String
+    {
+        this->_to_value<std::string>(element, "AS", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_AT)      // String
+    {
+        this->_to_value<std::string>(element, "AT", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_CS)      // String
+    {
+        this->_to_value<std::string>(element, "CS", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_DA)      // String
+    {
+        this->_to_value<std::string>(element, "DA", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_DS)      // Number
+    {
+        this->_to_value_string_number(element, tag_xml);
+    }
+    else if(evr == EVR_DT)      // String
+    {
+        this->_to_value<std::string>(element, "DT", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_FD)      // Number
+    {
+        this->_to_value<double>(element, "FD", tag_xml,
+                                &mongo::BSONElement::Double);
+    }
+    else if(evr == EVR_FL)      // Number
+    {
+        this->_to_value<double>(element, "FL", tag_xml,
+                                &mongo::BSONElement::Double);
+    }
+    else if(evr == EVR_IS)      // Number
+    {
+        this->_to_value_string_number(element, tag_xml);
+    }
+    else if(evr == EVR_LO)      // String
+    {
+        this->_to_value<std::string>(element, "LO", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_LT)      // String
+    {
+        this->_to_value<std::string>(element, "LT", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_OB)      // Base64 encoded string
+    {
+        this->_to_raw(element, tag_xml);
+    }
+    else if(evr == EVR_OF)      // Base64 encoded string
+    {
+        this->_to_raw(element, tag_xml);
+    }
+    else if(evr == EVR_OW)      // Base64 encoded string
+    {
+        this->_to_raw(element, tag_xml);
+    }
+    else if(evr == EVR_PN)      // Contains Person Name component as strings
+    {
+        this->_to_person_name(element, tag_xml);
+    }
+    else if(evr == EVR_SH)      // String
+    {
+        this->_to_value<std::string>(element, "SH", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_SL)      // Number
+    {
+        this->_to_value<long long>(element, "SL", tag_xml,
+                                   &mongo::BSONElement::Long);
+    }
+    else if(evr == EVR_SQ)      // Array containing DICOM JSON Objects
+    {
+        this->_to_item(element, tag_xml);
+    }
+    else if(evr == EVR_SS)      // Number
+    {
+        this->_to_value<int>(element, "SS", tag_xml,
+                             &mongo::BSONElement::Int);
+    }
+    else if(evr == EVR_ST)      // String
+    {
+        this->_to_value<std::string>(element, "ST", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_TM)      // String
+    {
+        this->_to_value<std::string>(element, "TM", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_UI)      // String
+    {
+        this->_to_value<std::string>(element, "UI", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
+    else if(evr == EVR_UL)      // Number
+    {
+        this->_to_value<long long>(element, "UL", tag_xml,
+                                   &mongo::BSONElement::Long);
+    }
+    else if(evr == EVR_UN)      // Base64 encoded string
+    {
+        this->_to_raw(element, tag_xml);
+    }
+    else if(evr == EVR_US)      // Number
+    {
+        this->_to_value<int>(element, "US", tag_xml,
+                             &mongo::BSONElement::Int);
+    }
+    else if(evr == EVR_UT)      // String
+    {
+        this->_to_value<std::string>(element, "UT", tag_xml,
+                                     &mongo::BSONElement::String);
+    }
 
     // default
     else
     {
-        throw std::runtime_error(std::string("Unhandled VR:") + vr.getValidVRName());
+        std::stringstream streamerror;
+        streamerror << "Unhandled VR: " << vr.getValidVRName();
+        throw std::runtime_error(streamerror.str());
     }
 }
 
@@ -315,7 +421,8 @@ BSONToXML
             {
                 boost::property_tree::ptree tag_alphabetic;
 
-                std::string const name = it->Obj().getField(Tag_Alphabetic).String();
+                std::string const name =
+                        it->Obj().getField(Tag_Alphabetic).String();
                 std::vector<std::string> name_components;
                 boost::split(name_components, name, boost::is_any_of("^"),
                              boost::token_compress_off);

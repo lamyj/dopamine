@@ -43,17 +43,21 @@ static void move_callback(
 
     if (responseCount == 1)
     {
-        status = context->get_generator()->process_dataset(requestIdentifiers, false);
+        status = context->get_generator()->process_dataset(requestIdentifiers,
+                                                           false);
 
         if (status != STATUS_Pending)
         {
-            create_status_detail(status, DCM_UndefinedTagKey,
-                                 OFString("An error occured while processing Move operation"),
-                                 stDetail);
+            create_status_detail(
+                    status, DCM_UndefinedTagKey,
+                    OFString("An error occured while processing Move operation"),
+                    stDetail);
         }
 
         // Create Move SubAssociation
-        OFCondition condition = context->get_storeprovider()->build_sub_association(request->MoveDestination);
+        OFCondition condition =
+                context->get_storeprovider()->build_sub_association(
+                                request->MoveDestination);
         if (condition.bad())
         {
             dopamine::logger_error() << "Cannot create sub association: "
@@ -85,8 +89,9 @@ static void move_callback(
         else
         {
             OFCondition condition =
-                context->get_storeprovider()->perform_sub_operation(context->get_generator()->retrieve_dataset(object),
-                                                                    request->Priority);
+                context->get_storeprovider()->perform_sub_operation(
+                        context->get_generator()->retrieve_dataset(object),
+                        request->Priority);
 
             if (condition.bad())
             {
@@ -113,7 +118,7 @@ MoveSCP
 ::MoveSCP(T_ASC_Association * association,
           T_ASC_PresentationContextID presentation_context_id,
           T_DIMSE_C_MoveRQ * request):
-    services::SCP(association, presentation_context_id), // base class initialisation
+    services::SCP(association, presentation_context_id),
     _request(request)
 {
     // Nothing to do

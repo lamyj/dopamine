@@ -5,7 +5,8 @@ include_directories(${DCMTK_INCLUDE_DIRS}
 
 
 add_executable(dopamine "dopamine.cpp")
-target_link_libraries(dopamine libdopamine log4cpp ssl crypt ${DCMTK_LIBRARIES} oflog z )
+target_link_libraries(dopamine libdopamine log4cpp ssl
+                               crypt ${DCMTK_LIBRARIES} oflog z )
 set_target_properties(dopamine PROPERTIES COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
 add_executable(wado-rs "wado-rs.cpp")
@@ -26,7 +27,11 @@ install(TARGETS dopamine
 
 # copy all header files to the include directory
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-        DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                         GROUP_READ GROUP_EXECUTE
+                         WORLD_READ WORLD_EXECUTE
+        DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                              GROUP_READ GROUP_EXECUTE
+                              WORLD_READ WORLD_EXECUTE
         DESTINATION /usr/include/dopamine/
         FILES_MATCHING PATTERN "*.h")

@@ -20,9 +20,9 @@ namespace dopamine
 namespace authenticator
 {
 
-/** 
- * @brief Authenticator based on a CSV file with two columns (user and 
- *        clear-text password).
+/**
+ * @brief \class Authenticator based on a CSV file with two columns
+ *        (user and clear-text password).
  */
 class AuthenticatorCSV : public AuthenticatorBase
 {
@@ -60,4 +60,3 @@ private:
 } // namespace dopamine
 
 #endif // _cd33d64f_50b1_40a7_9288_e90b85b9a576
-

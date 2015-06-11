@@ -22,11 +22,11 @@ namespace converterBSON
 {
 
 /**
- * @brief And condition
+ * @brief \class And condition
  */
 class And : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<And> Pointer;
     
     /// Create pointer to new instance of And
@@ -41,7 +41,8 @@ public :
      * @return true if all condition are true, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
     /**
      * Add a new condition

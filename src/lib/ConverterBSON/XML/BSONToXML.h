@@ -33,35 +33,38 @@ start = element NativeDicomModel { DicomDataSet }
 DicomDataSet = DicomAttribute*
 
 DicomAttribute = element DicomAttribute {
-  Tag, VR, Keyword?, PrivateCreator?,
-  (BulkData | Value+ | Item+ | PersonName+ | InlineBinary)?
+    Tag, VR, Keyword?, PrivateCreator?,
+    (BulkData | Value+ | Item+ | PersonName+ | InlineBinary)?
 }
 BulkData = element BulkData{ UUID | URI }
 Value = element Value { Number, xsd:string }
 InlineBinary = element InlineBinary { xsd:base64Binary }
 Item = element Item { Number, DicomDataSet }
 PersonName = element PersonName {
-  Number,
-  element Alphabetic  { NameComponents }?,
-  element Ideographic { NameComponents }?,
-  element Phonetic    { NameComponents }?
+    Number,
+    element Alphabetic  { NameComponents }?,
+    element Ideographic { NameComponents }?,
+    element Phonetic    { NameComponents }?
 }
 
 NameComponents =
-  element FamilyName {xsd:string}?,
-  element GivenName  {xsd:string}?,
-  element MiddleName {xsd:string}?,
-  element NamePrefix {xsd:string}?,
-  element NameSuffix {xsd:string}?
+    element FamilyName {xsd:string}?,
+    element GivenName  {xsd:string}?,
+    element MiddleName {xsd:string}?,
+    element NamePrefix {xsd:string}?,
+    element NameSuffix {xsd:string}?
 
 # keyword is the attribute tag from PS3.6
 # (derived from the DICOM Attribute's name)
 Keyword = attribute keyword { xsd:token }
 # canonical XML definition of Hex, with lowercase letters disallowed
-Tag = attribute tag { xsd:string{ minLength="8" maxLength="8" pattern="[0-9A-F]{8}" } }
+Tag = attribute tag {
+    xsd:string{ minLength="8" maxLength="8" pattern="[0-9A-F]{8}" }
+}
 VR = attribute vr { "AE" | "AS" | "AT"| "CS" | "DA" | "DS" | "DT" | "FL" | "FD"
-                    | "IS" | "LO" | "LT" | "OB" | "OD" | "OF" | "OW" | "PN" | "SH" | "SL"
-                    | "SQ" | "SS" | "ST" | "TM" | "UI" | "UL" | "UN" | "US" | "UT" }
+                    | "IS" | "LO" | "LT" | "OB" | "OD" | "OF" | "OW" | "PN"
+                    | "SH" | "SL" | "SQ" | "SS" | "ST" | "TM" | "UI" | "UL"
+                    | "UN" | "US" | "UT" }
 PrivateCreator = attribute privateCreator{ xsd:string }
 UUID = attribute uuid { xsd:string }
 URI = attribute uri { xsd:anyURI }
@@ -80,7 +83,7 @@ namespace converterBSON
 {
 
 /**
- * @brief The BSONToXML class
+ * @brief \class The BSONToXML class
  * Convert a BSON Object into XML object
  */
 class BSONToXML : public ConverterBSONXML
@@ -97,48 +100,48 @@ public:
      * @param bson: BSON object to convert
      * @return converted XML dataset
      */
-     boost::property_tree::ptree to_ptree(mongo::BSONObj const & bson) const;
+    boost::property_tree::ptree to_ptree(mongo::BSONObj const & bson) const;
 
-     /**
-      * to_string
-      * @param bson: BSON object to convert
-      * @return converted XML dataset as string
-      */
-     std::string to_string(mongo::BSONObj const & bson) const;
+    /**
+     * to_string
+     * @param bson: BSON object to convert
+     * @return converted XML dataset as string
+     */
+    std::string to_string(mongo::BSONObj const & bson) const;
 
 protected:
      bool is_dicom_field(std::string const & field_name) const;
 
 private:
-     template<typename TBSONType>
-     struct BSONGetterType
-     {
-         typedef TBSONType (mongo::BSONElement::*Type)() const;
-     };
+    template<typename TBSONType>
+    struct BSONGetterType
+    {
+        typedef TBSONType (mongo::BSONElement::*Type)() const;
+    };
 
-     void _to_dicom_attribute(mongo::BSONElement const & bson,
-                              boost::property_tree::ptree & tag_xml) const;
+    void _to_dicom_attribute(mongo::BSONElement const & bson,
+                             boost::property_tree::ptree & tag_xml) const;
 
-     void _to_dicom_model(mongo::BSONObj const & bson,
-                          boost::property_tree::ptree & tag_xml) const;
+    void _to_dicom_model(mongo::BSONObj const & bson,
+                         boost::property_tree::ptree & tag_xml) const;
 
-     void _to_item(mongo::BSONElement const & bson,
-                   boost::property_tree::ptree & tag_xml) const;
-
-     void _to_person_name(mongo::BSONElement const & bson,
-                          boost::property_tree::ptree & tag_xml) const;
-
-     void _to_raw(mongo::BSONElement const & bson,
+    void _to_item(mongo::BSONElement const & bson,
                   boost::property_tree::ptree & tag_xml) const;
 
-     template<typename TBSONType>
-     void _to_value(mongo::BSONElement const & bson,
-                    std::string const & vr,
-                    boost::property_tree::ptree & tag_xml,
-                    typename BSONGetterType<TBSONType>::Type getter) const;
+    void _to_person_name(mongo::BSONElement const & bson,
+                         boost::property_tree::ptree & tag_xml) const;
 
-     void _to_value_string_number(mongo::BSONElement const & bson,
-                                  boost::property_tree::ptree & tag_xml) const;
+    void _to_raw(mongo::BSONElement const & bson,
+                 boost::property_tree::ptree & tag_xml) const;
+
+    template<typename TBSONType>
+    void _to_value(mongo::BSONElement const & bson,
+                   std::string const & vr,
+                   boost::property_tree::ptree & tag_xml,
+                   typename BSONGetterType<TBSONType>::Type getter) const;
+
+    void _to_value_string_number(mongo::BSONElement const & bson,
+                                 boost::property_tree::ptree & tag_xml) const;
 
 };
 

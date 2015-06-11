@@ -25,14 +25,16 @@ int main(int argc, char** argv)
 {
     try
     {
+        std::string const localconf = "../../../configuration/dopamine_conf.ini";
         // Read configuration file
-        if (boost::filesystem::exists(boost::filesystem::path("../../../configuration/dopamine_conf.ini")))
+        if (boost::filesystem::exists(boost::filesystem::path(localconf)))
         {
-            dopamine::ConfigurationPACS::get_instance().parse("../../../configuration/dopamine_conf.ini");
+            dopamine::ConfigurationPACS::get_instance().parse(localconf);
         }
         else
         {
-            dopamine::ConfigurationPACS::get_instance().parse("/etc/dopamine/dopamine_conf.ini");
+            dopamine::ConfigurationPACS::
+                    get_instance().parse("/etc/dopamine/dopamine_conf.ini");
         }
 
         cgicc::Cgicc cgi;
@@ -51,9 +53,11 @@ int main(int argc, char** argv)
         headerstream << dopamine::services::MIME_VERSION << "\n"
                      << dopamine::services::CONTENT_TYPE;
 
-        if (environment.getContentType() == dopamine::services::MIME_TYPE_APPLICATION_DICOMXML)
+        if (environment.getContentType() ==
+            dopamine::services::MIME_TYPE_APPLICATION_DICOMXML)
         {
-            headerstream << dopamine::services::MIME_TYPE_MULTIPART_RELATED << "; "
+            headerstream << dopamine::services::MIME_TYPE_MULTIPART_RELATED
+                         << "; "
                          << dopamine::services::ATTRIBUT_BOUNDARY
                          << qidors.get_boundary() << "\n";
         }
@@ -66,20 +70,24 @@ int main(int argc, char** argv)
     {
         if (exc.status() == 401)
         {
-            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(), exc.statusmessage())
-                            .addHeader("WWW-Authenticate", "Basic realm=\"cgicc\"");
+            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(),
+                                                   exc.statusmessage())
+                        .addHeader("WWW-Authenticate", "Basic realm=\"cgicc\"");
         }
         else
         {
-            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(), exc.statusmessage())
-                            .addHeader("Content-Type", "text/html; charset=UTF-8");
+            std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", exc.status(),
+                                                   exc.statusmessage())
+                        .addHeader("Content-Type", "text/html; charset=UTF-8");
         }
 
         std::stringstream stream;
         stream << exc.status() << " " << exc.statusmessage();
 
-        std::cout << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-        std::cout << cgicc::html().set("lang", "EN").set("dir", "LTR") << std::endl;
+        std::cout << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict)
+                  << std::endl;
+        std::cout << cgicc::html().set("lang", "EN").set("dir", "LTR")
+                  << std::endl;
 
         std::cout << cgicc::head() << std::endl;
         std::cout << "\t" << cgicc::title(stream.str()) << std::endl;
@@ -95,14 +103,18 @@ int main(int argc, char** argv)
     }
     catch (std::exception &e)
     {
-        std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", 500, "Internal Server Error")
-                        .addHeader("Content-Type", "text/html; charset=UTF-8");
+        std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", 500,
+                                               "Internal Server Error")
+                    .addHeader("Content-Type", "text/html; charset=UTF-8");
 
-        std::cout << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-        std::cout << cgicc::html().set("lang", "EN").set("dir", "LTR") << std::endl;
+        std::cout << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict)
+                  << std::endl;
+        std::cout << cgicc::html().set("lang", "EN").set("dir", "LTR")
+                  << std::endl;
 
         std::cout << cgicc::head() << std::endl;
-        std::cout << "\t" << cgicc::title("500 Internal Server Error") << std::endl;
+        std::cout << "\t" << cgicc::title("500 Internal Server Error")
+                  << std::endl;
         std::cout << cgicc::head() << std::endl;
 
         std::cout << cgicc::body() << std::endl;

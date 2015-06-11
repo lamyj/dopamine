@@ -46,9 +46,10 @@ static void find_callback(
         status = context->process_dataset(requestIdentifiers, false);
         if (status != STATUS_Pending)
         {
-            create_status_detail(status, DCM_UndefinedTagKey,
-                                 OFString("An error occured while processing Find operation"),
-                                 stDetail);
+            create_status_detail(
+                    status, DCM_UndefinedTagKey,
+                    OFString("An error occured while processing Find operation"),
+                    stDetail);
         }
     }
 
@@ -70,27 +71,31 @@ static void find_callback(
         }
         else if (object.hasField("$err"))
         {
-            dopamine::logger_error() << "An error occured while processing Find operation: "
-                                     << object.getField("$err").String();
+            dopamine::logger_error()
+                    << "An error occured while processing Find operation: "
+                    << object.getField("$err").String();
 
             status = STATUS_FIND_Failed_UnableToProcess;
 
             create_status_detail(STATUS_FIND_Failed_UnableToProcess,
                                  DCM_UndefinedTagKey,
-                                 OFString(object.getField("$err").String().c_str()), stDetail);
+                                 OFString(object["$err"].String().c_str()),
+                                 stDetail);
         }
         else
         {
             (*responseIdentifiers) = context->retrieve_dataset(object);
 
             OFCondition condition =
-                    (*responseIdentifiers)->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
-                                              context->get_query_retrieve_level().c_str());
+                    (*responseIdentifiers)->putAndInsertOFStringArray(
+                        DCM_QueryRetrieveLevel,
+                        context->get_query_retrieve_level().c_str());
 
             if (condition.bad())
             {
-                dopamine::logger_error() << "Cannot insert DCM_QueryRetrieveLevel: "
-                                         << condition .text();
+                dopamine::logger_error()
+                        << "Cannot insert DCM_QueryRetrieveLevel: "
+                        << condition .text();
 
                 status = STATUS_FIND_Failed_UnableToProcess;
 
@@ -102,17 +107,20 @@ static void find_callback(
             if (status == STATUS_Pending && object.hasField("instance_count"))
             {
                 /*OFString count(12, '\0');
-                snprintf(&count[0], 12, "%i", int(object.getField("instance_count").Number()));
+                snprintf(&count[0], 12, "%i",
+                         int(object.getField("instance_count").Number()));
                 condition =
-                        (*responseIdentifiers)->putAndInsertOFStringArray(context->get_instance_count_tag(),
-                                                                          count);
+                        (*responseIdentifiers)->putAndInsertOFStringArray(
+                            context->get_instance_count_tag(), count);
 
                 if (condition.bad())
                 {
-                    dopamine::logger_error() << "Cannot insert "
-                                             << context->get_instance_count_tag().getGroup() << ","
-                                             << context->get_instance_count_tag().getElement() << ": "
-                                             << condition .text();
+                    dopamine::logger_error()
+                            << "Cannot insert "
+                            << context->get_instance_count_tag().getGroup()
+                            << ","
+                            << context->get_instance_count_tag().getElement()
+                            << ": " << condition .text();
 
                     status = STATUS_FIND_Failed_UnableToProcess;
 
@@ -122,7 +130,8 @@ static void find_callback(
                 }*/
             }
 
-            if (status == STATUS_Pending && context->get_convert_modalities_in_study())
+            if (status == STATUS_Pending &&
+                context->get_convert_modalities_in_study())
             {
                 (*responseIdentifiers)->remove(DCM_Modality);
                 std::vector<mongo::BSONElement> const modalities =
@@ -136,13 +145,15 @@ static void find_callback(
                         value += "\\";
                     }
                 }
-                condition = (*responseIdentifiers)->putAndInsertOFStringArray(DCM_ModalitiesInStudy,
-                                                                              OFString(value.c_str()));
+                condition = (*responseIdentifiers)->putAndInsertOFStringArray(
+                                        DCM_ModalitiesInStudy,
+                                        OFString(value.c_str()));
 
                 if (condition.bad())
                 {
-                    dopamine::logger_error() << "Cannot insert DCM_ModalitiesInStudy: "
-                                             << condition .text();
+                    dopamine::logger_error()
+                            << "Cannot insert DCM_ModalitiesInStudy: "
+                            << condition .text();
 
                     status = STATUS_FIND_Failed_UnableToProcess;
 
@@ -178,7 +189,7 @@ FindSCP
     // nothing to do
 }
 
-OFCondition 
+OFCondition
 FindSCP
 ::process()
 {

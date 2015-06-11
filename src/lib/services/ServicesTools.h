@@ -11,7 +11,8 @@
 
 #include <string>
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmdata/dcelem.h>

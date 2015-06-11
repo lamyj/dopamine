@@ -6,7 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmnet/dimse.h>
 
 #include "core/LoggerPACS.h"
@@ -58,8 +59,9 @@ QueryRetrieveGenerator
     // Look for user authorization
     if ( ! this->_allow )
     {
-        logger_warning() << "User '" << this->_username << "' not allowed to perform "
-                        << this->_service_name;
+        logger_warning() << "User '" << this->_username
+                         << "' not allowed to perform "
+                         << this->_service_name;
         if (this->_service_name == Service_Query)
         {
             return 0xa700; // STATUS_FIND_Refused_OutOfResources
@@ -68,10 +70,9 @@ QueryRetrieveGenerator
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
 
-    mongo::BSONObj const constraint = get_constraint_for_user(this->_connection,
-                                                              this->_db_name,
-                                                              this->_username,
-                                                              this->_service_name);
+    mongo::BSONObj const constraint =
+            get_constraint_for_user(this->_connection, this->_db_name,
+                                    this->_username, this->_service_name);
 
     mongo::BSONObj query_object = this->_bsonquery;
 
@@ -88,13 +89,17 @@ QueryRetrieveGenerator
     }
     // Read the Query Retrieve Level
     {
-    mongo::BSONObj const field_00080052 = this->_bsonquery.getField("00080052").Obj();
-    this->_query_retrieve_level = field_00080052.getField("Value").Array()[0].String();
+    mongo::BSONObj const field_00080052 =
+            this->_bsonquery.getField("00080052").Obj();
+    this->_query_retrieve_level =
+            field_00080052.getField("Value").Array()[0].String();
     }
 
     // Remove unused elements
-    query_object = query_object.removeField("00080005"); // DCM_SpecificCharacterSet
-    query_object = query_object.removeField("00080052"); // DCM_QueryRetrieveLevel
+    query_object =
+            query_object.removeField("00080005"); // DCM_SpecificCharacterSet
+    query_object =
+            query_object.removeField("00080052"); // DCM_QueryRetrieveLevel
 
     // Build the MongoDB query and query fields from the query dataset.
     mongo::BSONObjBuilder db_query;
@@ -121,7 +126,8 @@ QueryRetrieveGenerator
         mongo::BSONElement const & value = bsonobj.getField(fieldtoget);
         Match::Type const match_type = this->_get_match_type(vr, value);
 
-        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        DicomQueryToMongoQuery function =
+                this->_get_query_conversion(match_type);
 
         std::stringstream field;
         field << std::string(element.fieldName()) << "." << fieldtoget;
@@ -154,12 +160,14 @@ QueryRetrieveGenerator
     }
     if((this->_query_retrieve_level=="STUDY" ||
         this->_query_retrieve_level=="SERIES" ||
-        this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000d"))
+        this->_query_retrieve_level=="IMAGE") &&
+       !fields_builder.hasField("0020000d"))
     {
         fields_builder << "0020000d" << 1;
     }
     if ((this->_query_retrieve_level=="SERIES" ||
-         this->_query_retrieve_level=="IMAGE") && !fields_builder.hasField("0020000e"))
+         this->_query_retrieve_level=="IMAGE") &&
+        !fields_builder.hasField("0020000e"))
     {
         fields_builder << "0020000e" << 1;
     }
@@ -216,7 +224,8 @@ QueryRetrieveGenerator
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&
         std::find(this->_include_fields.begin(),
-                  this->_include_fields.end(), "00080018") != this->_include_fields.end())
+                  this->_include_fields.end(),
+                  "00080018") != this->_include_fields.end())
     {
         localobject.removeField("00080018");
     }
@@ -230,7 +239,8 @@ QueryRetrieveGenerator
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&
         std::find(this->_include_fields.begin(),
-                  this->_include_fields.end(), "00080018") != this->_include_fields.end())
+                  this->_include_fields.end(),
+                  "00080018") != this->_include_fields.end())
     {
         localobject.removeField("00080018");
     }
@@ -331,55 +341,70 @@ QueryRetrieveGenerator
 {
     if (attribute == "00080056") // Instance Availability
     {
-        return BSON(attribute << BSON("vr" << "CS" << "Value" << BSON_ARRAY("ONLINE")));
+        return BSON(attribute << BSON("vr" << "CS" <<
+                                      "Value" << BSON_ARRAY("ONLINE")));
     }
     else if (attribute == "00080061") // Modalities in Study
     {
         mongo::BSONObj const object = BSON("distinct" << "datasets" <<
                                            "key" << "00080060.Value" <<
-                                           "query" << BSON("0020000d.Value" << value));
+                                           "query" << BSON("0020000d.Value" <<
+                                                           value));
 
         mongo::BSONObj info;
         bool ret = this->_connection.runCommand(this->_db_name,
                                        object, info);
 
-        return BSON(attribute << BSON("vr" << "CS" << "Value" << info["values"]));
+        return BSON(attribute << BSON("vr" << "CS" <<
+                                      "Value" << info["values"]));
     }
     else if (attribute == "00201200") // Number of Patient Related Study
     {
-        unsigned int size = this->_get_count("0020000d", "00100020.Value", value);
+        unsigned int size = this->_get_count("0020000d",
+                                             "00100020.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201202") // Number of Patient Related Series
     {
-        unsigned int size = this->_get_count("0020000e", "00100020.Value", value);
+        unsigned int size = this->_get_count("0020000e",
+                                             "00100020.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201204") // Number of Patient Related Instances
     {
-        unsigned int size = this->_get_count("00080018", "00100020.Value", value);
+        unsigned int size = this->_get_count("00080018",
+                                             "00100020.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201206") // Number of Study Related Series
     {
-        unsigned int size = this->_get_count("0020000e", "0020000d.Value", value);
+        unsigned int size = this->_get_count("0020000e",
+                                             "0020000d.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201208") // Number of Study Related Instances
     {
-        unsigned int size = this->_get_count("00080018", "0020000d.Value", value);
+        unsigned int size = this->_get_count("00080018",
+                                             "0020000d.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
     else if (attribute == "00201209") // Number of Series Related Instances
     {
-        unsigned int size = this->_get_count("00080018", "0020000e.Value", value);
+        unsigned int size = this->_get_count("00080018",
+                                             "0020000e.Value", value);
 
-        return BSON(attribute << BSON("vr" << "IS" << "Value" << BSON_ARRAY(size)));
+        return BSON(attribute << BSON("vr" << "IS" <<
+                                      "Value" << BSON_ARRAY(size)));
     }
 
     return mongo::BSONObj();

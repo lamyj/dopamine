@@ -10,7 +10,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include "boost/regex.hpp"
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctag.h>
 
 #include "ConverterBSON/JSON/BSONToJSON.h"
@@ -37,8 +38,9 @@ check_mandatory_field_in_response(mongo::BSONObj const & response,
 
     // Add Query retrieve level
     mongo::BSONObj queryretrievelevel =
-            BSON("00080052" << BSON("vr" << "CS" <<
-                                    "Value" << BSON_ARRAY(query_retrieve_level)));
+            BSON("00080052" <<
+                 BSON("vr" << "CS" <<
+                      "Value" << BSON_ARRAY(query_retrieve_level)));
     builderfinal.appendElements(queryretrievelevel);
 
     for (Attribute attribute : attributes)
@@ -46,33 +48,43 @@ check_mandatory_field_in_response(mongo::BSONObj const & response,
         if (attribute.get_tag() == "00080052") continue;
         if (!response.hasField(attribute.get_tag()))
         {
-            if (attribute.get_tag() == "00080056") // Instance Availability
+            // Instance Availability
+            if (attribute.get_tag() == "00080056")
             {
-                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), ""));
+                builderfinal.appendElements(
+                            generator.compute_attribute("00080056", ""));
             }
-            else if (attribute.get_tag() == "00080061") // Modalities in Study
+            // Modalities in Study
+            else if (attribute.get_tag() == "00080061")
             {
                 std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
+                        response["0020000d"].Obj()["Value"].Array()[0].String();
+                builderfinal.appendElements(
+                            generator.compute_attribute("00080061", value));
             }
-            else if (attribute.get_tag() == "00201206") // Number of Study Related Series
+            // Number of Study Related Series
+            else if (attribute.get_tag() == "00201206")
             {
                 std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
+                        response["0020000d"].Obj()["Value"].Array()[0].String();
+                builderfinal.appendElements(
+                            generator.compute_attribute("00201206", value));
             }
-            else if (attribute.get_tag() == "00201208") // Number of Study Related Instances
+            // Number of Study Related Instances
+            else if (attribute.get_tag() == "00201208")
             {
                 std::string const value =
-                        response["0020000d"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
+                        response["0020000d"].Obj()["Value"].Array()[0].String();
+                builderfinal.appendElements(
+                            generator.compute_attribute("00201208", value));
             }
-            else if (attribute.get_tag() == "00201209") // Number of Series Related Instances
+            // Number of Series Related Instances
+            else if (attribute.get_tag() == "00201209")
             {
                 std::string const value =
-                        response["0020000e"].Obj().getField("Value").Array()[0].String();
-                builderfinal.appendElements(generator.compute_attribute(attribute.get_tag(), value));
+                        response["0020000e"].Obj()["Value"].Array()[0].String();
+                builderfinal.appendElements(
+                            generator.compute_attribute("00201209", value));
             }
             else
             {
@@ -150,10 +162,10 @@ Qido_rs
     bool isfirst = true;
     while (findedobject.isValid() && !findedobject.isEmpty())
     {
-        findedobject = check_mandatory_field_in_response(findedobject,
-                                                         generator,
-                                                         this->_query_retrieve_level,
-                                                         this->_get_mandatory_fields());
+        findedobject = check_mandatory_field_in_response(
+                            findedobject, generator,
+                            this->_query_retrieve_level,
+                            this->_get_mandatory_fields());
 
         if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
         {
@@ -178,9 +190,13 @@ Qido_rs
             std::string currentdata = bsontoxml.to_string(findedobject);
 
             // The directive xml:space="preserve" shall be included.
-            currentdata = replace(currentdata,
-                                  "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                                  "<?xml version=\"1.0\" encoding=\"utf-8\" xml:space=\"preserve\" ?>");
+            std::stringstream xmlheader;
+            xmlheader << "<?xml version=\"1.0\" "
+                      << "encoding=\"utf-8\" xml:space=\"preserve\" ?>";
+            currentdata = replace(
+                            currentdata,
+                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                            xmlheader.str());
 
             stream << currentdata << "\n\n";
         }
@@ -264,21 +280,23 @@ Qido_rs
 
                                 if (vartemp.size() > 5)
                                 {
-
-                                    throw WebServiceException(400, "Bad Request",
-                                                              "too many parameters");
+                                    throw WebServiceException(
+                                                400, "Bad Request",
+                                                "too many parameters");
                                 }
                             }
                             else
                             {
-                                throw WebServiceException(400, "Bad Request",
-                                                          "third parameter should be instances");
+                                throw WebServiceException(
+                                        400, "Bad Request",
+                                        "third parameter should be instances");
                             }
                         }
                         else
                         {
-                            throw WebServiceException(400, "Bad Request",
-                                                      "third parameter should be instances");
+                            throw WebServiceException(
+                                        400, "Bad Request",
+                                        "third parameter should be instances");
                         }
                     }
                 }
@@ -295,14 +313,16 @@ Qido_rs
                 }
                 else
                 {
-                    throw WebServiceException(400, "Bad Request",
-                                              "second parameter should be series or instances");
+                    throw WebServiceException(
+                            400, "Bad Request",
+                            "second parameter should be series or instances");
                 }
             }
             else
             {
-                throw WebServiceException(400, "Bad Request",
-                                          "second parameter should be series or instances");
+                throw WebServiceException(
+                            400, "Bad Request",
+                            "second parameter should be series or instances");
             }
         }
     }
@@ -328,8 +348,9 @@ Qido_rs
     }
     else
     {
-        throw WebServiceException(400, "Bad Request",
-                                  "first parameter should be studies, series or instances");
+        throw WebServiceException(
+                    400, "Bad Request",
+                    "first parameter should be studies, series or instances");
     }
 
     // Conditions
@@ -338,15 +359,17 @@ Qido_rs
     this->_study_instance_uid_present = study_instance_uid != "";
     if (study_instance_uid != "")
     {
-        db_query << "0020000d" << BSON("vr" << "UI" <<
-                                       "Value" << BSON_ARRAY(study_instance_uid));
+        db_query << "0020000d"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(study_instance_uid));
     }
 
     this->_series_instance_uid_present = series_instance_uid != "";
     if (series_instance_uid != "")
     {
-        db_query << "0020000e" << BSON("vr" << "UI" <<
-                                       "Value" << BSON_ARRAY(series_instance_uid));
+        db_query << "0020000e"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(series_instance_uid));
     }
 
     // Parse the query string
@@ -366,7 +389,8 @@ Qido_rs
         {
             mongo::BSONObjBuilder tempbuilder;
             this->_add_to_builder(tempbuilder, data[1], "");
-            this->_includefields.push_back(tempbuilder.obj().firstElementFieldName());
+            this->_includefields.push_back(
+                        tempbuilder.obj().firstElementFieldName());
         }
         else if (tag == "limit")
         {
@@ -387,11 +411,17 @@ Qido_rs
 
             if (this->_fuzzy_matching)
             {
-                // 6.7.1.2.1 Matching
-                // If the "fuzzymatching=true" query key/value is included in the request and it is not supported,
-                // the response shall include the following HTTP/1.1 Warning header
+                /* 6.7.1.2.1 Matching
+                 * If the "fuzzymatching=true" query key/value is
+                 * included in the request and it is not supported,
+                 * the response shall include the following
+                 * HTTP/1.1 Warning header
+                 */
+                std::stringstream streamerror;
+                streamerror << "The fuzzymatching parameter is not supported. "
+                            << "Only literal matching has been performed.";
                 throw WebServiceException(299, "Warning",
-                                          "The fuzzymatching parameter is not supported. Only literal matching has been performed.");
+                                          streamerror.str());
             }
         }
         else
@@ -403,8 +433,9 @@ Qido_rs
 
     if (!db_query.hasField("00080052"))
     {
-        db_query << "00080052" << BSON("vr" << "CS" <<
-                                       "Value" << BSON_ARRAY(this->_query_retrieve_level));
+        db_query << "00080052"
+                 << BSON("vr" << "CS" <<
+                         "Value" << BSON_ARRAY(this->_query_retrieve_level));
     }
 
     return db_query.obj();
@@ -461,8 +492,10 @@ Qido_rs
                 << BSON("vr" << response.getVR().getVRName() <<
                         "Value" << BSON_ARRAY(BSON("Alphabetic" << value)));
     }
-    else if (response.getVR().getEVR() == EVR_OB || response.getVR().getEVR() == EVR_OF ||
-             response.getVR().getEVR() == EVR_OW || response.getVR().getEVR() == EVR_UN)
+    else if (response.getVR().getEVR() == EVR_OB ||
+             response.getVR().getEVR() == EVR_OF ||
+             response.getVR().getEVR() == EVR_OW ||
+             response.getVR().getEVR() == EVR_UN)
     {
         builder << groupelement.str()
                 << BSON("vr" << response.getVR().getVRName() <<
@@ -530,7 +563,8 @@ Qido_rs
     {
         // tag not already added
         if (std::find(this->_includefields.begin(),
-                      this->_includefields.end(), tag.get_tag()) != this->_includefields.end() ||
+                      this->_includefields.end(),
+                      tag.get_tag()) != this->_includefields.end() ||
             queryobject.hasField(tag.get_tag()))
         {
             continue;

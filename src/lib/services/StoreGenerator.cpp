@@ -9,7 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcmetinf.h>
 #include <dcmtk/dcmnet/dimse.h>
@@ -54,8 +55,9 @@ StoreGenerator
                                  this->_username, Service_Store);
     if ( ! this->_allow )
     {
-        logger_warning() << "User '" << this->_username << "' not allowed to perform "
-                        << Service_Store;
+        logger_warning() << "User '" << this->_username
+                         << "' not allowed to perform "
+                         << Service_Store;
         return STATUS_STORE_Refused_OutOfResources;
     }
 
@@ -67,23 +69,27 @@ StoreGenerator
 
     // Get the SOP Instance UID
     OFString sopinstanceuid;
-    OFCondition condition = this->_dataset->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                                    sopinstanceuid);
+    OFCondition condition =
+            this->_dataset->findAndGetOFStringArray(DCM_SOPInstanceUID,
+                                                    sopinstanceuid);
     if (condition.bad())
     {
         return STATUS_STORE_Refused_OutOfResources;
     }
     mongo::BSONObj const group_command =
             BSON("count" << "datasets" << "query"
-                 << BSON("00080018.Value" << BSON_ARRAY(sopinstanceuid.c_str())));
+                 << BSON("00080018.Value" <<
+                         BSON_ARRAY(sopinstanceuid.c_str())));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name, group_command, info, 0);
+    bool ret = this->_connection.runCommand(this->_db_name,
+                                            group_command, info, 0);
 
     // If an error occurred
     if (!ret || info["ok"].Double() != 1)
     {
-        logger_warning() << "Could not connect to database: " << this->_db_name;
+        logger_warning() << "Could not connect to database: "
+                         << this->_db_name;
         return STATUS_STORE_Refused_OutOfResources;
     }
 

@@ -48,7 +48,8 @@ Or
     }
     
     bool value=false;
-    for(auto it=this->_conditions.begin(); it != this->_conditions.end(); ++it)
+    for(auto it = this->_conditions.begin();
+        it != this->_conditions.end(); ++it)
     {
         value = value || (**it)(element);
         if(value)
@@ -60,7 +61,7 @@ Or
     return value;
 }
 
-void 
+void
 Or
 ::insert_condition(Condition::Pointer condition)
 {

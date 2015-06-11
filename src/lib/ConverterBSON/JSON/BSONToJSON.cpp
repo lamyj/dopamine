@@ -47,7 +47,8 @@ BSONToJSON
             mongo::BSONArrayBuilder arraybuilder;
             for (auto element : element_bson.Array())
             {
-                mongo::BSONObj const tempobject = this->to_json(BSON("data" << element));
+                mongo::BSONObj const tempobject =
+                        this->to_json(BSON("data" << element));
                 arraybuilder << tempobject.getField("data");
             }
             builder << element_bson.fieldName() << arraybuilder.arr();
@@ -59,7 +60,8 @@ BSONToJSON
             int size = 0;
             char const * begin = element_bson.binDataClean(size);
 
-            std::string encode = ConverterBase64::encode(std::string(begin, size));
+            std::string encode =
+                    ConverterBase64::encode(std::string(begin, size));
             builder << element_bson.fieldName() << encode;
         }
         else

@@ -16,7 +16,7 @@ namespace dopamine
 {
     
 /**
- * @brief Base class for PACS Exception
+ * @brief \class Base class for PACS Exception
  */
 class ExceptionPACS: public std::exception
 {
@@ -50,4 +50,3 @@ private:
 } // namespace dopamine
 
 #endif // _180213b0_abe1_4715_83bd_fb22b04d5204
-

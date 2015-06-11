@@ -62,7 +62,8 @@ ConverterBSONDataSet
         std::string const element(
             specific_character_set.substr(current, next-current));
 
-        if (characterset::_dicom_to_iconv.find(element) == characterset::_dicom_to_iconv.end())
+        if (characterset::_dicom_to_iconv.find(element) ==
+            characterset::_dicom_to_iconv.end())
         {
             std::stringstream streamerror;
             streamerror << "Unkown character set: " << element;

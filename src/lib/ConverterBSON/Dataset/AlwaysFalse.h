@@ -20,11 +20,11 @@ namespace converterBSON
 {
 
 /**
- * @brief Always False Condition
+ * @brief \class Always False Condition
  */
 class AlwaysFalse : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<AlwaysFalse> Pointer;
     
     /// Create pointer to new instance of AlwaysFalse
@@ -38,7 +38,8 @@ public :
      * @param element: tested element
      * @return false
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
 protected:
 
@@ -53,4 +54,3 @@ private:
 } // namespace dopamine
 
 #endif // _4acc859b_9d30_43fe_843f_74eab7d3043c
-

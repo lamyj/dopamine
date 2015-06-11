@@ -23,11 +23,11 @@ namespace converterBSON
 {
 
 /**
- * @brief TagMatch Condition
+ * @brief \class TagMatch Condition
  */
 class TagMatch : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<TagMatch> Pointer;
     
     /// Create pointer to new instance of TagMatch
@@ -42,7 +42,8 @@ public :
      * @return true if element's tag match with Searched Tag, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
 
 protected:
     

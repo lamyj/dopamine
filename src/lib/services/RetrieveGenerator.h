@@ -19,7 +19,7 @@ namespace services
 {
 
 /**
- * @brief The RetrieveGenerator class
+ * @brief \class The RetrieveGenerator class
  */
 class RetrieveGenerator : public QueryRetrieveGenerator
 {
@@ -50,10 +50,10 @@ public:
         _generator(generator), _storeprovider(storeprovider) {}
 
     RetrieveGenerator * get_generator() const
-            { return this->_generator; }
+        { return this->_generator; }
 
     StoreSubOperation * get_storeprovider() const
-            { return this->_storeprovider; }
+        { return this->_storeprovider; }
 
 private:
     RetrieveGenerator* _generator;

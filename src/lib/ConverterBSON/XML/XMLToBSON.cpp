@@ -115,8 +115,9 @@ XMLToBSON
 
             bool isempty = true;
             mongo::BSONObjBuilder object_builder;
-            BOOST_FOREACH(boost::property_tree::ptree::value_type &it_component_name,
-                          it_value.second)
+            BOOST_FOREACH(
+                boost::property_tree::ptree::value_type &it_component_name,
+                it_value.second)
             {
                 if (it_component_name.first == "<xmlattr>") {} // ignore it
                 else if (it_component_name.first == Tag_Alphabetic ||
@@ -336,8 +337,9 @@ XMLToBSON
         if (it_value.first == Tag_Value)
         {
             unsigned int number = it_value.second.get<int>(Attribute_Number);
-            values[number-1] = std::make_pair(it_value.second.get_value<Sint32>(),
-                                              it_value.second.empty());
+            values[number-1] =
+                    std::make_pair(it_value.second.get_value<Sint32>(),
+                                   it_value.second.empty());
         }
     }
 
@@ -371,8 +373,9 @@ XMLToBSON
         if (it_value.first == Tag_Value)
         {
             unsigned int number = it_value.second.get<int>(Attribute_Number);
-            values[number-1] = std::make_pair(it_value.second.get_value<Uint32>(),
-                                              it_value.second.empty());
+            values[number-1] =
+                    std::make_pair(it_value.second.get_value<Uint32>(),
+                                   it_value.second.empty());
         }
     }
 
@@ -406,8 +409,9 @@ XMLToBSON
         if (it_value.first == Tag_Value)
         {
             unsigned int number = it_value.second.get<int>(Attribute_Number);
-            values[number-1] = std::make_pair(it_value.second.get_value<TType>(),
-                                              it_value.second.empty());
+            values[number-1] =
+                    std::make_pair(it_value.second.get_value<TType>(),
+                                   it_value.second.empty());
         }
     }
 
@@ -433,7 +437,8 @@ XMLToBSON
     std::string const tag = tree.get<std::string>(Attribute_Tag);
     std::string const vr = tree.get<std::string>(Attribute_VR);
     auto keyword_ = tree.get_optional<std::string>(Attribute_Keyword);
-    auto private_creator_ = tree.get_optional<std::string>(Attribute_PrivateCreator);
+    auto private_creator_ =
+            tree.get_optional<std::string>(Attribute_PrivateCreator);
 
     // TODO: private creator is not yet implement
 
@@ -526,29 +531,65 @@ XMLToBSON
     {
         mongo::BSONArrayBuilder array_builder;
 
-        if      (evr == EVR_AE) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_AS) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_AT) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_CS) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_DA) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_DS) this->_add_value<Float64>(tree, array_builder, count_value_node);
-        else if (evr == EVR_DT) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_FD) this->_add_value<Float64>(tree, array_builder, count_value_node);
-        else if (evr == EVR_FL) this->_add_value<Float32>(tree, array_builder, count_value_node);
-        else if (evr == EVR_IS) this->_add_value<Sint32>(tree, array_builder, count_value_node);
-        else if (evr == EVR_LO) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_LT) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_PN) this->_add_person_name(tree, array_builder, count_personname_node);
-        else if (evr == EVR_SH) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_SL) this->_add_value<Sint32>(tree, array_builder, count_value_node);
-        else if (evr == EVR_SQ) this->_add_sequence(tree, array_builder, count_item_node);
-        else if (evr == EVR_SS) this->_add_value<Sint16>(tree, array_builder, count_value_node);
-        else if (evr == EVR_ST) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_TM) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_UI) this->_add_value<std::string>(tree, array_builder, count_value_node);
-        else if (evr == EVR_UL) this->_add_value<Uint32>(tree, array_builder, count_value_node);
-        else if (evr == EVR_US) this->_add_value<Uint16>(tree, array_builder, count_value_node);
-        else if (evr == EVR_UT) this->_add_value<std::string>(tree, array_builder, count_value_node);
+        if      (evr == EVR_AE) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_AS) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_AT) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_CS) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_DA) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_DS) this->_add_value<Float64>(tree, array_builder,
+                                                          count_value_node);
+        else if (evr == EVR_DT) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_FD) this->_add_value<Float64>(tree, array_builder,
+                                                          count_value_node);
+        else if (evr == EVR_FL) this->_add_value<Float32>(tree, array_builder,
+                                                          count_value_node);
+        else if (evr == EVR_IS) this->_add_value<Sint32>(tree, array_builder,
+                                                         count_value_node);
+        else if (evr == EVR_LO) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_LT) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_PN) this->_add_person_name(tree, array_builder,
+                                                       count_personname_node);
+        else if (evr == EVR_SH) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_SL) this->_add_value<Sint32>(tree, array_builder,
+                                                         count_value_node);
+        else if (evr == EVR_SQ) this->_add_sequence(tree, array_builder,
+                                                    count_item_node);
+        else if (evr == EVR_SS) this->_add_value<Sint16>(tree, array_builder,
+                                                         count_value_node);
+        else if (evr == EVR_ST) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_TM) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_UI) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
+        else if (evr == EVR_UL) this->_add_value<Uint32>(tree, array_builder,
+                                                         count_value_node);
+        else if (evr == EVR_US) this->_add_value<Uint16>(tree, array_builder,
+                                                         count_value_node);
+        else if (evr == EVR_UT) this->_add_value<std::string>(tree,
+                                                              array_builder,
+                                                              count_value_node);
 
         else
         {

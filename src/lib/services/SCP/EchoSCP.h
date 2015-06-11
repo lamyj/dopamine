@@ -18,7 +18,7 @@ namespace services
 {
 
 /**
- * @brief SCP for C-ECHO services
+ * @brief \class SCP for C-ECHO services
  */
 class EchoSCP : public SCP
 {
@@ -38,7 +38,7 @@ public:
     
     /**
      * Send the C-ECHO response
-     * @return EC_Normal if successful, an error code otherwise 
+     * @return EC_Normal if successful, an error code otherwise
      */
     virtual OFCondition process();
 

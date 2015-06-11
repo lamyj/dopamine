@@ -18,7 +18,7 @@ namespace converterBSON
 {
 
 /**
- * @brief The XMLToBSON class
+ * @brief \class The XMLToBSON class
  * Convert a XML object into BSON Object
  */
 class XMLToBSON : public ConverterBSONXML

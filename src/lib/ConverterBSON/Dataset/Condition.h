@@ -19,11 +19,11 @@ namespace dopamine
 {
 
 /**
- * @brief Base class condition
+ * @brief \class Base class condition
  */
 class Condition
 {
-public :
+public:
     typedef boost::shared_ptr<Condition> Pointer;
     
     /// Destroy the instance of Condition
@@ -35,7 +35,8 @@ public :
      * @return true
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS) =0;
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS) = 0;
     
 protected:
     /// Create an instance of Condition

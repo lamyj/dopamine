@@ -18,7 +18,7 @@ namespace converterBSON
 {
 
 /**
- * @brief The BSONToJSON class
+ * @brief \class The BSONToJSON class
  * Convert a BSON Object into JSON object
  */
 class BSONToJSON : public ConverterBSONJSON
@@ -35,14 +35,14 @@ public:
      * @param bson: BSON object to convert
      * @return converted JSON Object
      */
-     mongo::BSONObj to_json(mongo::BSONObj const & bson);
+    mongo::BSONObj to_json(mongo::BSONObj const & bson);
 
-     /**
-      * to_string
-      * @param bson: BSON object to convert
-      * @return converted JSON Object as String
-      */
-      std::string to_string(mongo::BSONObj const & bson);
+    /**
+     * to_string
+     * @param bson: BSON object to convert
+     * @return converted JSON Object as String
+     */
+    std::string to_string(mongo::BSONObj const & bson);
 
 protected:
 

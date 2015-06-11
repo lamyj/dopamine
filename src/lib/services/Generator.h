@@ -11,7 +11,8 @@
 
 #include <string>
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/ofstd/oftypes.h>
 #include <dcmtk/dcmdata/dcdatset.h>
 
@@ -24,7 +25,7 @@ namespace services
 {
 
 /**
- * @brief The Generator class
+ * @brief \class The Generator class
  * Base class for all response generator
  */
 class Generator
@@ -101,16 +102,18 @@ protected:
 
 
     /// @brief Type of DICOM query -> MongoDB query conversion functions.
-    typedef void (Self::*DicomQueryToMongoQuery)(std::string const & field,
-                                                 std::string const & vr,
-                                                 mongo::BSONElement const & value,
-                                                 mongo::BSONObjBuilder & builder) const;
+    typedef void (Self::*DicomQueryToMongoQuery)(
+                        std::string const & field,
+                        std::string const & vr,
+                        mongo::BSONElement const & value,
+                        mongo::BSONObjBuilder & builder) const;
 
     /**
      * @brief Return the DICOM query -> MongoDB query conversion function
      *        corresponding to the specified match type.
      */
-    DicomQueryToMongoQuery _get_query_conversion(Match::Type const & match_type) const;
+    DicomQueryToMongoQuery _get_query_conversion(
+                        Match::Type const & match_type) const;
 
 private:
 

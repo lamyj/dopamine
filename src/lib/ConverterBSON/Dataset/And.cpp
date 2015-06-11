@@ -58,7 +58,7 @@ And
     return value;
 }
 
-void 
+void
 And
 ::insert_condition(Condition::Pointer condition)
 {

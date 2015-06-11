@@ -18,7 +18,7 @@ namespace services
 {
     
 /**
- * @brief SCP for C-FIND services
+ * @brief \class SCP for C-FIND services
  */
 class FindSCP : public services::SCP
 {
@@ -38,7 +38,7 @@ public:
     
     /**
      * Send the C-FIND response
-     * @return EC_Normal if successful, an error code otherwise 
+     * @return EC_Normal if successful, an error code otherwise
      */
     virtual OFCondition process();
 

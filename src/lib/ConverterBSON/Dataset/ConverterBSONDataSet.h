@@ -19,7 +19,8 @@ namespace converterBSON
 {
 
 /**
- * @brief Base class to Convert Bson to Dataset or Dataset to Bson
+ * @brief \class Base class to Convert Bson to Dataset or
+ * Dataset to Bson
  */
 class ConverterBSONDataSet
 {
@@ -40,7 +41,8 @@ public:
      * Set Specific character set
      * @param specific_character_set: new character set
      */
-    virtual void set_specific_character_set(std::string const & specific_character_set);
+    virtual void set_specific_character_set(
+            std::string const & specific_character_set);
 
 protected:
     /// Character Set

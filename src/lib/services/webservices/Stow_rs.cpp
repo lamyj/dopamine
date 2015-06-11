@@ -11,7 +11,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcistrmb.h>
@@ -43,8 +44,9 @@ Stow_rs
 {
     // First add unreferenced DICOM Tag
     DcmDataDictionary &dictionary = dcmDataDict.wrlock();
-    dictionary.addEntry(new DcmDictEntry(0x0008, 0x1190, DcmVR("UT"), "RetrieveURL",
-                                         1, 1, NULL, OFTrue, NULL));
+    dictionary.addEntry(new DcmDictEntry(0x0008, 0x1190, DcmVR("UT"),
+                                         "RetrieveURL", 1, 1, NULL,
+                                         OFTrue, NULL));
     dcmDataDict.unlock();
 
     // Decode entries
@@ -132,8 +134,9 @@ Stow_rs
 
     if (study_instance_uid != "")
     {
-        db_query << "0020000d" << BSON("vr" << "UI" <<
-                                       "Value" << BSON_ARRAY(study_instance_uid));
+        db_query << "0020000d"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(study_instance_uid));
     }
 
     return db_query.obj();
@@ -190,7 +193,8 @@ Stow_rs
     this->_content_type = this->_find_content_type(h.contentType().str());
 
     DcmDataset responseDataset;
-    OFCondition condition = responseDataset.insertEmptyElement(DCM_RetrieveURL, true);
+    OFCondition condition =
+            responseDataset.insertEmptyElement(DCM_RetrieveURL, true);
     if (condition.bad())
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
@@ -202,7 +206,8 @@ Stow_rs
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
     }
-    condition = responseDataset.findAndGetSequence(DCM_FailedSOPSequence, failedsopsequence);
+    condition = responseDataset.findAndGetSequence(DCM_FailedSOPSequence,
+                                                   failedsopsequence);
     if (condition.bad())
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
@@ -214,13 +219,14 @@ Stow_rs
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
     }
-    condition = responseDataset.findAndGetSequence(DCM_ReferencedSOPSequence, referencedsopsequence);
+    condition = responseDataset.findAndGetSequence(DCM_ReferencedSOPSequence,
+                                                   referencedsopsequence);
     if (condition.bad())
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
     }
 
-    mimetic::MimeEntityList& parts = entity.body().parts(); // list of sub entities obj
+    mimetic::MimeEntityList& parts = entity.body().parts();
     // cycle on sub entities list and print info of every item
     for(mimetic::MimeEntityList::iterator mbit = parts.begin();
         mbit != parts.end(); ++mbit)
@@ -235,8 +241,10 @@ Stow_rs
         {
             // ERROR: add an item into failedsopsequence
             item->putAndInsertUint16(DCM_FailureReason, 0x0110, 0);
-            item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID, OFString("Unknown"));
-            item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID, OFString("Unknown"));
+            item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID,
+                                            OFString("Unknown"));
+            item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
+                                            OFString("Unknown"));
 
             failedsopsequence->append(item);
             continue;
@@ -276,8 +284,10 @@ Stow_rs
             {
                 // ERROR: add an item into failedsopsequence
                 item->putAndInsertUint16(DCM_FailureReason, 0xa700, 0);
-                item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID, OFString("Unknown"));
-                item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID, OFString("Unknown"));
+                item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID,
+                                                OFString("Unknown"));
+                item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
+                                                OFString("Unknown"));
 
                 failedsopsequence->append(item);
                 continue;
@@ -291,7 +301,8 @@ Stow_rs
         dataset->findAndGetOFStringArray(DCM_SOPInstanceUID, sopinstanceuid);
 
         item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID, sopclassuid);
-        item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID, sopinstanceuid);
+        item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
+                                        sopinstanceuid);
 
         // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
@@ -301,7 +312,9 @@ Stow_rs
         {
             OFString studyuid;
             dataset->findAndGetOFStringArray(DCM_StudyInstanceUID, studyuid);
-            if (studyinstanceuid["0020000d"].Obj()["Value"].Array()[0].String() != std::string(studyuid.c_str()))
+            mongo::BSONObj const studyobj = studyinstanceuid["0020000d"].Obj();
+            if (studyobj["Value"].Array()[0].String() !=
+                std::string(studyuid.c_str()))
             {
                 result = 0xa700;
             }
@@ -372,7 +385,8 @@ Stow_rs
 
     // Transfert DcmDataset into XML
     converterBSON::DataSetToBSON datasettobson;
-    datasettobson.set_default_filter(converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    datasettobson.set_default_filter(
+                converterBSON::DataSetToBSON::FilterAction::INCLUDE);
     mongo::BSONObj bsondataset = datasettobson.from_dataset(&responseDataset);
     converterBSON::BSONToXML bsontoxml;
     this->_response = bsontoxml.to_string(bsondataset);

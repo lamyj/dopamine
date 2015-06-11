@@ -21,29 +21,29 @@ namespace dopamine
 namespace converterBSON
 {
 
-const std::string Attribute_Keyword         = "<xmlattr>.keyword";
-const std::string Attribute_Number          = "<xmlattr>.number";
-const std::string Attribute_PrivateCreator  = "<xmlattr>.privateCreator";
-const std::string Attribute_Tag             = "<xmlattr>.tag";
-const std::string Attribute_VR              = "<xmlattr>.vr";
-const std::string Tag_Alphabetic            = "Alphabetic";
-const std::string Tag_BulkData              = "BulkData";
-const std::string Tag_DicomAttribute        = "DicomAttribute";
-const std::string Tag_FamilyName            = "FamilyName";
-const std::string Tag_GivenName             = "GivenName";
-const std::string Tag_Ideographic           = "Ideographic";
-const std::string Tag_InlineBinary          = "InlineBinary";
-const std::string Tag_Item                  = "Item";
-const std::string Tag_MiddleName            = "MiddleName";
-const std::string Tag_NamePrefix            = "NamePrefix";
-const std::string Tag_NameSuffix            = "NameSuffix";
-const std::string Tag_NativeDicomModel      = "NativeDicomModel";
-const std::string Tag_PersonName            = "PersonName";
-const std::string Tag_Phonetic              = "Phonetic";
-const std::string Tag_Value                 = "Value";
+std::string const Attribute_Keyword         = "<xmlattr>.keyword";
+std::string const Attribute_Number          = "<xmlattr>.number";
+std::string const Attribute_PrivateCreator  = "<xmlattr>.privateCreator";
+std::string const Attribute_Tag             = "<xmlattr>.tag";
+std::string const Attribute_VR              = "<xmlattr>.vr";
+std::string const Tag_Alphabetic            = "Alphabetic";
+std::string const Tag_BulkData              = "BulkData";
+std::string const Tag_DicomAttribute        = "DicomAttribute";
+std::string const Tag_FamilyName            = "FamilyName";
+std::string const Tag_GivenName             = "GivenName";
+std::string const Tag_Ideographic           = "Ideographic";
+std::string const Tag_InlineBinary          = "InlineBinary";
+std::string const Tag_Item                  = "Item";
+std::string const Tag_MiddleName            = "MiddleName";
+std::string const Tag_NamePrefix            = "NamePrefix";
+std::string const Tag_NameSuffix            = "NameSuffix";
+std::string const Tag_NativeDicomModel      = "NativeDicomModel";
+std::string const Tag_PersonName            = "PersonName";
+std::string const Tag_Phonetic              = "Phonetic";
+std::string const Tag_Value                 = "Value";
 
 /**
- * @brief The ConverterBSONXML class
+ * @brief \class The ConverterBSONXML class
  * Base class for converter BSON <-> XML
  */
 class ConverterBSONXML

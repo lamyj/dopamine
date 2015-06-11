@@ -18,7 +18,7 @@ namespace services
 {
 
 /**
- * @brief The QueryRetrieveGenerator class
+ * @brief \class The QueryRetrieveGenerator class
  */
 class QueryRetrieveGenerator : public Generator
 {

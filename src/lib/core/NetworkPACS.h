@@ -38,7 +38,7 @@ enum CTN_RefuseReason
 };
 
 /**
- * @brief Class to create and manage a Network
+ * @brief \class to create and manage a Network
  */
 class NetworkPACS
 {
@@ -98,15 +98,16 @@ public:
     std::string const & get_db_name() const { return this->_db_name; }
 
 protected:
-    /** perform association negotiation for an incoming A-ASSOCIATE request based
-     *  on the SCP configuration and option flags. No A-ASSOCIATE response is generated,
-     *  this is left to the caller.
+    /** perform association negotiation for an incoming A-ASSOCIATE request
+     *  based on the SCP configuration and option flags.
+     *  No A-ASSOCIATE response is generated, this is left to the caller.
      *  @param assoc incoming association
      *  @return EC_Normal if successful, an error code otherwise
      */
     OFCondition _negotiate_association(T_ASC_Association * assoc);
   
-    void _refuse_association(T_ASC_Association ** assoc, CTN_RefuseReason reason);
+    void _refuse_association(T_ASC_Association ** assoc,
+                             CTN_RefuseReason reason);
     
     void _handle_association(T_ASC_Association * assoc);
 

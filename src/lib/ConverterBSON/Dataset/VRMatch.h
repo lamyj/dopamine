@@ -23,11 +23,11 @@ namespace converterBSON
 {
 
 /**
- * @brief VRMatch Condition
+ * @brief \class VRMatch Condition
  */
 class VRMatch : public Condition
 {
-public :
+public:
     typedef boost::shared_ptr<VRMatch> Pointer;
     
     /// Create pointer to new instance of VRMatch
@@ -42,7 +42,8 @@ public :
      * @return true if element's VR match with Searched VR, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element) const throw(dopamine::ExceptionPACS);
+    virtual bool operator()(DcmElement * element)
+            const throw(dopamine::ExceptionPACS);
     
 protected:
 

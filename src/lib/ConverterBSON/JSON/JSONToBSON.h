@@ -18,7 +18,7 @@ namespace converterBSON
 {
 
 /**
- * @brief The JSONToBSON class
+ * @brief \class The JSONToBSON class
  * Convert JSON Object into BSON Object
  */
 class JSONToBSON : public ConverterBSONJSON

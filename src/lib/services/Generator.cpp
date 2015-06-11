@@ -87,14 +87,22 @@ Generator
         }
     }
 
-    if      (vr == "DS") this->_add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FD") this->_add_value_to_builder<Float64>(builder, field, value.String());
-    else if (vr == "FL") this->_add_value_to_builder<Float32>(builder, field, value.String());
-    else if (vr == "IS") this->_add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SL") this->_add_value_to_builder<Sint32>(builder, field, value.String());
-    else if (vr == "SS") this->_add_value_to_builder<Sint16>(builder, field, value.String());
-    else if (vr == "UL") this->_add_value_to_builder<Uint32>(builder, field, value.String());
-    else if (vr == "US") this->_add_value_to_builder<Uint16>(builder, field, value.String());
+    if      (vr == "DS") this->_add_value_to_builder<Float64>(builder, field,
+                                                              value.String());
+    else if (vr == "FD") this->_add_value_to_builder<Float64>(builder, field,
+                                                              value.String());
+    else if (vr == "FL") this->_add_value_to_builder<Float32>(builder, field,
+                                                              value.String());
+    else if (vr == "IS") this->_add_value_to_builder<Sint32>(builder, field,
+                                                             value.String());
+    else if (vr == "SL") this->_add_value_to_builder<Sint32>(builder, field,
+                                                             value.String());
+    else if (vr == "SS") this->_add_value_to_builder<Sint16>(builder, field,
+                                                             value.String());
+    else if (vr == "UL") this->_add_value_to_builder<Uint32>(builder, field,
+                                                             value.String());
+    else if (vr == "US") this->_add_value_to_builder<Uint16>(builder, field,
+                                                             value.String());
     else
     {
         builder << field << value.String();
@@ -111,8 +119,8 @@ Generator
 {
     mongo::BSONArrayBuilder or_builder;
     std::vector<mongo::BSONElement> const or_terms = value.Array();
-    for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
-        or_it!=or_terms.end(); ++or_it)
+    for(std::vector<mongo::BSONElement>::const_iterator or_it = or_terms.begin();
+        or_it != or_terms.end(); ++or_it)
     {
         or_builder << BSON(field << (*or_it));
     }
@@ -218,12 +226,13 @@ Generator
 {
     mongo::BSONArrayBuilder or_builder;
     std::vector<mongo::BSONElement> or_terms = value.Array();
-    for(std::vector<mongo::BSONElement>::const_iterator or_it=or_terms.begin();
-        or_it!=or_terms.end(); ++or_it)
+    for(std::vector<mongo::BSONElement>::const_iterator or_it = or_terms.begin();
+        or_it != or_terms.end(); ++or_it)
     {
         Match::Type const match_type = this->_get_match_type(vr, *or_it);
 
-        DicomQueryToMongoQuery function = this->_get_query_conversion(match_type);
+        DicomQueryToMongoQuery function =
+                this->_get_query_conversion(match_type);
         mongo::BSONObjBuilder term_builder;
         (this->*function)(field, vr, *or_it, term_builder);
 
@@ -309,7 +318,8 @@ Generator
             vr != "OB" && vr != "OF" && vr != "OW" && vr != "UN" &&
             vr != "DS" && vr != "US" &&
             vr != "UI");
-        if(element.type() == mongo::String || (element.type() == mongo::Object && vr == "PN"))
+        if(element.type() == mongo::String ||
+           (element.type() == mongo::Object && vr == "PN"))
         {
             std::string value;
             if (element.type() == mongo::Object && vr == "PN")
@@ -321,7 +331,8 @@ Generator
                 value = element.String();
             }
             // Not a date or time, no wildcard AND date or time, no range
-            if(!(!is_date_or_time && value.find_first_of("?*") != std::string::npos) &&
+            if(!(!is_date_or_time &&
+                 value.find_first_of("?*") != std::string::npos) &&
                !(is_date_or_time && value.find('-') != std::string::npos))
             {
                 // C.2.2.2.1 Single Value Matching
@@ -331,7 +342,8 @@ Generator
                 //   or datetime with not "-"
                 type = Match::SingleValue;
             }
-            else if(has_wildcard_matching && value.find_first_of("?*") != std::string::npos)
+            else if(has_wildcard_matching &&
+                    value.find_first_of("?*") != std::string::npos)
             {
                 // C.2.2.2.4 Wild Card Matching
                 // Not a date, time, datetime, SL, SL, UL, US, FL, FD, OB,

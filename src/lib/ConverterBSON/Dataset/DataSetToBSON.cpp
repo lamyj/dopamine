@@ -69,7 +69,8 @@ DataSetToBSON
     while(NULL != (it = dataset->nextInContainer(it)))
     {
         FilterAction::Type action = FilterAction::UNKNOWN;
-        for(std::vector<Filter>::const_iterator filters_it=this->_filters.begin();
+        for(std::vector<Filter>::const_iterator filters_it =
+            this->_filters.begin();
             filters_it != this->_filters.end(); ++filters_it)
         {
             Condition const & condition = *(filters_it->first);
@@ -100,7 +101,8 @@ DataSetToBSON
             if (condition.bad())
             {
                 std::stringstream stream;
-                stream << "Cannot find specific character set: " << condition.text();
+                stream << "Cannot find specific character set: "
+                       << condition.text();
                 throw dopamine::ExceptionPACS(stream.str());
             }
             this->set_specific_character_set(value);
@@ -397,15 +399,17 @@ DataSetToBSON::_to_bson_text(
 
                 for (unsigned int i = 0; i < name_components.size(); ++i)
                 {
-                    values.push_back(characterset::convert_to_utf8(name_components[i],
-                                                                   this->_specific_character_sets,
-                                                                   i));
+                    values.push_back(characterset::convert_to_utf8(
+                                         name_components[i],
+                                         this->_specific_character_sets,
+                                         i));
                 }
             }
             else
             {
-                values.push_back(characterset::convert_to_utf8(std::string(value.c_str()),
-                                                               this->_specific_character_sets));
+                values.push_back(characterset::convert_to_utf8(
+                                     std::string(value.c_str()),
+                                     this->_specific_character_sets));
             }
         }
         else
@@ -457,7 +461,8 @@ DataSetToBSON
 ::_to_bson_binary(DcmElement * element,
                   mongo::BSONObjBuilder & builder) const
 {
-    DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
+    DcmOtherByteOtherWord* byte_string =
+            dynamic_cast<DcmOtherByteOtherWord*>(element);
     if(element->getVR() == EVR_OF || byte_string != NULL)
     {
         void* begin(NULL);
@@ -515,14 +520,16 @@ DataSetToBSON
 
     if(vr == EVR_SQ)
     {
-        DcmSequenceOfItems * sequence = dynamic_cast<DcmSequenceOfItems*>(element);
+        DcmSequenceOfItems * sequence =
+                dynamic_cast<DcmSequenceOfItems*>(element);
         mongo::BSONArrayBuilder sequence_builder;
 
         DcmObject * sequence_it = NULL;
         while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
             DataSetToBSON converter;
-            converter.set_specific_character_set(this->get_specific_character_set());
+            converter.set_specific_character_set(
+                        this->get_specific_character_set());
             sequence_builder.append(converter.from_dataset(sequence_it));
         }
         value_builder << "Value" << sequence_builder.arr();
@@ -607,7 +614,9 @@ DataSetToBSON
         // default
         else
         {
-            throw std::runtime_error(std::string("Unhandled VR:") + DcmVR(vr).getValidVRName());
+            std::stringstream streamerror;
+            streamerror << "Unhandled VR: " << DcmVR(vr).getValidVRName();
+            throw std::runtime_error(streamerror.str());
         }
     }
 

@@ -66,13 +66,15 @@ Wado_rs
             throw WebServiceException(500, "Internal Server Error", exc.what());
         }
 
-        std::string const filename = findedobject.getField("00080018").Obj().getField("Value").Array()[0].String();
+        std::string const filename =
+                findedobject["00080018"].Obj()["Value"].Array()[0].String();
 
         stream << "--" << this->_boundary << "\n";
         stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
         stream << CONTENT_DISPOSITION_ATTACHMENT << " "
                << ATTRIBUT_FILENAME << filename << "\n";
-        stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY << "\n" << "\n";
+        stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY
+               << "\n" << "\n";
 
         stream << currentdata << "\n" << "\n";
 
@@ -150,8 +152,9 @@ Wado_rs
             {
                 if (vartemp[4] != "instances")
                 {
-                    throw WebServiceException(400, "Bad Request",
-                                              "third parameter should be instances");
+                    throw WebServiceException(
+                                400, "Bad Request",
+                                "third parameter should be instances");
                 }
 
                 if (vartemp.size() < 6 || vartemp[5] == "")
@@ -177,22 +180,32 @@ Wado_rs
 
     if (sop_instance_uid != "")
     {
-        db_query << "00080018" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(sop_instance_uid));
+        db_query << "00080018"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(sop_instance_uid));
     }
 
     if (study_instance_uid != "")
     {
-        db_query << "0020000d" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(study_instance_uid));
+        db_query << "0020000d"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(study_instance_uid));
     }
 
     if (series_instance_uid != "")
     {
-        db_query << "0020000e" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(series_instance_uid));
+        db_query << "0020000e"
+                 << BSON("vr" << "UI" <<
+                         "Value" << BSON_ARRAY(series_instance_uid));
     }
 
-    std::string query_retrieve_level = sop_instance_uid != "" ? "IMAGE" :
-                                       series_instance_uid != "" ? "SERIES" : "STUDY";
-    db_query << "00080052" << BSON("vr" << "CS" << "Value" << BSON_ARRAY(query_retrieve_level));
+    std::string const query_retrieve_level =
+            sop_instance_uid != "" ? "IMAGE" :
+                                     series_instance_uid != "" ? "SERIES" :
+                                                                 "STUDY";
+    db_query << "00080052"
+             << BSON("vr" << "CS" <<
+                     "Value" << BSON_ARRAY(query_retrieve_level));
 
     return db_query.obj();
 }

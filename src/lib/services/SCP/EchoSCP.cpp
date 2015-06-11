@@ -32,7 +32,7 @@ EchoSCP
     // nothing to do
 }
 
-OFCondition 
+OFCondition
 EchoSCP
 ::process()
 {
@@ -49,12 +49,14 @@ EchoSCP
 
     if (connection_state)
     {
-        std::string const username = get_username(this->_association->params->DULparams.reqUserIdentNeg);
+        std::string const username = get_username(
+                    this->_association->params->DULparams.reqUserIdentNeg);
 
         // Look for user authorization
         if ( ! is_authorized(connection, db_name, username, Service_Echo) )
         {
-            status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+            // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+            status = 0xa700;
             logger_warning() << "User not allowed to perform ECHO";
 
             create_status_detail(0xa700, DCM_UndefinedTagKey,
@@ -64,7 +66,8 @@ EchoSCP
     }
     else
     {
-        status = 0xa700; // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+        // no echo status defined, used STATUS_STORE_Refused_OutOfResources
+        status = 0xa700;
         logger_warning() << "Could not connect to database: " << db_name;
 
         create_status_detail(0xa700, DCM_UndefinedTagKey,
@@ -75,7 +78,7 @@ EchoSCP
     // Send the response
     return DIMSE_sendEchoResponse(this->_association,
                                   this->_presentation_context_id,
-                                  this->_request, 
+                                  this->_request,
                                   status, details);
 }
 

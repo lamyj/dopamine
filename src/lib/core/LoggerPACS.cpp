@@ -14,7 +14,8 @@ namespace dopamine
 void
 initialize_logger(std::string const & priority)
 {
-    log4cpp::Appender *appender1 = new log4cpp::OstreamAppender("console", &std::cout);
+    log4cpp::Appender *appender1 =
+            new log4cpp::OstreamAppender("console", &std::cout);
     appender1->setLayout(new log4cpp::BasicLayout());
 
     log4cpp::Category& root = log4cpp::Category::getRoot();

@@ -9,9 +9,6 @@
 #ifndef _137519da_5031_4188_b52f_b1a3616696c5
 #define _137519da_5031_4188_b52f_b1a3616696c5
 
-#include <dcmtk/config/osconfig.h> /* make sure OS specific configuration is included first */
-#include <dcmtk/dcmdata/dcdatset.h>
-
 #include "services/Generator.h"
 
 namespace dopamine
@@ -21,7 +18,7 @@ namespace services
 {
 
 /**
- * @brief The StoreGenerator class
+ * @brief \class The StoreGenerator class
  */
 class StoreGenerator : public Generator
 {

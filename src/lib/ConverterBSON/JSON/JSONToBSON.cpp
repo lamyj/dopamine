@@ -50,13 +50,15 @@ JSONToBSON
             mongo::BSONArrayBuilder arraybuilder;
             for (auto element : element_bson.Array())
             {
-                mongo::BSONObj const tempobject = this->from_json(BSON("data" << element));
+                mongo::BSONObj const tempobject =
+                        this->from_json(BSON("data" << element));
                 arraybuilder << tempobject.getField("data");
             }
             builder << element_bson.fieldName() << arraybuilder.arr();
         }
         else if (element_bson.type() == mongo::String &&
-                 std::string(element_bson.fieldName()) == std::string("InlineBinary"))
+                 std::string(element_bson.fieldName()) ==
+                    std::string("InlineBinary"))
         {
             // Transform Base64String field into Binary
 

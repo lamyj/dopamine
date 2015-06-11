@@ -61,11 +61,11 @@ BSONToDataSet
 
         // Skip elements that do not look like DICOM tags
         std::string const field_name = element_bson.fieldName();
-        bool skip_field = (field_name.size()!=8);
+        bool skip_field = (field_name.size() != 8);
         if(!skip_field)
         {
             for(std::string::const_iterator field_name_it=field_name.begin();
-                field_name_it!=field_name.end(); ++field_name_it)
+                field_name_it != field_name.end(); ++field_name_it)
             {
                 if(!((*field_name_it>='0' && *field_name_it<='9') ||
                      (*field_name_it>='a' && *field_name_it<='f') ||
@@ -134,7 +134,8 @@ BSONToDataSet
         arraybuilder << tag.getGroup() << tag.getElement();
     }
 
-    this->_to_binary<Uint16, int>(BSON("data" << arraybuilder.arr()).getField("data"),
+    this->_to_binary<Uint16, int>(BSON("data" <<
+                                       arraybuilder.arr()).getField("data"),
                                   &mongo::BSONElement::Int,
                                   dataset, tag, &DcmElement::putUint16Array);
 }
@@ -182,7 +183,8 @@ BSONToDataSet
                     DcmTag const & tag) const
 {
     this->_to_binary<Float64, double>(bson, &mongo::BSONElement::Double,
-                                      dataset, tag, &DcmElement::putFloat64Array);
+                                      dataset, tag,
+                                      &DcmElement::putFloat64Array);
 }
 
 template<>
@@ -192,7 +194,8 @@ BSONToDataSet
                     DcmTag const & tag) const
 {
     this->_to_binary<Float32, double>(bson, &mongo::BSONElement::Double,
-                                      dataset, tag, &DcmElement::putFloat32Array);
+                                      dataset, tag,
+                                      &DcmElement::putFloat32Array);
 }
 
 template<>
@@ -263,7 +266,8 @@ BSONToDataSet
         {
             streamname << value.Obj().getField("Alphabetic").String();
         }
-        if (value.Obj().hasField("Ideographic") || value.Obj().hasField("Phonetic"))
+        if (value.Obj().hasField("Ideographic") ||
+            value.Obj().hasField("Phonetic"))
         {
             // Add separation
             streamname << "=";
@@ -285,7 +289,8 @@ BSONToDataSet
         arraybuilder << streamname.str();
     }
 
-    this->_to_text(BSON("data" << arraybuilder.arr()).getField("data"), true, ' ', dataset, tag);
+    this->_to_text(BSON("data" << arraybuilder.arr()).getField("data"),
+                   true, ' ', dataset, tag);
 }
 
 template<>
@@ -419,7 +424,8 @@ BSONToDataSet
     {
         element = object.getField("Value");
     }
-    if(!element.isNull() && ((element.type() == mongo::BSONType::Array && element.Array().size() != 0) ||
+    if(!element.isNull() && ((element.type() == mongo::BSONType::Array &&
+                              element.Array().size() != 0) ||
                               element.type() == mongo::BSONType::BinData))
     {
         if(evr == EVR_SQ)
@@ -433,17 +439,23 @@ BSONToDataSet
                 if (!subelement.isNull())
                 {
                     BSONToDataSet converter;
-                    converter.set_specific_character_set(this->get_specific_character_set());
-                    DcmDataset itemdataset = converter.to_dataset(subelement.Obj());
+                    converter.set_specific_character_set(
+                                this->get_specific_character_set());
+                    DcmDataset itemdataset =
+                            converter.to_dataset(subelement.Obj());
 
                     item = new DcmItem(itemdataset);
                 }
 
-                OFCondition condition = dataset.insertSequenceItem(tag, item, -2); // -2 = create new
+                OFCondition condition =
+                        dataset.insertSequenceItem(tag,
+                                                   item,
+                                                   -2); // -2 = create new
                 if (condition.bad())
                 {
                     std::stringstream streamerror;
-                    streamerror << "Cannot insert sequence '" << tag.toString().c_str()
+                    streamerror << "Cannot insert sequence '"
+                                << tag.toString().c_str()
                                 << "': " << condition.text();
                     throw ExceptionPACS(streamerror.str());
                 }
@@ -452,37 +464,64 @@ BSONToDataSet
         else
         {
             if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(element, dataset, tag);
-            else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(element, dataset, tag);
-            else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(element, dataset, tag);
-            else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(element, dataset, tag);
-            else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(element, dataset, tag);
-            else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(element, dataset, tag);
-            else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(element, dataset, tag);
-            else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(element, dataset, tag);
-            else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(element, dataset, tag);
-            else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(element, dataset, tag);
-            else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(element, dataset, tag);
-            else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(element, dataset, tag);
-            else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(element, dataset, tag);
-            else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(element, dataset, tag);
-            else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(element, dataset, tag);
-            else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(element, dataset, tag);
-            else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(element, dataset, tag);
+            else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(element,
+                                                           dataset, tag);
             // // SQ is not processed here
-            else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(element, dataset, tag);
-            else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(element, dataset, tag);
-            else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(element, dataset, tag);
-            else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(element, dataset, tag);
-            else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(element, dataset, tag);
-            else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(element, dataset, tag);
-            else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(element, dataset, tag);
-            else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(element, dataset, tag);
-            else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(element, dataset, tag);
+            else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(element,
+                                                           dataset, tag);
+            else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(element,
+                                                           dataset, tag);
             
             // default
             else
             {
-                throw std::runtime_error(std::string("Unhandled VR:") + vr.getValidVRName());
+                std::stringstream streamerror;
+                streamerror << "Unhandled VR: " << vr.getValidVRName();
+                throw std::runtime_error(streamerror.str());
             }
         }
     }
@@ -501,7 +540,8 @@ BSONToDataSet
 
     OFString value;
 
-    std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
+    std::vector<mongo::BSONElement>::const_iterator const last_it =
+            --elements.end();
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
         it != elements.end(); ++it)
     {
@@ -515,7 +555,7 @@ BSONToDataSet
         }
     }
 
-    if(value.size()%2!=0)
+    if(value.size() % 2 != 0)
     {
         value += padding;
     }
@@ -551,7 +591,8 @@ BSONToDataSet
         {
             // InsertEmptyElement cannot process with VR = "xs"
             // GetValidEVR => return "US" or "SS"
-            DcmTag tagtemp(tag.getGroup(), tag.getElement(), tag.getVR().getValidEVR());
+            DcmTag tagtemp(tag.getGroup(), tag.getElement(),
+                           tag.getVR().getValidEVR());
             condition = dataset.insertEmptyElement(tagtemp);
         }
 
@@ -601,11 +642,9 @@ BSONToDataSet
     OFCondition condition = EC_Normal;
     if (tag.getEVR() == EVR_OF)
     {
-        // Warning: loss of information if the size of the input buffer is not a multiple of 4
+        // Warning: loss of information if the size of the input buffer
+        // is not a multiple of 4
         int newsize = size / sizeof(Float32);
-        //if (size % sizeof(Float32) != 0) newsize += (sizeof(Float32) - (size % sizeof(Float32)));
-        //char * newbegin = new char[newsize];
-        //strncpy(newbegin, begin, size);
 
         DcmElement * element = NULL;
         if (condition.good())
@@ -618,20 +657,19 @@ BSONToDataSet
         }
         if (condition.good())
         {
-            element->putFloat32Array(reinterpret_cast<Float32 const *>(begin), newsize);
+            element->putFloat32Array(reinterpret_cast<Float32 const *>(begin),
+                                     newsize);
         }
     }
     else if (tag.getEVR() == EVR_OW)
     {
-        condition = dataset.putAndInsertUint16Array(tag,
-                                                    reinterpret_cast<Uint16 const *>(begin),
-                                                    size/2);
+        condition = dataset.putAndInsertUint16Array(
+                    tag, reinterpret_cast<Uint16 const *>(begin), size/2);
     }
     else // if (tag.getEVR() == EVR_OB || EVR_UN)
     {
-        condition = dataset.putAndInsertUint8Array(tag,
-                                                   reinterpret_cast<Uint8 const *>(begin),
-                                                   size);
+        condition = dataset.putAndInsertUint8Array(
+                    tag, reinterpret_cast<Uint8 const *>(begin), size);
     }
 
     if (condition.bad())
@@ -653,8 +691,9 @@ BSONToDataSet
 
     std::vector<mongo::BSONElement> const elements = bson.Array();
 
-    std::vector<mongo::BSONElement>::const_iterator const last_it = --elements.end();
-    for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
+    std::vector<mongo::BSONElement>::const_iterator const last_it =
+            --elements.end();
+    for(std::vector<mongo::BSONElement>::const_iterator it = elements.begin();
         it != elements.end(); ++it)
     {
         if(it->type() == mongo::NumberDouble)
@@ -681,7 +720,7 @@ BSONToDataSet
     
     OFString value(stream.str().c_str());
 
-    if(value.size()%2!=0)
+    if(value.size() % 2 != 0)
     {
         value += ' ';
     }

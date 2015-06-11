@@ -19,27 +19,30 @@ int main(int argc, char** argv)
         NetworkConfFILE = std::string(conffile);
     }
     // Read configuration file
+    dopamine::ConfigurationPACS& configuration =
+            dopamine::ConfigurationPACS::get_instance();
+    std::string const localconf = "../../../configuration/dopamine_conf.ini";
     if (NetworkConfFILE != "")
     {
-        dopamine::ConfigurationPACS::get_instance().parse(NetworkConfFILE);
+        configuration.parse(NetworkConfFILE);
     }
-    else if (boost::filesystem::exists(boost::filesystem::path("../../../configuration/dopamine_conf.ini")))
+    else if (boost::filesystem::exists(boost::filesystem::path(localconf)))
     {
-        dopamine::ConfigurationPACS::get_instance().parse("../../../configuration/dopamine_conf.ini");
+        configuration.parse(localconf);
     }
     else
     {
-        dopamine::ConfigurationPACS::get_instance().parse("/etc/dopamine/dopamine_conf.ini");
+        configuration.parse("/etc/dopamine/dopamine_conf.ini");
     }
 
     // Create and Initialize Logger
     dopamine::initialize_logger
-        (
-            dopamine::ConfigurationPACS::get_instance().get_value("logger.priority")
-        );
-    
+    (
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority")
+    );
+
     // Create and run Network listener
     dopamine::NetworkPACS::get_instance().run();
-    
+
     return EXIT_SUCCESS;
 }

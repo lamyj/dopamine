@@ -26,11 +26,11 @@ namespace converterBSON
 {
 
 /**
- * @brief Convert a DCMTK DataSet to a BSON object.
+ * @brief \class Convert a DCMTK DataSet to a BSON object.
  */
 class DataSetToBSON : public ConverterBSONDataSet
 {
-public :
+public:
 
     struct FilterAction
     {
@@ -56,7 +56,6 @@ public :
 
     /**
      * @brief Filters to specify which elements are converted.
-     * 
      * Processing stops after the first matching condition.
      */
     std::vector<Filter> & get_filters();
@@ -64,7 +63,7 @@ public :
 
     mongo::BSONObj from_dataset(DcmObject * dataset);
 
-private :
+private:
     std::vector<Filter> _filters;
     FilterAction::Type _default_filter;
 
@@ -94,15 +93,17 @@ private :
      * This is used for FD, FL, SL, SS, UL, US
      */
     template<typename TDICOMValue, typename TBSONValue>
-    void _to_bson_number(DcmElement * element, 
+    void _to_bson_number(DcmElement * element,
         OFCondition (DcmElement::*getter)(TDICOMValue &, unsigned long),
         mongo::BSONObjBuilder & builder) const;
 
-    void _to_bson_at(DcmAttributeTag * element, mongo::BSONObjBuilder & builder) const;
+    void _to_bson_at(DcmAttributeTag * element,
+                     mongo::BSONObjBuilder & builder) const;
 
     // Since _to_bson is specialized and instantiated in _add_element,
     // this function must be declared after the the specializations.
-    void _add_element(DcmObject * element, mongo::BSONObjBuilder & builder) const;
+    void _add_element(DcmObject * element,
+                      mongo::BSONObjBuilder & builder) const;
 
 };
 

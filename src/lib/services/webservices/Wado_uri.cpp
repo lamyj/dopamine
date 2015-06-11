@@ -140,11 +140,18 @@ Wado_uri
 
     // Conditions
     mongo::BSONObjBuilder db_query;
-    db_query << "00080018" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(variables[SOP_INSTANCE_UID]))
-             << "0020000d" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(variables[STUDY_INSTANCE_UID]))
-             << "0020000e" << BSON("vr" << "UI" << "Value" << BSON_ARRAY(variables[SERIES_INSTANCE_UID]));
+    db_query << "00080018"
+             << BSON("vr" << "UI" <<
+                     "Value" << BSON_ARRAY(variables[SOP_INSTANCE_UID]))
+             << "0020000d"
+             << BSON("vr" << "UI" <<
+                     "Value" << BSON_ARRAY(variables[STUDY_INSTANCE_UID]))
+             << "0020000e"
+             << BSON("vr" << "UI" <<
+                     "Value" << BSON_ARRAY(variables[SERIES_INSTANCE_UID]));
 
-    db_query << "00080052" << BSON("vr" << "CS" << "Value" << BSON_ARRAY("IMAGE"));
+    db_query << "00080052"
+             << BSON("vr" << "CS" << "Value" << BSON_ARRAY("IMAGE"));
 
     return db_query.obj();
 }
