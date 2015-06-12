@@ -53,11 +53,10 @@ ConverterBSONDataSet
 
     std::string const delimiters("\\");
 
-    std::size_t current;
     std::size_t next=-1;
     do
     {
-        current = next+1;
+        std::size_t current = next+1;
         next = specific_character_set.find_first_of(delimiters, current);
         std::string const element(
             specific_character_set.substr(current, next-current));

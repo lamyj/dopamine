@@ -330,6 +330,10 @@ QueryRetrieveGenerator
     mongo::BSONObj info;
     bool ret = this->_connection.runCommand(this->_db_name,
                                             object, info);
+    if (!ret)
+    {
+        // error
+    }
 
     return info["values"].Array().size();
 }
@@ -354,6 +358,10 @@ QueryRetrieveGenerator
         mongo::BSONObj info;
         bool ret = this->_connection.runCommand(this->_db_name,
                                        object, info);
+        if (!ret)
+        {
+            // error
+        }
 
         return BSON(attribute << BSON("vr" << "CS" <<
                                       "Value" << info["values"]));

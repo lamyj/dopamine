@@ -60,7 +60,7 @@ int main(int argc, char** argv)
         std::cout << headerstream.str() << "\n";
         std::cout << wadors.get_response() << "\n";
     }
-    catch (dopamine::services::WebServiceException &exc)
+    catch (dopamine::services::WebServiceException const & exc)
     {
         if (exc.status() == 401)
         {
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 
         std::cout << cgicc::html() << std::endl;
     }
-    catch (std::exception &e)
+    catch (std::exception const & e)
     {
         std::cout << cgicc::HTTPResponseHeader("HTTP/1.1", 500,
                                                "Internal Server Error")

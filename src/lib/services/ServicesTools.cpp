@@ -100,26 +100,53 @@ create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
 {
     DcmElement * element;
     std::vector<Uint16> vect;
-    OFCondition condition;
 
     (*statusDetail) = new DcmDataset();
 
-    condition = (*statusDetail)->insertEmptyElement(DCM_Status);
+    OFCondition condition = (*statusDetail)->insertEmptyElement(DCM_Status);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
     condition = (*statusDetail)->findAndGetElement(DCM_Status, element);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
     vect.clear();
     vect.push_back(errorCode);
     condition = element->putUint16Array(&vect[0], vect.size());
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
 
     condition = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
     condition = (*statusDetail)->findAndGetElement(DCM_OffendingElement,
                                                    element);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
     vect.clear();
     vect.push_back(key.getGroup());
     vect.push_back(key.getElement());
     condition = element->putUint16Array(&vect[0], vect.size()/2);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
 
     condition = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
                                                            comment);
+    if (condition.bad())
+    {
+        throw ExceptionPACS(condition.text());
+    }
 }
 
 std::string

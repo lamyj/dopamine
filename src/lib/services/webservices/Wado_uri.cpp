@@ -55,7 +55,7 @@ Wado_uri
     {
         this->_response = generator.retrieve_dataset_as_string(findedobject);
     }
-    catch (ExceptionPACS exc)
+    catch (ExceptionPACS const & exc)
     {
         throw WebServiceException(500, "Internal Server Error", exc.what());
     }

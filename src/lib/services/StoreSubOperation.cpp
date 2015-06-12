@@ -96,8 +96,16 @@ StoreSubOperation
     condition = ASC_setPresentationAddresses(params,
                                              localHostName,
                                              dstHostNamePort.c_str());
+    if (condition.bad())
+    {
+        return condition;
+    }
 
     condition = ASC_setAPTitles(params, aeTitle, destination_aetitle, NULL);
+    if (condition.bad())
+    {
+        return condition;
+    }
 
     condition = this->_add_all_storage_presentation_context(params);
     if (condition.bad())

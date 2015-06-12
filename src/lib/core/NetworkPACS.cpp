@@ -352,10 +352,9 @@ OFCondition
 NetworkPACS
 ::_negotiate_association(T_ASC_Association * assoc)
 {
-    OFCondition condition = EC_Normal;
-
     DIC_AE calledAETitle;
-    condition = ASC_getAPTitles(assoc->params, NULL, calledAETitle, NULL);
+    OFCondition condition = ASC_getAPTitles(assoc->params, NULL,
+                                            calledAETitle, NULL);
     if (condition.bad())
     {
         dopamine::logger_error() << "Cannot retrieve AP Titles";
@@ -585,11 +584,11 @@ NetworkPACS
                     */
             }
         }
-        else if ((condition == DUL_PEERREQUESTEDRELEASE) ||
+        /*else if ((condition == DUL_PEERREQUESTEDRELEASE) ||
                  (condition == DUL_PEERABORTEDASSOCIATION))
         {
             // association gone
-        }
+        }*/
         else
         {
             /* the condition will be returned,

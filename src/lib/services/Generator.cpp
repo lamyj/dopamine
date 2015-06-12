@@ -313,7 +313,7 @@ Generator
     {
         bool const is_date_or_time = (vr == "DA" || vr == "DT" || vr == "TM");
         bool const has_wildcard_matching = (!is_date_or_time &&
-            vr != "SL" && vr != "SS" && vr != "UL" && vr != "UL" &&
+            vr != "SL" && vr != "SS" && vr != "UL" &&
             vr != "FD" && vr != "FL" &&
             vr != "OB" && vr != "OF" && vr != "OW" && vr != "UN" &&
             vr != "DS" && vr != "US" &&

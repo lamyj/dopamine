@@ -119,7 +119,7 @@ MoveSCP
           T_ASC_PresentationContextID presentation_context_id,
           T_DIMSE_C_MoveRQ * request):
     services::SCP(association, presentation_context_id),
-    _request(request)
+    _request(request), _network(NULL)
 {
     // Nothing to do
 }

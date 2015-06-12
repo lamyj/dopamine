@@ -613,7 +613,6 @@ BSONToDataSet
     }
 
     std::vector<mongo::BSONElement> const elements = bson.Array();
-    unsigned long index=0;
 
     std::vector<TDCMTKType> array; array.reserve(elements.size());
     for(std::vector<mongo::BSONElement>::const_iterator it=elements.begin();
