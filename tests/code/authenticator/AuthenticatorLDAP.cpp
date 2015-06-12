@@ -46,15 +46,25 @@ struct TestDataLDAP
             throw dopamine::ExceptionPACS("Missing Environment Variables");
         }
 
-        ldap_server = ldapserver;
-        ldap_base = ldapbase;
-        ldap_bind_user = bind;
-        ldap_filter = "samaccountname=%user";
+        this->ldap_server     = ldapserver;
+        this->ldap_base       = ldapbase;
+        this->ldap_bind_user  = bind;
+        this->ldap_filter     = "samaccountname=%user";
 
         identity = new UserIdentityNegotiationSubItemRQ();
         identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
         identity->setPrimField(user.c_str(), user.length());
         identity->setSecField(password.c_str(), password.length());
+    }
+
+    TestDataLDAP(TestDataLDAP const & other)
+    {
+        this->identity =
+                new UserIdentityNegotiationSubItemRQ(*other.identity);
+        this->ldap_server    = other.ldap_server;
+        this->ldap_base      = other.ldap_base;
+        this->ldap_bind_user = other.ldap_bind_user;
+        this->ldap_filter    = other.ldap_filter;
     }
 
     ~TestDataLDAP()

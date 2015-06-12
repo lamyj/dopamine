@@ -332,6 +332,11 @@ struct TestDataConversionDatasetBSON
         dataset->insertSequenceItem(DCM_OtherPatientIDsSequence, item);
     }
 
+    TestDataConversionDatasetBSON(TestDataConversionDatasetBSON const & other)
+    {
+        this->dataset = new DcmDataset(*other.dataset);
+    }
+
     ~TestDataConversionDatasetBSON()
     {
         delete dataset;

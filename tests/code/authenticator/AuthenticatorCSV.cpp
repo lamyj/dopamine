@@ -16,10 +16,9 @@ struct TestDataCSV
 {
     std::string filename;
 
-    TestDataCSV()
+    TestDataCSV():
+        filename("./tmp_test_moduleAuthenticatorCSV.csv")
     {
-        filename = "./tmp_test_moduleAuthenticatorCSV.csv";
-
         std::ofstream myfile;
         myfile.open(filename);
         myfile << "user1\tpassword1\n";

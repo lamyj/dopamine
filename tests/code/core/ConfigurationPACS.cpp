@@ -38,9 +38,10 @@ struct TestDataConfigurationBase
 {
     std::string filename;
 
-    TestDataConfigurationBase()
+    TestDataConfigurationBase():
+        filename("./tmp_test_moduleConfigurationPACS.ini")
     {
-        filename = "./tmp_test_moduleConfigurationPACS.ini";
+        // Nothing to do
     }
 
     virtual ~TestDataConfigurationBase()

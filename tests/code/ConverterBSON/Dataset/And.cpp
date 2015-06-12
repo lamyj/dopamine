@@ -26,10 +26,17 @@ struct TestDataAndOperator
  
     TestDataAndOperator()
     {
-        element = new DcmAttributeTag(DcmTag(0010,0010));
+        element     = new DcmAttributeTag(DcmTag(0010,0010));
         // we suppose AlwaysTrue correctly run
-        alwaystrue = dopamine::converterBSON::AlwaysTrue::New();
+        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();
         // we suppose AlwaysFalse correctly run
+        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
+    }
+
+    TestDataAndOperator(TestDataAndOperator const & other)
+    {
+        element     = new DcmAttributeTag(DcmTag(0010,0010));
+        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();
         alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
     }
  

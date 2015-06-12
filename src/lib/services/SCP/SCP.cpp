@@ -29,13 +29,6 @@ SCP
     // nothing to do
 }
 
-T_ASC_Association *
-SCP
-::get_association() const
-{
-    return this->_association;
-}
-
 } // namespace services
     
 } // namespace dopamine

@@ -294,11 +294,9 @@ private:
 
     void _insert_big_dataset()
     {
-        OFCondition condition = EC_Normal;
-
         // Create the dataset
         DcmDataset * dataset = new DcmDataset();
-        condition = dataset->putAndInsertOFStringArray(
+        OFCondition condition = dataset->putAndInsertOFStringArray(
                     DCM_SOPInstanceUID,
                     OFString(SOP_INSTANCE_UID_BIG_01.c_str()));
         BOOST_REQUIRE(condition.good());

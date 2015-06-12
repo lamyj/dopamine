@@ -32,12 +32,6 @@ public:
     
     /// Destroy the SCP.
     virtual ~SCP();
-    
-    /**
-     * Return current association
-     * @return association
-     */
-    T_ASC_Association* get_association() const;
 
     /**
      * Send response
