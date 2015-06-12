@@ -21,4 +21,3 @@ BOOST_AUTO_TEST_CASE(Evaluate)
     
     BOOST_CHECK_EQUAL((*alwaysfalse)(NULL), false);
 }
-

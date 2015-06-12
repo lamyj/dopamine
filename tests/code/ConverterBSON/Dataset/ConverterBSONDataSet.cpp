@@ -210,7 +210,8 @@ struct TestDataConversionBSONDataset
 
        mongo::BSONObjBuilder value_builder;
        value_builder << "vr" << "SQ";
-       value_builder << "Value" << BSON_ARRAY(BSON("00100020" << subvalue_builder.obj()));
+       value_builder << "Value" << BSON_ARRAY(BSON("00100020" <<
+                                                   subvalue_builder.obj()));
        bsonobjectbuilder << "00101002" << value_builder.obj();
        }
 
@@ -235,12 +236,13 @@ void isEqual(mongo::BSONObj const & firstbson, mongo::BSONObj const & secondbson
         mongo::BSONElement const newbsonelem = secondbson.getField(field_name);
 
         // Error with double representation
-        if (element_bson.Obj().getField("Value").Array()[0].type() == mongo::BSONType::NumberDouble)
+        if (element_bson.Obj()["Value"].Array()[0].type() ==
+            mongo::BSONType::NumberDouble)
         {
             BOOST_CHECK_EQUAL(element_bson.Obj().getField("vr").String(),
                               newbsonelem.Obj().getField("vr").String());
-            BOOST_CHECK_CLOSE(element_bson.Obj().getField("Value").Array()[0].Double(),
-                              newbsonelem.Obj().getField("Value").Array()[0].Double(),
+            BOOST_CHECK_CLOSE(element_bson.Obj()["Value"].Array()[0].Double(),
+                              newbsonelem.Obj()["Value"].Array()[0].Double(),
                               0.001);
         }
         else
@@ -277,27 +279,52 @@ struct TestDataConversionDatasetBSON
     TestDataConversionDatasetBSON()
     {
         dataset = new DcmDataset();
-        dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "test_AE");                         // insert AE
-        dataset->putAndInsertOFStringArray(DCM_PatientAge, "test_AS");                              // insert AS
-        dataset->putAndInsertOFStringArray(DCM_Modality, "value1");                                 // insert CS
-        dataset->putAndInsertOFStringArray(DCM_PatientBirthDate, "01/01/2001");                     // insert DA
-        dataset->putAndInsertOFStringArray(DCM_PatientWeight, "60.5");                              // insert DS
-        dataset->putAndInsertOFStringArray(DCM_FrameAcquisitionDateTime, "01/01/2001 09:09:09");    // insert DT
-        dataset->putAndInsertFloat64(DCM_PupilSize, 42.5);                                          // insert FD
-        dataset->putAndInsertFloat32(DCM_RecommendedDisplayFrameRateInFloat, 15.2);                 // insert FL
-        dataset->putAndInsertOFStringArray(DCM_StageNumber, "12");                                  // insert IS
-        dataset->putAndInsertOFStringArray(DCM_Manufacturer, "MyManufacturer");                     // insert LO
-        dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory, "test_valueLT");           // insert LT
-        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");                            // insert PN
-        dataset->putAndInsertOFStringArray(DCM_EthnicGroup, "test_valueSH");                        // insert SH
-        dataset->putAndInsertSint32(DCM_ReferencePixelX0, 10);                                      // insert SL
-        dataset->putAndInsertSint16(DCM_TagAngleSecondAxis, 10);                                    // insert SS
-        dataset->putAndInsertOFStringArray(DCM_InstitutionAddress, "MyAddress");                    // insert ST
-        dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime, "08:08:08");                   // insert TM
-        dataset->putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.3.4.5.6");                         // insert UI
-        dataset->putAndInsertUint32(DCM_SimpleFrameList, 11);                                       // insert UL
-        dataset->putAndInsertUint16(DCM_FailureReason, 5);                                          // insert US
-        dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL, "test_valueUT");               // insert UT
+        // insert AE
+        dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, "test_AE");
+        // insert AS
+        dataset->putAndInsertOFStringArray(DCM_PatientAge, "test_AS");
+        // insert CS
+        dataset->putAndInsertOFStringArray(DCM_Modality, "value1");
+        // insert DA
+        dataset->putAndInsertOFStringArray(DCM_PatientBirthDate, "01/01/2001");
+        // insert DS
+        dataset->putAndInsertOFStringArray(DCM_PatientWeight, "60.5");
+        // insert DT
+        dataset->putAndInsertOFStringArray(DCM_FrameAcquisitionDateTime,
+                                           "01/01/2001 09:09:09");
+        // insert FD
+        dataset->putAndInsertFloat64(DCM_PupilSize, 42.5);
+        // insert FL
+        dataset->putAndInsertFloat32(DCM_RecommendedDisplayFrameRateInFloat,
+                                     15.2);
+        // insert IS
+        dataset->putAndInsertOFStringArray(DCM_StageNumber, "12");
+        // insert LO
+        dataset->putAndInsertOFStringArray(DCM_Manufacturer, "MyManufacturer");
+        // insert LT
+        dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory,
+                                           "test_valueLT");
+        // insert PN
+        dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John");
+        // insert SH
+        dataset->putAndInsertOFStringArray(DCM_EthnicGroup, "test_valueSH");
+        // insert SL
+        dataset->putAndInsertSint32(DCM_ReferencePixelX0, 10);
+        // insert SS
+        dataset->putAndInsertSint16(DCM_TagAngleSecondAxis, 10);
+        // insert ST
+        dataset->putAndInsertOFStringArray(DCM_InstitutionAddress, "MyAddress");
+        // insert TM
+        dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime, "08:08:08");
+        // insert UI
+        dataset->putAndInsertOFStringArray(DCM_SOPClassUID, "1.2.3.4.5.6");
+        // insert UL
+        dataset->putAndInsertUint32(DCM_SimpleFrameList, 11);
+        // insert US
+        dataset->putAndInsertUint16(DCM_FailureReason, 5);
+        // insert UT
+        dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL,
+                                           "test_valueUT");
 
         // insert SQ
         DcmItem* item = new DcmItem(DCM_Item);
@@ -317,12 +344,15 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
     while(NULL != (it = seconddataset.nextInContainer(it)))
     {
         DcmElement * element = NULL;
-        OFCondition condition = firstdataset.findAndGetElement(it->getTag().getXTag(), element);
+        OFCondition condition =
+                firstdataset.findAndGetElement(it->getTag().getXTag(),
+                                               element);
         BOOST_CHECK_EQUAL(condition == EC_Normal, true);
         BOOST_CHECK_EQUAL(element != NULL, true);
 
         DcmElement * newelement = NULL;
-        condition = seconddataset.findAndGetElement(it->getTag().getXTag(), newelement);
+        condition = seconddataset.findAndGetElement(it->getTag().getXTag(),
+                                                    newelement);
         BOOST_CHECK_EQUAL(condition == EC_Normal, true);
         BOOST_CHECK_EQUAL(newelement != NULL, true);
 
@@ -331,12 +361,14 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
         case EVR_SQ:
         {
             DcmSequenceOfItems * sequence = NULL;
-            condition = firstdataset.findAndGetSequence(it->getTag().getXTag(), sequence);
+            condition = firstdataset.findAndGetSequence(it->getTag().getXTag(),
+                                                        sequence);
             BOOST_CHECK_EQUAL(condition == EC_Normal, true);
             BOOST_CHECK_EQUAL(sequence != NULL, true);
 
             DcmSequenceOfItems * newsequence = NULL;
-            condition = seconddataset.findAndGetSequence(it->getTag().getXTag(), newsequence);
+            condition = seconddataset.findAndGetSequence(it->getTag().getXTag(),
+                                                         newsequence);
             BOOST_CHECK_EQUAL(condition == EC_Normal, true);
             BOOST_CHECK_EQUAL(newsequence != NULL, true);
 

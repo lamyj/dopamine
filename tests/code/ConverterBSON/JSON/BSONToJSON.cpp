@@ -77,11 +77,12 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" << binary_data_builder.obj()["data"]));
 
     // Conversion
     dopamine::converterBSON::BSONToJSON bsontojson;
@@ -105,7 +106,8 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     std::string const tag = "00100010";
     std::string const vr = "PN";
     mongo::BSONArray const values =
-            BSON_ARRAY(BSON("Alphabetic" << "Doe^John^Wallas^Rev.^Chief Executive Officer")
+            BSON_ARRAY(BSON("Alphabetic" <<
+                            "Doe^John^Wallas^Rev.^Chief Executive Officer")
                     << BSON("Alphabetic" << "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 

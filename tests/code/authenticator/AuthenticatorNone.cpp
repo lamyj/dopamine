@@ -44,7 +44,8 @@ BOOST_AUTO_TEST_CASE(NONEIdentity)
 {
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_NONE);
 
     BOOST_CHECK_EQUAL(authenticatorNone(identity), true);
@@ -61,7 +62,8 @@ BOOST_AUTO_TEST_CASE(BadIdentity)
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
     // ASC_USER_IDENTITY_UNKNOWN
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
     BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
     delete identity;

@@ -26,28 +26,49 @@
 #include <dcmtk/dcmdata/dcistrmb.h>
 #include <dcmtk/dcmdata/dcwcache.h>
 
-std::string const STUDY_INSTANCE_UID_01_01 = "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
-std::string const STUDY_INSTANCE_UID_02_01 = "2.16.756.5.5.100.1333920868.19866.1424334602.23";
-std::string const STUDY_INSTANCE_UID_03_01 = "2.16.756.5.5.100.3611280983.19057.9964462499.7789";
+std::string const STUDY_INSTANCE_UID_01_01 =
+        "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
+std::string const STUDY_INSTANCE_UID_02_01 =
+        "2.16.756.5.5.100.1333920868.19866.1424334602.23";
+std::string const STUDY_INSTANCE_UID_03_01 =
+        "2.16.756.5.5.100.3611280983.19057.9964462499.7789";
 std::string const STUDY_INSTANCE_UID_BIG = "2.16.756.5.5.100.12345.54321";
 std::string const STUDY_INSTANCE_UID_BIG_02 = "2.16.756.5.5.100.12346.64321";
+std::string const STUDY_INSTANCE_UID_BAD =
+        "2.16.756.5.5.100.3611280983.20092.123456789";
 
-std::string const SERIES_INSTANCE_UID_01_01_01 = "2.16.756.5.5.100.3611280983.20092.1364462458.1";
-std::string const SERIES_INSTANCE_UID_03_01_01 = "2.16.756.5.5.100.3611280983.20092.9964462499.1";
+std::string const SERIES_INSTANCE_UID_01_01_01 =
+        "2.16.756.5.5.100.3611280983.20092.1364462458.1";
+std::string const SERIES_INSTANCE_UID_03_01_01 =
+        "2.16.756.5.5.100.3611280983.20092.9964462499.1";
 std::string const SERIES_INSTANCE_UID_BIG = "2.16.756.5.5.100.12346.64321.1";
-std::string const SERIES_INSTANCE_UID_BIG_02 = "2.16.756.5.5.100.12346.64321.1";
+std::string const SERIES_INSTANCE_UID_BIG_02 =
+        "2.16.756.5.5.100.12346.64321.1";
+std::string const SERIES_INSTANCE_UID_BAD =
+        "2.16.756.5.5.100.3611280983.20092.123456789.0";
 
-std::string const SOP_INSTANCE_UID_01_01_01_01 = "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
-std::string const SOP_INSTANCE_UID_03_01_01_01 = "2.16.756.5.5.100.3611280983.20092.9964462499.1.0";
-std::string const SOP_INSTANCE_UID_03_02_01_01 = "2.16.756.5.5.100.3611280983.20092.9964462499.1.9";
-std::string const SOP_INSTANCE_UID_04_01_01_01 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489112";
-std::string const SOP_INSTANCE_UID_04_01_01_02 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489113";
-std::string const SOP_INSTANCE_UID_04_01_01_03 = "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489114";
-std::string const SOP_INSTANCE_UID_BIG_01 = "2.16.756.5.5.100.12345.54321.1.0";
-std::string const SOP_INSTANCE_UID_BIG_02 = "2.16.756.5.5.100.12346.64321.1.0";
+std::string const SOP_INSTANCE_UID_01_01_01_01 =
+        "2.16.756.5.5.100.3611280983.20092.1364462458.1.0";
+std::string const SOP_INSTANCE_UID_03_01_01_01 =
+        "2.16.756.5.5.100.3611280983.20092.9964462499.1.0";
+std::string const SOP_INSTANCE_UID_03_02_01_01 =
+        "2.16.756.5.5.100.3611280983.20092.9964462499.1.9";
+std::string const SOP_INSTANCE_UID_04_01_01_01 =
+        "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489112";
+std::string const SOP_INSTANCE_UID_04_01_01_02 =
+        "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489113";
+std::string const SOP_INSTANCE_UID_04_01_01_03 =
+        "1.2.276.0.7230010.3.1.4.8323329.7922.1432822445.489114";
+std::string const SOP_INSTANCE_UID_BIG_01 =
+        "2.16.756.5.5.100.12345.54321.1.0";
+std::string const SOP_INSTANCE_UID_BIG_02 =
+        "2.16.756.5.5.100.12346.64321.1.0";
+std::string const SOP_INSTANCE_UID_BAD =
+        "2.16.756.5.5.100.3611280983.20092.123456789.0.0";
 
 /**
- * Test fixture getting the environment variables required to test the services
+ * \class Test fixture getting the environment variables
+ *        required to test the services
  */
 class ServicesTestClass
 {
@@ -55,8 +76,6 @@ public:
 
     mongo::DBClientConnection connection;
     std::string db_name;
-    std::vector<std::string> SOPInstanceUIDs;
-    std::vector<std::string> SOPInstanceUIDs_GridFS;
 
     ServicesTestClass()
     {
@@ -126,6 +145,8 @@ protected:
 private:
     std::vector<mongo::BSONObj> _constraints;
     std::vector<std::string> _services;
+    std::vector<std::string> _sop_instance_uids;
+    std::vector<std::string> _sop_instance_uids_gridfs;
 
     std::string _get_env_variable(std::string const & name) const
     {
@@ -143,19 +164,14 @@ private:
                                                "DOPAMINE_TEST_DICOMFILE_02",
                                                "DOPAMINE_TEST_DICOMFILE_03",
                                                "DOPAMINE_TEST_DICOMFILE_04"
-                                               //"DOPAMINE_TEST_DICOMFILE_05", // test storage
-                                               //"DOPAMINE_TEST_DICOMFILE_06", // test storage
-                                               //"DOPAMINE_TEST_DICOMFILE_07", // test storage
-                                               //"DOPAMINE_TEST_DICOMFILE_08", // test storage
-                                               //"DOPAMINE_TEST_DICOMFILE_09", // test storage
                                              };
 
         // Remove files store by services
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_03_01_01_01);
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_03_02_01_01);
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_04_01_01_01);
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_04_01_01_02);
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_04_01_01_03);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_03_01_01_01);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_03_02_01_01);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_01);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_02);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_03);
 
         std::stringstream streamTable;
         streamTable << this->db_name << ".datasets";
@@ -184,12 +200,14 @@ private:
             fileformat.removeInvalidGroups();
 
             // Create a memory buffer with the proper size
-            uint32_t size = fileformat.calcElementLength(xfer, EET_ExplicitLength);
+            uint32_t size = fileformat.calcElementLength(xfer,
+                                                         EET_ExplicitLength);
             std::string buffer;
             buffer.resize(size);
 
             // Create buffer for DCMTK
-            DcmOutputBufferStream* outputstream = new DcmOutputBufferStream(&buffer[0], size);
+            DcmOutputBufferStream* outputstream =
+                    new DcmOutputBufferStream(&buffer[0], size);
 
             // Fill the memory buffer with the meta-header and the dataset
             fileformat.transferInit();
@@ -224,7 +242,8 @@ private:
             dataset_to_bson.get_filters().push_back(std::make_pair(
                 dopamine::converterBSON::VRMatch::New(EVR_UN),
                 dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+            dataset_to_bson.set_default_filter(
+                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
             mongo::BSONObj object = dataset_to_bson.from_dataset(dataset);
             if (!object.isValid() || object.isEmpty())
             {
@@ -232,7 +251,8 @@ private:
             }
 
             // Get the SOPInstanceUID for delete
-            this->SOPInstanceUIDs.push_back(object.getField("00080018").Obj().getField("Value").Array()[0].String());
+            this->_sop_instance_uids.push_back(
+                        object["00080018"].Obj()["Value"].Array()[0].String());
 
             // Create BSON to insert into DataBase
             mongo::BSONObjBuilder builder;
@@ -251,12 +271,18 @@ private:
 
         // insert entry with bad Content
         mongo::BSONObjBuilder badbuilder;
-        badbuilder << "00080018" << BSON("vr" << "UI" << "Value" << BSON_ARRAY("2.16.756.5.5.100.3611280983.20092.123456789.0.0"));
-        badbuilder << "0020000d" << BSON("vr" << "UI" << "Value" << BSON_ARRAY("2.16.756.5.5.100.3611280983.20092.123456789"));
-        badbuilder << "0020000e" << BSON("vr" << "UI" << "Value" << BSON_ARRAY("2.16.756.5.5.100.3611280983.20092.123456789.0"));
+        badbuilder << "00080018"
+                   << BSON("vr" << "UI" << "Value" <<
+                           BSON_ARRAY(SOP_INSTANCE_UID_BAD));
+        badbuilder << "0020000d"
+                   << BSON("vr" << "UI" << "Value" <<
+                           BSON_ARRAY(STUDY_INSTANCE_UID_BAD));
+        badbuilder << "0020000e"
+                   << BSON("vr" << "UI" << "Value" <<
+                           BSON_ARRAY(SERIES_INSTANCE_UID_BAD));
         badbuilder.appendNumber("Content", 1);
 
-        this->SOPInstanceUIDs.push_back("2.16.756.5.5.100.3611280983.20092.123456789.0.0");
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BAD);
 
         this->connection.insert(streamTable.str(), badbuilder.obj());
         std::string result = this->connection.getLastError(this->db_name);
@@ -272,28 +298,34 @@ private:
 
         // Create the dataset
         DcmDataset * dataset = new DcmDataset();
-        condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                                       OFString(SOP_INSTANCE_UID_BIG_01.c_str()));
+        condition = dataset->putAndInsertOFStringArray(
+                    DCM_SOPInstanceUID,
+                    OFString(SOP_INSTANCE_UID_BIG_01.c_str()));
         BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                       OFString(STUDY_INSTANCE_UID_BIG.c_str()));
+        condition = dataset->putAndInsertOFStringArray(
+                    DCM_StudyInstanceUID,
+                    OFString(STUDY_INSTANCE_UID_BIG.c_str()));
         BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                       OFString(SERIES_INSTANCE_UID_BIG.c_str()));
+        condition = dataset->putAndInsertOFStringArray(
+                    DCM_SeriesInstanceUID,
+                    OFString(SERIES_INSTANCE_UID_BIG.c_str()));
         BOOST_REQUIRE(condition.good());
         condition = dataset->putAndInsertOFStringArray(DCM_PatientName,
                                                        OFString("Big^Data"));
         BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_Modality, OFString("MR"));
+        condition = dataset->putAndInsertOFStringArray(
+                    DCM_Modality, OFString("MR"));
         BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_SOPClassUID, OFString(UID_MRImageStorage));
+        condition = dataset->putAndInsertOFStringArray(
+                    DCM_SOPClassUID, OFString(UID_MRImageStorage));
         BOOST_REQUIRE(condition.good());
         condition = dataset->putAndInsertOFStringArray(DCM_PatientID, "123");
         BOOST_REQUIRE(condition.good());
         // Binary
         size_t vectorsize = 4096*4096;
         std::vector<Uint8> value(vectorsize, 0);
-        condition = dataset->putAndInsertUint8Array(DCM_PixelData, &value[0], vectorsize);
+        condition = dataset->putAndInsertUint8Array(DCM_PixelData, &value[0],
+                                                    vectorsize);
         BOOST_REQUIRE(condition.good());
 
         // Create Dataset with Header
@@ -316,7 +348,8 @@ private:
         buffer.resize(size);
 
         // Create buffer for DCMTK
-        DcmOutputBufferStream* outputstream = new DcmOutputBufferStream(&buffer[0], size);
+        DcmOutputBufferStream* outputstream =
+                new DcmOutputBufferStream(&buffer[0], size);
 
         // Fill the memory buffer with the meta-header and the dataset
         fileformat.transferInit();
@@ -349,7 +382,8 @@ private:
         dataset_to_bson.get_filters().push_back(std::make_pair(
             dopamine::converterBSON::VRMatch::New(EVR_UN),
             dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+        dataset_to_bson.set_default_filter(
+            dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
         mongo::BSONObj object = dataset_to_bson.from_dataset(dataset);
         if (!object.isValid() || object.isEmpty())
         {
@@ -357,11 +391,11 @@ private:
         }
 
         // Get the SOPInstanceUID for delete
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_BIG_01);
-        this->SOPInstanceUIDs_GridFS.push_back(SOP_INSTANCE_UID_BIG_01);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BIG_01);
+        this->_sop_instance_uids_gridfs.push_back(SOP_INSTANCE_UID_BIG_01);
         // SOPInstanceUID used by Stow
-        this->SOPInstanceUIDs.push_back(SOP_INSTANCE_UID_BIG_02);
-        this->SOPInstanceUIDs_GridFS.push_back(SOP_INSTANCE_UID_BIG_02);
+        this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BIG_02);
+        this->_sop_instance_uids_gridfs.push_back(SOP_INSTANCE_UID_BIG_02);
 
         // insert into GridSF
         mongo::GridFS gridfs(connection, db_name);
@@ -396,7 +430,7 @@ private:
     void _remove_data()
     {
         // Delete all data
-        for (std::string const SOPInstanceUID : this->SOPInstanceUIDs)
+        for (std::string const SOPInstanceUID : this->_sop_instance_uids)
         {
             this->connection.remove(this->db_name + ".datasets",
                                     BSON("00080018.Value" << SOPInstanceUID));
@@ -404,7 +438,8 @@ private:
 
         // Delete data from GridFS
         mongo::GridFS gridfs(connection, db_name);
-        for (std::string const SOPInstanceUIDgridfs : this->SOPInstanceUIDs_GridFS)
+        for (std::string const SOPInstanceUIDgridfs :
+             this->_sop_instance_uids_gridfs)
         {
             gridfs.removeFile(SOPInstanceUIDgridfs);
         }
@@ -414,7 +449,8 @@ private:
     {
         for (auto const constraint : this->_constraints)
         {
-            this->connection.remove(this->db_name + ".authorization", constraint);
+            this->connection.remove(this->db_name + ".authorization",
+                                    constraint);
         }
     }
 

@@ -136,8 +136,9 @@ BOOST_AUTO_TEST_CASE(LineBreak)
     }
 
     std::string const base64 =
-            dopamine::ConverterBase64::encode(buffer.str(),
-                                              dopamine::ConverterBase64::DEFAULT_LINEBREAK);
+            dopamine::ConverterBase64::encode(
+                buffer.str(),
+                dopamine::ConverterBase64::DEFAULT_LINEBREAK);
     std::string const binaire = dopamine::ConverterBase64::decode(base64);
 
     BOOST_CHECK_EQUAL(buffer.str(), binaire);
@@ -147,11 +148,14 @@ BOOST_AUTO_TEST_CASE(LineBreak)
     boost::split(lines, base64, boost::is_any_of("\n"));
 
     BOOST_CHECK_NE(lines.size(), 1);
-    BOOST_CHECK_GT(lines[lines.size()-1].size(), 0); // check last line
-    BOOST_CHECK_LT(lines[lines.size()-1].size(), dopamine::ConverterBase64::DEFAULT_LINEBREAK); // check last line
+    // check last line
+    BOOST_CHECK_GT(lines[lines.size()-1].size(), 0);
+    BOOST_CHECK_LT(lines[lines.size()-1].size(),
+                   dopamine::ConverterBase64::DEFAULT_LINEBREAK);
     lines.pop_back(); // erase last line (size != DEFAULT_LINEBREAK)
     for (auto line : lines)
     {
-        BOOST_CHECK_EQUAL(line.size(), dopamine::ConverterBase64::DEFAULT_LINEBREAK);
+        BOOST_CHECK_EQUAL(line.size(),
+                          dopamine::ConverterBase64::DEFAULT_LINEBREAK);
     }
 }

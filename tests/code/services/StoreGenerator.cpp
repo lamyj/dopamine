@@ -21,7 +21,8 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder << "00080060" << "MR";
-        this->add_constraint(dopamine::services::Service_Store, "root", builder.obj());
+        this->add_constraint(dopamine::services::Service_Store,
+                             "root", builder.obj());
     }
 
     virtual ~TestDataGenerator_constraint()
@@ -124,28 +125,33 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
             connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                             BSON("00080018.Value" <<
+                                  SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("");
 
     OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                                   OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SOPInstanceUID,
+                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                   OFString(STUDY_INSTANCE_UID_03_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_StudyInstanceUID,
+                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                   OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SeriesInstanceUID,
+                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
     cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                              BSON("00080018.Value" <<
+                                   SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -166,68 +172,90 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
             connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                             BSON("00080018.Value" <<
+                                  SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("");
 
     OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationDate, OFString("20150101"));
+    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationDate,
+                                                   OFString("20150101"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime, OFString("101010"));
+    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime,
+                                                   OFString("101010"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPClassUID, OFString(UID_MRImageStorage));
+    condition = dataset->putAndInsertOFStringArray(DCM_SOPClassUID,
+                                                   OFString(UID_MRImageStorage));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                                   OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SOPInstanceUID,
+                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_AcquisitionDateTime, OFString("20150101101010.203"));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_AcquisitionDateTime, OFString("20150101101010.203"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel, OFString("STUDY"));
+    condition = dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
+                                                   OFString("STUDY"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle, OFString("LOCAL"));
+    condition = dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle,
+                                                   OFString("LOCAL"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Modality, OFString("MR"));
+    condition = dataset->putAndInsertOFStringArray(DCM_Modality,
+                                                   OFString("MR"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Manufacturer, OFString("Manufacturer"));
+    condition = dataset->putAndInsertOFStringArray(DCM_Manufacturer,
+                                                   OFString("Manufacturer"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_InstitutionAddress, OFString("value"));
+    condition = dataset->putAndInsertOFStringArray(DCM_InstitutionAddress,
+                                                   OFString("value"));
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertUint32(DCM_SimpleFrameList, 22);
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertUint16(DCM_FailureReason, 42);
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StageNumber, OFString("12"));
+    condition = dataset->putAndInsertOFStringArray(DCM_StageNumber,
+                                                   OFString("12"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertFloat32(DCM_RecommendedDisplayFrameRateInFloat, 42.5);
+    condition = dataset->putAndInsertFloat32(
+                DCM_RecommendedDisplayFrameRateInFloat, 42.5);
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientName, OFString("Name^Surname^Middle"));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_PatientName, OFString("Name^Surname^Middle"));
     BOOST_REQUIRE(condition.good());
     DcmItem* item = NULL;
-    condition = dataset->findOrCreateSequenceItem(DCM_OtherPatientIDsSequence, item, -2);
+    condition = dataset->findOrCreateSequenceItem(DCM_OtherPatientIDsSequence,
+                                                  item, -2);
     BOOST_REQUIRE(condition.good());
     condition = item->putAndInsertOFStringArray(DCM_PatientID, "123");
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientAge, OFString("25Y"));
+    condition = dataset->putAndInsertOFStringArray(DCM_PatientAge,
+                                                   OFString("25Y"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientWeight, OFString("11.11"));
+    condition = dataset->putAndInsertOFStringArray(DCM_PatientWeight,
+                                                   OFString("11.11"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_EthnicGroup, OFString("value"));
+    condition = dataset->putAndInsertOFStringArray(DCM_EthnicGroup,
+                                                   OFString("value"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_AdditionalPatientHistory, OFString("value"));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_AdditionalPatientHistory, OFString("value"));
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertSint32(DCM_ReferencePixelX0, 32);
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertSint16(DCM_TagAngleSecondAxis, 32);
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                   OFString(STUDY_INSTANCE_UID_03_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_StudyInstanceUID,
+                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                   OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SeriesInstanceUID,
+                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL, OFString("value"));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_PixelDataProviderURL, OFString("value"));
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertFloat64(DCM_PupilSize, 42.5);
     BOOST_REQUIRE(condition.good());
@@ -240,7 +268,8 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
     cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                              BSON("00080018.Value" <<
+                                   SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -268,10 +297,12 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     BOOST_CHECK(response.hasField("00189219"));
     BOOST_CHECK(response.hasField("0020000d"));
     BOOST_CHECK(response.hasField("0020000e"));
-    BOOST_CHECK(response.hasField("00282000") == false); // the binary tags are not stored
     BOOST_CHECK(response.hasField("00287fe0"));
     BOOST_CHECK(response.hasField("00460044"));
     BOOST_CHECK(response.hasField("Content")); // Dataset is stored in this field
+
+    // The binary tags are not stored
+    BOOST_CHECK(response.hasField("00282000") == false);
 
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
@@ -286,30 +317,36 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
             this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                              BSON("00080018.Value" <<
+                                   SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("root");
 
     OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                                   OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SOPInstanceUID,
+                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Modality, OFString("MR"));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_Modality, OFString("MR"));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                   OFString(STUDY_INSTANCE_UID_03_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_StudyInstanceUID,
+                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                   OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SeriesInstanceUID,
+                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
     cursor = this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
+                              BSON("00080018.Value" <<
+                                   SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -346,14 +383,17 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
     OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPInstanceUID,
-                                                   OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SOPInstanceUID,
+                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                   OFString(STUDY_INSTANCE_UID_03_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_StudyInstanceUID,
+                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                   OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SeriesInstanceUID,
+                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
 
     dopamine::services::StoreGenerator generator("");
@@ -381,11 +421,13 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
 
     OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_StudyInstanceUID,
-                                                   OFString(STUDY_INSTANCE_UID_03_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_StudyInstanceUID,
+                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SeriesInstanceUID,
-                                                   OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
+    condition = dataset->putAndInsertOFStringArray(
+                DCM_SeriesInstanceUID,
+                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
 
     Uint16 result = generator.process_dataset(dataset, true);

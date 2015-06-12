@@ -12,14 +12,14 @@ class TestGetSCP(TestBase):
     #################################################
     def test_run_getscu(self):
         try:
-            pathjoin = os.path.join(self._output_directory, 
+            pathjoin = os.path.join(self._output_directory,
                                     "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
             self.assertEqual(os.path.isfile(pathjoin), False)
             
             # Send a Get request
-            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -49,14 +49,14 @@ class TestGetSCP(TestBase):
         thread_spec.wait()
         
         try:
-            pathjoin = os.path.join(self._output_directory, 
+            pathjoin = os.path.join(self._output_directory,
                                     "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
             self.assertEqual(os.path.isfile(pathjoin), False)
             
             # Send a Get request
-            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -80,8 +80,8 @@ class TestGetSCP(TestBase):
     def test_get_no_queryretrievelevel(self):
         try:
             # Send a Get request
-            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -109,9 +109,9 @@ class TestGetSCP(TestBase):
         
         try:
             # Send a Get request
-            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["../../build/tests/tools/getscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)

@@ -14,23 +14,23 @@
 
 struct TestDataCSV
 {
-   std::string filename;
+    std::string filename;
 
-   TestDataCSV()
-   {
-       filename = "./tmp_test_moduleAuthenticatorCSV.csv";
+    TestDataCSV()
+    {
+        filename = "./tmp_test_moduleAuthenticatorCSV.csv";
 
-       std::ofstream myfile;
-       myfile.open(filename);
-       myfile << "user1\tpassword1\n";
-       myfile << "user2\tpassword2\n";
-       myfile.close();
-   }
+        std::ofstream myfile;
+        myfile.open(filename);
+        myfile << "user1\tpassword1\n";
+        myfile << "user2\tpassword2\n";
+        myfile.close();
+    }
 
-   ~TestDataCSV()
-   {
-       remove(filename.c_str());
-   }
+    ~TestDataCSV()
+    {
+        remove(filename.c_str());
+    }
 };
 
 /*************************** TEST Nominal *******************************/
@@ -57,7 +57,8 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("user2", 5);
     identity->setSecField("password2", 9);
@@ -86,7 +87,8 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("baduser", 5);
     identity->setSecField("password2", 9);
@@ -104,7 +106,8 @@ BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
     identity->setPrimField("user2", 5);
     identity->setSecField("badpassword", 9);
@@ -122,7 +125,8 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity = new UserIdentityNegotiationSubItemRQ();
+    UserIdentityNegotiationSubItemRQ * identity =
+            new UserIdentityNegotiationSubItemRQ();
     identity->setIdentityType(ASC_USER_IDENTITY_KERBEROS);
     identity->setPrimField("user2", 5);
     identity->setSecField("password2", 9);
@@ -138,6 +142,7 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
  */
 BOOST_AUTO_TEST_CASE(BadFilename)
 {
-    BOOST_REQUIRE_THROW(dopamine::authenticator::AuthenticatorCSV("badfilename"),
-                        dopamine::ExceptionPACS);
+    BOOST_REQUIRE_THROW(
+                dopamine::authenticator::AuthenticatorCSV("badfilename"),
+                dopamine::ExceptionPACS);
 }

@@ -16,22 +16,22 @@
 
 struct TestDataConfiguration
 {
-   std::string filename;
+    std::string filename;
 
-   TestDataConfiguration()
-   {
-       const char * conffile = getenv("DOPAMINE_TEST_CONFIG");
-       if (conffile == NULL)
-       {
-           BOOST_FAIL("Missing environment variable: DOPAMINE_TEST_CONFIG");
-       }
-       filename = std::string(conffile);
-   }
+    TestDataConfiguration()
+    {
+        const char * conffile = getenv("DOPAMINE_TEST_CONFIG");
+        if (conffile == NULL)
+        {
+            BOOST_FAIL("Missing environment variable: DOPAMINE_TEST_CONFIG");
+        }
+        filename = std::string(conffile);
+    }
 
-   ~TestDataConfiguration()
-   {
-       dopamine::ConfigurationPACS::delete_instance();
-   }
+    ~TestDataConfiguration()
+    {
+        dopamine::ConfigurationPACS::delete_instance();
+    }
 };
 
 struct TestDataConfigurationBase
@@ -82,31 +82,31 @@ struct TestDataSpecificAllowedAETitle : public TestDataConfigurationBase
 
 struct TestDataMissingField : public TestDataConfigurationBase
 {
-   TestDataMissingField() : TestDataConfigurationBase()
-   {
-       std::ofstream myfile;
-       myfile.open(filename);
-       myfile << "[dicom]\n";
-       myfile << "storage_path=./temp_dir\n";
-       myfile << "port=11112\n";
-       myfile << "[database]\n";
-       myfile << "hostname=localhost\n";
-       myfile << "port=27017\n";
-       myfile << "dbname=pacs\n";
-       myfile << "[authenticator]\n";
-       myfile << "type=CSV\n";
-       myfile << "filepath=./authentest.csv\n";
-       myfile << "[listAddressPort]\n";
-       myfile << "allowed=LANGUEDOC,LOCAL\n";
-       myfile << "LANGUEDOC=languedoc:11113\n";
-       myfile << "LOCAL=vexin:11112\n";
-       myfile.close();
-   }
+    TestDataMissingField() : TestDataConfigurationBase()
+    {
+        std::ofstream myfile;
+        myfile.open(filename);
+        myfile << "[dicom]\n";
+        myfile << "storage_path=./temp_dir\n";
+        myfile << "port=11112\n";
+        myfile << "[database]\n";
+        myfile << "hostname=localhost\n";
+        myfile << "port=27017\n";
+        myfile << "dbname=pacs\n";
+        myfile << "[authenticator]\n";
+        myfile << "type=CSV\n";
+        myfile << "filepath=./authentest.csv\n";
+        myfile << "[listAddressPort]\n";
+        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "LANGUEDOC=languedoc:11113\n";
+        myfile << "LOCAL=vexin:11112\n";
+        myfile.close();
+    }
 
-   virtual ~TestDataMissingField()
-   {
-       // Nothing to do
-   }
+    virtual ~TestDataMissingField()
+    {
+        // Nothing to do
+    }
 };
 
 /*************************** TEST Nominal *******************************/
@@ -129,7 +129,8 @@ BOOST_AUTO_TEST_CASE(Constructor)
  */
 BOOST_FIXTURE_TEST_CASE(ParsingConfigurationFile, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
@@ -141,7 +142,8 @@ BOOST_FIXTURE_TEST_CASE(ParsingConfigurationFile, TestDataConfiguration)
  */
 BOOST_FIXTURE_TEST_CASE(GetValue, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
@@ -154,7 +156,8 @@ BOOST_FIXTURE_TEST_CASE(GetValue, TestDataConfiguration)
  */
 BOOST_FIXTURE_TEST_CASE(HasValue, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.has_value("dicom.port"), true);
@@ -170,7 +173,8 @@ BOOST_FIXTURE_TEST_CASE(HasValue, TestDataConfiguration)
  */
 BOOST_FIXTURE_TEST_CASE(AllowedAETtitle, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("VALUE"), true);
@@ -186,7 +190,8 @@ BOOST_FIXTURE_TEST_CASE(AllowedAETtitle, TestDataConfiguration)
 
 BOOST_FIXTURE_TEST_CASE(SpecificAllowedAETitle, TestDataSpecificAllowedAETitle)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle("USER1"), true);
@@ -201,7 +206,8 @@ BOOST_FIXTURE_TEST_CASE(SpecificAllowedAETitle, TestDataSpecificAllowedAETitle)
  */
 BOOST_FIXTURE_TEST_CASE(GetAddressForAETitle, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
     
     std::string address;
@@ -223,7 +229,8 @@ BOOST_FIXTURE_TEST_CASE(GetAddressForAETitle, TestDataConfiguration)
  */
 BOOST_AUTO_TEST_CASE(BadFilename)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     BOOST_REQUIRE_THROW(confpacs.parse("badfilename"),
                         dopamine::ExceptionPACS);
     dopamine::ConfigurationPACS::delete_instance();
@@ -231,11 +238,13 @@ BOOST_AUTO_TEST_CASE(BadFilename)
 
 /*************************** TEST Error *********************************/
 /**
- * Error test case: Parsing failure => Missing mandatory field dicom.allowed_peers
+ * Error test case: Parsing failure
+ *                  => Missing mandatory field dicom.allowed_peers
  */
 BOOST_FIXTURE_TEST_CASE(MissingMandatoryField, TestDataMissingField)
 {
-    dopamine::ConfigurationPACS& confpacs = dopamine::ConfigurationPACS::get_instance();
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
     BOOST_REQUIRE_THROW(confpacs.parse(filename),
                         dopamine::ExceptionPACS);
 }

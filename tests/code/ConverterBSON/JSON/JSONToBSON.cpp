@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     mongo::BSONObj objectcontrol =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" << binary_data_builder.obj()["data"]));
 
     BOOST_CHECK_EQUAL(objectcontrol == bsonobject, true);
 }
@@ -106,7 +106,8 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     std::string const tag = "00100010";
     std::string const vr = "PN";
     mongo::BSONArray const values =
-            BSON_ARRAY(BSON("Alphabetic" << "Doe^John^Wallas^Rev.^Chief Executive Officer")
+            BSON_ARRAY(BSON("Alphabetic" <<
+                            "Doe^John^Wallas^Rev.^Chief Executive Officer")
                     << BSON("Alphabetic" << "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
@@ -183,4 +184,3 @@ BOOST_AUTO_TEST_CASE(ConversionNull)
 
     BOOST_CHECK_EQUAL(object == bsonobject2, true);
 }
-

@@ -15,9 +15,8 @@ class TestBase(unittest.TestCase) :
         self._remove_authorization = os.environ["DOPAMINE_TEST_DEL_AUTH"]
         self._add_doe_jane = os.environ["DOPAMINE_TEST_ADD_JANE"]
         self._del_doe_jane = os.environ["DOPAMINE_TEST_DEL_JANE"]
-    
         unittest.TestCase.__init__(self, *args, **kwargs)
-        
+    
     def setUp(self) :
         # Add authorization in database
         subprocess.Popen(str(self._create_authorization), shell=True)

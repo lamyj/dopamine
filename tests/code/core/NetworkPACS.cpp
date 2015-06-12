@@ -20,7 +20,7 @@
 #include "core/NetworkPACS.h"
 
 /**
- * Pre-conditions: 
+ * Pre-conditions:
  *     - we assume that ConfigurationPACS works correctly
  *     - we assume that AuthenticatorNone works correctly
  */
@@ -55,7 +55,8 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "# Base of search (only for type = LDAP)\n";
     myfile << "ldap_base=" << base << "\n";
     myfile << "# Request filter (only for type = LDAP)\n";
-    myfile << "ldap_filter=(&(uid=%user)(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
+    myfile << "ldap_filter=(&(uid=%user)"
+           << "(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
     myfile << "[listAddressPort]\n";
     myfile << "allowed=LANGUEDOC,LOCAL\n";
     myfile << "LANGUEDOC=languedoc:11113\n";
@@ -79,7 +80,7 @@ void terminateNetwork()
 /**
  * Nominal test case: Constructor (None)
  */
- struct TestDataOK01
+struct TestDataOK01
 {
     TestDataOK01()
     {
@@ -235,7 +236,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "[dicom]\n";
         myfile << "storage_path=./temp_dir\n";
         myfile << "allowed_peers=*\n";
-        myfile << "port=11112\n";               // WARNING: this port should be used
+        myfile << "port=11112\n";     // WARNING: this port should be used
         myfile << "[database]\n";
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";

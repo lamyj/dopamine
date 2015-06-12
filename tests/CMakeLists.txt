@@ -6,7 +6,7 @@ find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 find_package(Qt4 REQUIRED QtGui)
 include(${QT_USE_FILE})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/lib 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/lib
                     ${QT_INCLUDES}
                     ${MONGO_DB_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -18,7 +18,7 @@ file(GLOB_RECURSE tests *.cpp)
 foreach(test_file ${tests})
     get_filename_component(test ${test_file} NAME_WE)
     add_executable(${test} ${test_file})
-    target_link_libraries(${test} libdopamine ${Boost_LIBRARIES} 
+    target_link_libraries(${test} libdopamine ${Boost_LIBRARIES}
                                               ${MONGO_DB_LIBRARIES}
                                               ${QT_LIBRARIES})
     file(READ ${test_file} content)

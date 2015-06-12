@@ -12,15 +12,15 @@ class TestMoveSCP(TestBase):
     #################################################
     def test_run_movescu(self):
         try:
-            pathjoin = os.path.join(self._output_directory, 
+            pathjoin = os.path.join(self._output_directory,
                                     "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
             self.assertEqual(os.path.isfile(pathjoin), False)
             
             # Send a Move request
-            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
-                                        "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port,
+                                        "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -50,15 +50,15 @@ class TestMoveSCP(TestBase):
         thread_spec.wait()
         
         try:
-            pathjoin = os.path.join(self._output_directory, 
+            pathjoin = os.path.join(self._output_directory,
                                     "MR.2.16.756.5.5.100.3611280983.20092.1364462458.1.0")
             self.assertEqual(os.path.isfile(pathjoin), False)
             
             # Send a Move request
-            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
-                                        "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port,
+                                        "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -82,9 +82,9 @@ class TestMoveSCP(TestBase):
     def test_move_no_queryretrievelevel(self):
         try:
             # Send a Move request
-            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
-                                        "-P", "-k", "0010,0010=Doe^Jane", 
+            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port,
+                                        "-P", "-k", "0010,0010=Doe^Jane",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -110,10 +110,10 @@ class TestMoveSCP(TestBase):
         
         try:
             # Send a Move request
-            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port, 
-                                        "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", 
+            subproc = subprocess.Popen(["movescu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-aem", "LOCAL", "+P", self._scu_port,
+                                        "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT",
                                         "-od", self._output_directory,
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)

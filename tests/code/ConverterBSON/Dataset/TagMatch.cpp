@@ -21,7 +21,8 @@
  */
 BOOST_AUTO_TEST_CASE(Matching)
 {
-    auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0010));
+    auto tagmatch = dopamine::converterBSON::
+            TagMatch::New(DcmTagKey(0x0010, 0x0010));
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0010));
     BOOST_CHECK_EQUAL((*tagmatch)(element), true);
@@ -35,7 +36,8 @@ BOOST_AUTO_TEST_CASE(Matching)
  */
 BOOST_AUTO_TEST_CASE(DifferentGroup)
 {
-    auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0008, 0x0010));
+    auto tagmatch = dopamine::converterBSON::
+            TagMatch::New(DcmTagKey(0x0008, 0x0010));
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0010));
     BOOST_CHECK_EQUAL((*tagmatch)(element), false);
@@ -49,7 +51,8 @@ BOOST_AUTO_TEST_CASE(DifferentGroup)
  */
 BOOST_AUTO_TEST_CASE(DifferentElement)
 {
-    auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0020));
+    auto tagmatch = dopamine::converterBSON::
+            TagMatch::New(DcmTagKey(0x0010, 0x0020));
     
     DcmElement* element = new DcmAttributeTag(DcmTag(0x0010, 0x0010));
     BOOST_CHECK_EQUAL((*tagmatch)(element), false);
@@ -63,7 +66,8 @@ BOOST_AUTO_TEST_CASE(DifferentElement)
  */
 BOOST_AUTO_TEST_CASE(EmptyElement)
 {
-    auto tagmatch = dopamine::converterBSON::TagMatch::New(DcmTagKey(0x0010, 0x0010));
+    auto tagmatch = dopamine::converterBSON::
+            TagMatch::New(DcmTagKey(0x0010, 0x0010));
     
     BOOST_REQUIRE_THROW((*tagmatch)(NULL), dopamine::ExceptionPACS);
 }

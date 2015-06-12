@@ -12,9 +12,9 @@ class TestFindSCP(TestBase):
     def test_run_findscu(self):
         try:
             # Send a Find request
-            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", "localhost", 
+            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT", "localhost",
                                         self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
@@ -40,9 +40,9 @@ class TestFindSCP(TestBase):
         
         try:
             # Send a Find request
-            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", "localhost", 
+            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT", "localhost",
                                         self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
@@ -62,8 +62,8 @@ class TestFindSCP(TestBase):
     def test_find_no_queryretrievelevel(self):
         try:
             # Send a Find request
-            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
+            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
                                         "localhost", self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
@@ -89,9 +89,9 @@ class TestFindSCP(TestBase):
         
         try:
             # Send a Find request
-            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec", 
-                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane", 
-                                        "-k", " 0008,0052=PATIENT", "localhost", 
+            subproc = subprocess.Popen(["findscu", "-aet", "LOCAL", "-aec",
+                                        "REMOTE", "-P", "-k", "0010,0010=Doe^Jane",
+                                        "-k", " 0008,0052=PATIENT", "localhost",
                                         self._dopamine_port],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             

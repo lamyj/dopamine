@@ -91,17 +91,19 @@ mimetic::MimeEntity to_MIME_message(std::string const & message,
  */
 BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 {
-    dopamine::services::Qido_rs qidors_xml("/studies",
-                                           "StudyInstanceUID=no_data",
-                                           dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+    dopamine::services::Qido_rs qidors_xml(
+                "/studies", "StudyInstanceUID=no_data",
+                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
-    BOOST_CHECK_EQUAL(qidors_xml.get_contenttype(), dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+    BOOST_CHECK_EQUAL(qidors_xml.get_contenttype(),
+                      dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
-    dopamine::services::Qido_rs qidors_json("/studies",
-                                            "StudyInstanceUID=no_data",
-                                            dopamine::services::MIME_TYPE_APPLICATION_JSON);
+    dopamine::services::Qido_rs qidors_json(
+                "/studies", "StudyInstanceUID=no_data",
+                dopamine::services::MIME_TYPE_APPLICATION_JSON);
 
-    BOOST_CHECK_EQUAL(qidors_json.get_contenttype(), dopamine::services::MIME_TYPE_APPLICATION_JSON);
+    BOOST_CHECK_EQUAL(qidors_json.get_contenttype(),
+                      dopamine::services::MIME_TYPE_APPLICATION_JSON);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -112,13 +114,14 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
 
-    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    // PS3.18: 6.7.1.2.1.1 Study Matching -
+    // Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
     std::vector<std::string> queries =
     {
         "StudyDate=20130328",
         "StudyTime=101009",
-//        "AccessionNumber=*",                  // Cannot be test => Null value
-//        "ModalitiesInStudy=*",                // Cannot be test => Not present
+//        "AccessionNumber=*",              // Cannot be test => Null value
+//        "ModalitiesInStudy=*",            // Cannot be test => Not present
         "ReferringPhysicianName=Gregory^House",
         "PatientName=Doe^Jane",
         "PatientID=dopamine_test_01",
@@ -137,20 +140,22 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
                                                "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity = to_MIME_message(response_xml,
+                                                     qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -164,8 +169,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -180,8 +186,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("STUDY") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("STUDY") != std::string::npos);
 
             // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
             for (std::string attribute : mandatory_study_attributes)
@@ -189,8 +196,10 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -202,13 +211,14 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
 
-    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    // PS3.18: 6.7.1.2.1.1 Study Matching -
+    // Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
     std::vector<std::string> queries =
     {
         "StudyDate=20130328",
         "StudyTime=101009",
-//        "AccessionNumber=*",                  // Cannot be test => Null value
-//        "ModalitiesInStudy=*",                // Cannot be test => Not present
+//        "AccessionNumber=*",              // Cannot be test => Null value
+//        "ModalitiesInStudy=*",            // Cannot be test => Not present
         "ReferringPhysicianName=Gregory^House",
         "PatientName=Doe^Jane",
         "PatientID=dopamine_test_01",
@@ -227,15 +237,15 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get JSON response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
 
         // Convert response to BSON Object
         std::stringstream response;
@@ -243,7 +253,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
         mongo::BSONObj objectjson = mongo::fromjson(response.str());
         BOOST_REQUIRE_EQUAL(objectjson["arrayjson"].Array().size(), 1);
 
-        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+        mongo::BSONObj const object =
+                objectjson["arrayjson"].Array()[0].Obj();
 
         // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
         for (std::string attribute : mandatory_study_attributes)
@@ -251,8 +262,10 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
             if (object.hasField(attribute) == false)
             {
                 std::stringstream streamerror;
-                streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                streamerror << "Missing mandatory attribute: "
+                            << attribute;
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -268,16 +281,17 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
     streampathinfo << "/studies/" << STUDY_INSTANCE_UID_01_01 << "/series";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    // PS3.18: 6.7.1.2.1.2 Series Matching -
+    // Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
     std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
         "SeriesNumber=196609",
-//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
-//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
-//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
-//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+//        "PerformedProcedureStepStartDate=*",                  // Not present
+//        "PerformedProcedureStepStartTime=*",                  // Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",// Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",    // Not present
 
         // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
         "00080060=M?",
@@ -291,20 +305,21 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -318,8 +333,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -334,9 +350,11 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("SERIES") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find(SERIES_INSTANCE_UID_01_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("SERIES") != std::string::npos);
 
             // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
             for (std::string attribute : mandatory_series_attributes)
@@ -344,8 +362,10 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -362,16 +382,17 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
     streampathinfo << "/studies/" << STUDY_INSTANCE_UID_01_01 << "/series";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    // PS3.18: 6.7.1.2.1.2 Series Matching -
+    // Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
     std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
         "SeriesNumber=196609",
-//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
-//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
-//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
-//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+//        "PerformedProcedureStepStartDate=*",                  // Not present
+//        "PerformedProcedureStepStartTime=*",                  // Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",// Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",    // Not present
 
         // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
         "00080060=M?",
@@ -385,10 +406,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Convert response to BSON Object
@@ -398,11 +418,14 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SERIES_INSTANCE_UID_01_01_01) !=
+                    std::string::npos);
         BOOST_REQUIRE_EQUAL(objectjson["arrayjson"].Array().size(), 1);
 
-        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+        mongo::BSONObj const object =
+                objectjson["arrayjson"].Array()[0].Obj();
 
         // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
         for (std::string attribute : mandatory_series_attributes)
@@ -410,8 +433,10 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
             if (object.hasField(attribute) == false)
             {
                 std::stringstream streamerror;
-                streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                streamerror << "Missing mandatory attribute: "
+                            << attribute;
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -425,16 +450,17 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
 {
     std::string const pathinfo = "/series";
 
-    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    // PS3.18: 6.7.1.2.1.2 Series Matching -
+    // Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
     std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
         "SeriesNumber=196609",
-//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
-//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
-//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
-//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+//        "PerformedProcedureStepStartDate=*",                  // Not present
+//        "PerformedProcedureStepStartTime=*",                  // Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",// Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",    // Not present
 
         // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
         "00080060=M?",
@@ -448,20 +474,21 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -475,8 +502,9 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -493,10 +521,12 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
 
             if (query != "Modality=MR" && query != "00080060=M?")
             {
-                BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-                BOOST_CHECK_EQUAL(temp.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
+                BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                            std::string::npos);
+                BOOST_CHECK(temp.find(SERIES_INSTANCE_UID_01_01_01) !=
+                            std::string::npos);
             }
-            BOOST_CHECK_EQUAL(temp.find("SERIES") != std::string::npos, true);
+            BOOST_CHECK(temp.find("SERIES") != std::string::npos);
 
             // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
             for (std::string attribute : mandatory_study_attributes)
@@ -504,8 +534,10 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
 
@@ -515,8 +547,10 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -531,16 +565,17 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/series";
 
-    // PS3.18: 6.7.1.2.1.2 Series Matching - Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
+    // PS3.18: 6.7.1.2.1.2 Series Matching -
+    // Table 6.7.1-1a. QIDO-RS SERIES Search Query Keys
     std::vector<std::string> queries =
     {
         "Modality=MR",
         "SeriesInstanceUID=2.16.756.5.5.100.3611280983.20092.1364462458.1",
         "SeriesNumber=196609",
-//        "PerformedProcedureStepStartDate=*",                      // Cannot be test => Not present
-//        "PerformedProcedureStepStartTime=*",                      // Cannot be test => Not present
-//        "RequestAttributeSequence.ScheduledProcedureStepID=*",    // Cannot be test => Not present
-//        "RequestAttributeSequence.RequestedProcedureID=*",        // Cannot be test => Not present
+//        "PerformedProcedureStepStartDate=*",                  // Not present
+//        "PerformedProcedureStepStartTime=*",                  // Not present
+//        "RequestAttributeSequence.ScheduledProcedureStepID=*",// Not present
+//        "RequestAttributeSequence.RequestedProcedureID=*",    // Not present
 
         // PS3.18: 6.7.1.1.1 {attributeID} encoding rules
         "00080060=M?",
@@ -554,10 +589,9 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                     dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Convert response to BSON Object
@@ -567,11 +601,14 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SERIES_INSTANCE_UID_01_01_01) !=
+                    std::string::npos);
         BOOST_REQUIRE_GE(objectjson["arrayjson"].Array().size(), 1);
 
-        mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
+        mongo::BSONObj const object =
+                objectjson["arrayjson"].Array()[0].Obj();
 
         // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
         for (std::string attribute : mandatory_study_attributes)
@@ -579,8 +616,10 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
             if (object.hasField(attribute) == false)
             {
                 std::stringstream streamerror;
-                streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                streamerror << "Missing mandatory attribute: "
+                            << attribute;
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
 
@@ -590,8 +629,10 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
             if (object.hasField(attribute) == false)
             {
                 std::stringstream streamerror;
-                streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                streamerror << "Missing mandatory attribute: "
+                            << attribute;
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -608,7 +649,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
                    << "/series/" << SERIES_INSTANCE_UID_01_01_01 << "/instances";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -626,20 +668,21 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -653,8 +696,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -669,10 +713,13 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("IMAGE") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find(SERIES_INSTANCE_UID_01_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("IMAGE") != std::string::npos);
 
             // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
             for (std::string attribute : mandatory_instance_attributes)
@@ -681,7 +728,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
                 {
                     std::stringstream streamerror;
                     streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -699,7 +747,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
                    << "/series/" << SERIES_INSTANCE_UID_01_01_01 << "/instances";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -717,10 +766,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Convert response to BSON Object
@@ -730,9 +778,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SERIES_INSTANCE_UID_01_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                    std::string::npos);
         BOOST_REQUIRE_EQUAL(objectjson["arrayjson"].Array().size(), 1);
 
         mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
@@ -744,7 +795,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -760,7 +812,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
     streampathinfo << "/studies/" << STUDY_INSTANCE_UID_01_01 << "/instances";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -778,20 +831,21 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -805,8 +859,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -821,10 +876,13 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("IMAGE") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find(SERIES_INSTANCE_UID_01_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("IMAGE") != std::string::npos);
 
             // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
             for (std::string attribute : mandatory_series_attributes)
@@ -833,7 +891,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
                 {
                     std::stringstream streamerror;
                     streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
 
@@ -844,7 +903,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
                 {
                     std::stringstream streamerror;
                     streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -861,7 +921,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
     streampathinfo << "/studies/" << STUDY_INSTANCE_UID_01_01 << "/instances";
     std::string const pathinfo = streampathinfo.str();
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -879,10 +940,9 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Convert response to BSON Object
@@ -892,9 +952,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SERIES_INSTANCE_UID_01_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                    std::string::npos);
         BOOST_REQUIRE_EQUAL(objectjson["arrayjson"].Array().size(), 1);
 
         mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
@@ -906,7 +969,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
 
@@ -917,7 +981,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -931,7 +996,8 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
 {
     std::string const pathinfo = "/instances";
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -949,20 +1015,21 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query,
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -976,8 +1043,9 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -997,9 +1065,12 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
                 query != "InstanceNumber=1" &&
                 query != "00200013=1")
             {
-                BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-                BOOST_CHECK_EQUAL(temp.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-                BOOST_CHECK_EQUAL(temp.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
+                BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                            std::string::npos);
+                BOOST_CHECK(temp.find(SERIES_INSTANCE_UID_01_01_01) !=
+                            std::string::npos);
+                BOOST_CHECK(temp.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                            std::string::npos);
             }
             BOOST_CHECK_EQUAL(temp.find("IMAGE") != std::string::npos, true);
 
@@ -1009,8 +1080,10 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
 
@@ -1020,8 +1093,10 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
 
@@ -1031,8 +1106,10 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
                 if (temp.find(attribute) == std::string::npos)
                 {
                     std::stringstream streamerror;
-                    streamerror << "Missing mandatory attribute: " << attribute;
-                    BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                    streamerror << "Missing mandatory attribute: "
+                                << attribute;
+                    BOOST_THROW_EXCEPTION(
+                        dopamine::ExceptionPACS(streamerror.str()));
                 }
             }
         }
@@ -1047,7 +1124,8 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/instances";
 
-    // PS3.18: 6.7.1.2.1.3 Instance Matching - Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
+    // PS3.18: 6.7.1.2.1.3 Instance Matching -
+    // Table 6.7.1-1b. QIDO-RS INSTANCE Search Query Keys
     std::vector<std::string> queries =
     {
         "SOPClassUID=1.2.840.10008.5.1.4.1.1.4",
@@ -1065,10 +1143,9 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
     for (std::string const query : queries)
     {
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_json(pathinfo,
-                                                query,
-                                                dopamine::services::MIME_TYPE_APPLICATION_JSON,
-                                                "");
+        dopamine::services::Qido_rs qidors_json(
+                    pathinfo, query,
+                    dopamine::services::MIME_TYPE_APPLICATION_JSON, "");
         std::string const response_json = qidors_json.get_response();
 
         // Convert response to BSON Object
@@ -1078,9 +1155,12 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
 
         // Check response
         BOOST_REQUIRE(response_json != "");
-        BOOST_CHECK_EQUAL(response_json.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SERIES_INSTANCE_UID_01_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(response_json.find(SOP_INSTANCE_UID_01_01_01_01) != std::string::npos, true);
+        BOOST_CHECK(response_json.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SERIES_INSTANCE_UID_01_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(response_json.find(SOP_INSTANCE_UID_01_01_01_01) !=
+                    std::string::npos);
         BOOST_REQUIRE_GE(objectjson["arrayjson"].Array().size(), 1);
 
         mongo::BSONObj const object = objectjson["arrayjson"].Array()[0].Obj();
@@ -1092,7 +1172,8 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
 
@@ -1103,7 +1184,8 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
 
@@ -1114,7 +1196,8 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -1128,7 +1211,8 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
 
-    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    // PS3.18: 6.7.1.2.1.1 Study Matching -
+    // Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
     std::vector<std::string> field_to_test =
     {
         "00080012", // DA
@@ -1142,7 +1226,8 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
     };
 
     std::stringstream query;
-    query << "StudyInstanceUID=2.16.756.5.5.100.3611280983.19057.1364461809.7789&PatientName=Doe^Jane";
+    query << "StudyInstanceUID=" << STUDY_INSTANCE_UID_01_01
+          << "&PatientName=Doe^Jane";
 
     for (std::string const field : field_to_test)
     {
@@ -1150,20 +1235,21 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
     }
 
     // Perform query and get XML response
-    dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                           query.str(),
-                                           dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                           "");
+    dopamine::services::Qido_rs qidors_xml(
+                pathinfo, query.str(),
+                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
     std::string const response_xml = qidors_xml.get_response();
 
     // Check response
-    mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+    mimetic::MimeEntity entity =
+            to_MIME_message(response_xml, qidors_xml.get_boundary());
 
     // Check Header
     mimetic::Header& h = entity.header();
     BOOST_CHECK(h.contentType().isMultipart());
     std::string content_type = h.contentType().str();
-    BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+    BOOST_CHECK(content_type.find(
+                    dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                 std::string::npos);
 
     // Check each parts
@@ -1177,8 +1263,9 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
         std::stringstream contenttypestream;
         contenttypestream << header.contentType();
 
-        BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                            dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+        BOOST_REQUIRE_EQUAL(
+                    contenttypestream.str(),
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
         // check Body
         mimetic::Body& body = (*mbit)->body();
@@ -1193,8 +1280,9 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(temp.find("STUDY") != std::string::npos, true);
+        BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(temp.find("STUDY") != std::string::npos);
 
         // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
         for (std::string attribute : mandatory_study_attributes)
@@ -1203,7 +1291,8 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
 
@@ -1213,7 +1302,8 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing include field: " << field;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -1236,20 +1326,21 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
         query << "&limit=" << limit;
 
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query.str(),
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query.str(),
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -1270,8 +1361,9 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -1286,8 +1378,9 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_02_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("STUDY") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_02_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("STUDY") != std::string::npos);
         }
     }
 }
@@ -1309,20 +1402,21 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
         query << "&offset=" << offset;
 
         // Perform query and get XML response
-        dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                               query.str(),
-                                               dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                               "");
+        dopamine::services::Qido_rs qidors_xml(
+                    pathinfo, query.str(),
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
         std::string const response_xml = qidors_xml.get_response();
 
         // Check response
-        mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+        mimetic::MimeEntity entity =
+                to_MIME_message(response_xml, qidors_xml.get_boundary());
 
         // Check Header
         mimetic::Header& h = entity.header();
         BOOST_CHECK(h.contentType().isMultipart());
         std::string content_type = h.contentType().str();
-        BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+        BOOST_CHECK(content_type.find(
+                        dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                     std::string::npos);
 
         // Check each parts
@@ -1336,8 +1430,9 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
             std::stringstream contenttypestream;
             contenttypestream << header.contentType();
 
-            BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+            BOOST_REQUIRE_EQUAL(
+                        contenttypestream.str(),
+                        dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
             // check Body
             mimetic::Body& body = (*mbit)->body();
@@ -1352,8 +1447,9 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
                 temp = temp.substr(0, temp.rfind("\n"));
             }
 
-            BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_02_01) != std::string::npos, true);
-            BOOST_CHECK_EQUAL(temp.find("STUDY") != std::string::npos, true);
+            BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_02_01) !=
+                        std::string::npos);
+            BOOST_CHECK(temp.find("STUDY") != std::string::npos);
         }
     }
 }
@@ -1366,24 +1462,26 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
 
-    // PS3.18: 6.7.1.2.1.1 Study Matching - Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    // PS3.18: 6.7.1.2.1.1 Study Matching -
+    // Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
     std::string query = "StudyDate=20130327-20130329";
 
     // Perform query and get XML response
-    dopamine::services::Qido_rs qidors_xml(pathinfo,
-                                           query,
-                                           dopamine::services::MIME_TYPE_APPLICATION_DICOMXML,
-                                           "");
+    dopamine::services::Qido_rs qidors_xml(
+                pathinfo, query,
+                dopamine::services::MIME_TYPE_APPLICATION_DICOMXML, "");
     std::string const response_xml = qidors_xml.get_response();
 
     // Check response
-    mimetic::MimeEntity entity = to_MIME_message(response_xml, qidors_xml.get_boundary());
+    mimetic::MimeEntity entity =
+            to_MIME_message(response_xml, qidors_xml.get_boundary());
 
     // Check Header
     mimetic::Header& h = entity.header();
     BOOST_CHECK(h.contentType().isMultipart());
     std::string content_type = h.contentType().str();
-    BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+    BOOST_CHECK(content_type.find(
+                    dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                 std::string::npos);
 
     // Check each parts
@@ -1397,8 +1495,9 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
         std::stringstream contenttypestream;
         contenttypestream << header.contentType();
 
-        BOOST_REQUIRE_EQUAL(contenttypestream.str(),
-                            dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
+        BOOST_REQUIRE_EQUAL(
+                    contenttypestream.str(),
+                    dopamine::services::MIME_TYPE_APPLICATION_DICOMXML);
 
         // check Body
         mimetic::Body& body = (*mbit)->body();
@@ -1413,8 +1512,9 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        BOOST_CHECK_EQUAL(temp.find(STUDY_INSTANCE_UID_01_01) != std::string::npos, true);
-        BOOST_CHECK_EQUAL(temp.find("STUDY") != std::string::npos, true);
+        BOOST_CHECK(temp.find(STUDY_INSTANCE_UID_01_01) !=
+                    std::string::npos);
+        BOOST_CHECK(temp.find("STUDY") != std::string::npos);
 
         // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
         for (std::string attribute : mandatory_study_attributes)
@@ -1423,7 +1523,8 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
             {
                 std::stringstream streamerror;
                 streamerror << "Missing mandatory attribute: " << attribute;
-                BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(streamerror.str()));
+                BOOST_THROW_EXCEPTION(
+                    dopamine::ExceptionPACS(streamerror.str()));
             }
         }
     }
@@ -1454,11 +1555,12 @@ BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
 
     for (auto pathinfo : pathinfo_to_test)
     {
-        BOOST_CHECK_EXCEPTION(dopamine::services::Qido_rs(pathinfo, ""),
-                              dopamine::services::WebServiceException,
-                              [] (dopamine::services::WebServiceException const exc)
-                                { return (exc.status() == 400 &&
-                                          exc.statusmessage() == "Bad Request"); });
+        BOOST_CHECK_EXCEPTION(
+                    dopamine::services::Qido_rs(pathinfo, ""),
+                    dopamine::services::WebServiceException,
+                    [] (dopamine::services::WebServiceException const exc)
+                        { return (exc.status() == 400 &&
+                                  exc.statusmessage() == "Bad Request"); });
     }
 }
 
@@ -1474,11 +1576,12 @@ BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
     query << "StudyInstanceUID=" << STUDY_INSTANCE_UID_02_01;
     query << "&NotADICOMTag=badvalue";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Qido_rs(pathinfo, query.str()),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-                            { return (exc.status() == 400 &&
-                                      exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Qido_rs(pathinfo, query.str()),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -1493,9 +1596,10 @@ BOOST_FIXTURE_TEST_CASE(RequestFuzzyMatching, TestDataRequest)
     query << "StudyInstanceUID=" << STUDY_INSTANCE_UID_02_01;
     query << "&fuzzymatching=true";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Qido_rs(pathinfo, query.str()),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-                            { return (exc.status() == 299 &&
-                                      exc.statusmessage() == "Warning"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Qido_rs(pathinfo, query.str()),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 299 &&
+                              exc.statusmessage() == "Warning"); });
 }

@@ -63,9 +63,13 @@ void check_name_component(boost::property_tree::ptree & tree,
             if (family_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_FamilyName
-                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                stream << "Too many XML sub-node '"
+                       << dopamine::converterBSON::Tag_FamilyName
+                       << "' for node '"
+                       << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '"
+                       << dopamine::converterBSON::Tag_Ideographic
+                       << "' or '"
                        << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
@@ -77,9 +81,13 @@ void check_name_component(boost::property_tree::ptree & tree,
             if (given_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_GivenName
-                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                stream << "Too many XML sub-node '"
+                       << dopamine::converterBSON::Tag_GivenName
+                       << "' for node '"
+                       << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '"
+                       << dopamine::converterBSON::Tag_Ideographic
+                       << "' or '"
                        << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
@@ -91,9 +99,13 @@ void check_name_component(boost::property_tree::ptree & tree,
             if (middle_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_MiddleName
-                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                stream << "Too many XML sub-node '"
+                       << dopamine::converterBSON::Tag_MiddleName
+                       << "' for node '"
+                       << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '"
+                       << dopamine::converterBSON::Tag_Ideographic
+                       << "' or '"
                        << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
@@ -105,9 +117,13 @@ void check_name_component(boost::property_tree::ptree & tree,
             if (prefix_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_NamePrefix
-                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                stream << "Too many XML sub-node '"
+                       << dopamine::converterBSON::Tag_NamePrefix
+                       << "' for node '"
+                       << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '"
+                       << dopamine::converterBSON::Tag_Ideographic
+                       << "' or '"
                        << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
@@ -119,9 +135,13 @@ void check_name_component(boost::property_tree::ptree & tree,
             if (suffix_name != "")
             {
                 std::stringstream stream;
-                stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_NameSuffix
-                       << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                       << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                stream << "Too many XML sub-node '"
+                       << dopamine::converterBSON::Tag_NameSuffix
+                       << "' for node '"
+                       << dopamine::converterBSON::Tag_Alphabetic
+                       << "' or '"
+                       << dopamine::converterBSON::Tag_Ideographic
+                       << "' or '"
                        << dopamine::converterBSON::Tag_Phonetic;
                 BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
             }
@@ -133,13 +153,16 @@ void check_name_component(boost::property_tree::ptree & tree,
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_alpha.first
                    << "' for node '" << dopamine::converterBSON::Tag_Alphabetic
-                   << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+                   << "' or '"
+                   << dopamine::converterBSON::Tag_Ideographic
+                   << "' or '"
                    << dopamine::converterBSON::Tag_Phonetic;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
 
-    std::string name = object.getField(dopamine::converterBSON::Tag_Alphabetic).String();
+    std::string const name =
+            object.getField(dopamine::converterBSON::Tag_Alphabetic).String();
     std::vector<std::string> name_components;
     boost::split(name_components, name,
                  boost::is_any_of("^"), boost::token_compress_off);
@@ -179,7 +202,8 @@ void check_value_xmlattr(boost::property_tree::ptree & tree,
         {
             std::stringstream stream;
             stream << "Unkown attribute '" << it_xmlattr.first
-                   << "' for node " << dopamine::converterBSON::Tag_Value << " or "
+                   << "' for node "
+                   << dopamine::converterBSON::Tag_Value << " or "
                    << dopamine::converterBSON::Tag_PersonName << " or "
                    << dopamine::converterBSON::Tag_Item;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
@@ -209,7 +233,8 @@ void check_item(boost::property_tree::ptree & tree,
         }
         else if (it_xmlattr.first == dopamine::converterBSON::Tag_DicomAttribute)
         {
-            check_dicom_attribute(it_xmlattr.second, object.getField("Value").Array()[number-1].Obj());
+            check_dicom_attribute(it_xmlattr.second,
+                                  object["Value"].Array()[number-1].Obj());
         }
         else
         {
@@ -240,19 +265,19 @@ void check_person_name(boost::property_tree::ptree & tree,
         {
             ++count_alphabetic;
             check_name_component(it_xmlattr.second,
-                                 object.getField("Value").Array()[number-1].Obj());
+                                 object["Value"].Array()[number-1].Obj());
         }
         else if (it_xmlattr.first == dopamine::converterBSON::Tag_Ideographic)
         {
             ++count_ideographic;
             check_name_component(it_xmlattr.second,
-                                 object.getField("Value").Array()[number-1].Obj());
+                                 object["Value"].Array()[number-1].Obj());
         }
         else if (it_xmlattr.first == dopamine::converterBSON::Tag_Phonetic)
         {
             ++count_phonetic;
             check_name_component(it_xmlattr.second,
-                                 object.getField("Value").Array()[number-1].Obj());
+                                 object["Value"].Array()[number-1].Obj());
         }
         else
         {
@@ -266,8 +291,10 @@ void check_person_name(boost::property_tree::ptree & tree,
     if (count_alphabetic > 1 || count_ideographic > 1 || count_phonetic > 1)
     {
         std::stringstream stream;
-        stream << "Too many XML sub-node '" << dopamine::converterBSON::Tag_Alphabetic
-               << "' or '" << dopamine::converterBSON::Tag_Ideographic << "' or '"
+        stream << "Too many XML sub-node '"
+               << dopamine::converterBSON::Tag_Alphabetic
+               << "' or '"
+               << dopamine::converterBSON::Tag_Ideographic << "' or '"
                << dopamine::converterBSON::Tag_Phonetic <<"' for node "
                << dopamine::converterBSON::Tag_PersonName;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
@@ -297,7 +324,8 @@ void check_value(boost::property_tree::ptree & tree,
 
     std::string const value = tree.data();
     std::string const initial_value =
-            dopamine::services::bsonelement_to_string(object.getField("Value").Array()[number-1]);
+            dopamine::services::bsonelement_to_string(
+                object["Value"].Array()[number-1]);
 
     BOOST_CHECK_EQUAL(value, initial_value);
 }
@@ -325,7 +353,8 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
     {
         if (it_xmlattr.first == "vr")
         {
-            BOOST_CHECK_EQUAL(it_xmlattr.second.data(), response.getVR().getValidVRName());
+            BOOST_CHECK_EQUAL(it_xmlattr.second.data(),
+                              response.getVR().getValidVRName());
 
             std::string const objectvr = object.getField("vr").String();
             BOOST_CHECK_EQUAL(it_xmlattr.second.data(), objectvr);
@@ -343,13 +372,15 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
         }
         else if (it_xmlattr.first == "privateCreator")
         {
-            BOOST_CHECK_EQUAL(it_xmlattr.second.data(), response.getPrivateCreator());
+            BOOST_CHECK_EQUAL(it_xmlattr.second.data(),
+                              response.getPrivateCreator());
         }
         else
         {
             std::stringstream stream;
             stream << "Unkown attribute '" << it_xmlattr.first
-                   << "' for node " << dopamine::converterBSON::Tag_DicomAttribute;
+                   << "' for node "
+                   << dopamine::converterBSON::Tag_DicomAttribute;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -372,10 +403,12 @@ void check_dicom_attribute_xmlattr(boost::property_tree::ptree & tree,
 }
 
 // Check the xml node DicomAttribute
-void check_dicom_attribute(boost::property_tree::ptree & tree,
-                           mongo::BSONObj const & object)
+void
+check_dicom_attribute(boost::property_tree::ptree & tree,
+                      mongo::BSONObj const & object)
 {
-    std::string const tag = tree.get<std::string>(dopamine::converterBSON::Attribute_Tag);
+    std::string const tag =
+            tree.get<std::string>(dopamine::converterBSON::Attribute_Tag);
 
     unsigned int count_value_node = 0;
     unsigned int count_personname_node = 0;
@@ -386,22 +419,26 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
     {
         if (it_value.first == "<xmlattr>")
         {
-            check_dicom_attribute_xmlattr(it_value.second, object.getField(tag).Obj(), tag);
+            check_dicom_attribute_xmlattr(it_value.second,
+                                          object.getField(tag).Obj(), tag);
         }
         else if (it_value.first == dopamine::converterBSON::Tag_Value)
         {
             ++count_value_node;
-            check_value(it_value.second, object.getField(tag).Obj(), count_value_node);
+            check_value(it_value.second, object.getField(tag).Obj(),
+                        count_value_node);
         }
         else if (it_value.first == dopamine::converterBSON::Tag_PersonName)
         {
             ++count_personname_node;
-            check_person_name(it_value.second, object.getField(tag).Obj(), count_personname_node);
+            check_person_name(it_value.second, object.getField(tag).Obj(),
+                              count_personname_node);
         }
         else if (it_value.first == dopamine::converterBSON::Tag_Item)
         {
             ++count_item_node;
-            check_item(it_value.second, object.getField(tag).Obj(), count_item_node);
+            check_item(it_value.second, object.getField(tag).Obj(),
+                       count_item_node);
         }
         else if (it_value.first == dopamine::converterBSON::Tag_InlineBinary)
         {
@@ -410,13 +447,15 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
         }
         else if (it_value.first == dopamine::converterBSON::Tag_BulkData)
         {
-            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("Not implemented yet"));
+            BOOST_THROW_EXCEPTION(
+                dopamine::ExceptionPACS("Not implemented yet"));
         }
         else
         {
             std::stringstream stream;
             stream << "Unkown XML sub-node '" << it_value.first
-                   << "' for node " << dopamine::converterBSON::Tag_DicomAttribute;
+                   << "' for node "
+                   << dopamine::converterBSON::Tag_DicomAttribute;
             BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
         }
     }
@@ -438,7 +477,8 @@ void check_dicom_attribute(boost::property_tree::ptree & tree,
     if (count_inlinebinary_node > 1)
     {
         std::stringstream stream;
-        stream << "Too many sub-node " << dopamine::converterBSON::Tag_InlineBinary
+        stream << "Too many sub-node "
+               << dopamine::converterBSON::Tag_InlineBinary
                << " for node " << dopamine::converterBSON::Tag_DicomAttribute;
         BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS(stream.str()));
     }
@@ -451,7 +491,8 @@ void check_native_dicom_model(boost::property_tree::ptree & tree,
     BOOST_FOREACH(boost::property_tree::ptree::value_type &it_dicomattribute,
                   tree)
     {
-        BOOST_CHECK_EQUAL(it_dicomattribute.first, dopamine::converterBSON::Tag_DicomAttribute);
+        BOOST_CHECK_EQUAL(it_dicomattribute.first,
+                          dopamine::converterBSON::Tag_DicomAttribute);
 
         check_dicom_attribute(it_dicomattribute.second, object);
     }
@@ -467,11 +508,14 @@ void check_property_tree(boost::property_tree::ptree & tree,
     {
         if (find_tag_nativedicommodel)
         {
-            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("Find more than one NativeDicomModel tag"));
+            BOOST_THROW_EXCEPTION(
+                dopamine::ExceptionPACS(
+                            "Find more than one NativeDicomModel tag"));
             return;
         }
         find_tag_nativedicommodel = true;
-        BOOST_CHECK_EQUAL(it_nativedicommodel.first, dopamine::converterBSON::Tag_NativeDicomModel);
+        BOOST_CHECK_EQUAL(it_nativedicommodel.first,
+                          dopamine::converterBSON::Tag_NativeDicomModel);
 
         check_native_dicom_model(it_nativedicommodel.second, object);
     }

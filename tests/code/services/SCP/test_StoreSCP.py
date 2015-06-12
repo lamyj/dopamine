@@ -15,7 +15,7 @@ class TestStoreSCP(TestBase):
             johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_05"]
             
             # Send a Get request
-            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 
+            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec",
                                         "REMOTE", "localhost", self._dopamine_port,
                                         johndoe],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -42,7 +42,7 @@ class TestStoreSCP(TestBase):
             johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_06"]
             
             # Send a Get request
-            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 
+            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec",
                                         "REMOTE", "localhost", self._dopamine_port,
                                         johndoe],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -71,7 +71,7 @@ class TestStoreSCP(TestBase):
             johndoe = os.environ["DOPAMINE_TEST_DICOMFILE_06"]
             
             # Send a Get request
-            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec", 
+            subproc = subprocess.Popen(["storescu", "-aet", "LOCAL", "-aec",
                                         "REMOTE", "localhost", self._dopamine_port,
                                         johndoe],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -90,4 +90,3 @@ class TestStoreSCP(TestBase):
             
 if __name__ == '__main__':
     unittest.main()
-

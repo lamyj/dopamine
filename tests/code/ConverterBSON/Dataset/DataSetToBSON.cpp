@@ -52,22 +52,22 @@ BOOST_AUTO_TEST_CASE(GetterAndSetter)
     BOOST_CHECK(datasettobson.get_specific_character_set() == "ISO_IR 192");
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
+    datasettobson.set_default_filter(
+                dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
     // check value
-    BOOST_CHECK_EQUAL(datasettobson.get_default_filter() ==
-                      dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE, true);
+    BOOST_CHECK(datasettobson.get_default_filter() ==
+                dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
 
     // Set Filter
     std::vector<dopamine::converterBSON::DataSetToBSON::Filter> filters;
-    filters.push_back(std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_PatientName),
-                      dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE));
+    filters.push_back(std::make_pair(
+              dopamine::converterBSON::TagMatch::New(DCM_PatientName),
+              dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE));
 
     datasettobson.set_filters(filters);
 
-    std::vector<dopamine::converterBSON::DataSetToBSON::Filter> const getfilters =
-        datasettobson.get_filters();
     // check value
-    BOOST_CHECK_EQUAL(getfilters.size(), 1);
+    BOOST_CHECK_EQUAL(datasettobson.get_filters().size(), 1);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -148,7 +148,8 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
     BOOST_CHECK_EQUAL(elementbson.fieldName(), "00209165");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "AT");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "(0010,0010)");
+    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(),
+                      "(0010,0010)");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -243,7 +244,8 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 BOOST_AUTO_TEST_CASE(ConversionDT)
 {
     DcmDataset* dataset = new DcmDataset();
-    dataset->putAndInsertOFStringArray(DCM_FrameAcquisitionDateTime, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_FrameAcquisitionDateTime,
+                                       "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -417,10 +419,10 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 {
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
-    OFCondition condition =
-            dataset->putAndInsertUint8Array(DCM_ICCProfile,
-                                            reinterpret_cast<Uint8 const *>(value.c_str()),
-                                            32);
+    OFCondition condition = dataset->putAndInsertUint8Array(
+                DCM_ICCProfile,
+                reinterpret_cast<Uint8 const *>(value.c_str()),
+                32);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -431,7 +433,8 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     mongo::BSONObj object = element.Obj();
     BOOST_CHECK_EQUAL(element.fieldName(), "00282000");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OB");
-    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
+    BOOST_CHECK(object.getField("InlineBinary").type() ==
+                mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -453,7 +456,8 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     DcmElement * element = NULL;
     dataset->insertEmptyElement(DCM_VectorGridData);
     dataset->findAndGetElement(DCM_VectorGridData, element);
-    element->putFloat32Array(reinterpret_cast<Float32 const *>(value.c_str()), 8);
+    element->putFloat32Array(reinterpret_cast<Float32 const *>(value.c_str()),
+                             8);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -464,7 +468,8 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     mongo::BSONObj object = elementbson.Obj();
     BOOST_CHECK_EQUAL(elementbson.fieldName(), "00640009");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OF");
-    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
+    BOOST_CHECK(object.getField("InlineBinary").type() ==
+                mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -486,9 +491,8 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     DcmElement * element = NULL;
     dataset->insertEmptyElement(DCM_TrianglePointIndexList);
     dataset->findAndGetElement(DCM_TrianglePointIndexList, element);
-    OFCondition condition =
-            element->putUint16Array(reinterpret_cast<Uint16 const *>(value.c_str()),
-                                    16);
+    OFCondition condition = element->putUint16Array(
+                reinterpret_cast<Uint16 const *>(value.c_str()), 16);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -499,7 +503,8 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     mongo::BSONObj object = elementbson.Obj();
     BOOST_CHECK_EQUAL(elementbson.fieldName(), "00660023");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "OW");
-    BOOST_CHECK(object.getField("InlineBinary").type() == mongo::BSONType::BinData);
+    BOOST_CHECK(object.getField("InlineBinary").type() ==
+                mongo::BSONType::BinData);
 
     int size=0;
     char const * begin = object.getField("InlineBinary").binDataClean(size);
@@ -516,8 +521,13 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
  */
 BOOST_AUTO_TEST_CASE(ConversionPN)
 {
+    std::string const name1 = "Doe^John^Wallas^Rev.^Chief Executive Officer";
+    std::string const name2 = "Smith^Jane^Scarlett^Ms.^Goddess";
+    std::stringstream names;
+    names << name1 << "\\" << name2;
+
     DcmDataset* dataset = new DcmDataset();
-    dataset->putAndInsertOFStringArray(DCM_PatientName, "Doe^John^Wallas^Rev.^Chief Executive Officer\\Smith^Jane^Scarlett^Ms.^Goddess");
+    dataset->putAndInsertOFStringArray(DCM_PatientName, names.str().c_str());
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -531,9 +541,9 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 2);
 
     mongo::BSONObj component_name = object.getField("Value").Array()[0].Obj();
-    BOOST_CHECK_EQUAL(component_name.getField("Alphabetic").String(), "Doe^John^Wallas^Rev.^Chief Executive Officer");
+    BOOST_CHECK_EQUAL(component_name.getField("Alphabetic").String(), name1);
     component_name = object.getField("Value").Array()[1].Obj();
-    BOOST_CHECK_EQUAL(component_name.getField("Alphabetic").String(), "Smith^Jane^Scarlett^Ms.^Goddess");
+    BOOST_CHECK_EQUAL(component_name.getField("Alphabetic").String(), name2);
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -630,7 +640,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     BOOST_CHECK_EQUAL(elementbson_item.fieldName(), "00100020");
     BOOST_CHECK_EQUAL(object_subitem.getField("vr").String(), "LO");
     BOOST_CHECK_EQUAL(object_subitem.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object_subitem.getField("Value").Array()[0].String(), "123");
+    BOOST_CHECK_EQUAL(object_subitem["Value"].Array()[0].String(), "123");
 
     object_item = object.getField("Value").Array()[1].Obj();
     it_item = object_item.begin();
@@ -639,7 +649,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     BOOST_CHECK_EQUAL(elementbson_item.fieldName(), "00100020");
     BOOST_CHECK_EQUAL(object_subitem.getField("vr").String(), "LO");
     BOOST_CHECK_EQUAL(object_subitem.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object_subitem.getField("Value").Array()[0].String(), "123");
+    BOOST_CHECK_EQUAL(object_subitem["Value"].Array()[0].String(), "123");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -685,7 +695,8 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 {
     DcmDataset* dataset = new DcmDataset();
     // Be carefull: putAndInsertOFStringArray for ST add only 1 value !!!
-    dataset->putAndInsertOFStringArray(DCM_InstitutionAddress, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_InstitutionAddress,
+                                       "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -697,7 +708,8 @@ BOOST_AUTO_TEST_CASE(ConversionST)
     BOOST_CHECK_EQUAL(element.fieldName(), "00080081");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "ST");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "value01\\value02");
+    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(),
+                      "value01\\value02");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -711,7 +723,8 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 BOOST_AUTO_TEST_CASE(ConversionTM)
 {
     DcmDataset* dataset = new DcmDataset();
-    dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime,
+                                       "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -837,7 +850,8 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
 {
     DcmDataset* dataset = new DcmDataset();
     // Be carefull: putAndInsertOFStringArray for UT add only 1 value !!!
-    dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_PixelDataProviderURL,
+                                       "value01\\value02");
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -849,7 +863,8 @@ BOOST_AUTO_TEST_CASE(ConversionUT)
     BOOST_CHECK_EQUAL(element.fieldName(), "00287fe0");
     BOOST_CHECK_EQUAL(object.getField("vr").String(), "UT");
     BOOST_CHECK_EQUAL(object.getField("Value").Array().size(), 1);
-    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(), "value01\\value02");
+    BOOST_CHECK_EQUAL(object.getField("Value").Array()[0].String(),
+                      "value01\\value02");
 
     BOOST_CHECK_EQUAL(it.more(), false);
 
@@ -865,11 +880,13 @@ BOOST_AUTO_TEST_CASE(Filter_Exclude_all)
     dopamine::converterBSON::DataSetToBSON datasettobson;
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
+    datasettobson.set_default_filter(
+            dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE);
 
     DcmDataset* dataset = new DcmDataset();
     dataset->putAndInsertOFStringArray(DCM_Modality, "value01\\value02");
-    dataset->putAndInsertOFStringArray(DCM_PatientBirthDate, "value01\\value02");
+    dataset->putAndInsertOFStringArray(DCM_PatientBirthDate,
+                                       "value01\\value02");
 
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 
@@ -885,10 +902,12 @@ BOOST_AUTO_TEST_CASE(Filter_Exclude_field)
     dopamine::converterBSON::DataSetToBSON datasettobson;
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    datasettobson.set_default_filter(
+            dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
     std::vector<dopamine::converterBSON::DataSetToBSON::Filter> filters;
-    filters.push_back(std::make_pair(dopamine::converterBSON::TagMatch::New(DCM_PatientBirthDate),
-                      dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
+    filters.push_back(std::make_pair(
+              dopamine::converterBSON::TagMatch::New(DCM_PatientBirthDate),
+              dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
     datasettobson.set_filters(filters);
 
     DcmDataset* dataset = new DcmDataset();
@@ -910,7 +929,8 @@ BOOST_AUTO_TEST_CASE(Set_Specific_Character_Set)
     dopamine::converterBSON::DataSetToBSON datasettobson;
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    datasettobson.set_default_filter(
+                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     DcmDataset* dataset = new DcmDataset();
     dataset->putAndInsertOFStringArray(DCM_SpecificCharacterSet, "ISO_IR 192");
@@ -933,7 +953,8 @@ BOOST_AUTO_TEST_CASE(Group_length_tag)
     dopamine::converterBSON::DataSetToBSON datasettobson;
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    datasettobson.set_default_filter(
+                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     DcmDataset* dataset = new DcmDataset();
     dataset->putAndInsertOFStringArray(DCM_Modality, "value01\\value02");
@@ -971,36 +992,71 @@ BOOST_AUTO_TEST_CASE(Specific_charsetset)
     dopamine::converterBSON::DataSetToBSON datasettobson;
 
     // set_default_filter
-    datasettobson.set_default_filter(dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
+    datasettobson.set_default_filter(
+                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     // Get data directory
     std::string datadirectory(getenv("DOPAMINE_TEST_DATA"));
     datadirectory = datadirectory + "/charsettests/";
 
+    std::stringstream arabicname;
+    arabicname << "\xd9\x82\xd8\xa8\xd8\xa7\xd9\x86\xd9\x8a" << "^"
+               << "\xd9\x84\xd9\x86\xd8\xb2\xd8\xa7\xd8\xb1";
+
     std::stringstream germanname;
     germanname << "\xc3\x84neas^R\xc3\xbc" << "diger";
+
+    std::stringstream greekname;
+    greekname << "\xce\x94\xce\xb9\xce\xbf\xce\xbd\xcf"
+              << "\x85\xcf\x83\xce\xb9\xce\xbf\xcf\x82";
+
+    std::stringstream h31name;
+    h31name << "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0" << "^"
+            << "\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86";
+
+    std::stringstream h32name_alphabetic;
+    h32name_alphabetic << "\xef\xbe\x94\xef\xbe\x8f\xef\xbe\x80\xef\xbe\x9e"
+                       << "^" << "\xef\xbe\x80\xef\xbe\x9b\xef\xbd\xb3";
+
+    std::stringstream h32name_phonetic;
+    h32name_phonetic << "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0" << "^"
+                     << "\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86";
+
+    std::stringstream hbrwname;
+    hbrwname << "\xd7\xa9\xd7\xa8\xd7\x95\xd7\x9f" << "^"
+             << "\xd7\x93\xd7\x91\xd7\x95\xd7\xa8\xd7\x94";
+
+    std::stringstream i2name_ideographic;
+    i2name_ideographic << "\x1b\x24\x29\x43\xe6\xb4\xaa" << "^"
+                       << "\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e";
+
+    std::stringstream i2name_phonetic;
+    i2name_phonetic << "\x1b\x24\x29\x43\xed\x99\x8d" << "^"
+                    << "\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99";
 
     std::stringstream russianname;
     russianname << "\xd0\x9b\xd1\x8e\xd0\xba" << "ce\xd0\xbc\xd0\xb1yp\xd0\xb3";
 
     std::vector<fileAndResult> files_to_test =
     {
-        fileAndResult("SCSARAB", "\xd9\x82\xd8\xa8\xd8\xa7\xd9\x86\xd9\x8a^\xd9\x84\xd9\x86\xd8\xb2\xd8\xa7\xd8\xb1"),
+        fileAndResult("SCSARAB", arabicname.str()),
         fileAndResult("SCSFREN", "Buc^J\xc3\xa9r\xc3\xb4me"),
         fileAndResult("SCSGERM", germanname.str()),
-        fileAndResult("SCSGREEK", "\xce\x94\xce\xb9\xce\xbf\xce\xbd\xcf\x85\xcf\x83\xce\xb9\xce\xbf\xcf\x82"),
-        fileAndResult("SCSH31", "Yamada^Tarou", "\xe5\xb1\xb1\xe7\x94\xb0^\xe5\xa4\xaa\xe9\x83\x8e",
-                      "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0^\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86"),
-        fileAndResult("SCSH32", "\xef\xbe\x94\xef\xbe\x8f\xef\xbe\x80\xef\xbe\x9e^\xef\xbe\x80\xef\xbe\x9b\xef\xbd\xb3",
+        fileAndResult("SCSGREEK", greekname.str()),
+        fileAndResult("SCSH31", "Yamada^Tarou",
                       "\xe5\xb1\xb1\xe7\x94\xb0^\xe5\xa4\xaa\xe9\x83\x8e",
-                      "\xe3\x82\x84\xe3\x81\xbe\xe3\x81\xa0^\xe3\x81\x9f\xe3\x82\x8d\xe3\x81\x86"),
-        fileAndResult("SCSHBRW", "\xd7\xa9\xd7\xa8\xd7\x95\xd7\x9f^\xd7\x93\xd7\x91\xd7\x95\xd7\xa8\xd7\x94"),
-        fileAndResult("SCSI2", "Hong^Gildong",
-                      "\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e",
-                      "\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99"),
+                      h31name.str()),
+        fileAndResult("SCSH32", h32name_alphabetic.str(),
+                      "\xe5\xb1\xb1\xe7\x94\xb0^\xe5\xa4\xaa\xe9\x83\x8e",
+                      h32name_phonetic.str()),
+        fileAndResult("SCSHBRW", hbrwname.str()),
+        fileAndResult("SCSI2", "Hong^Gildong", i2name_ideographic.str(),
+                      i2name_phonetic.str()),
         fileAndResult("SCSRUSS", russianname.str()),
-        fileAndResult("SCSX1", "Wang^XiaoDong", "\xe7\x8e\x8b^\xe5\xb0\x8f\xe6\x9d\xb1"),
-        fileAndResult("SCSX2", "Wang^XiaoDong", "\xe7\x8e\x8b^\xe5\xb0\x8f\xe4\xb8\x9c")
+        fileAndResult("SCSX1", "Wang^XiaoDong",
+                      "\xe7\x8e\x8b^\xe5\xb0\x8f\xe6\x9d\xb1"),
+        fileAndResult("SCSX2", "Wang^XiaoDong",
+                      "\xe7\x8e\x8b^\xe5\xb0\x8f\xe4\xb8\x9c")
     };
 
     for (fileAndResult file_to_test : files_to_test)
@@ -1036,21 +1092,24 @@ BOOST_AUTO_TEST_CASE(Specific_charsetset)
         if (name_components.size() > 0)
         {
             BOOST_REQUIRE(values.Array()[0].Obj().hasField("Alphabetic"));
-            BOOST_CHECK_EQUAL(values.Array()[0].Obj().getField("Alphabetic").String(), file_to_test._alphabetic);
+            BOOST_CHECK_EQUAL(values.Array()[0].Obj()["Alphabetic"].String(),
+                              file_to_test._alphabetic);
         }
         if (name_components.size() > 1)
         {
             BOOST_REQUIRE(values.Array()[1].Obj().hasField("Ideographic"));
-            BOOST_CHECK_EQUAL(values.Array()[1].Obj().getField("Ideographic").String(), file_to_test._ideographic);
+            BOOST_CHECK_EQUAL(values.Array()[1].Obj()["Ideographic"].String(),
+                              file_to_test._ideographic);
         }
         if (name_components.size() > 2)
         {
             BOOST_REQUIRE(values.Array()[2].Obj().hasField("Phonetic"));
-            BOOST_CHECK_EQUAL(values.Array()[2].Obj().getField("Phonetic").String(), file_to_test._phonetic);
+            BOOST_CHECK_EQUAL(values.Array()[2].Obj()["Phonetic"].String(),
+                              file_to_test._phonetic);
         }
         if (name_components.size() > 3)
         {
-            BOOST_THROW_EXCEPTION(dopamine::ExceptionPACS("too many values for patient's name"));
+            BOOST_FAIL("too many values for patient's name");
         }
 
         delete dataset;
@@ -1077,7 +1136,8 @@ BOOST_AUTO_TEST_CASE(Specific_charset_badvalue)
 BOOST_AUTO_TEST_CASE(Unhandled_VR)
 {
     DcmDataset* dataset = new DcmDataset();
-    DcmAttributeTag* element = new DcmAttributeTag(DcmTag(0x9998,0x9998,DcmVR(EVR_na)));
+    DcmAttributeTag* element =
+            new DcmAttributeTag(DcmTag(0x9998,0x9998,DcmVR(EVR_na)));
     std::string test = "(0008,0020)\(0008,0030)";
     OFCondition cond = element->putString(test.c_str());
     dataset->insert(element);

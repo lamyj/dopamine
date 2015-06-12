@@ -47,7 +47,8 @@ void check_response(std::string const & response, std::string const & boundary)
     mimetic::Header& h = entity.header();
     BOOST_CHECK(h.contentType().isMultipart());
     std::string content_type = h.contentType().str();
-    BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+    BOOST_CHECK(content_type.find(
+                    dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                 std::string::npos);
 
     // Check each parts
@@ -202,7 +203,8 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
     mimetic::Header& h = entity.header();
     BOOST_CHECK(h.contentType().isMultipart());
     std::string content_type = h.contentType().str();
-    BOOST_CHECK(content_type.find(dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
+    BOOST_CHECK(content_type.find(
+                    dopamine::services::MIME_TYPE_MULTIPART_RELATED) !=
                 std::string::npos);
 
     // Check each parts
@@ -247,16 +249,18 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
 
         // check sop instance
         OFString sopinstanceuid;
-        condition = fileformat.getDataset()->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                         sopinstanceuid);
+        condition = fileformat.getDataset()->findAndGetOFStringArray(
+                            DCM_SOPInstanceUID, sopinstanceuid);
         BOOST_REQUIRE(condition.good());
         BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
                           SOP_INSTANCE_UID_BIG_01);
 
         DcmElement* element = NULL;
-        condition = fileformat.getDataset()->findAndGetElement(DCM_PixelData, element);
+        condition = fileformat.getDataset()->findAndGetElement(DCM_PixelData,
+                                                               element);
         BOOST_REQUIRE(condition.good());
-        DcmOtherByteOtherWord* byte_string = dynamic_cast<DcmOtherByteOtherWord*>(element);
+        DcmOtherByteOtherWord* byte_string =
+                dynamic_cast<DcmOtherByteOtherWord*>(element);
         BOOST_REQUIRE(byte_string != NULL);
         BOOST_CHECK_EQUAL(byte_string->getLength(), 16777216); // 4096*4096
     }
@@ -268,15 +272,19 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
  */
 BOOST_AUTO_TEST_CASE(MissingStudyParameter)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -285,10 +293,12 @@ BOOST_AUTO_TEST_CASE(MissingStudyParameter)
  */
 BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/unknown/value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/unknown/value", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -297,15 +307,19 @@ BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
  */
 BOOST_AUTO_TEST_CASE(MissingStudyInstance)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/studies/", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/studies", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -314,10 +328,12 @@ BOOST_AUTO_TEST_CASE(MissingStudyInstance)
  */
 BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/unknown/value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/studies/value/unknown/value", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -326,15 +342,19 @@ BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
  */
 BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/studies/value/series/", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_rs("/studies/value/series", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -343,10 +363,13 @@ BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
  */
 BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/value/unknown/value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+        dopamine::services::Wado_rs("/studies/value/series/value/unknown/value",
+                                    ""),
+        dopamine::services::WebServiceException,
+        [] (dopamine::services::WebServiceException const exc)
+            { return (exc.status() == 400 &&
+                      exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -355,15 +378,21 @@ BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
  */
 BOOST_AUTO_TEST_CASE(MissingSOPInstance)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/value/instances/", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+        dopamine::services::Wado_rs("/studies/value/series/value/instances/",
+                                    ""),
+        dopamine::services::WebServiceException,
+        [] (dopamine::services::WebServiceException const exc)
+            { return (exc.status() == 400 &&
+                      exc.statusmessage() == "Bad Request"); });
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/value/instances", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+        dopamine::services::Wado_rs("/studies/value/series/value/instances",
+                                    ""),
+        dopamine::services::WebServiceException,
+        [] (dopamine::services::WebServiceException const exc)
+            { return (exc.status() == 400 &&
+                      exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -372,10 +401,13 @@ BOOST_AUTO_TEST_CASE(MissingSOPInstance)
  */
 BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/value/instances/value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 404 && exc.statusmessage() == "Not Found"); });
+    BOOST_CHECK_EXCEPTION(
+            dopamine::services::Wado_rs(
+                        "/studies/value/series/value/instances/value", ""),
+            dopamine::services::WebServiceException,
+            [] (dopamine::services::WebServiceException const exc)
+                { return (exc.status() == 404 &&
+                          exc.statusmessage() == "Not Found"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -384,10 +416,13 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
  */
 BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs("/studies/value/series/value/instances/value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 500 && exc.statusmessage() == "Internal Server Error"); });
+    BOOST_CHECK_EXCEPTION(
+            dopamine::services::Wado_rs(
+                "/studies/value/series/value/instances/value", ""),
+            dopamine::services::WebServiceException,
+            [] (dopamine::services::WebServiceException const exc)
+                { return (exc.status() == 500 &&
+                          exc.statusmessage() == "Internal Server Error"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -398,12 +433,14 @@ BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
 {
     std::stringstream stream;
     stream << "/";
-    stream << "studies" << "/" << "2.16.756.5.5.100.3611280983.20092.123456789" << "/";
-    stream << "series" << "/" << "2.16.756.5.5.100.3611280983.20092.123456789.0" << "/";
-    stream << "instances" << "/" << "2.16.756.5.5.100.3611280983.20092.123456789.0.0";
+    stream << "studies" << "/" << STUDY_INSTANCE_UID_BAD << "/";
+    stream << "series" << "/" << SERIES_INSTANCE_UID_BAD << "/";
+    stream << "instances" << "/" << SOP_INSTANCE_UID_BAD;
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_rs(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 500 && exc.statusmessage() == "Internal Server Error"); });
+    BOOST_CHECK_EXCEPTION(
+            dopamine::services::Wado_rs(stream.str(), ""),
+            dopamine::services::WebServiceException,
+            [] (dopamine::services::WebServiceException const exc)
+                { return (exc.status() == 500 &&
+                          exc.statusmessage() == "Internal Server Error"); });
 }

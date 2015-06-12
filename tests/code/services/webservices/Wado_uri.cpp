@@ -84,8 +84,8 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
 
     // check sop instance
     OFString sopinstanceuid;
-    condition = fileformat.getDataset()->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                                 sopinstanceuid);
+    condition = fileformat.getDataset()->findAndGetOFStringArray(
+                    DCM_SOPInstanceUID, sopinstanceuid);
     BOOST_REQUIRE(condition.good());
     BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
                       SOP_INSTANCE_UID_01_01_01_01);
@@ -97,10 +97,12 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
  */
 BOOST_AUTO_TEST_CASE(UnknownParameters)
 {
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri("unknown=value", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri("unknown=value", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -112,15 +114,19 @@ BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=WADO";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri(stream.str(), ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri("", ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 400 && exc.statusmessage() == "Bad Request"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri("", ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 400 &&
+                              exc.statusmessage() == "Bad Request"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -136,10 +142,12 @@ BOOST_AUTO_TEST_CASE(NotImplemented)
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test" << "&";
     stream << "contentType" << "=" << "test";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 406 && exc.statusmessage() == "Not Acceptable"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri(stream.str(), ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 406 &&
+                              exc.statusmessage() == "Not Acceptable"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -154,10 +162,12 @@ BOOST_AUTO_TEST_CASE(BadRequestType)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 406 && exc.statusmessage() == "Not Acceptable"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri(stream.str(), ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 406 &&
+                              exc.statusmessage() == "Not Acceptable"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -172,10 +182,12 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 404 && exc.statusmessage() == "Not Found"); });
+    BOOST_CHECK_EXCEPTION(
+                dopamine::services::Wado_uri(stream.str(), ""),
+                dopamine::services::WebServiceException,
+                [] (dopamine::services::WebServiceException const exc)
+                    { return (exc.status() == 404 &&
+                              exc.statusmessage() == "Not Found"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -190,10 +202,12 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
     stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "test" << "&";
     stream << dopamine::services::SOP_INSTANCE_UID << "=" << "test";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 500 && exc.statusmessage() == "Internal Server Error"); });
+    BOOST_CHECK_EXCEPTION(
+            dopamine::services::Wado_uri(stream.str(), ""),
+            dopamine::services::WebServiceException,
+            [] (dopamine::services::WebServiceException const exc)
+                { return (exc.status() == 500 &&
+                          exc.statusmessage() == "Internal Server Error"); });
 }
 
 /*************************** TEST Error *********************************/
@@ -204,12 +218,17 @@ BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
 {
     std::stringstream stream;
     stream << dopamine::services::REQUEST_TYPE << "=" << "WADO" << "&";
-    stream << dopamine::services::STUDY_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.123456789" << "&";
-    stream << dopamine::services::SERIES_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.123456789.0" << "&";
-    stream << dopamine::services::SOP_INSTANCE_UID << "=" << "2.16.756.5.5.100.3611280983.20092.123456789.0.0";
+    stream << dopamine::services::STUDY_INSTANCE_UID << "="
+           << "2.16.756.5.5.100.3611280983.20092.123456789" << "&";
+    stream << dopamine::services::SERIES_INSTANCE_UID << "="
+           << "2.16.756.5.5.100.3611280983.20092.123456789.0" << "&";
+    stream << dopamine::services::SOP_INSTANCE_UID << "="
+           << "2.16.756.5.5.100.3611280983.20092.123456789.0.0";
 
-    BOOST_CHECK_EXCEPTION(dopamine::services::Wado_uri(stream.str(), ""),
-                          dopamine::services::WebServiceException,
-                          [] (dopamine::services::WebServiceException const exc)
-        { return (exc.status() == 500 && exc.statusmessage() == "Internal Server Error"); });
+    BOOST_CHECK_EXCEPTION(
+            dopamine::services::Wado_uri(stream.str(), ""),
+            dopamine::services::WebServiceException,
+            [] (dopamine::services::WebServiceException const exc)
+                { return (exc.status() == 500 &&
+                          exc.statusmessage() == "Internal Server Error"); });
 }

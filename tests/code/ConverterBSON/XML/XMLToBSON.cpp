@@ -26,7 +26,8 @@ void create_test_value(std::string const & dicom_tag,
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, dicom_tag);
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, dicom_vr);
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, dicom_keyword);
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       dicom_keyword);
 
     unsigned int count = 0;
     for (auto value : values)
@@ -42,7 +43,8 @@ void create_test_value(std::string const & dicom_tag,
     }
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -53,11 +55,13 @@ void create_test_value(std::string const & dicom_tag,
 
     // Check result
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
-    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
+    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(),
+                      mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();
     BOOST_CHECK_EQUAL(subobject.hasField("vr"), true);
     BOOST_CHECK_EQUAL(subobject.getField("vr").String(), dicom_vr);
-    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),  mongo::BSONType::Array);
+    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),
+                      mongo::BSONType::Array);
     auto array = subobject.getField("Value").Array();
     BOOST_CHECK_EQUAL(array.size(), values.size());
 
@@ -85,11 +89,14 @@ void create_test_inlinebinary(std::string const & dicom_tag,
     boost::property_tree::ptree dicomattributeBinary;
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag, dicom_tag);
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_VR, dicom_vr);
-    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword, dicom_keyword);
-    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary, inlinebinary);
+    dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword,
+                             dicom_keyword);
+    dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary,
+                                   inlinebinary);
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeBinary);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattributeBinary);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -99,12 +106,14 @@ void create_test_inlinebinary(std::string const & dicom_tag,
     mongo::BSONObj const object_bson = xmltobson.from_ptree(tree);
 
     BOOST_CHECK_EQUAL(object_bson.hasField(dicom_tag), true);
-    BOOST_CHECK_EQUAL(object_bson.getField(dicom_tag).type(), mongo::BSONType::Object);
+    BOOST_CHECK_EQUAL(object_bson.getField(dicom_tag).type(),
+                      mongo::BSONType::Object);
     mongo::BSONObj const subobject = object_bson.getField(dicom_tag).Obj();
     BOOST_CHECK_EQUAL(subobject.hasField("vr"), true);
     BOOST_CHECK_EQUAL(subobject.getField("vr").String(), dicom_vr);
     BOOST_CHECK_EQUAL(subobject.hasField("InlineBinary"), true);
-    BOOST_CHECK_EQUAL(subobject.getField("InlineBinary").type(),  mongo::BSONType::BinData);
+    BOOST_CHECK_EQUAL(subobject.getField("InlineBinary").type(),
+                      mongo::BSONType::BinData);
 
     int size=0;
     char const * begin2 = subobject.getField("InlineBinary").binDataClean(size);
@@ -141,7 +150,8 @@ void create_test_personname(std::string const & dicom_tag,
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, dicom_tag);
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "PN");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, dicom_keyword);
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       dicom_keyword);
 
     unsigned int count = 0;
     for (auto name : names)
@@ -153,29 +163,36 @@ void create_test_personname(std::string const & dicom_tag,
         boost::property_tree::ptree componentname;
         boost::property_tree::ptree firstname;
         firstname.put_value<std::string>(name._first_name);
-        componentname.add_child(dopamine::converterBSON::Tag_FamilyName, firstname);
+        componentname.add_child(dopamine::converterBSON::Tag_FamilyName,
+                                firstname);
         boost::property_tree::ptree givenname;
         givenname.put_value<std::string>(name._given_name);
-        componentname.add_child(dopamine::converterBSON::Tag_GivenName, givenname);
+        componentname.add_child(dopamine::converterBSON::Tag_GivenName,
+                                givenname);
         boost::property_tree::ptree middlename;
         middlename.put_value<std::string>(name._middle_name);
-        componentname.add_child(dopamine::converterBSON::Tag_MiddleName, middlename);
+        componentname.add_child(dopamine::converterBSON::Tag_MiddleName,
+                                middlename);
         boost::property_tree::ptree prefix;
         prefix.put_value<std::string>(name._prefix);
-        componentname.add_child(dopamine::converterBSON::Tag_NamePrefix, prefix);
+        componentname.add_child(dopamine::converterBSON::Tag_NamePrefix,
+                                prefix);
         boost::property_tree::ptree suffix;
         suffix.put_value<std::string>(name._suffix);
-        componentname.add_child(dopamine::converterBSON::Tag_NameSuffix, suffix);
+        componentname.add_child(dopamine::converterBSON::Tag_NameSuffix,
+                                suffix);
 
         boost::property_tree::ptree personname;
         personname.put(dopamine::converterBSON::Attribute_Number, number.str());
         personname.add_child(name._tag, componentname);
 
-        dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+        dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                                 personname);
     }
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattribute);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattribute);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -186,11 +203,13 @@ void create_test_personname(std::string const & dicom_tag,
 
     // Check result
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
-    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
+    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(),
+                      mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();
     BOOST_CHECK_EQUAL(subobject.hasField("vr"), true);
     BOOST_CHECK_EQUAL(subobject.getField("vr").String(), "PN");
-    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),  mongo::BSONType::Array);
+    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),
+                      mongo::BSONType::Array);
     auto array = subobject.getField("Value").Array();
     BOOST_CHECK_EQUAL(array.size(), names.size());
 
@@ -203,9 +222,11 @@ void create_test_personname(std::string const & dicom_tag,
 
         mongo::BSONObj const objectname = value.Obj();
         BOOST_CHECK_EQUAL(objectname.hasField(search_type), true);
-        BOOST_CHECK_EQUAL(objectname.getField(search_type).type(), mongo::BSONType::String);
+        BOOST_CHECK_EQUAL(objectname.getField(search_type).type(),
+                          mongo::BSONType::String);
 
-        std::string const result_value = objectname.getField(search_type).String();
+        std::string const result_value =
+                objectname.getField(search_type).String();
 
         std::vector<std::string> name_components;
         boost::split(name_components, result_value,
@@ -228,7 +249,8 @@ void create_test_sequence(std::string const & dicom_tag,
     boost::property_tree::ptree dicomattributeSQ;
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_Tag, dicom_tag);
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_VR, "SQ");
-    dicomattributeSQ.put(dopamine::converterBSON::Attribute_Keyword, dicom_keyword);
+    dicomattributeSQ.put(dopamine::converterBSON::Attribute_Keyword,
+                         dicom_keyword);
 
     unsigned int count = 0;
     for (auto tagitem : tagitems)
@@ -245,7 +267,8 @@ void create_test_sequence(std::string const & dicom_tag,
     }
 
     boost::property_tree::ptree nativetree;
-    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute, dicomattributeSQ);
+    nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
+                         dicomattributeSQ);
 
     boost::property_tree::ptree tree;
     tree.add_child(dopamine::converterBSON::Tag_NativeDicomModel, nativetree);
@@ -256,11 +279,13 @@ void create_test_sequence(std::string const & dicom_tag,
 
     // Check result
     BOOST_CHECK_EQUAL(object.hasField(dicom_tag), true);
-    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(), mongo::BSONType::Object);
+    BOOST_CHECK_EQUAL(object.getField(dicom_tag).type(),
+                      mongo::BSONType::Object);
     mongo::BSONObj const subobject = object.getField(dicom_tag).Obj();
     BOOST_CHECK_EQUAL(subobject.hasField("vr"), true);
     BOOST_CHECK_EQUAL(subobject.getField("vr").String(), "SQ");
-    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),  mongo::BSONType::Array);
+    BOOST_CHECK_EQUAL(subobject.getField("Value").type(),
+                      mongo::BSONType::Array);
     auto array = subobject.getField("Value").Array();
     BOOST_CHECK_EQUAL(array.size(), tagitems.size());
 
@@ -271,15 +296,21 @@ void create_test_sequence(std::string const & dicom_tag,
 
         mongo::BSONObj const objectitem = value.Obj();
 
-        std::string const name = tagitems[count].get<std::string>(dopamine::converterBSON::Attribute_Tag);
-        std::string const vr = tagitems[count].get<std::string>(dopamine::converterBSON::Attribute_VR);
+        std::string const name =
+                tagitems[count].get<std::string>(
+                    dopamine::converterBSON::Attribute_Tag);
+        std::string const vr =
+                tagitems[count].get<std::string>(
+                    dopamine::converterBSON::Attribute_VR);
 
         BOOST_CHECK_EQUAL(objectitem.hasField(name), true);
-        BOOST_CHECK_EQUAL(objectitem.getField(name).type(), mongo::BSONType::Object);
+        BOOST_CHECK_EQUAL(objectitem.getField(name).type(),
+                          mongo::BSONType::Object);
         mongo::BSONObj const subobjectitem = objectitem.getField(name).Obj();
         BOOST_CHECK_EQUAL(subobjectitem.hasField("vr"), true);
         BOOST_CHECK_EQUAL(subobjectitem.getField("vr").String(), vr);
-        BOOST_CHECK_EQUAL(subobjectitem.getField("Value").type(),  mongo::BSONType::Array);
+        BOOST_CHECK_EQUAL(subobjectitem.getField("Value").type(),
+                          mongo::BSONType::Array);
 
         ++count;
     }
@@ -309,7 +340,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
 BOOST_AUTO_TEST_CASE(ConversionAE)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00080054", "AE", "RetrieveAE​Title", values);
+    create_test_value("00080054", "AE", "RetrieveAETitle", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -319,7 +350,7 @@ BOOST_AUTO_TEST_CASE(ConversionAE)
 BOOST_AUTO_TEST_CASE(ConversionAS)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00101010", "AS", "Patient​Age", values);
+    create_test_value("00101010", "AS", "PatientAge", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -329,7 +360,7 @@ BOOST_AUTO_TEST_CASE(ConversionAS)
 BOOST_AUTO_TEST_CASE(ConversionAT)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00209165", "AT", "Dimension​Index​Pointer", values);
+    create_test_value("00209165", "AT", "DimensionIndexPointer", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -349,7 +380,7 @@ BOOST_AUTO_TEST_CASE(ConversionCS)
 BOOST_AUTO_TEST_CASE(ConversionDA)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00100030", "DA", "Patient​Birth​Date", values);
+    create_test_value("00100030", "DA", "PatientBirthDate", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -359,7 +390,7 @@ BOOST_AUTO_TEST_CASE(ConversionDA)
 BOOST_AUTO_TEST_CASE(ConversionDS)
 {
     std::vector<Float64> values = { 11.11, 22.22 };
-    create_test_value("00101030", "DS", "Patient​Weight", values);
+    create_test_value("00101030", "DS", "PatientWeight", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -369,7 +400,7 @@ BOOST_AUTO_TEST_CASE(ConversionDS)
 BOOST_AUTO_TEST_CASE(ConversionDT)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00189074", "DT", "Frame​Acquisition​Date​Time", values);
+    create_test_value("00189074", "DT", "FrameAcquisitionDateTime", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -379,7 +410,7 @@ BOOST_AUTO_TEST_CASE(ConversionDT)
 BOOST_AUTO_TEST_CASE(ConversionFD)
 {
     std::vector<Float64> values = { 44.4, 55.5 };
-    create_test_value("00460044", "FD", "Pupil​Size", values);
+    create_test_value("00460044", "FD", "PupilSize", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -389,7 +420,7 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
 BOOST_AUTO_TEST_CASE(ConversionFL)
 {
     std::vector<Float32> values = { 77.7, 88.8 };
-    create_test_value("00089459", "FL", "Recommended​Display​Frame​Rate​InFloat",
+    create_test_value("00089459", "FL", "RecommendedDisplayFrameRateInFloat",
                       values);
 }
 
@@ -400,7 +431,7 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
 BOOST_AUTO_TEST_CASE(ConversionIS)
 {
     std::vector<Sint32> values = { 111, 222 };
-    create_test_value("00082122", "IS", "Stage​Number", values);
+    create_test_value("00082122", "IS", "StageNumber", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -420,7 +451,7 @@ BOOST_AUTO_TEST_CASE(ConversionLO)
 BOOST_AUTO_TEST_CASE(ConversionLT)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("001021b0", "LT", "Additional​Patient​History", values);
+    create_test_value("001021b0", "LT", "AdditionalPatientHistory", values);
 }
 
 
@@ -431,7 +462,7 @@ BOOST_AUTO_TEST_CASE(ConversionLT)
 BOOST_AUTO_TEST_CASE(ConversionOB)
 {
     std::string const value = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY";
-    create_test_inlinebinary("00282000", "OB", "ICC​Profile", value);
+    create_test_inlinebinary("00282000", "OB", "ICCProfile", value);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -441,7 +472,7 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
 BOOST_AUTO_TEST_CASE(ConversionOF)
 {
     std::string const value = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY";
-    create_test_inlinebinary("00640009", "OF", "Vector​Grid​Data", value);
+    create_test_inlinebinary("00640009", "OF", "VectorGridData", value);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -451,7 +482,7 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
 BOOST_AUTO_TEST_CASE(ConversionOW)
 {
     std::string const value = "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY";
-    create_test_inlinebinary("00660023", "OW", "Triangle​Point​Index​List", value);
+    create_test_inlinebinary("00660023", "OW", "TrianglePointIndexList", value);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -461,7 +492,8 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
 BOOST_AUTO_TEST_CASE(ConversionPN)
 {
     std::vector<component_name> values =
-    { component_name("Doe", "John", "Wallas", "Rev.", "Chief Executive Officer",
+    { component_name("Doe", "John", "Wallas", "Rev.",
+                     "Chief Executive Officer",
                      dopamine::converterBSON::Tag_Alphabetic),
       component_name("Smith", "Jane", "Scarlett", "Ms.", "Goddess",
                      dopamine::converterBSON::Tag_Alphabetic)
@@ -476,7 +508,7 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
 BOOST_AUTO_TEST_CASE(ConversionSH)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00102160", "SH", "Ethnic​Group", values);
+    create_test_value("00102160", "SH", "EthnicGroup", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -486,7 +518,7 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
 BOOST_AUTO_TEST_CASE(ConversionSL)
 {
     std::vector<Sint32> values = { 1001, 2002 };
-    create_test_value("00186020", "SL", "Reference​PixelX0", values);
+    create_test_value("00186020", "SL", "ReferencePixelX0", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -507,7 +539,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 
     std::vector<boost::property_tree::ptree> values = { attributeLO,
                                                         attributeLO };
-    create_test_sequence("00101002", "Other​Patient​IDs​Sequence", values);
+    create_test_sequence("00101002", "OtherPatientIDsSequence", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -517,7 +549,7 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 BOOST_AUTO_TEST_CASE(ConversionSS)
 {
     std::vector<Sint16> values = { 555, 666 };
-    create_test_value("00189219", "SS", "Tag​Angle​Second​Axis", values);
+    create_test_value("00189219", "SS", "TagAngleSecondAxis", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -527,7 +559,7 @@ BOOST_AUTO_TEST_CASE(ConversionSS)
 BOOST_AUTO_TEST_CASE(ConversionST)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00080081", "ST", "Institution​Address", values);
+    create_test_value("00080081", "ST", "InstitutionAddress", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -537,7 +569,7 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 BOOST_AUTO_TEST_CASE(ConversionTM)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00080013", "TM", "Instance​Creation​Time", values);
+    create_test_value("00080013", "TM", "InstanceCreationTime", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -547,7 +579,7 @@ BOOST_AUTO_TEST_CASE(ConversionTM)
 BOOST_AUTO_TEST_CASE(ConversionUI)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00080016", "UI", "SOP​ClassUID", values);
+    create_test_value("00080016", "UI", "SOPClassUID", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -557,7 +589,7 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
 BOOST_AUTO_TEST_CASE(ConversionUL)
 {
     std::vector<Uint32> values = { 555, 666 };
-    create_test_value("00081161", "UL", "Simple​Frame​List", values);
+    create_test_value("00081161", "UL", "SimpleFrameList", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -576,7 +608,7 @@ BOOST_AUTO_TEST_CASE(ConversionUN)
 BOOST_AUTO_TEST_CASE(ConversionUS)
 {
     std::vector<Uint16> values = { 77, 88 };
-    create_test_value("00081197", "US", "Failure​Reason", values);
+    create_test_value("00081197", "US", "FailureReason", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -586,7 +618,7 @@ BOOST_AUTO_TEST_CASE(ConversionUS)
 BOOST_AUTO_TEST_CASE(ConversionUT)
 {
     std::vector<std::string> values = { "value01", "value02" };
-    create_test_value("00287fe0", "UT", "Pixel​Data​ProviderURL", values);
+    create_test_value("00287fe0", "UT", "PixelDataProviderURL", values);
 }
 
 /*************************** TEST Nominal *******************************/
@@ -625,7 +657,7 @@ BOOST_AUTO_TEST_CASE(Null_value)
                              "00282000");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_VR, "OB");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword,
-                             "ICC​Profile");
+                             "ICCProfile");
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -639,7 +671,7 @@ BOOST_AUTO_TEST_CASE(Null_value)
     dopamine::converterBSON::XMLToBSON xmltobson;
     mongo::BSONObj const object_bson = xmltobson.from_ptree(tree);
 
-    BOOST_CHECK(object_bson["00282000"].Obj().getField("InlineBinary").isNull());
+    BOOST_CHECK(object_bson["00282000"].Obj()["InlineBinary"].isNull());
     }
 }
 
@@ -728,7 +760,8 @@ BOOST_AUTO_TEST_CASE(Bad_PersonName_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child("BadValue", componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -752,7 +785,7 @@ BOOST_AUTO_TEST_CASE(Bad_Sequence_SubNode)
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_Tag, "00101002");
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_VR, "SQ");
     dicomattributeSQ.put(dopamine::converterBSON::Attribute_Keyword,
-                         "Other​Patient​IDs​Sequence");
+                         "OtherPatientIDsSequence");
 
     boost::property_tree::ptree value;
     value.put(dopamine::converterBSON::Attribute_Number, "1");
@@ -768,7 +801,8 @@ BOOST_AUTO_TEST_CASE(Bad_Sequence_SubNode)
     item.put(dopamine::converterBSON::Attribute_Number, "1");
     item.add_child(dopamine::converterBSON::Tag_DicomAttribute, attributeLO);
 
-    dicomattributeSQ.add_child(dopamine::converterBSON::Tag_Value, item); // BadValue
+    dicomattributeSQ.add_child(dopamine::converterBSON::Tag_Value,
+                               item); // BadValue
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -815,7 +849,8 @@ BOOST_AUTO_TEST_CASE(Bad_Alphabetic_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -853,7 +888,8 @@ BOOST_AUTO_TEST_CASE(TooMany_FamilyName_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -891,7 +927,8 @@ BOOST_AUTO_TEST_CASE(TooMany_GivenName_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -929,7 +966,8 @@ BOOST_AUTO_TEST_CASE(TooMany_MiddleName_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -967,7 +1005,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NamePrefix_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -1005,7 +1044,8 @@ BOOST_AUTO_TEST_CASE(TooMany_NameSuffix_SubNode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -1099,7 +1139,8 @@ BOOST_AUTO_TEST_CASE(TooMany_Different_Subnode)
     personname.put(dopamine::converterBSON::Attribute_Number, "1");
     personname.add_child(dopamine::converterBSON::Tag_Alphabetic, componentname);
 
-    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName, personname);
+    dicomattribute.add_child(dopamine::converterBSON::Tag_PersonName,
+                             personname);
 
     boost::property_tree::ptree nativetree;
     nativetree.add_child(dopamine::converterBSON::Tag_DicomAttribute,
@@ -1120,14 +1161,15 @@ BOOST_AUTO_TEST_CASE(TooMany_Different_Subnode)
 BOOST_AUTO_TEST_CASE(TooMany_InlineBinary_Subnode)
 {
     boost::property_tree::ptree inlinebinary;
-    inlinebinary.put_value<std::string>("YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY");
+    inlinebinary.put_value<std::string>(
+                "YXplcnR5dWlvcHFzZGZnaGprbG13eGN2Ym4xMjM0NTY");
 
     boost::property_tree::ptree dicomattributeBinary;
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_Tag,
                              "00282000");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_VR, "OB");
     dicomattributeBinary.put(dopamine::converterBSON::Attribute_Keyword,
-                             "ICC​Profile");
+                             "ICCProfile");
     dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary,
                                    inlinebinary);
     dicomattributeBinary.add_child(dopamine::converterBSON::Tag_InlineBinary,
@@ -1154,7 +1196,8 @@ BOOST_AUTO_TEST_CASE(Unknown_VR)
     boost::property_tree::ptree dicomattribute;
     dicomattribute.put(dopamine::converterBSON::Attribute_Tag, "00140024");
     dicomattribute.put(dopamine::converterBSON::Attribute_VR, "ST");
-    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword, "Component​Reference​System");
+    dicomattribute.put(dopamine::converterBSON::Attribute_Keyword,
+                       "ComponentReferenceSystem");
 
     boost::property_tree::ptree tagvalue;
     tagvalue.put(dopamine::converterBSON::Attribute_Number, "1");

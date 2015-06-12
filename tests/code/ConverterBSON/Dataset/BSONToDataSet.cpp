@@ -309,7 +309,8 @@ BOOST_AUTO_TEST_CASE(ConversionIS)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_StageNumber, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_StageNumber,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "111");
     condition = dataset.findAndGetOFString(DCM_StageNumber, value, 1);
@@ -381,11 +382,12 @@ BOOST_AUTO_TEST_CASE(ConversionOB)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" << binary_data_builder.obj()["data"]));
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
@@ -416,18 +418,20 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" << binary_data_builder.obj()["data"]));
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
     DcmDataset dataset = bsontodataset.to_dataset(object);
 
     DcmElement* element = NULL;
-    OFCondition condition = dataset.findAndGetElement(DCM_VectorGridData, element);
+    OFCondition condition = dataset.findAndGetElement(DCM_VectorGridData,
+                                                      element);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
 
     void* begin(NULL);
@@ -451,11 +455,12 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     mongo::BSONObjBuilder binary_data_builder;
     binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral, (void*)(value.c_str()));
+                                      mongo::BinDataGeneral,
+                                      (void*)(value.c_str()));
     mongo::BSONObj object =
             BSON(tag <<
                  BSON("vr" << vr <<
-                      "InlineBinary" << binary_data_builder.obj().getField("data")));
+                      "InlineBinary" << binary_data_builder.obj()["data"]));
 
     // Conversion
     dopamine::converterBSON::BSONToDataSet bsontodataset;
@@ -482,13 +487,22 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
  */
 BOOST_AUTO_TEST_CASE(ConversionPN)
 {
+    std::stringstream ideographic_name;
+    ideographic_name << "\x1b\x24\x29\x43\xe6\xb4\xaa" << "^"
+                     << "\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e";
+
+    std::stringstream phonetic_name;
+    phonetic_name << "\x1b\x24\x29\x43\xed\x99\x8d" << "^"
+                  << "\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99";
+
     // Create BSON with SH tag
     std::string const tag = "00100010";
     std::string const vr = "PN";
-    mongo::BSONArray const values =
-            BSON_ARRAY(BSON("Alphabetic" << "Doe^John^Wallas^Rev.^Chief Executive Officer" <<
-                            "Ideographic" << "\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e" <<
-                            "Phonetic" << "\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99")
+    mongo::BSONArray const values = BSON_ARRAY(
+            BSON("Alphabetic" <<
+                 "Doe^John^Wallas^Rev.^Chief Executive Officer" <<
+                 "Ideographic" << ideographic_name.str() <<
+                 "Phonetic" << phonetic_name.str())
                     << BSON("Alphabetic" << "Smith^Jane^Scarlett^Ms.^Goddess"));
     mongo::BSONObj object = BSON(tag << BSON("vr" << vr << "Value" << values));
 
@@ -500,10 +514,14 @@ BOOST_AUTO_TEST_CASE(ConversionPN)
     OFString value;
     OFCondition condition = dataset.findAndGetOFString(DCM_PatientName,
                                                        value, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(value.c_str(), "Doe^John^Wallas^Rev.^Chief Executive Officer=\x1b\x24\x29\x43\xe6\xb4\xaa^\x1b\x24\x29\x43\xe5\x90\x89\xe6\xb4\x9e=\x1b\x24\x29\x43\xed\x99\x8d^\x1b\x24\x29\x43\xea\xb8\xb8\xeb\x8f\x99");
+    BOOST_CHECK(condition == EC_Normal);
+
+    std::stringstream control_value;
+    control_value << "Doe^John^Wallas^Rev.^Chief Executive Officer" << "="
+                  << ideographic_name.str() << "=" << phonetic_name.str();
+    BOOST_CHECK_EQUAL(value.c_str(), control_value.str());
     condition = dataset.findAndGetOFString(DCM_PatientName, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "Smith^Jane^Scarlett^Ms.^Goddess");
 }
 
@@ -576,11 +594,15 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     std::string const tagCS = "00100022";
     std::string const vrCS = "CS";
     mongo::BSONArray const valuesCS = BSON_ARRAY("valueCS1" << "valueCS2");
-    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_1 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
-    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO << "Value" << valuesLO)
-                                << tagCS << BSON("vr" << vrCS << "Value" << valuesCS));
+    mongo::BSONObj object_2 = BSON(tagLO << BSON("vr" << vrLO <<
+                                                 "Value" << valuesLO)
+                                << tagCS << BSON("vr" << vrCS <<
+                                                 "Value" << valuesCS));
 
     // Create BSON with SQ tag
     std::string const tag = "00101002";
@@ -681,7 +703,8 @@ BOOST_AUTO_TEST_CASE(ConversionST)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_InstitutionAddress, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_InstitutionAddress,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     // Be carefull: putAndInsertOFStringArray for ST add only 1 value !!!
     BOOST_CHECK_EQUAL(value.c_str(), "value1\\value2");
@@ -732,7 +755,8 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
 
     // Check result
     OFString value;
-    OFCondition condition = dataset.findAndGetOFString(DCM_SOPClassUID, value, 0);
+    OFCondition condition = dataset.findAndGetOFString(DCM_SOPClassUID,
+                                                       value, 0);
     BOOST_CHECK_EQUAL(condition == EC_Normal, true);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = dataset.findAndGetOFString(DCM_SOPClassUID, value, 1);

@@ -21,14 +21,16 @@
 struct TestDataNotOperator
 {
     DcmElement * element;
-    dopamine::converterBSON::AlwaysTrue::Pointer alwaystrue;
+    dopamine::converterBSON::AlwaysTrue::Pointer  alwaystrue;
     dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
  
     TestDataNotOperator()
     {
         element     = new DcmAttributeTag(DcmTag(0010,0010));
-        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();  // we suppose AlwaysTrue correctly run
-        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New(); // we suppose AlwaysFalse correctly run
+        // we suppose AlwaysTrue correctly run
+        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();
+        // we suppose AlwaysFalse correctly run
+        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
     }
  
     ~TestDataNotOperator()
