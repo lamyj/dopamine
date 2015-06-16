@@ -1162,6 +1162,8 @@ export DOPAMINE_TEST_DATA=${DIRECTORY}/Data
 wget -P ${DOPAMINE_TEST_DATA} http://www.dclunie.com/images/charset/charsettests.20070405.tar.bz2
 tar -C ${DOPAMINE_TEST_DATA} -xf ${DOPAMINE_TEST_DATA}/charsettests.20070405.tar.bz2
 
+export DOPAMINE_BUILD_DIR=${PWD}
+
 ./src/appli/dopamine &
 
 sleep 1
@@ -1173,7 +1175,7 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-nosetests --with-xunit --xunit-file=../generatedJUnitFiles/nosetests.xml -w ../tests/code
+nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml -w ../tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
