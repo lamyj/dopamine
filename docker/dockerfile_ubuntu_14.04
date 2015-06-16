@@ -1,0 +1,25 @@
+
+FROM     ubuntu:trusty
+MAINTAINER Romain "lahaxe@unistra.fr"
+
+ENV TEST_LDAP_SERVER=ldap://vendee
+ENV TEST_LDAP_BASE=cn=Users,dc=ipbrech,dc=local
+ENV TEST_LDAP_BIND=%user@ipbrech.local
+ENV TEST_LDAP_USER=ANONYMOUS
+ENV TEST_LDAP_PASSWORD=aiSooKu6
+
+RUN apt-get -qq -y update && \
+    apt-get -qq -y install cmake aptitude make swig2.0 libdcmtk2-dev \
+                           g++ dcmtk libmimetic-dev libmongo-client-dev \
+                           mongodb-dev libcgicc5-dev python-nose libqt4-dev \
+                           libboost-all-dev liblog4cpp5-dev mongodb\
+                           libldap2-dev libssl-dev libwrap0-dev wget bzip2
+
+VOLUME /dopamine
+
+RUN rm -rf /data && mkdir data && mkdir /data/db
+
+ENTRYPOINT cd /dopamine && rm -rf build/* && cd build && \
+           cmake -D CMAKE_CXX_FLAGS="-std=c++0x" .. && make && \
+           ../tests/run_tests.sh
+
