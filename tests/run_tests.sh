@@ -1173,7 +1173,7 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-nosetests -w ../tests/code
+nosetests --with-xunit -w ../tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
