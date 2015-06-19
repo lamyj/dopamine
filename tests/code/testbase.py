@@ -7,6 +7,7 @@ import unittest
 class TestBase(unittest.TestCase) :
     
     def __init__(self, *args, **kwargs) :
+        self._dopamine_build_dir = os.environ["DOPAMINE_BUILD_DIR"]
         self._dopamine_port = os.environ["DOPAMINE_TEST_LISTENINGPORT"]
         self._scu_port = os.environ["DOPAMINE_TEST_WRITINGPORT"]
         self._output_directory = os.environ["DOPAMINE_TEST_OUTPUTDIR"]
@@ -23,7 +24,7 @@ class TestBase(unittest.TestCase) :
         # Add data
         subprocess.Popen(str(self._add_doe_jane), shell=True)
         # launch dopamine in a subprocess
-        subprocess.Popen("../../build/src/appli/dopamine")
+        subprocess.Popen(os.path.join(str(self._dopamine_build_dir), "/src/appli/dopamine"))
         # wait for dopamine initialization
         time.sleep(1)
     
