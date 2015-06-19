@@ -24,7 +24,7 @@ class TestBase(unittest.TestCase) :
         # Add data
         subprocess.Popen(str(self._add_doe_jane), shell=True)
         # launch dopamine in a subprocess
-        subprocess.Popen(os.path.join(str(self._dopamine_build_dir), "/src/appli/dopamine"))
+        subprocess.Popen(os.path.join(str(self._dopamine_build_dir), "src/appli/dopamine"))
         # wait for dopamine initialization
         time.sleep(1)
     

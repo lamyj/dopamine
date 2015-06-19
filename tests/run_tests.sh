@@ -1182,7 +1182,7 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../dopamine/generatedJUnitFiles/nosetests.xml -w ${DOPAMINE_BUILD_DIR}/../dopamine/tests/code
+nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml -w ${DOPAMINE_BUILD_DIR}/../tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
