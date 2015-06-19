@@ -5,9 +5,16 @@ pgrep mongod
 retval=$?
 if [ "$retval" = 1 ]
 then
-    /usr/bin/mongod --quiet --config /etc/mongodb.conf > /dev/null 2>&1 &
+    /usr/bin/mongod --quiet > /dev/null 2>&1 &
     sleep 1
 fi 
+
+pgrep mongod
+retval=$?
+if [ "$retval" = 1 ]
+then
+    exit 1
+fi
 
 # Create Temporary directory
 DIRECTORY=`mktemp -d`
@@ -1175,7 +1182,7 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml -w ../tests/code
+nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../dopamine/generatedJUnitFiles/nosetests.xml -w ../dopamine/tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
