@@ -4,17 +4,14 @@ MAINTAINER Romain "lahaxe@unistra.fr"
 
 RUN echo "deb http://ftp.u-strasbg.fr/debian/ wheezy-backports main" >> /etc/apt/sources.list && \
     apt-get -qq -y update && \
-    apt-get -qq -y install cmake aptitude make swig2.0 libdcmtk2-dev \
-                           g++ dcmtk libmimetic-dev libmongo-client-dev \
-                           mongodb-dev/wheezy-backports libcgicc5-dev \
-                           python-nose libqt4-dev libboost-all-dev \
-                           liblog4cpp5-dev libldap2-dev libssl-dev \
-                           libwrap0-dev mongodb wget bzip2 git \
-                           openssh-server openjdk-7-jdk
+    apt-get -qq -y install debconf-utils build-essential binutils-doc \
+                           autoconf flex bison cmake scons wget git \
+                           mercurial subversion gzip bzip2 zip unzip \
+                           openssh-server openjdk-7-jdk sudo lsb-release
 
-RUN rm -rf /data && mkdir data && mkdir /data/db && mkdir /var/run/sshd && \
-    chmod a+rw /data && chmod a+rw /data/db && \
-    useradd "jenkins" && echo "jenkins:jenkins" | chpasswd && mkdir "/home/jenkins" && \
-    chown "jenkins:jenkins" "/home/jenkins" && chmod a+w "/home/jenkins"
+RUN mkdir /var/run/sshd && useradd "jenkins" && \
+    echo "jenkins:jenkins" | chpasswd && mkdir "/home/jenkins" && \
+    chown "jenkins:jenkins" "/home/jenkins" && chmod a+w "/home/jenkins" && \
+    echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
 
 RUN /usr/sbin/sshd
