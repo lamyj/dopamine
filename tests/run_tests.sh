@@ -1176,7 +1176,7 @@ export DOPAMINE_BUILD_DIR=${PWD}
 sleep 1
 
 # Execute unit tests
-ctest --no-compress-output -T Test || true
+ctest --no-compress-output --schedule-random -T Test || true
 
 termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
