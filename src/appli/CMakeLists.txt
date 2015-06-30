@@ -22,7 +22,7 @@ add_executable(stow-rs "stow-rs.cpp")
 target_link_libraries(stow-rs cgicc libdopamine)
 
 install(TARGETS dopamine wado-rs wado-uri qido-rs stow-rs
-        RUNTIME DESTINATION /usr/bin/
+        RUNTIME DESTINATION bin
         COMPONENT applications)
 
 # copy all header files to the include directory
@@ -33,5 +33,5 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                               GROUP_READ GROUP_EXECUTE
                               WORLD_READ WORLD_EXECUTE
-        DESTINATION /usr/include/dopamine/
+        DESTINATION include/dopamine
         FILES_MATCHING PATTERN "*.h")

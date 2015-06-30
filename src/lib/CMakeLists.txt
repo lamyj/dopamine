@@ -28,7 +28,7 @@ target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
 
 # deploy the library
 install(TARGETS libdopamine
-        LIBRARY DESTINATION /usr/lib
+        LIBRARY DESTINATION lib
         COMPONENT libraries)
 
 # copy all header files to the include directory
@@ -39,5 +39,5 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                               GROUP_READ GROUP_EXECUTE
                               WORLD_READ WORLD_EXECUTE
-        DESTINATION /usr/include/dopamine/
+        DESTINATION include/dopamine
         FILES_MATCHING PATTERN "*.h")
