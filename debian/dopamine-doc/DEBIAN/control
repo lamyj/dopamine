@@ -1,0 +1,11 @@
+Package: dopamine-doc
+Source: dopamine
+Version: 0.3.0-1
+Architecture: all
+Maintainer: Romain Lahaxe <lahaxe@unistra.fr>
+Installed-Size: 46
+Section: science
+Priority: optional
+Homepage: <insert the upstream URL, if relevant>
+Description: documentation for dopamine
+ <insert long description, indented with spaces>
