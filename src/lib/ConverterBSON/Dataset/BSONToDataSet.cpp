@@ -649,15 +649,16 @@ BSONToDataSet
         if (condition.good())
         {
             condition = dataset.insertEmptyElement(tag);
-        }
-        if (condition.good())
-        {
-            condition = dataset.findAndGetElement(tag, element);
-        }
-        if (condition.good())
-        {
-            element->putFloat32Array(reinterpret_cast<Float32 const *>(begin),
-                                     newsize);
+            if (condition.good())
+            {
+                condition = dataset.findAndGetElement(tag, element);
+                if (condition.good() && element != NULL)
+                {
+                    element->putFloat32Array(
+                                reinterpret_cast<Float32 const *>(begin),
+                                newsize);
+                }
+            }
         }
     }
     else if (tag.getEVR() == EVR_OW)

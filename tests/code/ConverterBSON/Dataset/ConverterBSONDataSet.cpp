@@ -352,14 +352,14 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
         OFCondition condition =
                 firstdataset.findAndGetElement(it->getTag().getXTag(),
                                                element);
-        BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-        BOOST_CHECK_EQUAL(element != NULL, true);
+        BOOST_REQUIRE(condition == EC_Normal);
+        BOOST_REQUIRE(element != NULL);
 
         DcmElement * newelement = NULL;
         condition = seconddataset.findAndGetElement(it->getTag().getXTag(),
                                                     newelement);
-        BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-        BOOST_CHECK_EQUAL(newelement != NULL, true);
+        BOOST_REQUIRE(condition == EC_Normal);
+        BOOST_REQUIRE(newelement != NULL);
 
         switch (element->getVR())
         {
@@ -368,14 +368,14 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
             DcmSequenceOfItems * sequence = NULL;
             condition = firstdataset.findAndGetSequence(it->getTag().getXTag(),
                                                         sequence);
-            BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-            BOOST_CHECK_EQUAL(sequence != NULL, true);
+            BOOST_REQUIRE(condition == EC_Normal);
+            BOOST_REQUIRE(sequence != NULL);
 
             DcmSequenceOfItems * newsequence = NULL;
             condition = seconddataset.findAndGetSequence(it->getTag().getXTag(),
                                                          newsequence);
-            BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-            BOOST_CHECK_EQUAL(newsequence != NULL, true);
+            BOOST_REQUIRE(condition == EC_Normal);
+            BOOST_REQUIRE(newsequence != NULL);
 
             DcmObject * itoldseq = NULL;
             DcmObject * itnewseq = NULL;

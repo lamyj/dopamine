@@ -432,11 +432,12 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     DcmElement* element = NULL;
     OFCondition condition = dataset.findAndGetElement(DCM_VectorGridData,
                                                       element);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
 
     void* begin(NULL);
     condition = element->getFloat32Array(*reinterpret_cast<Float32**>(&begin));
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
 
     // Check result
     std::string result(reinterpret_cast<char*>(begin), element->getLength());
@@ -470,11 +471,12 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     DcmElement* element = NULL;
     OFCondition condition = dataset.findAndGetElement(DCM_TrianglePointIndexList,
                                                       element);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
 
     void* begin(NULL);
     condition = element->getUint16Array(*reinterpret_cast<Uint16**>(&begin));
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
 
     // Check result
     std::string result(reinterpret_cast<char*>(begin), element->getLength());
@@ -619,42 +621,42 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
     DcmItem* item = NULL;
     OFCondition condition =
             dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence, item, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(item != NULL, true);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(item != NULL);
 
     OFString value;
     condition = item->findAndGetOFString(DCM_PatientID, value, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = item->findAndGetOFString(DCM_PatientID, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "value2");
 
     condition = item->findAndGetOFString(DCM_TypeOfPatientID, value, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "valueCS1");
     condition = item->findAndGetOFString(DCM_TypeOfPatientID, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "valueCS2");
 
     item = NULL;
     condition = dataset.findAndGetSequenceItem(DCM_OtherPatientIDsSequence,
                                                item, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-    BOOST_CHECK_EQUAL(item != NULL, true);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(item != NULL);
 
     condition = item->findAndGetOFString(DCM_PatientID, value, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "value1");
     condition = item->findAndGetOFString(DCM_PatientID, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "value2");
 
     condition = item->findAndGetOFString(DCM_TypeOfPatientID, value, 0);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "valueCS1");
     condition = item->findAndGetOFString(DCM_TypeOfPatientID, value, 1);
-    BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+    BOOST_CHECK(condition == EC_Normal);
     BOOST_CHECK_EQUAL(value.c_str(), "valueCS2");
 }
 

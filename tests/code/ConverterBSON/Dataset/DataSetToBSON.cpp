@@ -132,8 +132,13 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
 {
     DcmDataset* dataset = new DcmDataset();
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_DimensionIndexPointer);
-    dataset->findAndGetElement(DCM_DimensionIndexPointer, element);
+    OFCondition condition = dataset->insertEmptyElement(
+                DCM_DimensionIndexPointer);
+    BOOST_REQUIRE(condition == EC_Normal);
+    condition = dataset->findAndGetElement(DCM_DimensionIndexPointer,
+                                           element);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
     std::vector<Uint16> vectoruint16 = { DCM_PatientName.getGroup() ,
                                          DCM_PatientName.getElement() };
     element->putUint16Array(&vectoruint16[0], 1);
@@ -274,7 +279,10 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
     DcmDataset* dataset = new DcmDataset();
     dataset->insertEmptyElement(DCM_PupilSize);
     DcmElement * element = NULL;
-    dataset->findAndGetElement(DCM_PupilSize, element);
+    OFCondition condition = dataset->findAndGetElement(DCM_PupilSize,
+                                                       element);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
     std::vector<Float64> vectorfloat64 = {42.5, 43.6};
     element->putFloat64Array(&vectorfloat64[0], 2);
 
@@ -304,8 +312,13 @@ BOOST_AUTO_TEST_CASE(ConversionFL)
 {
     DcmDataset* dataset = new DcmDataset();
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_RecommendedDisplayFrameRateInFloat);
-    dataset->findAndGetElement(DCM_RecommendedDisplayFrameRateInFloat, element);
+    OFCondition condition = dataset->insertEmptyElement(
+                DCM_RecommendedDisplayFrameRateInFloat);
+    BOOST_REQUIRE(condition == EC_Normal);
+    condition = dataset->findAndGetElement(DCM_RecommendedDisplayFrameRateInFloat,
+                                           element);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
     std::vector<Float32> vectorfloat32 = {42.5, 43.6};
     element->putFloat32Array(&vectorfloat32[0], 2);
 
@@ -454,8 +467,11 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_VectorGridData);
-    dataset->findAndGetElement(DCM_VectorGridData, element);
+    OFCondition condition = dataset->insertEmptyElement(DCM_VectorGridData);
+    BOOST_REQUIRE(condition == EC_Normal);
+    condition = dataset->findAndGetElement(DCM_VectorGridData, element);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
     element->putFloat32Array(reinterpret_cast<Float32 const *>(value.c_str()),
                              8);
 
@@ -489,10 +505,16 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_TrianglePointIndexList);
-    dataset->findAndGetElement(DCM_TrianglePointIndexList, element);
-    OFCondition condition = element->putUint16Array(
+    OFCondition condition = dataset->insertEmptyElement(
+                DCM_TrianglePointIndexList);
+    BOOST_REQUIRE(condition == EC_Normal);
+    condition = dataset->findAndGetElement(DCM_TrianglePointIndexList,
+                                           element);
+    BOOST_REQUIRE(condition == EC_Normal);
+    BOOST_REQUIRE(element != NULL);
+    condition = element->putUint16Array(
                 reinterpret_cast<Uint16 const *>(value.c_str()), 16);
+    BOOST_REQUIRE(condition == EC_Normal);
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);

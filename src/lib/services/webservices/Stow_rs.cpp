@@ -208,7 +208,7 @@ Stow_rs
     }
     condition = responseDataset.findAndGetSequence(DCM_FailedSOPSequence,
                                                    failedsopsequence);
-    if (condition.bad())
+    if (condition.bad() || failedsopsequence == NULL)
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
     }
@@ -221,7 +221,7 @@ Stow_rs
     }
     condition = responseDataset.findAndGetSequence(DCM_ReferencedSOPSequence,
                                                    referencedsopsequence);
-    if (condition.bad())
+    if (condition.bad() || referencedsopsequence == NULL)
     {
         throw WebServiceException(503, "Busy", std::string(condition.text()));
     }
@@ -354,10 +354,7 @@ Stow_rs
             referencedsopsequence->append(item);
         }
 
-        if (dataset != NULL)
-        {
-            delete dataset;
-        }
+        delete dataset;
     }
 
     bool containsbad = failedsopsequence->getLength() != 0;
