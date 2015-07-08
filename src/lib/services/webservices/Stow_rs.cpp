@@ -294,6 +294,14 @@ Stow_rs
             }
             dataset = fileformat.getAndRemoveDataset();
         }
+        else
+        {
+            std::stringstream streamerror;
+            streamerror << "Content-type for each part should be "
+                        << MIME_TYPE_APPLICATION_DICOM;
+            throw WebServiceException(400, "Bad Request",
+                                      streamerror.str());
+        }
 
         OFString sopclassuid;
         dataset->findAndGetOFStringArray(DCM_SOPClassUID, sopclassuid);

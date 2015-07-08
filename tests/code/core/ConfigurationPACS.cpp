@@ -25,7 +25,10 @@ struct TestDataConfiguration
         {
             BOOST_FAIL("Missing environment variable: DOPAMINE_TEST_CONFIG");
         }
-        filename = std::string(conffile);
+        else
+        {
+            filename = std::string(conffile);
+        }
     }
 
     ~TestDataConfiguration()
