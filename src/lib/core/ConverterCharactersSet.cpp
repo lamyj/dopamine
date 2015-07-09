@@ -151,7 +151,7 @@ convert_to_utf8(std::string const & input,
                 unsigned int position)
 {
     std::vector<std::string> input_character_sets = from;
-    if (from.size() == 0)
+    if (from.empty())
     {
         input_character_sets.push_back(""); // Default
     }

@@ -167,7 +167,7 @@ void check_name_component(boost::property_tree::ptree & tree,
     boost::split(name_components, name,
                  boost::is_any_of("^"), boost::token_compress_off);
 
-    BOOST_CHECK_EQUAL((name_components.size() > 0 && family_name != ""), true);
+    BOOST_CHECK_EQUAL((!name_components.empty() && family_name != ""), true);
     BOOST_CHECK_EQUAL((name_components.size() > 1 && given_name != ""), true);
     BOOST_CHECK_EQUAL((name_components.size() > 2 && middle_name != ""), true);
     BOOST_CHECK_EQUAL((name_components.size() > 3 && prefix_name != ""), true);

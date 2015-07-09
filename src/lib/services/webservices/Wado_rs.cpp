@@ -108,7 +108,7 @@ Wado_rs
     boost::split(vartemp, this->_pathinfo, boost::is_any_of("/"),
                  boost::token_compress_off);
 
-    if (vartemp.size() > 0 && vartemp[0] == "")
+    if (!vartemp.empty() && vartemp[0] == "")
     {
         vartemp.erase(vartemp.begin());
     }

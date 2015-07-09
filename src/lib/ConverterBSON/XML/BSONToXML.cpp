@@ -427,7 +427,7 @@ BSONToXML
                 boost::split(name_components, name, boost::is_any_of("^"),
                              boost::token_compress_off);
 
-                if (name_components.size() > 0)
+                if (!name_components.empty())
                 {
                     boost::property_tree::ptree tag_familyname;
                     tag_familyname.put_value(name_components[0]);
