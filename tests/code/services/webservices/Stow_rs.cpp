@@ -288,11 +288,9 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
     std::stringstream datasetstring;
     datasetstring << get_content_type() << "\n\n";
 
-    OFCondition condition = EC_Normal;
-
     // Create the dataset
     DcmDataset * dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
+    OFCondition condition = dataset->putAndInsertOFStringArray(
                 DCM_SOPInstanceUID,
                 OFString(SOP_INSTANCE_UID_BIG_02.c_str()));
     BOOST_REQUIRE(condition.good());

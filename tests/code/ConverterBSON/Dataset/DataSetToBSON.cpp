@@ -138,10 +138,17 @@ BOOST_AUTO_TEST_CASE(ConversionAT)
     condition = dataset->findAndGetElement(DCM_DimensionIndexPointer,
                                            element);
     BOOST_REQUIRE(condition == EC_Normal);
-    BOOST_REQUIRE(element != NULL);
-    std::vector<Uint16> vectoruint16 = { DCM_PatientName.getGroup() ,
-                                         DCM_PatientName.getElement() };
-    element->putUint16Array(&vectoruint16[0], 1);
+
+    if (element != NULL)
+    {
+        std::vector<Uint16> vectoruint16 = { DCM_PatientName.getGroup() ,
+                                             DCM_PatientName.getElement() };
+        element->putUint16Array(&vectoruint16[0], 1);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -282,9 +289,15 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
     OFCondition condition = dataset->findAndGetElement(DCM_PupilSize,
                                                        element);
     BOOST_REQUIRE(condition == EC_Normal);
-    BOOST_REQUIRE(element != NULL);
-    std::vector<Float64> vectorfloat64 = {42.5, 43.6};
-    element->putFloat64Array(&vectorfloat64[0], 2);
+    if (element != NULL)
+    {
+        std::vector<Float64> vectorfloat64 = {42.5, 43.6};
+        element->putFloat64Array(&vectorfloat64[0], 2);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -311,16 +324,23 @@ BOOST_AUTO_TEST_CASE(ConversionFD)
 BOOST_AUTO_TEST_CASE(ConversionFL)
 {
     DcmDataset* dataset = new DcmDataset();
-    DcmElement * element = NULL;
     OFCondition condition = dataset->insertEmptyElement(
                 DCM_RecommendedDisplayFrameRateInFloat);
     BOOST_REQUIRE(condition == EC_Normal);
+    DcmElement * element = NULL;
     condition = dataset->findAndGetElement(DCM_RecommendedDisplayFrameRateInFloat,
                                            element);
     BOOST_REQUIRE(condition == EC_Normal);
-    BOOST_REQUIRE(element != NULL);
-    std::vector<Float32> vectorfloat32 = {42.5, 43.6};
-    element->putFloat32Array(&vectorfloat32[0], 2);
+
+    if (element != NULL)
+    {
+        std::vector<Float32> vectorfloat32 = {42.5, 43.6};
+        element->putFloat32Array(&vectorfloat32[0], 2);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -466,14 +486,21 @@ BOOST_AUTO_TEST_CASE(ConversionOF)
 {
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
-    DcmElement * element = NULL;
     OFCondition condition = dataset->insertEmptyElement(DCM_VectorGridData);
     BOOST_REQUIRE(condition == EC_Normal);
+    DcmElement * element = NULL;
     condition = dataset->findAndGetElement(DCM_VectorGridData, element);
     BOOST_REQUIRE(condition == EC_Normal);
-    BOOST_REQUIRE(element != NULL);
-    element->putFloat32Array(reinterpret_cast<Float32 const *>(value.c_str()),
-                             8);
+
+    if (element != NULL)
+    {
+        element->putFloat32Array(
+                    reinterpret_cast<Float32 const *>(value.c_str()), 8);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -504,17 +531,24 @@ BOOST_AUTO_TEST_CASE(ConversionOW)
 {
     std::string const value = "azertyuiopqsdfghjklmwxcvbn123456";
     DcmDataset* dataset = new DcmDataset();
-    DcmElement * element = NULL;
     OFCondition condition = dataset->insertEmptyElement(
                 DCM_TrianglePointIndexList);
     BOOST_REQUIRE(condition == EC_Normal);
+    DcmElement * element = NULL;
     condition = dataset->findAndGetElement(DCM_TrianglePointIndexList,
                                            element);
     BOOST_REQUIRE(condition == EC_Normal);
-    BOOST_REQUIRE(element != NULL);
-    condition = element->putUint16Array(
-                reinterpret_cast<Uint16 const *>(value.c_str()), 16);
-    BOOST_REQUIRE(condition == EC_Normal);
+
+    if (element != NULL)
+    {
+        condition = element->putUint16Array(
+                    reinterpret_cast<Uint16 const *>(value.c_str()), 16);
+        BOOST_REQUIRE(condition == EC_Normal);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -606,11 +640,22 @@ BOOST_AUTO_TEST_CASE(ConversionSH)
 BOOST_AUTO_TEST_CASE(ConversionSL)
 {
     DcmDataset* dataset = new DcmDataset();
+    OFCondition condition = dataset->insertEmptyElement(DCM_ReferencePixelX0);
+    BOOST_REQUIRE(condition == EC_Normal);
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_ReferencePixelX0);
-    dataset->findAndGetElement(DCM_ReferencePixelX0, element);
-    std::vector<Sint32> vectorsint32 = {10, 11};
-    element->putSint32Array(&vectorsint32[0], 2);
+    condition = dataset->findAndGetElement(DCM_ReferencePixelX0, element);
+    BOOST_REQUIRE(condition == EC_Normal);
+
+    if (element != NULL)
+    {
+        std::vector<Sint32> vectorsint32 = {10, 11};
+        condition = element->putSint32Array(&vectorsint32[0], 2);
+        BOOST_REQUIRE(condition == EC_Normal);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -685,11 +730,22 @@ BOOST_AUTO_TEST_CASE(ConversionSQ)
 BOOST_AUTO_TEST_CASE(ConversionSS)
 {
     DcmDataset* dataset = new DcmDataset();
+    OFCondition condition = dataset->insertEmptyElement(DCM_TagAngleSecondAxis);
+    BOOST_REQUIRE(condition == EC_Normal);
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_TagAngleSecondAxis);
-    dataset->findAndGetElement(DCM_TagAngleSecondAxis, element);
-    std::vector<Sint16> vectorsint16 = {10, 11};
-    element->putSint16Array(&vectorsint16[0], 2);
+    condition = dataset->findAndGetElement(DCM_TagAngleSecondAxis, element);
+    BOOST_REQUIRE(condition == EC_Normal);
+
+    if (element != NULL)
+    {
+        std::vector<Sint16> vectorsint16 = {10, 11};
+        condition = element->putSint16Array(&vectorsint16[0], 2);
+        BOOST_REQUIRE(condition == EC_Normal);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -800,11 +856,22 @@ BOOST_AUTO_TEST_CASE(ConversionUI)
 BOOST_AUTO_TEST_CASE(ConversionUL)
 {
     DcmDataset* dataset = new DcmDataset();
+    OFCondition condition = dataset->insertEmptyElement(DCM_SimpleFrameList);
+    BOOST_REQUIRE(condition == EC_Normal);
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_SimpleFrameList);
-    dataset->findAndGetElement(DCM_SimpleFrameList, element);
-    std::vector<Uint32> vectoruint32 = {10, 11};
-    element->putUint32Array(&vectoruint32[0], 2);
+    condition = dataset->findAndGetElement(DCM_SimpleFrameList, element);
+    BOOST_REQUIRE(condition == EC_Normal);
+
+    if (element != NULL)
+    {
+        std::vector<Uint32> vectoruint32 = {10, 11};
+        condition = element->putUint32Array(&vectoruint32[0], 2);
+        BOOST_REQUIRE(condition == EC_Normal);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -840,11 +907,22 @@ BOOST_AUTO_TEST_CASE(ConversionUN)
 BOOST_AUTO_TEST_CASE(ConversionUS)
 {
     DcmDataset* dataset = new DcmDataset();
+    OFCondition condition = dataset->insertEmptyElement(DCM_FailureReason);
+    BOOST_REQUIRE(condition.good());
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_FailureReason);
-    dataset->findAndGetElement(DCM_FailureReason, element);
-    std::vector<Uint16> vectoruint16 = {10, 11};
-    element->putUint16Array(&vectoruint16[0], 2);
+    condition = dataset->findAndGetElement(DCM_FailureReason, element);
+    BOOST_REQUIRE(condition.good());
+
+    if (element != NULL)
+    {
+        std::vector<Uint16> vectoruint16 = {10, 11};
+        condition = element->putUint16Array(&vectoruint16[0], 2);
+        BOOST_REQUIRE(condition.good());
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     dopamine::converterBSON::DataSetToBSON datasettobson;
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
@@ -979,12 +1057,26 @@ BOOST_AUTO_TEST_CASE(Group_length_tag)
                 dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
     DcmDataset* dataset = new DcmDataset();
-    dataset->putAndInsertOFStringArray(DCM_Modality, "value01\\value02");
+    OFCondition condition =
+            dataset->putAndInsertOFStringArray(DCM_Modality, "value01\\value02");
+    BOOST_REQUIRE(condition == EC_Normal);
+    condition = dataset->insertEmptyElement(DCM_FileMetaInformationGroupLength);
+    BOOST_REQUIRE(condition == EC_Normal);
     DcmElement * element = NULL;
-    dataset->insertEmptyElement(DCM_FileMetaInformationGroupLength);
-    dataset->findAndGetElement(DCM_FileMetaInformationGroupLength, element);
-    std::vector<Uint32> vectoruint32 = {10};
-    element->putUint32Array(&vectoruint32[0], 1);
+    condition = dataset->findAndGetElement(DCM_FileMetaInformationGroupLength,
+                                           element);
+    BOOST_REQUIRE(condition == EC_Normal);
+
+    if (element != NULL)
+    {
+        std::vector<Uint32> vectoruint32 = {10};
+        condition = element->putUint32Array(&vectoruint32[0], 1);
+        BOOST_REQUIRE(condition == EC_Normal);
+    }
+    else
+    {
+        BOOST_REQUIRE(element != NULL);
+    }
 
     mongo::BSONObj const query_dataset = datasettobson.from_dataset(dataset);
 

@@ -369,59 +369,73 @@ void isEqual(DcmDataset & firstdataset, DcmDataset & seconddataset)
             condition = firstdataset.findAndGetSequence(it->getTag().getXTag(),
                                                         sequence);
             BOOST_REQUIRE(condition == EC_Normal);
-            BOOST_REQUIRE(sequence != NULL);
 
             DcmSequenceOfItems * newsequence = NULL;
             condition = seconddataset.findAndGetSequence(it->getTag().getXTag(),
                                                          newsequence);
             BOOST_REQUIRE(condition == EC_Normal);
-            BOOST_REQUIRE(newsequence != NULL);
 
-            DcmObject * itoldseq = NULL;
-            DcmObject * itnewseq = NULL;
-            itoldseq = sequence->nextInContainer(itoldseq);
-            itnewseq = newsequence->nextInContainer(itnewseq);
-            while(NULL != itoldseq && NULL != itnewseq)
+            if (sequence != NULL && newsequence != NULL)
             {
-                DcmObject * itoldseqitem = NULL;
-                DcmObject * itnewseqitem = NULL;
-                itoldseqitem = itoldseq->nextInContainer(itoldseqitem);
-                itnewseqitem = itnewseq->nextInContainer(itnewseqitem);
-                while(NULL != itoldseqitem && NULL != itnewseqitem)
-                {
-                    std::stringstream stream1;
-                    itoldseqitem->print(stream1);
-
-                    std::stringstream stream2;
-                    itnewseqitem->print(stream2);
-
-                    BOOST_CHECK_EQUAL(stream1.str(), stream2.str());
-
-                    itoldseqitem = itoldseq->nextInContainer(itoldseqitem);
-                    itnewseqitem = itnewseq->nextInContainer(itnewseqitem);
-                }
-                // Check if both are finish
-                BOOST_CHECK_EQUAL(itoldseqitem == NULL, true);
-                BOOST_CHECK_EQUAL(itnewseqitem == NULL, true);
-
+                DcmObject * itoldseq = NULL;
+                DcmObject * itnewseq = NULL;
                 itoldseq = sequence->nextInContainer(itoldseq);
                 itnewseq = newsequence->nextInContainer(itnewseq);
+                while(NULL != itoldseq && NULL != itnewseq)
+                {
+                    DcmObject * itoldseqitem = NULL;
+                    DcmObject * itnewseqitem = NULL;
+                    itoldseqitem = itoldseq->nextInContainer(itoldseqitem);
+                    itnewseqitem = itnewseq->nextInContainer(itnewseqitem);
+                    while(NULL != itoldseqitem && NULL != itnewseqitem)
+                    {
+                        std::stringstream stream1;
+                        itoldseqitem->print(stream1);
+
+                        std::stringstream stream2;
+                        itnewseqitem->print(stream2);
+
+                        BOOST_CHECK_EQUAL(stream1.str(), stream2.str());
+
+                        itoldseqitem = itoldseq->nextInContainer(itoldseqitem);
+                        itnewseqitem = itnewseq->nextInContainer(itnewseqitem);
+                    }
+                    // Check if both are finish
+                    BOOST_CHECK_EQUAL(itoldseqitem == NULL, true);
+                    BOOST_CHECK_EQUAL(itnewseqitem == NULL, true);
+
+                    itoldseq = sequence->nextInContainer(itoldseq);
+                    itnewseq = newsequence->nextInContainer(itnewseq);
+                }
+                // Check if both are finish
+                BOOST_CHECK_EQUAL(itoldseq == NULL, true);
+                BOOST_CHECK_EQUAL(itnewseq == NULL, true);
             }
-            // Check if both are finish
-            BOOST_CHECK_EQUAL(itoldseq == NULL, true);
-            BOOST_CHECK_EQUAL(itnewseq == NULL, true);
+            else
+            {
+                BOOST_REQUIRE(sequence != NULL);
+                BOOST_REQUIRE(newsequence != NULL);
+            }
 
             break;
         }
         default:
         {
-            OFString value1;
-            condition = element->getOFString(value1, 0);
-            BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-            OFString value2;
-            condition = newelement->getOFString(value2, 0);
-            BOOST_CHECK_EQUAL(condition == EC_Normal, true);
-            BOOST_CHECK_EQUAL(value1.c_str(), value2.c_str());
+            if (element != NULL && newelement != NULL)
+            {
+                OFString value1;
+                condition = element->getOFString(value1, 0);
+                BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+                OFString value2;
+                condition = newelement->getOFString(value2, 0);
+                BOOST_CHECK_EQUAL(condition == EC_Normal, true);
+                BOOST_CHECK_EQUAL(value1.c_str(), value2.c_str());
+            }
+            else
+            {
+                BOOST_REQUIRE(element != NULL);
+                BOOST_REQUIRE(newelement != NULL);
+            }
         }
         }
     }

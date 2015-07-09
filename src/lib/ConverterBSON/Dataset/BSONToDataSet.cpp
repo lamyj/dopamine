@@ -645,12 +645,12 @@ BSONToDataSet
         // is not a multiple of 4
         int newsize = size / sizeof(Float32);
 
-        DcmElement * element = NULL;
         if (condition.good())
         {
             condition = dataset.insertEmptyElement(tag);
             if (condition.good())
             {
+                DcmElement * element = NULL;
                 condition = dataset.findAndGetElement(tag, element);
                 if (condition.good() && element != NULL)
                 {

@@ -131,9 +131,8 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 
     dopamine::services::StoreGenerator generator("");
 
-    OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
+    OFCondition condition = dataset->putAndInsertOFStringArray(
                 DCM_SOPInstanceUID,
                 OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
@@ -178,10 +177,10 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 
     dopamine::services::StoreGenerator generator("");
 
-    OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationDate,
-                                                   OFString("20150101"));
+    OFCondition condition =
+            dataset->putAndInsertOFStringArray(DCM_InstanceCreationDate,
+                                               OFString("20150101"));
     BOOST_REQUIRE(condition.good());
     condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime,
                                                    OFString("101010"));
@@ -228,8 +227,15 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     condition = dataset->findOrCreateSequenceItem(DCM_OtherPatientIDsSequence,
                                                   item, -2);
     BOOST_REQUIRE(condition.good());
-    condition = item->putAndInsertOFStringArray(DCM_PatientID, "123");
-    BOOST_REQUIRE(condition.good());
+    if (item != NULL)
+    {
+        condition = item->putAndInsertOFStringArray(DCM_PatientID, "123");
+        BOOST_REQUIRE(condition.good());
+    }
+    else
+    {
+        BOOST_REQUIRE(item != NULL);
+    }
     condition = dataset->putAndInsertOFStringArray(DCM_PatientAge,
                                                    OFString("25Y"));
     BOOST_REQUIRE(condition.good());
@@ -323,9 +329,8 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 
     dopamine::services::StoreGenerator generator("root");
 
-    OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
+    OFCondition condition = dataset->putAndInsertOFStringArray(
                 DCM_SOPInstanceUID,
                 OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
@@ -381,9 +386,8 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
  */
 BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
-    OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
+    OFCondition condition = dataset->putAndInsertOFStringArray(
                 DCM_SOPInstanceUID,
                 OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
     BOOST_REQUIRE(condition.good());
@@ -419,9 +423,8 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
 {
     dopamine::services::StoreGenerator generator("");
 
-    OFCondition condition = EC_Normal;
     DcmDataset* dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
+    OFCondition condition = dataset->putAndInsertOFStringArray(
                 DCM_StudyInstanceUID,
                 OFString(STUDY_INSTANCE_UID_03_01.c_str()));
     BOOST_REQUIRE(condition.good());
