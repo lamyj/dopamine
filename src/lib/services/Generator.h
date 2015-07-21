@@ -64,36 +64,74 @@ public:
      */
     void cancel();
 
+    /**
+     * @brief Execute operation on given Dataset
+     * @param dataset: Dataset to process
+     * @param storageflags: indicate if operation is Store operation
+     * @return Status of the operation
+     */
     Uint16 process_dataset(DcmDataset* dataset, bool storageflags);
 
+    /**
+     * @brief Execute operation on given BSON Object
+     * @param query: Query to process
+     * @return Status of the operation
+     */
     Uint16 process_bson(mongo::BSONObj const & query);
 
+    /**
+     * @brief Execute operation
+     * @return Status of the operation
+     */
     virtual Uint16 process() = 0;
 
+    /**
+     * @brief Get the next object
+     * @return next object if exists, empty object otherwise
+     */
     mongo::BSONObj next();
 
+    /**
+     * @brief Accessor for the attribute _allow
+     * @return attribute _allow
+     */
     bool is_allow() const;
 
+    /**
+     * @brief Accessor for the attribute _dataset
+     * @return attribute _dataset
+     */
     DcmDataset * get_dataset() const;
 
+    /**
+     * @brief Accessor for the attribute _bsonquery
+     * @return attribute _bsonquery
+     */
     mongo::BSONObj get_bsonquery() const;
 
 protected:
-
+    /// Connection to the Database
     mongo::DBClientConnection _connection;
 
+    /// Database name
     std::string _db_name;
 
+    /// Flag indicating if connection is established
     bool _isconnected;
 
+    /// User name
     std::string _username;
 
+    /// Cursor to the database
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
 
+    /// Indicate if user is allowed to process operation
     bool _allow;
 
+    /// Processed dataset
     DcmDataset * _dataset;
 
+    /// Processed BSON Object
     mongo:: BSONObj _bsonquery;
 
     /// @brief Return the DICOM Match Type of an element in BSON form.
@@ -116,7 +154,12 @@ protected:
                         Match::Type const & match_type) const;
 
 private:
-
+    /**
+     * @brief _add_value_to_builder
+     * @param builder
+     * @param field
+     * @param value
+     */
     template<typename TType>
     void _add_value_to_builder(mongo::BSONObjBuilder &builder,
                                std::string const & field,

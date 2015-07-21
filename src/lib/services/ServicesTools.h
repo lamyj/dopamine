@@ -46,35 +46,91 @@ enum database_status
     INSERTION_FAILED
 };
 
+/**
+ * @brief Create connection to the database
+ * @param connection: return the connection to the database
+ * @param db_name: return the database name
+ * @return true if connection is established, false otherwise
+ */
 bool create_db_connection(mongo::DBClientConnection & connection,
                           std::string & db_name);
 
+/**
+ * @brief Insert a Dataset into Database
+ * @param connection: connection to the database
+ * @param db_name: Database Name
+ * @param username: User name
+ * @param dataset: Dataset to insert
+ * @param callingaet: Calling AE Title
+ * @return status of the operation
+ */
 database_status insert_dataset(mongo::DBClientConnection & connection,
                                std::string const & db_name,
                                std::string const & username,
                                DcmDataset* dataset,
                                std::string const & callingaet = "");
 
+/**
+ * @brief Create the status detail Dataset
+ * @param errorCode: Error code
+ * @param key: Tag in error
+ * @param comment: error detail
+ * @param statusDetail: return the status detail Dataset
+ */
 void create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
                           OFString const & comment, DcmDataset **statusDetail);
 
+/**
+ * @brief Find the username into UserIdentityNegotiationSubItemRQ
+ * @param userIdentNeg: UserIdentityNegotiationSubItemRQ
+ * @return the username
+ */
 std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg);
 
+/**
+ * @brief Check if user is allowed to do given services
+ * @param connection: connection to the database
+ * @param db_name: Database name
+ * @param username: user name
+ * @param servicename: service name
+ * @return true if user is allowed, false otherwise
+ */
 bool is_authorized(mongo::DBClientConnection &connection,
                    std::string const & db_name,
                    std::string const & username,
                    std::string const & servicename);
 
+/**
+ * @brief Get the constraint for a given user and a given service
+ * @param connection: connection to the database
+ * @param db_name: Database Name
+ * @param username: user name
+ * @param servicename: service name
+ * @return the constraints
+ */
 mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection &connection,
                                        std::string const & db_name,
                                        std::string const & username,
                                        std::string const & servicename);
 
+/**
+ * @brief Check if user is allowed to store dataset
+ * @param connection: connection to the database
+ * @param db_name: Database Name
+ * @param username: user name
+ * @param dataset: dataset to store
+ * @return true if dataset can be store, false otherwise
+ */
 bool is_dataset_allowed_for_storage(mongo::DBClientConnection & connection,
                                     std::string const & db_name,
                                     std::string const & username,
                                     mongo::BSONObj const & dataset);
 
+/**
+ * @brief Convert the value of a BSONElement to a std::string
+ * @param bsonelement: element to convert
+ * @return value as string
+ */
 std::string bsonelement_to_string(mongo::BSONElement const & bsonelement);
 
 /**
@@ -88,13 +144,33 @@ std::string replace(std::string const & value,
                     std::string const & old,
                     std::string const & new_);
 
+/**
+ * @brief Convert a Dataset to a BSON Object
+ * @param dataset: Dataset to convert
+ * @param isforstorage: flag indicating if object will be stored into database
+ * @return Dataset as BSON object
+ */
 mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
                                bool isforstorage = false);
 
+/**
+ * @brief Retrieve Dataset from Database
+ * @param connection: connection to the database
+ * @param db_name: Database Name
+ * @param object: to retrieve
+ * @return Dataset
+ */
 DcmDataset * bson_to_dataset(mongo::DBClientConnection &connection,
                              std::string const & db_name,
                              mongo::BSONObj object);
 
+/**
+ * @brief Retrieve Dataset from Database
+ * @param connection: connection to the database
+ * @param db_name: Database Name
+ * @param object: to retrieve
+ * @return the Dataset as string
+ */
 std::string get_dataset_as_string(mongo::DBClientConnection &connection,
                                   std::string const & db_name,
                                   mongo::BSONObj object);

@@ -32,15 +32,29 @@ public:
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
+    /**
+     * @brief do the store operation
+     * @return Status of the operation
+     */
     virtual Uint16 process();
 
+    /**
+     * @brief Set the attribute _calling_aptitle
+     * @param callingaptitle: new value
+     */
     void set_calling_aptitle(std::string const & callingaptitle);
 
+    /**
+     * @brief Get value of attribute _calling_aptitle
+     * @return _calling_aptitle
+     */
     std::string get_calling_aptitle() const;
 
 private:
+    ///
     std::string _destination_path;
 
+    ///
     std::string _calling_aptitle;
 
 };

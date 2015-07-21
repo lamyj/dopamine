@@ -41,32 +41,45 @@ public:
     /// Destroy the instance of StoreSubOperation
     virtual ~StoreSubOperation();
 
+    /**
+     * @brief Create an other association
+     * @param destination_aetitle
+     * @return EC_Normal if successful, an error code otherwise
+     */
     OFCondition build_sub_association(DIC_AE destination_aetitle);
 
+    /**
+     * @brief call the store operation
+     * @param dataset: Dataset to Store
+     * @param priority: Priority of the operation
+     * @return EC_Normal if successful, an error code otherwise
+     */
     OFCondition perform_sub_operation(DcmDataset* dataset,
                                       T_DIMSE_Priority priority);
 
 protected:
 
 private:
-    ///
+    /// Current Network
     T_ASC_Network * _network;
 
-    ///
+    /// Requested association
     T_ASC_Association * _request_association;
 
-    ///
+    /// Response association
     T_ASC_Association * _response_association;
 
     /// original AE Title
     DIC_AE _original_aetitle;
 
+    /// Original message ID
     DIC_US _original_message_id;
 
+    /// flag to indicate if it is a new or current association
     bool _new_association;
 
     /**
-     * Add the presentation context
+     * @brief Add the presentation context
      * @param params: association parameters
      * @return EC_Normal if successful, an error code otherwise
      */
