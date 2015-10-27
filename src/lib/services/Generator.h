@@ -132,7 +132,7 @@ protected:
     DcmDataset * _dataset;
 
     /// Processed BSON Object
-    mongo:: BSONObj _bsonquery;
+    mongo::BSONObj _bsonquery;
 
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr,

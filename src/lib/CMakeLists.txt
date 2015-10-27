@@ -18,7 +18,8 @@ file(GLOB_RECURSE files "*.cpp")
 add_library(libdopamine SHARED ${files})
 
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
-target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
+target_link_libraries(libdopamine dcmtkpp
+                                  ${MONGO_DB_LIBRARIES}
                                   ${DCMTK_LIBRARIES}
                                   ${Boost_LIBRARIES}
                                   ${ICU_LIBRARIES}

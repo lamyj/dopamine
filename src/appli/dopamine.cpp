@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 
     // Create and run Network listener
     dopamine::NetworkPACS::get_instance().run();
+    dopamine::NetworkPACS::delete_instance();
 
     return EXIT_SUCCESS;
 }
