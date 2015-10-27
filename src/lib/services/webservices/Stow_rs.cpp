@@ -20,7 +20,8 @@
 #include <mimetic/mimeentity.h>
 
 #include "ConverterBSON/Dataset/DataSetToBSON.h"
-#include "ConverterBSON/XML/BSONToXML.h"
+#include "ConverterBSON/bson_converter.h"
+#include "core/dataset_tools.h"
 #include "services/ServicesTools.h"
 #include "services/StoreGenerator.h"
 #include "Stow_rs.h"
@@ -393,8 +394,9 @@ Stow_rs
     datasettobson.set_default_filter(
                 converterBSON::DataSetToBSON::FilterAction::INCLUDE);
     mongo::BSONObj bsondataset = datasettobson.from_dataset(&responseDataset);
-    converterBSON::BSONToXML bsontoxml;
-    this->_response = bsontoxml.to_string(bsondataset);
+
+    auto const dataset = as_dataset(bsondataset);
+    this->_response = dataset_to_xml_string(dataset);
 }
 
 } // namespace services

@@ -11,9 +11,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "core/ConfigurationPACS.h"
 #include "services/RetrieveGenerator.h"
-#include "services/ServicesTools.h"
 #include "Wado_rs.h"
 #include "WebServiceException.h"
 

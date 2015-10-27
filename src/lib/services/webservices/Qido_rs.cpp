@@ -14,8 +14,8 @@
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctag.h>
 
-#include "ConverterBSON/JSON/BSONToJSON.h"
-#include "ConverterBSON/XML/BSONToXML.h"
+#include "ConverterBSON/bson_converter.h"
+#include "core/dataset_tools.h"
 #include "Qido_rs.h"
 #include "services/QueryGenerator.h"
 #include "services/ServicesTools.h"
@@ -178,16 +178,17 @@ Qido_rs
             {
                 stream << ",\n";
             }
-            converterBSON::BSONToJSON bsontojson;
-            stream << bsontojson.to_string(findedobject);
+
+            auto const dataset = as_dataset(findedobject);
+            stream << dataset_to_json_string(dataset);
         }
         else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
         {
             stream << "--" << this->_boundary << "\n";
             stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
 
-            converterBSON::BSONToXML bsontoxml;
-            std::string currentdata = bsontoxml.to_string(findedobject);
+            auto const dataset = as_dataset(findedobject);
+            std::string currentdata = dataset_to_xml_string(dataset);
 
             // The directive xml:space="preserve" shall be included.
             std::stringstream xmlheader;

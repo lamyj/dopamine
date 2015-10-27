@@ -6,26 +6,20 @@
  * for details.
  ************************************************************************/
 
-#include "ConverterBSONJSON.h"
+#ifndef _156d9663_7ee7_402e_9829_4a1a2eb82c43
+#define _156d9663_7ee7_402e_9829_4a1a2eb82c43
+
+#include <string>
+
+#include <dcmtkpp/DataSet.h>
 
 namespace dopamine
 {
 
-namespace converterBSON
-{
+std::string dataset_to_json_string(dcmtkpp::DataSet const & data_set);
 
-ConverterBSONJSON
-::ConverterBSONJSON()
-{
-    // Nothing to do
-}
-
-ConverterBSONJSON
-::~ConverterBSONJSON()
-{
-    // Nothing to do
-}
-
-} // namespace converterBSON
+std::string dataset_to_xml_string(dcmtkpp::DataSet const & data_set);
 
 } // namespace dopamine
+
+#endif // _156d9663_7ee7_402e_9829_4a1a2eb82c43
