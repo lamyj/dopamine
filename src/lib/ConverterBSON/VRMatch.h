@@ -22,7 +22,7 @@ namespace converterBSON
 /**
  * @brief \class VRMatch Condition
  */
-class VRMatch : public Condition_DEBUG_RLA
+class VRMatch : public Condition
 {
 public:
     typedef boost::shared_ptr<VRMatch> Pointer;

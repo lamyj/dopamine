@@ -23,13 +23,13 @@ namespace dopamine
 /**
  * @brief \class Base class condition
  */
-class Condition_DEBUG_RLA
+class Condition
 {
 public:
-    typedef boost::shared_ptr<Condition_DEBUG_RLA> Pointer;
+    typedef boost::shared_ptr<Condition> Pointer;
 
     /// Destroy the instance of Condition
-    virtual ~Condition_DEBUG_RLA() {}
+    virtual ~Condition() {}
 
     /**
      * @brief operator (): function should be implement in derived classes
@@ -43,7 +43,7 @@ public:
 
 protected:
     /// Create an instance of Condition
-    Condition_DEBUG_RLA() {}
+    Condition() {}
 
 private:
 

@@ -20,7 +20,7 @@ namespace converterBSON
 /**
  * @brief \class Not Condition
  */
-class Not : public Condition_DEBUG_RLA
+class Not : public Condition
 {
 public:
     typedef boost::shared_ptr<Not> Pointer;
@@ -30,7 +30,7 @@ public:
      * @param condition: tested condition
      * @return this pointer
      */
-    static Pointer New(Condition_DEBUG_RLA::Pointer const & condition);
+    static Pointer New(Condition::Pointer const & condition);
     
     /// Destroy the instance of Not
     virtual ~Not();
@@ -52,10 +52,10 @@ private:
      * Create an instance of Not
      * @param condition: tested condition
      */
-    Not(Condition_DEBUG_RLA::Pointer const & condition);
+    Not(Condition::Pointer const & condition);
     
     /// Tested condition
-    Condition_DEBUG_RLA::Pointer _condition;
+    Condition::Pointer _condition;
 
 };
 

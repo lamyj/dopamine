@@ -20,7 +20,7 @@ namespace converterBSON
 /**
  * @brief \class IsPrivateTag Condition
  */
-class IsPrivateTag : public Condition_DEBUG_RLA
+class IsPrivateTag : public Condition
 {
 public:
     typedef boost::shared_ptr<IsPrivateTag> Pointer;

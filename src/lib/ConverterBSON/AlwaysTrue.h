@@ -22,7 +22,7 @@ namespace converterBSON
 /**
  * @brief \class Always True Condition
  */
-class AlwaysTrue : public Condition_DEBUG_RLA
+class AlwaysTrue : public Condition
 {
 public:
     typedef boost::shared_ptr<AlwaysTrue> Pointer;

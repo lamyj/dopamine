@@ -22,7 +22,7 @@ namespace converterBSON
 /**
  * @brief \class TagMatch Condition
  */
-class TagMatch : public Condition_DEBUG_RLA
+class TagMatch : public Condition
 {
 public:
     typedef boost::shared_ptr<TagMatch> Pointer;

@@ -23,7 +23,7 @@ TagMatch
 
 TagMatch
 ::TagMatch(dcmtkpp::Tag tag):
-    Condition_DEBUG_RLA(), _tag(tag)
+    Condition(), _tag(tag)
 {
     // Nothing else.
 }

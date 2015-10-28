@@ -24,7 +24,7 @@ namespace converterBSON
 /**
  * @brief \class And condition
  */
-class And : public Condition_DEBUG_RLA
+class And : public Condition
 {
 public:
     typedef boost::shared_ptr<And> Pointer;
@@ -49,7 +49,7 @@ public:
      * Add a new condition
      * @param condition: condition to insert
      */
-    void insert_condition(Condition_DEBUG_RLA::Pointer condition);
+    void insert_condition(Condition::Pointer condition);
     
 protected:
 
@@ -58,7 +58,7 @@ private:
     And();
     
     /// List of conditions
-    std::vector<Condition_DEBUG_RLA::Pointer> _conditions;
+    std::vector<Condition::Pointer> _conditions;
 
 };
 

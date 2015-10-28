@@ -25,7 +25,7 @@ VRMatch
 
 VRMatch
 ::VRMatch(dcmtkpp::VR vr):
-    Condition_DEBUG_RLA(), _vr(vr)
+    Condition(), _vr(vr)
 {
     // Nothing else.
 }

@@ -16,14 +16,14 @@ namespace converterBSON
 
 Not::Pointer
 Not
-::New(Condition_DEBUG_RLA::Pointer const & condition)
+::New(Condition::Pointer const & condition)
 {
     return Pointer(new Not(condition));
 }
 
 Not
-::Not(Condition_DEBUG_RLA::Pointer const & condition):
-    Condition_DEBUG_RLA(), _condition(condition)
+::Not(Condition::Pointer const & condition):
+    Condition(), _condition(condition)
 {
     // Nothing else
 }

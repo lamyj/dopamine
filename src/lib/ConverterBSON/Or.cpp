@@ -23,7 +23,7 @@ Or
 
 Or
 ::Or():
-    Condition_DEBUG_RLA()
+    Condition()
 {
     // Nothing else
 }
@@ -56,7 +56,7 @@ Or
 
 void
 Or
-::insert_condition(Condition_DEBUG_RLA::Pointer condition)
+::insert_condition(Condition::Pointer condition)
 {
     this->_conditions.push_back(condition);
 }

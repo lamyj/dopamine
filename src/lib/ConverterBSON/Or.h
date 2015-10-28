@@ -22,7 +22,7 @@ namespace converterBSON
 /**
  * @brief \class Or condition
  */
-class Or : public Condition_DEBUG_RLA
+class Or : public Condition
 {
 public:
     typedef boost::shared_ptr<Or> Pointer;
@@ -47,7 +47,7 @@ public:
      * Add a new condition
      * @param condition: condition to insert
      */
-    void insert_condition(Condition_DEBUG_RLA::Pointer condition);
+    void insert_condition(Condition::Pointer condition);
     
 protected:
 
@@ -56,7 +56,7 @@ private:
     Or();
 
     /// List of conditions
-    std::vector<Condition_DEBUG_RLA::Pointer> _conditions;
+    std::vector<Condition::Pointer> _conditions;
 
 };
 

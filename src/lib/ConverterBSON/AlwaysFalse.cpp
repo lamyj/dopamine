@@ -23,7 +23,7 @@ AlwaysFalse
 
 AlwaysFalse
 ::AlwaysFalse():
-    Condition_DEBUG_RLA()
+    Condition()
 {
     // Nothing to do
 }

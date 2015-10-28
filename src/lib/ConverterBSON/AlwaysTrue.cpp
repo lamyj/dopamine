@@ -23,7 +23,7 @@ AlwaysTrue
 
 AlwaysTrue
 ::AlwaysTrue():
-    Condition_DEBUG_RLA()
+    Condition()
 {
     // Nothing to do
 }

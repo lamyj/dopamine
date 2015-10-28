@@ -28,7 +28,7 @@ struct FilterAction
     };
 };
 
-typedef std::pair<Condition_DEBUG_RLA::Pointer, FilterAction::Type> Filter;
+typedef std::pair<Condition::Pointer, FilterAction::Type> Filter;
 typedef std::vector<Filter> Filters;
 
 

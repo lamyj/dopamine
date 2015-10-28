@@ -242,7 +242,7 @@ mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
         for(Filters::const_iterator filters_it = filters.begin();
             filters_it != filters.end(); ++filters_it)
         {
-            Condition_DEBUG_RLA const & condition = *(filters_it->first);
+            Condition const & condition = *(filters_it->first);
             if(condition(tag, element))
             {
                 action = filters_it->second;

@@ -23,7 +23,7 @@ IsPrivateTag
 
 IsPrivateTag
 ::IsPrivateTag():
-    Condition_DEBUG_RLA()
+    Condition()
 {
     // Nothing else
 }

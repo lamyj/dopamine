@@ -20,7 +20,7 @@ namespace converterBSON
 /**
  * @brief \class Always False Condition
  */
-class AlwaysFalse : public Condition_DEBUG_RLA
+class AlwaysFalse : public Condition
 {
 public:
     typedef boost::shared_ptr<AlwaysFalse> Pointer;

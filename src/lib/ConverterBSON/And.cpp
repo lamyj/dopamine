@@ -26,7 +26,7 @@ And
 
 And
 ::And():
-    Condition_DEBUG_RLA()
+    Condition()
 {
     // Nothing else
 }
@@ -58,7 +58,7 @@ And
 
 void
 And
-::insert_condition(Condition_DEBUG_RLA::Pointer condition)
+::insert_condition(Condition::Pointer condition)
 {
     this->_conditions.push_back(condition);
 }
