@@ -6,11 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcelem.h>
-
-#include "core/ExceptionPACS.h"
-#include "Not.h"
+#include "IsPrivateTag.h"
 
 namespace dopamine
 {
@@ -18,35 +14,33 @@ namespace dopamine
 namespace converterBSON
 {
 
-Not::Pointer
-Not
-::New(Condition::Pointer const & condition)
+IsPrivateTag::Pointer
+IsPrivateTag
+::New()
 {
-    return Pointer(new Not(condition));
+    return Pointer(new IsPrivateTag());
 }
 
-Not
-::Not(Condition::Pointer const & condition):
-    Condition(), _condition(condition)
+IsPrivateTag
+::IsPrivateTag():
+    Condition_DEBUG_RLA()
 {
     // Nothing else
 }
 
-Not
-::~Not()
+IsPrivateTag
+::~IsPrivateTag()
 {
     // Nothing to do
 }
 
 bool
-Not
-::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
+IsPrivateTag
+::operator()(dcmtkpp::Tag const & tag,
+             dcmtkpp::Element const & element) const
+    throw(dopamine::ExceptionPACS)
 {
-    if (element == NULL)
-    {
-        throw dopamine::ExceptionPACS("element is NULL.");
-    }
-    return !(*this->_condition)(element);
+    return tag.is_private();
 }
 
 } // namespace converterBSON

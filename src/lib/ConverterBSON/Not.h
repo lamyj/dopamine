@@ -11,8 +11,6 @@
 
 #include "Condition.h"
 
-class DcmElement;
-
 namespace dopamine
 {
 
@@ -22,7 +20,7 @@ namespace converterBSON
 /**
  * @brief \class Not Condition
  */
-class Not : public Condition
+class Not : public Condition_DEBUG_RLA
 {
 public:
     typedef boost::shared_ptr<Not> Pointer;
@@ -32,7 +30,7 @@ public:
      * @param condition: tested condition
      * @return this pointer
      */
-    static Pointer New(Condition::Pointer const & condition);
+    static Pointer New(Condition_DEBUG_RLA::Pointer const & condition);
     
     /// Destroy the instance of Not
     virtual ~Not();
@@ -43,7 +41,8 @@ public:
      * @return true if condition is false, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
 protected:
@@ -53,10 +52,10 @@ private:
      * Create an instance of Not
      * @param condition: tested condition
      */
-    Not(Condition::Pointer const & condition);
+    Not(Condition_DEBUG_RLA::Pointer const & condition);
     
     /// Tested condition
-    Condition::Pointer _condition;
+    Condition_DEBUG_RLA::Pointer _condition;
 
 };
 

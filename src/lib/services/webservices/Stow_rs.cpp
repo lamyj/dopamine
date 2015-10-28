@@ -16,10 +16,14 @@
 #include <dcmtk/dcmdata/dcdatset.h>
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmdata/dcistrmb.h>
+#include <dcmtk/dcmdata/dctk.h>
+
+#include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Reader.h>
+#include <dcmtkpp/registry.h>
 
 #include <mimetic/mimeentity.h>
 
-#include "ConverterBSON/Dataset/DataSetToBSON.h"
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
 #include "services/ServicesTools.h"
@@ -193,210 +197,165 @@ Stow_rs
     }
     this->_content_type = this->_find_content_type(h.contentType().str());
 
-    DcmDataset responseDataset;
-    OFCondition condition =
-            responseDataset.insertEmptyElement(DCM_RetrieveURL, true);
-    if (condition.bad())
+    dcmtkpp::DataSet responseDataset;
+    try
     {
-        throw WebServiceException(503, "Busy", std::string(condition.text()));
-    }
+        responseDataset.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
+        responseDataset.add(dcmtkpp::registry::FailedSOPSequence, dcmtkpp::VR::SQ);
+        responseDataset.add(dcmtkpp::registry::ReferencedSOPSequence, dcmtkpp::VR::SQ);
 
-    DcmSequenceOfItems* failedsopsequence = NULL;
-    condition = responseDataset.insertEmptyElement(DCM_FailedSOPSequence);
-    if (condition.bad())
-    {
-        throw WebServiceException(503, "Busy", std::string(condition.text()));
-    }
-    condition = responseDataset.findAndGetSequence(DCM_FailedSOPSequence,
-                                                   failedsopsequence);
-    if (condition.bad() || failedsopsequence == NULL)
-    {
-        throw WebServiceException(503, "Busy", std::string(condition.text()));
-    }
-
-    DcmSequenceOfItems* referencedsopsequence = NULL;
-    condition = responseDataset.insertEmptyElement(DCM_ReferencedSOPSequence);
-    if (condition.bad())
-    {
-        throw WebServiceException(503, "Busy", std::string(condition.text()));
-    }
-    condition = responseDataset.findAndGetSequence(DCM_ReferencedSOPSequence,
-                                                   referencedsopsequence);
-    if (condition.bad() || referencedsopsequence == NULL)
-    {
-        throw WebServiceException(503, "Busy", std::string(condition.text()));
-    }
-
-    mimetic::MimeEntityList& parts = entity.body().parts();
-    // cycle on sub entities list and print info of every item
-    for(mimetic::MimeEntityList::iterator mbit = parts.begin();
-        mbit != parts.end(); ++mbit)
-    {
-        DcmItem* item = new DcmItem();
-
-        // check header
-        mimetic::Header& header = (*mbit)->header();
-        std::stringstream contenttypestream;
-        contenttypestream << header.contentType();
-        if (this->_content_type != contenttypestream.str())
+        mimetic::MimeEntityList& parts = entity.body().parts();
+        // cycle on sub entities list and print info of every item
+        for(mimetic::MimeEntityList::iterator mbit = parts.begin();
+            mbit != parts.end(); ++mbit)
         {
-            // ERROR: add an item into failedsopsequence
-            item->putAndInsertUint16(DCM_FailureReason, 0x0110, 0);
-            item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID,
-                                            OFString("Unknown"));
-            item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
-                                            OFString("Unknown"));
-
-            failedsopsequence->append(item);
-            continue;
-        }
-
-        mimetic::Body& body = (*mbit)->body();
-
-        DcmDataset* dataset = NULL;
-
-        // see PS3.18 6.6.1.1.1 DICOM Request Message Body
-        if (this->_content_type == MIME_TYPE_APPLICATION_DICOM)
-        {
-            // remove the ended boundary
-            std::string temp(body.c_str(), body.size());
-            temp = temp.substr(0, temp.rfind("\n\n--"));
-
-            // remove ended '\n'
-            while (temp[temp.size()-1] == '\n')
-            {
-                temp = temp.substr(0, temp.rfind("\n"));
-            }
-
-            // Create buffer for DCMTK
-            DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-            inputbufferstream->setBuffer(temp.c_str(), temp.size());
-            inputbufferstream->setEos();
-
-            // Convert buffer into Dataset
-            DcmFileFormat fileformat;
-            fileformat.transferInit();
-            condition = fileformat.read(*inputbufferstream);
-            fileformat.transferEnd();
-
-            delete inputbufferstream;
-
-            if (condition.bad())
+            // check header
+            mimetic::Header& header = (*mbit)->header();
+            std::stringstream contenttypestream;
+            contenttypestream << header.contentType();
+            if (this->_content_type != contenttypestream.str())
             {
                 // ERROR: add an item into failedsopsequence
-                item->putAndInsertUint16(DCM_FailureReason, 0xa700, 0);
-                item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID,
-                                                OFString("Unknown"));
-                item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
-                                                OFString("Unknown"));
-
-                failedsopsequence->append(item);
+                dcmtkpp::DataSet failedsopsequence;
+                failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({0x0110}, dcmtkpp::VR::US));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
                 continue;
             }
-            dataset = fileformat.getAndRemoveDataset();
-        }
-        else
-        {
-            std::stringstream streamerror;
-            streamerror << "Content-type for each part should be "
-                        << MIME_TYPE_APPLICATION_DICOM;
-            throw WebServiceException(400, "Bad Request",
-                                      streamerror.str());
-        }
 
-        OFString sopclassuid;
-        dataset->findAndGetOFStringArray(DCM_SOPClassUID, sopclassuid);
-        OFString sopinstanceuid;
-        dataset->findAndGetOFStringArray(DCM_SOPInstanceUID, sopinstanceuid);
+            mimetic::Body& body = (*mbit)->body();
 
-        item->putAndInsertOFStringArray(DCM_ReferencedSOPClassUID, sopclassuid);
-        item->putAndInsertOFStringArray(DCM_ReferencedSOPInstanceUID,
-                                        sopinstanceuid);
+            dcmtkpp::DataSet dataset;
 
-        // Modify dataset here (see PS3.18 6.6.1.2 Action)
-
-        Uint16 result = STATUS_Pending;
-        // Check StudyInstanceUID
-        if (!studyinstanceuid.isEmpty())
-        {
-            OFString studyuid;
-            dataset->findAndGetOFStringArray(DCM_StudyInstanceUID, studyuid);
-            mongo::BSONObj const studyobj = studyinstanceuid["0020000d"].Obj();
-            if (studyobj["Value"].Array()[0].String() !=
-                std::string(studyuid.c_str()))
+            // see PS3.18 6.6.1.1.1 DICOM Request Message Body
+            if (this->_content_type == MIME_TYPE_APPLICATION_DICOM)
             {
-                result = 0xa700;
+                // remove the ended boundary
+                std::string temp(body.c_str(), body.size());
+                temp = temp.substr(0, temp.rfind("\n\n--"));
+
+                // remove ended '\n'
+                while (temp[temp.size()-1] == '\n')
+                {
+                    temp = temp.substr(0, temp.rfind("\n"));
+                }
+
+                try
+                {
+                    std::stringstream stream; stream << temp;
+                    auto file = dcmtkpp::Reader::read_file(stream);
+                    dataset = file.second;
+                }
+                catch (std::exception const & exc)
+                {
+                    // ERROR: add an item into failedsopsequence
+                    dcmtkpp::DataSet failedsopsequence;
+                    failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({0xa700}, dcmtkpp::VR::US));
+                    failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                    failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                    responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
+                    continue;
+                }
+            }
+            else
+            {
+                std::stringstream streamerror;
+                streamerror << "Content-type for each part should be "
+                            << MIME_TYPE_APPLICATION_DICOM;
+                throw WebServiceException(400, "Bad Request",
+                                          streamerror.str());
+            }
+
+            std::string sopclassuid = dataset.as_string(dcmtkpp::registry::SOPClassUID)[0];
+            std::string sopinstanceuid = dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
+
+            // Modify dataset here (see PS3.18 6.6.1.2 Action)
+
+            Uint16 result = STATUS_Pending;
+            // Check StudyInstanceUID
+            if (!studyinstanceuid.isEmpty())
+            {
+                std::string studyuid = dataset.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                mongo::BSONObj const studyobj = studyinstanceuid["0020000d"].Obj();
+                if (studyobj["Value"].Array()[0].String() !=
+                    std::string(studyuid.c_str()))
+                {
+                    result = 0xa700;
+                }
+            }
+
+            if (result == STATUS_Pending)
+            {
+                // Insert dataset into DataBase
+                StoreGenerator generator(this->_username);
+                result = generator.process_dataset(dataset, true);
+
+                if ( ! generator.is_allow())
+                {
+                    throw WebServiceException(401, "Unauthorized",
+                                              authentication_string);
+                }
+            }
+
+            if (result != STATUS_Pending)
+            {
+                // ERROR: add an item into failedsopsequence
+                dcmtkpp::DataSet failedsopsequence;
+                failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({result}, dcmtkpp::VR::US));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
+            }
+            else
+            {
+                // Everything is OK
+                dcmtkpp::DataSet referencedsopsequence;
+                referencedsopsequence.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
+                referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
+                referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(referencedsopsequence);
             }
         }
 
-        if (result == STATUS_Pending)
+        bool containsbad = responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).size() != 0;
+        // Check sequences
+        if (!containsbad)
         {
-            // Insert dataset into DataBase
-            StoreGenerator generator(this->_username);
-            result = generator.process_dataset(dataset, true);
-
-            if ( ! generator.is_allow())
-            {
-                throw WebServiceException(401, "Unauthorized",
-                                          authentication_string);
-            }
+            // empty sequence => remove
+            responseDataset.remove(dcmtkpp::registry::FailedSOPSequence);
+        }
+        bool containsgood = responseDataset.as_data_set(dcmtkpp::registry::ReferencedSOPSequence).size() != 0;
+        if (!containsgood)
+        {
+            // empty sequence => remove
+            responseDataset.remove(dcmtkpp::registry::ReferencedSOPSequence);
         }
 
-        if (result != STATUS_Pending)
+        // See PS3.18 Table 6.6.1-1. HTTP/1.1 Standard Response Code
+        if (containsbad && !containsgood)
         {
-            // ERROR: add an item into failedsopsequence
-            item->putAndInsertUint16(DCM_FailureReason, result, 0);
-            failedsopsequence->append(item);
+            this->_status = 409;
+            this->_code = "Conflict";
+        }
+        else if (containsbad && containsgood)
+        {
+            this->_status = 202;
+            this->_code = "Accepted";
         }
         else
         {
-            // Everything is OK
-            item->insertEmptyElement(DCM_RetrieveURL, true);
-            referencedsopsequence->append(item);
+            this->_status = 200;
+            this->_code = "OK";
         }
 
-        delete dataset;
+        // Transfert DcmDataset into XML
+        this->_response = dataset_to_xml_string(responseDataset);
     }
-
-    bool containsbad = failedsopsequence->getLength() != 0;
-    // Check sequences
-    if (failedsopsequence->getLength() == 0)
+    catch (dcmtkpp::Exception const & dcmtkppexc)
     {
-        // empty sequence => remove
-        responseDataset.findAndDeleteElement(DCM_FailedSOPSequence, true);
+        throw WebServiceException(503, "Busy", std::string(dcmtkppexc.what()));
     }
-    bool containsgood = referencedsopsequence->getLength() != 0;
-    if (referencedsopsequence->getLength() == 0)
-    {
-        // empty sequence => remove
-        responseDataset.findAndDeleteElement(DCM_ReferencedSOPSequence, true);
-    }
-
-    // See PS3.18 Table 6.6.1-1. HTTP/1.1 Standard Response Code
-    if (containsbad && !containsgood)
-    {
-        this->_status = 409;
-        this->_code = "Conflict";
-    }
-    else if (containsbad && containsgood)
-    {
-        this->_status = 202;
-        this->_code = "Accepted";
-    }
-    else
-    {
-        this->_status = 200;
-        this->_code = "OK";
-    }
-
-    // Transfert DcmDataset into XML
-    converterBSON::DataSetToBSON datasettobson;
-    datasettobson.set_default_filter(
-                converterBSON::DataSetToBSON::FilterAction::INCLUDE);
-    mongo::BSONObj bsondataset = datasettobson.from_dataset(&responseDataset);
-
-    auto const dataset = as_dataset(bsondataset);
-    this->_response = dataset_to_xml_string(dataset);
 }
 
 } // namespace services

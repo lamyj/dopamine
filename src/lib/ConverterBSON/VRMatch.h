@@ -6,15 +6,12 @@
  * for details.
  ************************************************************************/
 
-#ifndef _a9036539_65b5_4e6b_acc6_ac598bc2275c
-#define _a9036539_65b5_4e6b_acc6_ac598bc2275c
+#ifndef _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
+#define _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
 
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctagkey.h>
+#include <dcmtkpp/VR.h>
 
 #include "Condition.h"
-
-class DcmElement;
 
 namespace dopamine
 {
@@ -23,36 +20,37 @@ namespace converterBSON
 {
 
 /**
- * @brief \class TagMatch Condition
+ * @brief \class VRMatch Condition
  */
-class TagMatch : public Condition
+class VRMatch : public Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<TagMatch> Pointer;
+    typedef boost::shared_ptr<VRMatch> Pointer;
     
-    /// Create pointer to new instance of TagMatch
-    static Pointer New(DcmTagKey tag);
+    /// Create pointer to new instance of VRMatch
+    static Pointer New(dcmtkpp::VR vr);
     
-    /// Destroy the instance of TagMatch
-    virtual ~TagMatch();
+    /// Destroy the instance of VRMatch
+    virtual ~VRMatch();
 
     /**
      * Operator ()
      * @param element: tested element
-     * @return true if element's tag match with Searched Tag, false otherwise
+     * @return true if element's VR match with Searched VR, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
-
+    
 protected:
-    
+
 private:
-    /// Create an instance of TagMatch
-    TagMatch(DcmTagKey tag);
+    /// Create an instance of VRMatch
+    VRMatch(dcmtkpp::VR vr);
     
-    /// Searched Tag
-    DcmTagKey _tag;
+    /// Compared VR
+    dcmtkpp::VR _vr;
 
 };
 
@@ -60,4 +58,4 @@ private:
 
 } // namespace dopamine
 
-#endif // _a9036539_65b5_4e6b_acc6_ac598bc2275c
+#endif // _01db2e6d_df7c_4b7a_ae0e_e04d2896413b

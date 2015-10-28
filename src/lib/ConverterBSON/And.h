@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#ifndef _ff8d1604_1410_498f_945e_941630fdd05e
-#define _ff8d1604_1410_498f_945e_941630fdd05e
+#ifndef _8a4c809c_65e2_494d_8c80_8186a778dd92
+#define _8a4c809c_65e2_494d_8c80_8186a778dd92
 
 #include <vector>
 
@@ -22,42 +22,43 @@ namespace converterBSON
 {
 
 /**
- * @brief \class Or condition
+ * @brief \class And condition
  */
-class Or : public Condition
+class And : public Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<Or> Pointer;
+    typedef boost::shared_ptr<And> Pointer;
     
-    /// Create pointer to new instance of Or
+    /// Create pointer to new instance of And
     static Pointer New();
     
-    /// Destroy the instance of Or
-    virtual ~Or();
-
+    /// Destroy the instance of And
+    virtual ~And();
+    
     /**
-     * Operator (), test if one condition is true
+     * Operator (), test if all conditions are true
      * @param element: tested element
-     * @return true if one condition is true, false otherwise
+     * @return true if all condition are true, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
     /**
      * Add a new condition
      * @param condition: condition to insert
      */
-    void insert_condition(Condition::Pointer condition);
+    void insert_condition(Condition_DEBUG_RLA::Pointer condition);
     
 protected:
 
 private:
-    /// Create an instance of Or
-    Or();
-
+    /// Create an instance of And
+    And();
+    
     /// List of conditions
-    std::vector<Condition::Pointer> _conditions;
+    std::vector<Condition_DEBUG_RLA::Pointer> _conditions;
 
 };
 
@@ -65,4 +66,4 @@ private:
 
 } // namespace dopamine
 
-#endif // _ff8d1604_1410_498f_945e_941630fdd05e
+#endif // _8a4c809c_65e2_494d_8c80_8186a778dd92

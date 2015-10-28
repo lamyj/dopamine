@@ -15,16 +15,20 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Reader.h>
+#include <dcmtkpp/Writer.h>
+
 #include <mongo/client/dbclient.h>
 
-#include "ConverterBSON/Dataset/DataSetToBSON.h"
-#include "ConverterBSON/Dataset/IsPrivateTag.h"
-#include "ConverterBSON/Dataset/VRMatch.h"
+#include "ConverterBSON/bson_converter.h"
+#include "ConverterBSON/IsPrivateTag.h"
+#include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
 #include "services/ServicesTools.h"
 
-#include <dcmtk/dcmdata/dcistrmb.h>
-#include <dcmtk/dcmdata/dcwcache.h>
+//#include <dcmtk/dcmdata/dcistrmb.h>
+//#include <dcmtk/dcmdata/dcwcache.h>
 
 std::string const STUDY_INSTANCE_UID_01_01 =
         "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
@@ -178,73 +182,45 @@ private:
         for (std::string testfile : testfiles)
         {
             // Get file name
-            std::string filename = this->_get_env_variable(testfile);
+            std::string const filename = this->_get_env_variable(testfile);
 
-            // Load Dataset
-            DcmFileFormat fileformat;
-            OFCondition condition = fileformat.loadFile(filename.c_str());
-            if (condition.bad())
+            std::ifstream stream(filename, std::ios::in | std::ios::binary);
+
+            std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> file;
+            try
             {
-                BOOST_FAIL(condition.text());
+                file = dcmtkpp::Reader::read_file(stream);
+            }
+            catch(std::exception & e)
+            {
+                std::stringstream error;
+                error << "Could not read " << filename << ": " << e.what();
+                BOOST_FAIL(error.str());
             }
 
-            // Keep the original transfer syntax (if available)
-            E_TransferSyntax xfer = fileformat.getMetaInfo()->getOriginalXfer();
-            if (xfer == EXS_Unknown)
-            {
-              // No information about the original transfer syntax: This is
-              // most probably a DICOM dataset that was read from memory.
-              xfer = EXS_LittleEndianExplicit;
-            }
-            fileformat.validateMetaInfo(xfer);
-            fileformat.removeInvalidGroups();
-
-            // Create a memory buffer with the proper size
-            uint32_t size = fileformat.calcElementLength(xfer,
-                                                         EET_ExplicitLength);
-            std::string buffer;
-            buffer.resize(size);
-
-            // Create buffer for DCMTK
-            DcmOutputBufferStream* outputstream =
-                    new DcmOutputBufferStream(&buffer[0], size);
-
-            // Fill the memory buffer with the meta-header and the dataset
-            fileformat.transferInit();
-            condition = fileformat.write(*outputstream,
-                                         xfer,
-                                         EET_ExplicitLength, NULL);
-            fileformat.transferEnd();
-
-            delete outputstream;
-
-            if (condition.bad())
-            {
-                BOOST_FAIL(condition.text());
-            }
-
-            DcmDataset* dataset = fileformat.getDataset();
+            auto const & data_set = file.second;
 
             // Convert Dataset into BSON object
-            dopamine::converterBSON::DataSetToBSON dataset_to_bson;
-            dataset_to_bson.get_filters().push_back(std::make_pair(
+            dopamine::Filters filters = {};
+            filters.push_back(std::make_pair(
                 dopamine::converterBSON::IsPrivateTag::New(),
-                dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.get_filters().push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(EVR_OB),
-                dopamine::converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.get_filters().push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(EVR_OF),
-                dopamine::converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.get_filters().push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(EVR_OW),
-                dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.get_filters().push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(EVR_UN),
-                dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-            dataset_to_bson.set_default_filter(
-                dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
-            mongo::BSONObj object = dataset_to_bson.from_dataset(dataset);
+                dopamine::FilterAction::EXCLUDE));
+            filters.push_back(std::make_pair(
+                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OB),
+                dopamine::FilterAction::EXCLUDE));
+            filters.push_back(std::make_pair(
+                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OF),
+                dopamine::FilterAction::EXCLUDE));
+            filters.push_back(std::make_pair(
+                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OW),
+                dopamine::FilterAction::EXCLUDE));
+            filters.push_back(std::make_pair(
+                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::UN),
+                dopamine::FilterAction::EXCLUDE));
+
+            mongo::BSONObj object =
+                    dopamine::as_bson(data_set, dopamine::FilterAction::INCLUDE,
+                                      filters);
             if (!object.isValid() || object.isEmpty())
             {
                 BOOST_FAIL("Could not convert Dataset to BSON");
@@ -253,6 +229,12 @@ private:
             // Get the SOPInstanceUID for delete
             this->_sop_instance_uids.push_back(
                         object["00080018"].Obj()["Value"].Array()[0].String());
+
+            std::stringstream stream_dataset;
+            dcmtkpp::Writer::write_file(data_set, stream_dataset);
+
+            // Create a memory buffer with the proper size
+            std::string const buffer = stream_dataset.str();
 
             // Create BSON to insert into DataBase
             mongo::BSONObjBuilder builder;
@@ -295,94 +277,42 @@ private:
     void _insert_big_dataset()
     {
         // Create the dataset
-        DcmDataset * dataset = new DcmDataset();
-        OFCondition condition = dataset->putAndInsertOFStringArray(
-                    DCM_SOPInstanceUID,
-                    OFString(SOP_INSTANCE_UID_BIG_01.c_str()));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(
-                    DCM_StudyInstanceUID,
-                    OFString(STUDY_INSTANCE_UID_BIG.c_str()));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(
-                    DCM_SeriesInstanceUID,
-                    OFString(SERIES_INSTANCE_UID_BIG.c_str()));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_PatientName,
-                                                       OFString("Big^Data"));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(
-                    DCM_Modality, OFString("MR"));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(
-                    DCM_SOPClassUID, OFString(UID_MRImageStorage));
-        BOOST_REQUIRE(condition.good());
-        condition = dataset->putAndInsertOFStringArray(DCM_PatientID, "123");
-        BOOST_REQUIRE(condition.good());
+        dcmtkpp::DataSet dataset;
+
+        dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_BIG_01}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
+        dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+        dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+
         // Binary
         size_t vectorsize = 4096*4096;
-        std::vector<Uint8> value(vectorsize, 0);
-        condition = dataset->putAndInsertUint8Array(DCM_PixelData, &value[0],
-                                                    vectorsize);
-        BOOST_REQUIRE(condition.good());
-
-        // Create Dataset with Header
-        DcmFileFormat fileformat(dataset);
-
-        // Keep the original transfer syntax (if available)
-        E_TransferSyntax xfer = fileformat.getMetaInfo()->getOriginalXfer();
-        if (xfer == EXS_Unknown)
-        {
-          // No information about the original transfer syntax: This is
-          // most probably a DICOM dataset that was read from memory.
-          xfer = EXS_LittleEndianExplicit;
-        }
-        fileformat.validateMetaInfo(xfer);
-        fileformat.removeInvalidGroups();
-
-        // Create a memory buffer with the proper size
-        uint32_t size = fileformat.calcElementLength(xfer, EET_ExplicitLength);
-        std::string buffer;
-        buffer.resize(size);
-
-        // Create buffer for DCMTK
-        DcmOutputBufferStream* outputstream =
-                new DcmOutputBufferStream(&buffer[0], size);
-
-        // Fill the memory buffer with the meta-header and the dataset
-        fileformat.transferInit();
-        condition = fileformat.write(*outputstream,
-                                     xfer,
-                                     EET_ExplicitLength, NULL);
-        fileformat.transferEnd();
-
-        delete outputstream;
-
-        if (condition.bad())
-        {
-            BOOST_FAIL(condition.text());
-        }
+        dcmtkpp::Value::Binary value(vectorsize, 0);
+        dataset.add(dcmtkpp::registry::PixelData, dcmtkpp::Element(value, dcmtkpp::VR::OW));
 
         // Convert Dataset into BSON object
-        dopamine::converterBSON::DataSetToBSON dataset_to_bson;
-        dataset_to_bson.get_filters().push_back(std::make_pair(
+        dopamine::Filters filters = {};
+        filters.push_back(std::make_pair(
             dopamine::converterBSON::IsPrivateTag::New(),
-            dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            dopamine::converterBSON::VRMatch::New(EVR_OB),
-            dopamine::converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            dopamine::converterBSON::VRMatch::New(EVR_OF),
-            dopamine::converterBSON:: DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            dopamine::converterBSON::VRMatch::New(EVR_OW),
-            dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            dopamine::converterBSON::VRMatch::New(EVR_UN),
-            dopamine::converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.set_default_filter(
-            dopamine::converterBSON::DataSetToBSON::FilterAction::INCLUDE);
-        mongo::BSONObj object = dataset_to_bson.from_dataset(dataset);
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OB),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OF),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OW),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::UN),
+            dopamine::FilterAction::EXCLUDE));
+
+        mongo::BSONObj const object =
+                dopamine::as_bson(dataset, dopamine::FilterAction::INCLUDE,
+                                  filters);
         if (!object.isValid() || object.isEmpty())
         {
             BOOST_FAIL("Could not convert Dataset to BSON");
@@ -394,6 +324,10 @@ private:
         // SOPInstanceUID used by Stow
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BIG_02);
         this->_sop_instance_uids_gridfs.push_back(SOP_INSTANCE_UID_BIG_02);
+
+        std::stringstream stream_dataset;
+        dcmtkpp::Writer::write_file(dataset, stream_dataset);
+        std::string const buffer = stream_dataset.str();
 
         // insert into GridSF
         mongo::GridFS gridfs(connection, db_name);
@@ -421,8 +355,6 @@ private:
         {
             BOOST_FAIL(result);
         }
-
-        delete dataset;
     }
 
     void _remove_data()

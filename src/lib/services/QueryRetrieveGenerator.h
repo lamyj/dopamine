@@ -11,6 +11,8 @@
 
 #include "Generator.h"
 
+#include <dcmtk/dcmdata/dcdatset.h>
+
 namespace dopamine
 {
 

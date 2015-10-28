@@ -68,26 +68,11 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     BOOST_REQUIRE(data != "");
     BOOST_CHECK_EQUAL(data.size(), 1538);
 
-    // Create buffer for DCMTK
-    DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-    inputbufferstream->setBuffer(data.c_str(), data.size());
-    inputbufferstream->setEos();
+    std::stringstream stream_dataset; stream_dataset << data;
+    auto file = dcmtkpp::Reader::read_file(stream_dataset);
+    auto const dataset = file.second;
 
-    // Convert buffer into Dataset
-    DcmFileFormat fileformat;
-    fileformat.transferInit();
-    OFCondition condition = fileformat.read(*inputbufferstream);
-    fileformat.transferEnd();
-
-    delete inputbufferstream;
-    BOOST_REQUIRE(condition.good());
-
-    // check sop instance
-    OFString sopinstanceuid;
-    condition = fileformat.getDataset()->findAndGetOFStringArray(
-                    DCM_SOPInstanceUID, sopinstanceuid);
-    BOOST_REQUIRE(condition.good());
-    BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+    BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                       SOP_INSTANCE_UID_01_01_01_01);
 }
 

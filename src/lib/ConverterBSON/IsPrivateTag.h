@@ -6,15 +6,10 @@
  * for details.
  ************************************************************************/
 
-#ifndef _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
-#define _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
-
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcvr.h>
+#ifndef _361310be_d429_4f49_9d0d_19bd01316dff
+#define _361310be_d429_4f49_9d0d_19bd01316dff
 
 #include "Condition.h"
-
-class DcmElement;
 
 namespace dopamine
 {
@@ -23,36 +18,34 @@ namespace converterBSON
 {
 
 /**
- * @brief \class VRMatch Condition
+ * @brief \class IsPrivateTag Condition
  */
-class VRMatch : public Condition
+class IsPrivateTag : public Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<VRMatch> Pointer;
+    typedef boost::shared_ptr<IsPrivateTag> Pointer;
     
-    /// Create pointer to new instance of VRMatch
-    static Pointer New(DcmEVR vr);
-    
-    /// Destroy the instance of VRMatch
-    virtual ~VRMatch();
+    /// Create pointer to new instance of IsPrivateTag
+    static Pointer New();
+
+    /// Destroy the instance of IsPrivateTag
+    virtual ~IsPrivateTag();
 
     /**
      * Operator ()
      * @param element: tested element
-     * @return true if element's VR match with Searched VR, false otherwise
+     * @return true if element is Private, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
 protected:
 
 private:
-    /// Create an instance of VRMatch
-    VRMatch(DcmEVR vr);
-    
-    /// Compared VR
-    DcmEVR _vr;
+    /// Create an instance of IsPrivateTag
+    IsPrivateTag();
 
 };
 
@@ -60,4 +53,4 @@ private:
 
 } // namespace dopamine
 
-#endif // _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
+#endif // _361310be_d429_4f49_9d0d_19bd01316dff

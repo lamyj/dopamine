@@ -77,25 +77,11 @@ void check_response(std::string const & response, std::string const & boundary)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        // Create buffer for DCMTK
-        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-        inputbufferstream->setBuffer(temp.c_str(), temp.size());
-        inputbufferstream->setEos();
+        std::stringstream stream; stream << temp;
+        auto file = dcmtkpp::Reader::read_file(stream);
+        auto const dataset = file.second;
 
-        // Convert buffer into Dataset
-        DcmFileFormat fileformat;
-        fileformat.transferInit();
-        OFCondition condition = fileformat.read(*inputbufferstream);
-        fileformat.transferEnd();
-
-        delete inputbufferstream;
-        BOOST_REQUIRE(condition.good());
-
-        // check sop instance
-        OFString sopinstanceuid;
-        fileformat.getDataset()->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                         sopinstanceuid);
-        BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+        BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                           SOP_INSTANCE_UID_01_01_01_01);
     }
 }
@@ -233,36 +219,14 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        // Create buffer for DCMTK
-        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-        inputbufferstream->setBuffer(temp.c_str(), temp.size());
-        inputbufferstream->setEos();
+        std::stringstream stream; stream << temp;
+        auto file = dcmtkpp::Reader::read_file(stream);
+        auto const dataset = file.second;
 
-        // Convert buffer into Dataset
-        DcmFileFormat fileformat;
-        fileformat.transferInit();
-        OFCondition condition = fileformat.read(*inputbufferstream);
-        fileformat.transferEnd();
-
-        delete inputbufferstream;
-        BOOST_REQUIRE(condition.good());
-
-        // check sop instance
-        OFString sopinstanceuid;
-        condition = fileformat.getDataset()->findAndGetOFStringArray(
-                            DCM_SOPInstanceUID, sopinstanceuid);
-        BOOST_REQUIRE(condition.good());
-        BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+        BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                           SOP_INSTANCE_UID_BIG_01);
 
-        DcmElement* element = NULL;
-        condition = fileformat.getDataset()->findAndGetElement(DCM_PixelData,
-                                                               element);
-        BOOST_REQUIRE(condition.good());
-        DcmOtherByteOtherWord* byte_string =
-                dynamic_cast<DcmOtherByteOtherWord*>(element);
-        BOOST_REQUIRE(byte_string != NULL);
-        BOOST_CHECK_EQUAL(byte_string->getLength(), 16777216); // 4096*4096
+        BOOST_CHECK_EQUAL(dataset.as_binary(dcmtkpp::registry::PixelData).size(), 16777216); // 4096*4096
     }
 }
 

@@ -6,9 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
-
-#include "AlwaysTrue.h"
+#include "Not.h"
 
 namespace dopamine
 {
@@ -16,31 +14,33 @@ namespace dopamine
 namespace converterBSON
 {
 
-AlwaysTrue::Pointer
-AlwaysTrue
-::New()
+Not::Pointer
+Not
+::New(Condition_DEBUG_RLA::Pointer const & condition)
 {
-    return Pointer(new AlwaysTrue());
+    return Pointer(new Not(condition));
 }
 
-AlwaysTrue
-::AlwaysTrue():
-    Condition()
+Not
+::Not(Condition_DEBUG_RLA::Pointer const & condition):
+    Condition_DEBUG_RLA(), _condition(condition)
 {
-    // Nothing to do
+    // Nothing else
 }
 
-AlwaysTrue
-::~AlwaysTrue()
+Not
+::~Not()
 {
     // Nothing to do
 }
 
 bool
-AlwaysTrue
-::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
+Not
+::operator()(dcmtkpp::Tag const & tag,
+             dcmtkpp::Element const & element) const
+    throw(dopamine::ExceptionPACS)
 {
-    return true;
+    return !(*this->_condition)(tag, element);
 }
 
 } // namespace converterBSON

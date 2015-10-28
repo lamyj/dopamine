@@ -6,8 +6,6 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
-
 #include "AlwaysFalse.h"
 
 namespace dopamine
@@ -25,7 +23,7 @@ AlwaysFalse
 
 AlwaysFalse
 ::AlwaysFalse():
-    Condition()
+    Condition_DEBUG_RLA()
 {
     // Nothing to do
 }
@@ -38,7 +36,9 @@ AlwaysFalse
 
 bool
 AlwaysFalse
-::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
+::operator()(dcmtkpp::Tag const & tag,
+             dcmtkpp::Element const & element) const
+    throw(dopamine::ExceptionPACS)
 {
     return false;
 }

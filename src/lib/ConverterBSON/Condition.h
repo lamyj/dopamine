@@ -6,14 +6,16 @@
  * for details.
  ************************************************************************/
 
-#ifndef _8eb0f4c7_a820_49ad_9035_8ac5d025d133
-#define _8eb0f4c7_a820_49ad_9035_8ac5d025d133
+#ifndef _22e89421_2015_4250_9fe5_63d84409adf7
+#define _22e89421_2015_4250_9fe5_63d84409adf7
 
 #include <boost/shared_ptr.hpp>
 
-#include "core/ExceptionPACS.h"
+#include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Element.h>
+#include <dcmtkpp/Tag.h>
 
-class DcmElement;
+#include "core/ExceptionPACS.h"
 
 namespace dopamine
 {
@@ -21,31 +23,32 @@ namespace dopamine
 /**
  * @brief \class Base class condition
  */
-class Condition
+class Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<Condition> Pointer;
-    
+    typedef boost::shared_ptr<Condition_DEBUG_RLA> Pointer;
+
     /// Destroy the instance of Condition
-    virtual ~Condition() {}
-    
+    virtual ~Condition_DEBUG_RLA() {}
+
     /**
-     * Operator (), function should be implement in derived classes
-     * @param element: tested element
-     * @return true
-     * @throw ExceptionPACS if element is null
+     * @brief operator (): function should be implement in derived classes
+     * @param tag
+     * @param element
+     * @return
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS) = 0;
-    
+
 protected:
     /// Create an instance of Condition
-    Condition() {}
-    
+    Condition_DEBUG_RLA() {}
+
 private:
 
 };
 
 } // namespace dopamine
 
-#endif // _8eb0f4c7_a820_49ad_9035_8ac5d025d133
+#endif // _22e89421_2015_4250_9fe5_63d84409adf7

@@ -6,18 +6,19 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleAlwaysFalse
+#define BOOST_TEST_MODULE ModuleAlwaysTrue
 #include <boost/test/unit_test.hpp>
 
-#include "ConverterBSON/Dataset/AlwaysFalse.h"
+#include "ConverterBSON/AlwaysTrue.h"
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
- * Nominal test case
+ * Nominal test case: Operator ()
  */
 BOOST_AUTO_TEST_CASE(Evaluate)
 {
-    auto alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
+    auto alwaystrue = dopamine::converterBSON::AlwaysTrue::New();
     
-    BOOST_CHECK_EQUAL((*alwaysfalse)(NULL), false);
+    BOOST_CHECK_EQUAL((*alwaystrue)(dcmtkpp::Tag("deadbeef"),
+                                    dcmtkpp::Element()), true);
 }

@@ -6,7 +6,12 @@
  * for details.
  ************************************************************************/
 
+#include <sstream>
+
+#include <dcmtkpp/registry.h>
+
 #include "bson_converter.h"
+#include "core/ConverterCharactersSet.h"
 #include "core/ExceptionPACS.h"
 
 namespace dopamine
@@ -14,7 +19,26 @@ namespace dopamine
 
 struct ToBSONVisitor
 {
+public:
     typedef mongo::BSONObj result_type;
+
+    ToBSONVisitor(FilterAction::Type default_filter, Filters const & filters,
+                  dcmtkpp::Value::Strings const & specific_char_set):
+        _default_filter(default_filter), _filters(filters),
+        _specific_character_sets(specific_char_set)
+    {
+        // check char set
+        for (std::string const char_set : this->_specific_character_sets)
+        {
+            if (characterset::_dicom_to_iconv.find(char_set) ==
+                characterset::_dicom_to_iconv.end())
+            {
+                std::stringstream streamerror;
+                streamerror << "Unkown character set: " << char_set;
+                throw ExceptionPACS(streamerror.str());
+            }
+        }
+    }
 
     result_type operator()(dcmtkpp::VR const vr) const
     {
@@ -85,6 +109,7 @@ struct ToBSONVisitor
                 mongo::BSONObjBuilder bson_item;
 
                 std::string::size_type begin=0;
+                unsigned int count = 0;
                 while(begin != std::string::npos)
                 {
                     std::string::size_type const end = item.find("=", begin);
@@ -99,7 +124,10 @@ struct ToBSONVisitor
                         size = std::string::npos;
                     }
 
-                    bson_item << *fields_it << item.substr(begin, size);
+                    bson_item << *fields_it
+                              << this->_convert_string(vr,
+                                                       item.substr(begin, size),
+                                                       count);
 
                     if(end != std::string::npos)
                     {
@@ -114,6 +142,7 @@ struct ToBSONVisitor
                     {
                         begin = end;
                     }
+                    ++count;
                 }
                 array << bson_item.obj();
             }
@@ -124,7 +153,7 @@ struct ToBSONVisitor
             mongo::BSONArrayBuilder array;
             for(auto const & item: value)
             {
-                array << item;
+                array << this->_convert_string(vr, item);
             }
             builder << "Value" << array.arr();
         }
@@ -144,7 +173,8 @@ struct ToBSONVisitor
         mongo::BSONArrayBuilder array;
         for(auto const & item: value)
         {
-            array << as_bson(item);
+            array << as_bson(item, this->_default_filter, this->_filters,
+                             this->_specific_character_sets);
         }
         builder << "Value" << array.arr();
         result = builder.obj();
@@ -169,18 +199,85 @@ struct ToBSONVisitor
         return result;
     }
 
+private:
+    FilterAction::Type _default_filter;
+    Filters _filters;
+
+    /// Character Set
+    dcmtkpp::Value::Strings _specific_character_sets;
+
+    std::string _convert_string(dcmtkpp::VR const vr, std::string const & value,
+                                unsigned int converter = 0) const
+    {
+        if (vr != dcmtkpp::VR::LO && vr != dcmtkpp::VR::LT &&
+            vr != dcmtkpp::VR::PN && vr != dcmtkpp::VR::SH &&
+            vr != dcmtkpp::VR::ST && vr != dcmtkpp::VR::UT)
+        {
+            // Nothing to do
+            return value;
+        }
+
+        return characterset::convert_to_utf8(value,
+                                             this->_specific_character_sets,
+                                             converter);
+    }
+
 };
 
-mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set)
+mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
+                       FilterAction::Type default_filter,
+                       Filters const & filters,
+                       dcmtkpp::Value::Strings const & specific_character_set)
 {
     mongo::BSONObjBuilder object_builder;
+
+    dcmtkpp::Value::Strings current_specific_char_set = specific_character_set;
     for(auto const & it: data_set)
     {
         auto const & tag = it.first;
         auto const & element = it.second;
 
+        // Check filters
+        FilterAction::Type action = FilterAction::UNKNOWN;
+        for(Filters::const_iterator filters_it = filters.begin();
+            filters_it != filters.end(); ++filters_it)
+        {
+            Condition_DEBUG_RLA const & condition = *(filters_it->first);
+            if(condition(tag, element))
+            {
+                action = filters_it->second;
+                break;
+            }
+        }
+        if(action == FilterAction::UNKNOWN)
+        {
+            action = default_filter;
+        }
+
+        // Should not be process
+        if(action == FilterAction::EXCLUDE)
+        {
+            continue;
+        }
+
+        // Specific character set
+        if(tag == dcmtkpp::registry::SpecificCharacterSet)
+        {
+            current_specific_char_set = element.as_string();
+        }
+
+        if(tag.group == 0)
+        {
+            // Group length, do nothing
+            continue;
+        }
+
+        // Convert
         std::string const key(tag);
-        auto const value = dcmtkpp::apply_visitor(ToBSONVisitor(), element);
+        auto const value =
+                dcmtkpp::apply_visitor(ToBSONVisitor(default_filter, filters,
+                                                     current_specific_char_set),
+                                       element);
         object_builder << key << value;
     }
 

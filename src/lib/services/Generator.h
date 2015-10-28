@@ -14,7 +14,8 @@
 /* make sure OS specific configuration is included first */
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/ofstd/oftypes.h>
-#include <dcmtk/dcmdata/dcdatset.h>
+
+#include <dcmtkpp/DataSet.h>
 
 #include <mongo/client/dbclient.h>
 
@@ -70,7 +71,7 @@ public:
      * @param storageflags: indicate if operation is Store operation
      * @return Status of the operation
      */
-    Uint16 process_dataset(DcmDataset* dataset, bool storageflags);
+    Uint16 process_dataset(dcmtkpp::DataSet dataset, bool storageflags);
 
     /**
      * @brief Execute operation on given BSON Object
@@ -101,7 +102,7 @@ public:
      * @brief Accessor for the attribute _dataset
      * @return attribute _dataset
      */
-    DcmDataset * get_dataset() const;
+    dcmtkpp::DataSet get_dataset() const;
 
     /**
      * @brief Accessor for the attribute _bsonquery
@@ -129,7 +130,7 @@ protected:
     bool _allow;
 
     /// Processed dataset
-    DcmDataset * _dataset;
+    dcmtkpp::DataSet _dataset;
 
     /// Processed BSON Object
     mongo::BSONObj _bsonquery;

@@ -9,6 +9,8 @@
 #define BOOST_TEST_MODULE ModuleQueryRetrieveGenerator
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DataSet.h>
+
 #include "core/ExceptionPACS.h"
 #include "ServicesTestClass.h"
 #include "services/StoreGenerator.h"
@@ -93,7 +95,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 
     // Default initialization
     BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "");
-    BOOST_CHECK_EQUAL(generator.get_dataset() == NULL, true);
+    BOOST_CHECK(generator.get_dataset().empty());
     BOOST_CHECK_EQUAL(generator.is_allow(), false);
 
     DcmDataset* dataset = new DcmDataset();
@@ -131,19 +133,10 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 
     dopamine::services::StoreGenerator generator("");
 
-    DcmDataset* dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
@@ -159,8 +152,6 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     BOOST_CHECK_EQUAL(response.hasField("0020000e"), true);
 
     BOOST_CHECK_EQUAL(cursor->more(), false);
-
-    delete dataset;
 }
 
 /*************************** TEST Nominal *******************************/
@@ -177,98 +168,41 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 
     dopamine::services::StoreGenerator generator("");
 
-    DcmDataset* dataset = new DcmDataset();
-    OFCondition condition =
-            dataset->putAndInsertOFStringArray(DCM_InstanceCreationDate,
-                                               OFString("20150101"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_InstanceCreationTime,
-                                                   OFString("101010"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_SOPClassUID,
-                                                   OFString(UID_MRImageStorage));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_AcquisitionDateTime, OFString("20150101101010.203"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_QueryRetrieveLevel,
-                                                   OFString("STUDY"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_RetrieveAETitle,
-                                                   OFString("LOCAL"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Modality,
-                                                   OFString("MR"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Manufacturer,
-                                                   OFString("Manufacturer"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_InstitutionAddress,
-                                                   OFString("value"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertUint32(DCM_SimpleFrameList, 22);
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertUint16(DCM_FailureReason, 42);
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_StageNumber,
-                                                   OFString("12"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertFloat32(
-                DCM_RecommendedDisplayFrameRateInFloat, 42.5);
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_PatientName, OFString("Name^Surname^Middle"));
-    BOOST_REQUIRE(condition.good());
-    DcmItem* item = NULL;
-    condition = dataset->findOrCreateSequenceItem(DCM_OtherPatientIDsSequence,
-                                                  item, -2);
-    BOOST_REQUIRE(condition.good());
-    if (item != NULL)
-    {
-        condition = item->putAndInsertOFStringArray(DCM_PatientID, "123");
-        BOOST_REQUIRE(condition.good());
-    }
-    else
-    {
-        BOOST_REQUIRE(item != NULL);
-    }
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientAge,
-                                                   OFString("25Y"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientWeight,
-                                                   OFString("11.11"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_EthnicGroup,
-                                                   OFString("value"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_AdditionalPatientHistory, OFString("value"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertSint32(DCM_ReferencePixelX0, 32);
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertSint16(DCM_TagAngleSecondAxis, 32);
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_PixelDataProviderURL, OFString("value"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertFloat64(DCM_PupilSize, 42.5);
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::InstanceCreationDate, dcmtkpp::Element({"20150101"}, dcmtkpp::VR::DA));
+    dataset.add(dcmtkpp::registry::InstanceCreationTime, dcmtkpp::Element({"101010"}, dcmtkpp::VR::TM));
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::AcquisitionDateTime, dcmtkpp::Element({"20150101101010.203"}, dcmtkpp::VR::DT));
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, dcmtkpp::Element({"STUDY"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::RetrieveAETitle, dcmtkpp::Element({"LOCAL"}, dcmtkpp::VR::AE));
+    dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::Manufacturer, dcmtkpp::Element({"Manufacturer"}, dcmtkpp::VR::LO));
+    dataset.add(dcmtkpp::registry::InstitutionAddress, dcmtkpp::Element({"value"}, dcmtkpp::VR::ST));
+    dataset.add(dcmtkpp::registry::SimpleFrameList, dcmtkpp::Element({22}, dcmtkpp::VR::UL));
+    dataset.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({42}, dcmtkpp::VR::US));
+    dataset.add(dcmtkpp::registry::StageNumber, dcmtkpp::Element({12}, dcmtkpp::VR::IS));
+    dataset.add(dcmtkpp::registry::RecommendedDisplayFrameRateInFloat, dcmtkpp::Element({42.5}, dcmtkpp::VR::FL));
+    dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Name^Surname^Middle"}, dcmtkpp::VR::PN));
+
+    dcmtkpp::DataSet sequence;
+    sequence.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+    dataset.add(dcmtkpp::registry::OtherPatientIDsSequence, dcmtkpp::Element({sequence}, dcmtkpp::VR::SQ));
+
+    dataset.add(dcmtkpp::registry::PatientAge, dcmtkpp::Element({"25Y"}, dcmtkpp::VR::AS));
+    dataset.add(dcmtkpp::registry::PatientWeight, dcmtkpp::Element({11.11}, dcmtkpp::VR::DS));
+    dataset.add(dcmtkpp::registry::EthnicGroup, dcmtkpp::Element({"value"}, dcmtkpp::VR::SH));
+    dataset.add(dcmtkpp::registry::AdditionalPatientHistory, dcmtkpp::Element({"value"}, dcmtkpp::VR::LT));
+    dataset.add(dcmtkpp::registry::ReferencePixelX0, dcmtkpp::Element({32}, dcmtkpp::VR::SL));
+    dataset.add(dcmtkpp::registry::TagAngleSecondAxis, dcmtkpp::Element({32}, dcmtkpp::VR::SS));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PixelDataProviderURL, dcmtkpp::Element({"value"}, dcmtkpp::VR::UR));
+    dataset.add(dcmtkpp::registry::PupilSize, dcmtkpp::Element({42.5}, dcmtkpp::VR::FD));
+
     // Binary
-    std::vector<Uint8> value = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
-    condition = dataset->putAndInsertUint8Array(DCM_ICCProfile, &value[0], 8);
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::Value::Binary value = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
+    dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Element(value, dcmtkpp::VR::OB));
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
@@ -311,8 +245,6 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     BOOST_CHECK(response.hasField("00282000") == false);
 
     BOOST_CHECK_EQUAL(cursor->more(), false);
-
-    delete dataset;
 }
 
 /*************************** TEST Nominal *******************************/
@@ -329,22 +261,11 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 
     dopamine::services::StoreGenerator generator("root");
 
-    DcmDataset* dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_Modality, OFString("MR"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
@@ -362,8 +283,6 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     BOOST_CHECK(response.hasField("Content")); // Dataset is stored in this field
 
     BOOST_CHECK_EQUAL(cursor->more(), false);
-
-    delete dataset;
 }
 
 /*************************** TEST Error *********************************/
@@ -372,12 +291,9 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
  */
 BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 {
-    DcmDataset* dataset = new DcmDataset();
     dopamine::services::StoreGenerator generator("");
-    Uint16 result = generator.process_dataset(dataset, true);
+    Uint16 result = generator.process_dataset(dcmtkpp::DataSet(), true);
     BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
-
-    delete dataset;
 }
 
 /*************************** TEST Error *********************************/
@@ -386,19 +302,10 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
  */
 BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
-    DcmDataset* dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_03_01_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     dopamine::services::StoreGenerator generator("");
     Uint16 result = generator.process_dataset(dataset, true);
@@ -411,8 +318,6 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
     dopamine::services::StoreGenerator generator_notme("not_me");
     result = generator_notme.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
-
-    delete dataset;
 }
 
 /*************************** TEST Error *********************************/
@@ -423,18 +328,10 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
 {
     dopamine::services::StoreGenerator generator("");
 
-    DcmDataset* dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_03_01.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_03_01_01.c_str()));
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
-
-    delete dataset;
 }

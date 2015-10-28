@@ -22,7 +22,7 @@ namespace converterBSON
 /**
  * @brief \class Always True Condition
  */
-class AlwaysTrue : public Condition
+class AlwaysTrue : public Condition_DEBUG_RLA
 {
 public:
     typedef boost::shared_ptr<AlwaysTrue> Pointer;
@@ -38,7 +38,8 @@ public:
      * @param element: tested element
      * @return true
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
 protected:

@@ -15,6 +15,8 @@
 #include <dcmtk/dcmdata/dcmetinf.h>
 #include <dcmtk/dcmnet/dimse.h>
 
+#include <dcmtkpp/registry.h>
+
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
@@ -62,24 +64,19 @@ StoreGenerator
     }
 
     // Dataset should not be empty
-    if (this->_dataset == NULL)
+    if (this->_dataset.empty())
     {
         return STATUS_STORE_Refused_OutOfResources;
     }
 
     // Get the SOP Instance UID
-    OFString sopinstanceuid;
-    OFCondition condition =
-            this->_dataset->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                    sopinstanceuid);
-    if (condition.bad())
-    {
-        return STATUS_STORE_Refused_OutOfResources;
-    }
+    std::string const sopinstanceuid =
+            this->_dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
+
     mongo::BSONObj const group_command =
             BSON("count" << "datasets" << "query"
                  << BSON("00080018.Value" <<
-                         BSON_ARRAY(sopinstanceuid.c_str())));
+                         BSON_ARRAY(sopinstanceuid)));
 
     mongo::BSONObj info;
     bool ret = this->_connection.runCommand(this->_db_name,

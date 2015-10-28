@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtkpp/conversion.h>
+
 #include "core/LoggerPACS.h"
 #include "GetSCP.h"
 #include "services/ServicesTools.h"
@@ -44,7 +46,7 @@ static void get_callback(
 
     if (responseCount == 1)
     {
-        status = context->get_generator()->process_dataset(requestIdentifiers,
+        status = context->get_generator()->process_dataset(dcmtkpp::convert(requestIdentifiers),
                                                            false);
 
         if (status != STATUS_Pending)

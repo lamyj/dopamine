@@ -289,75 +289,24 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
     datasetstring << get_content_type() << "\n\n";
 
     // Create the dataset
-    DcmDataset * dataset = new DcmDataset();
-    OFCondition condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_PatientName, OFString("Big^Data"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Modality,
-                                                   OFString("MR"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPClassUID, OFString(UID_MRImageStorage));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientID,
-                                                   "123");
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
+    dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+
     // Binary
     size_t vectorsize = 4096*4096;
-    std::vector<Uint8> value(vectorsize, 0);
-    condition = dataset->putAndInsertUint8Array(DCM_PixelData,
-                                                &value[0],
-                                                vectorsize);
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::Value::Binary value(vectorsize, 0);
+    dataset.add(dcmtkpp::registry::PixelData, dcmtkpp::Element(value, dcmtkpp::VR::OW));
 
-    // Create Dataset with Header
-    DcmFileFormat fileformat(dataset);
-
-    // Keep the original transfer syntax (if available)
-    E_TransferSyntax xfer = fileformat.getMetaInfo()->getOriginalXfer();
-    if (xfer == EXS_Unknown)
-    {
-      // No information about the original transfer syntax: This is
-      // most probably a DICOM dataset that was read from memory.
-      xfer = EXS_LittleEndianExplicit;
-    }
-    fileformat.validateMetaInfo(xfer);
-    fileformat.removeInvalidGroups();
-
-    // Create a memory buffer with the proper size
-    uint32_t size = fileformat.calcElementLength(xfer, EET_ExplicitLength);
-    std::string buffer;
-    buffer.resize(size);
-
-    // Create buffer for DCMTK
-    DcmOutputBufferStream* outputstream =
-            new DcmOutputBufferStream(&buffer[0], size);
-
-    // Fill the memory buffer with the meta-header and the dataset
-    fileformat.transferInit();
-    condition = fileformat.write(*outputstream,
-                                 xfer,
-                                 EET_ExplicitLength, NULL);
-    fileformat.transferEnd();
-
-    delete outputstream;
-
-    if (condition.bad())
-    {
-        BOOST_FAIL(condition.text());
-    }
+    std::stringstream stream_dataset;
+    dcmtkpp::Writer::write_file(dataset, stream_dataset);
+    std::string const buffer = stream_dataset.str();
 
     datasetstring << "--" << get_boundary() << "\n";
     datasetstring << dopamine::services::CONTENT_TYPE

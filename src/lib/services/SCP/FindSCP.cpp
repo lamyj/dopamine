@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtkpp/conversion.h>
+
 #include "core/LoggerPACS.h"
 #include "FindSCP.h"
 #include "services/QueryGenerator.h"
@@ -43,7 +45,7 @@ static void find_callback(
 
     if (responseCount == 1)
     {
-        status = context->process_dataset(requestIdentifiers, false);
+        status = context->process_dataset(dcmtkpp::convert(requestIdentifiers), false);
         if (status != STATUS_Pending)
         {
             create_status_detail(

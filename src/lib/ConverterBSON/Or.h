@@ -6,14 +6,12 @@
  * for details.
  ************************************************************************/
 
-#ifndef _8a4c809c_65e2_494d_8c80_8186a778dd92
-#define _8a4c809c_65e2_494d_8c80_8186a778dd92
+#ifndef _ff8d1604_1410_498f_945e_941630fdd05e
+#define _ff8d1604_1410_498f_945e_941630fdd05e
 
 #include <vector>
 
 #include "Condition.h"
-
-class DcmElement;
 
 namespace dopamine
 {
@@ -22,42 +20,43 @@ namespace converterBSON
 {
 
 /**
- * @brief \class And condition
+ * @brief \class Or condition
  */
-class And : public Condition
+class Or : public Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<And> Pointer;
+    typedef boost::shared_ptr<Or> Pointer;
     
-    /// Create pointer to new instance of And
+    /// Create pointer to new instance of Or
     static Pointer New();
     
-    /// Destroy the instance of And
-    virtual ~And();
-    
+    /// Destroy the instance of Or
+    virtual ~Or();
+
     /**
-     * Operator (), test if all conditions are true
+     * Operator (), test if one condition is true
      * @param element: tested element
-     * @return true if all condition are true, false otherwise
+     * @return true if one condition is true, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
     /**
      * Add a new condition
      * @param condition: condition to insert
      */
-    void insert_condition(Condition::Pointer condition);
+    void insert_condition(Condition_DEBUG_RLA::Pointer condition);
     
 protected:
 
 private:
-    /// Create an instance of And
-    And();
-    
+    /// Create an instance of Or
+    Or();
+
     /// List of conditions
-    std::vector<Condition::Pointer> _conditions;
+    std::vector<Condition_DEBUG_RLA::Pointer> _conditions;
 
 };
 
@@ -65,4 +64,4 @@ private:
 
 } // namespace dopamine
 
-#endif // _8a4c809c_65e2_494d_8c80_8186a778dd92
+#endif // _ff8d1604_1410_498f_945e_941630fdd05e

@@ -13,13 +13,16 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 
+#include <dcmtkpp/conversion.h>
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Writer.h>
+
 #include <mongo/client/dbclient.h>
 #include <mongo/client/gridfs.h>
 
-#include "ConverterBSON/Dataset/BSONToDataSet.h"
-#include "ConverterBSON/Dataset/DataSetToBSON.h"
-#include "ConverterBSON/Dataset/IsPrivateTag.h"
-#include "ConverterBSON/Dataset/VRMatch.h"
+#include "ConverterBSON/bson_converter.h"
+#include "ConverterBSON/IsPrivateTag.h"
+#include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ServicesTools.h"
@@ -345,32 +348,30 @@ replace(std::string const & value, std::string const & old,
 }
 
 mongo::BSONObj
-dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
+dataset_to_bson(dcmtkpp::DataSet const & dataset, bool isforstorage)
 {
     // Convert the dataset to BSON, excluding Query/Retrieve Level.
-    converterBSON::DataSetToBSON dataset_to_bson;
+    Filters filters = {};
     if (isforstorage)
     {
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::IsPrivateTag::New(),
-            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OB),
-            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OF),
-            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_OW),
-            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
-        dataset_to_bson.get_filters().push_back(std::make_pair(
-            converterBSON::VRMatch::New(EVR_UN),
-            converterBSON::DataSetToBSON::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+                              converterBSON::IsPrivateTag::New(),
+                              FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+                              converterBSON::VRMatch::New(dcmtkpp::VR::OB),
+                              FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+                              converterBSON::VRMatch::New(dcmtkpp::VR::OF),
+                              FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+                              converterBSON::VRMatch::New(dcmtkpp::VR::OW),
+                              FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+                              converterBSON::VRMatch::New(dcmtkpp::VR::UN),
+                              FilterAction::EXCLUDE));
     }
-    dataset_to_bson.set_default_filter(
-                converterBSON::DataSetToBSON::FilterAction::INCLUDE);
 
-    return dataset_to_bson.from_dataset(dataset);
+    return as_bson(dataset, FilterAction::INCLUDE, filters);
 }
 
 DcmDataset *
@@ -382,9 +383,9 @@ bson_to_dataset(mongo::DBClientConnection &connection,
 
     if ( ! object.hasField("Content"))
     {
-        converterBSON::BSONToDataSet bson2dataset;
-        DcmDataset result = bson2dataset.to_dataset(object);
-        dataset = new DcmDataset(result);
+        auto const result = as_dataset(object);
+
+        dataset = dynamic_cast<DcmDataset*>(dcmtkpp::convert(result, true));
     }
     else
     {
@@ -420,7 +421,7 @@ database_status
 insert_dataset(mongo::DBClientConnection &connection,
                std::string const & db_name,
                std::string const & username,
-               DcmDataset *dataset,
+               dcmtkpp::DataSet const & dataset,
                std::string const & callingaet)
 {
     // Convert Dataset into BSON object
@@ -439,46 +440,19 @@ insert_dataset(mongo::DBClientConnection &connection,
     mongo::BSONObjBuilder builder;
     builder.appendElements(object);
 
-    // Create the header of the new file
-    DcmFileFormat file_format(dataset);
-    // Keep the original transfer syntax (if available)
-    E_TransferSyntax xfer = dataset->getOriginalXfer();
-    if (xfer == EXS_Unknown)
-    {
-      // No information about the original transfer syntax: This is
-      // most probably a DICOM dataset that was read from memory.
-      xfer = EXS_LittleEndianExplicit;
-    }
-    file_format.getMetaInfo()->putAndInsertString(
-                DCM_SourceApplicationEntityTitle, callingaet.c_str());
-    OFCondition condition = file_format.validateMetaInfo(xfer);
-    if (condition.bad())
-    {
-        return CONVERSION_ERROR;
-    }
-    file_format.removeInvalidGroups();
+    dcmtkpp::DataSet meta_information;
+    meta_information.add(dcmtkpp::registry::SourceApplicationEntityTitle,
+                         dcmtkpp::Element({callingaet}, dcmtkpp::VR::AE));
+
+    std::stringstream stream_dataset;
+    dcmtkpp::Writer::write_file(dataset, stream_dataset, meta_information,
+                                dcmtkpp::registry::ExplicitVRLittleEndian,
+                                dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+
+
 
     // Create a memory buffer with the proper size
-    Uint32 size = file_format.calcElementLength(xfer, EET_ExplicitLength);
-    std::string buffer;
-    buffer.resize(size);
-
-    // Create buffer for DCMTK
-    DcmOutputBufferStream* outputstream =
-            new DcmOutputBufferStream(&buffer[0], size);
-
-    // Fill the memory buffer with the meta-header and the dataset
-    file_format.transferInit();
-    condition = file_format.write(*outputstream, xfer,
-                                  EET_ExplicitLength, NULL);
-    file_format.transferEnd();
-
-    delete outputstream;
-
-    if (condition.bad())
-    {
-        return CONVERSION_ERROR;
-    }
+    std::string buffer = stream_dataset.str();
 
     std::string const sopinstanceuid =
             object["00080018"].Obj().getField("Value").Array()[0].String();

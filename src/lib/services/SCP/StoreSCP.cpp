@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtkpp/conversion.h>
+
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
 #include "services/StoreGenerator.h"
@@ -54,7 +56,7 @@ static void store_callback(
         {
             StoreGenerator* context =
                     reinterpret_cast<StoreGenerator*>(callbackData);
-            Uint16 status = context->process_dataset(*imageDataSet, true);
+            Uint16 status = context->process_dataset(dcmtkpp::convert(*imageDataSet), true);
 
             if (status != STATUS_Pending)
             {

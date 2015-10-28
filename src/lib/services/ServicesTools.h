@@ -23,6 +23,8 @@
 #include <dcmtk/dcmnet/dimse.h>
 #include <dcmtk/ofstd/ofcond.h>
 
+#include <dcmtkpp/DataSet.h>
+
 #include <mongo/client/dbclient.h>
 
 namespace dopamine
@@ -67,7 +69,7 @@ bool create_db_connection(mongo::DBClientConnection & connection,
 database_status insert_dataset(mongo::DBClientConnection & connection,
                                std::string const & db_name,
                                std::string const & username,
-                               DcmDataset* dataset,
+                               dcmtkpp::DataSet const & dataset,
                                std::string const & callingaet = "");
 
 /**
@@ -150,7 +152,7 @@ std::string replace(std::string const & value,
  * @param isforstorage: flag indicating if object will be stored into database
  * @return Dataset as BSON object
  */
-mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
+mongo::BSONObj dataset_to_bson(dcmtkpp::DataSet const & dataset,
                                bool isforstorage = false);
 
 /**

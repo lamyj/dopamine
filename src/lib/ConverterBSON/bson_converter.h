@@ -13,11 +13,30 @@
 
 #include <mongo/bson/bson.h>
 
+#include "Condition.h"
+
 namespace dopamine
 {
 
+struct FilterAction
+{
+    enum Type
+    {
+        INCLUDE=0,
+        EXCLUDE,
+        UNKNOWN
+    };
+};
+
+typedef std::pair<Condition_DEBUG_RLA::Pointer, FilterAction::Type> Filter;
+typedef std::vector<Filter> Filters;
+
+
 /// @brief Convert a data set to its BSON representation.
-mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set);
+mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
+                       FilterAction::Type default_filter = FilterAction::UNKNOWN,
+                       Filters const & filters = {},
+                       dcmtkpp::Value::Strings const & specific_character_set = {});
 
 /// @brief Create a data set from its BSON representation.
 dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson);

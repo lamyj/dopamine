@@ -18,14 +18,14 @@ namespace converterBSON
 
 VRMatch::Pointer
 VRMatch
-::New(DcmEVR vr)
+::New(dcmtkpp::VR vr)
 {
     return Pointer(new VRMatch(vr));
 }
 
 VRMatch
-::VRMatch(DcmEVR vr):
-    Condition(), _vr(vr)
+::VRMatch(dcmtkpp::VR vr):
+    Condition_DEBUG_RLA(), _vr(vr)
 {
     // Nothing else.
 }
@@ -38,27 +38,11 @@ VRMatch
 
 bool
 VRMatch
-::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
+::operator()(dcmtkpp::Tag const & tag,
+             dcmtkpp::Element const & element) const
+    throw(dopamine::ExceptionPACS)
 {
-    if (element == NULL)
-    {
-        throw dopamine::ExceptionPACS("element is NULL.");
-    }
-    
-    bool match=false;
-    if(element->getVR() == this->_vr)
-    {
-        match = true;
-    }
-    else
-    {
-        // Try using DMCTK interval VRs
-        if(DcmVR(element->getVR()).getValidEVR() == this->_vr)
-        {
-            match = true;
-        }
-    }
-    return match;
+    return (element.vr == this->_vr);
 }
 
 } // namespace converterBSON

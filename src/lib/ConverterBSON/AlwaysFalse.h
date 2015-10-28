@@ -6,12 +6,10 @@
  * for details.
  ************************************************************************/
 
-#ifndef _361310be_d429_4f49_9d0d_19bd01316dff
-#define _361310be_d429_4f49_9d0d_19bd01316dff
+#ifndef _4acc859b_9d30_43fe_843f_74eab7d3043c
+#define _4acc859b_9d30_43fe_843f_74eab7d3043c
 
 #include "Condition.h"
-
-class DcmElement;
 
 namespace dopamine
 {
@@ -20,33 +18,33 @@ namespace converterBSON
 {
 
 /**
- * @brief \class IsPrivateTag Condition
+ * @brief \class Always False Condition
  */
-class IsPrivateTag : public Condition
+class AlwaysFalse : public Condition_DEBUG_RLA
 {
 public:
-    typedef boost::shared_ptr<IsPrivateTag> Pointer;
+    typedef boost::shared_ptr<AlwaysFalse> Pointer;
     
-    /// Create pointer to new instance of IsPrivateTag
+    /// Create pointer to new instance of AlwaysFalse
     static Pointer New();
-
-    /// Destroy the instance of IsPrivateTag
-    virtual ~IsPrivateTag();
+    
+    /// Destroy the instance of AlwaysFalse
+    virtual ~AlwaysFalse();
 
     /**
      * Operator ()
      * @param element: tested element
-     * @return true if element is Private, false otherwise
-     * @throw ExceptionPACS if element is null
+     * @return false
      */
-    virtual bool operator()(DcmElement * element)
+    virtual bool operator()(dcmtkpp::Tag const & tag,
+                            dcmtkpp::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
 protected:
 
 private:
-    /// Create an instance of IsPrivateTag
-    IsPrivateTag();
+    /// Create an instance of AlwaysFalse
+    AlwaysFalse();
 
 };
 
@@ -54,4 +52,4 @@ private:
 
 } // namespace dopamine
 
-#endif // _361310be_d429_4f49_9d0d_19bd01316dff
+#endif // _4acc859b_9d30_43fe_843f_74eab7d3043c

@@ -243,8 +243,7 @@ Generator
 
 Generator
 ::Generator(std::string const & username):
-    _isconnected(false), _username(username), _allow(false),
-    _dataset(NULL)
+    _isconnected(false), _username(username), _allow(false)
 {
     // Create DataBase Connection
     this->_isconnected = create_db_connection(this->_connection, this->_db_name);
@@ -282,7 +281,7 @@ Generator
     return this->_allow;
 }
 
-DcmDataset *
+dcmtkpp::DataSet
 Generator
 ::get_dataset() const
 {
@@ -419,7 +418,7 @@ Generator
 
 Uint16
 Generator
-::process_dataset(DcmDataset *dataset, bool storageflags)
+::process_dataset(dcmtkpp::DataSet dataset, bool storageflags)
 {
     this->_dataset = dataset;
 

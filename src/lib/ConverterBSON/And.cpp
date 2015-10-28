@@ -26,7 +26,7 @@ And
 
 And
 ::And():
-    Condition()
+    Condition_DEBUG_RLA()
 {
     // Nothing else
 }
@@ -39,16 +39,14 @@ And
 
 bool
 And
-::operator()(DcmElement * element) const throw(dopamine::ExceptionPACS)
+::operator()(dcmtkpp::Tag const & tag,
+             dcmtkpp::Element const & element) const
+    throw(dopamine::ExceptionPACS)
 {
-    if (element == NULL)
-    {
-        throw dopamine::ExceptionPACS("element is NULL.");
-    }
     bool value=true;
     for(auto it = this->_conditions.begin(); it != this->_conditions.end(); ++it)
     {
-        value = value && (**it)(element);
+        value = value && (**it)(tag, element);
         if(!value)
         {
             break;
@@ -60,7 +58,7 @@ And
 
 void
 And
-::insert_condition(Condition::Pointer condition)
+::insert_condition(Condition_DEBUG_RLA::Pointer condition)
 {
     this->_conditions.push_back(condition);
 }
