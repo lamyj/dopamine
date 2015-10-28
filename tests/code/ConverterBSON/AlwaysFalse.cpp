@@ -13,7 +13,7 @@
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case
+ * Nominal test case: Operator ()
  */
 BOOST_AUTO_TEST_CASE(Evaluate)
 {

@@ -13,8 +13,6 @@
 
 #include "Condition.h"
 
-class DcmElement;
-
 namespace dopamine
 {
 

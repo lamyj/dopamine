@@ -9,7 +9,7 @@
 #ifndef _a9036539_65b5_4e6b_acc6_ac598bc2275c
 #define _a9036539_65b5_4e6b_acc6_ac598bc2275c
 
-#include "dcmtkpp/Tag.h"
+#include <dcmtkpp/Tag.h>
 
 #include "Condition.h"
 

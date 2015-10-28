@@ -8,8 +8,6 @@
 
 #include "VRMatch.h"
 
-#include <dcmtk/dcmdata/dcelem.h>
-
 namespace dopamine
 {
 

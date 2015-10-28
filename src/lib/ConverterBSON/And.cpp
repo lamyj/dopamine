@@ -6,9 +6,6 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcelem.h>
-
 #include "And.h"
 
 namespace dopamine
