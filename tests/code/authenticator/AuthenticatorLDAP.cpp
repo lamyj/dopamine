@@ -76,7 +76,7 @@ struct TestDataLDAP
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => true
  */
@@ -95,7 +95,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
     delete authenticatorldap;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => false (No Identity)
  */
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataLDAP)
     BOOST_CHECK_EQUAL(authenticatorldap(NULL), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => false (bad Identity type)
  */
@@ -124,7 +124,7 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
     BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => false (request failed)
  */
@@ -140,7 +140,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
     BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad Server address
  */
@@ -158,7 +158,7 @@ BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
                         dopamine::ExceptionPACS);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad Credential
  */
@@ -174,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
                         dopamine::ExceptionPACS);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad filter
  */

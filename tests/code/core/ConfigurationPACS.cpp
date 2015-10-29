@@ -227,7 +227,7 @@ BOOST_FIXTURE_TEST_CASE(GetAddressForAETitle, TestDataConfiguration)
     BOOST_CHECK_EQUAL(address, "");
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Parsing failure => Unknown file
  */
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(BadFilename)
     dopamine::ConfigurationPACS::delete_instance();
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Parsing failure
  *                  => Missing mandatory field dicom.allowed_peers

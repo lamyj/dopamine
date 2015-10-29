@@ -46,7 +46,7 @@ public:
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
  */
@@ -69,7 +69,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
     delete generator_retrieve;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Getter and Setter
  */
@@ -97,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_EQUAL(generator.get_fuzzy_matching(), true);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Function Cancel
  */
@@ -111,7 +111,7 @@ BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
     generator.cancel();
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Empty request
  */
@@ -187,7 +187,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     BOOST_CHECK_EQUAL(findedobject.hasField("$err"), true);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with matching
  */
@@ -234,7 +234,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
     BOOST_CHECK_GE(count, 4);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with no matching (all attributes VR)
  */
@@ -319,7 +319,7 @@ BOOST_FIXTURE_TEST_CASE(Request_No_Match, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Regex
  */
@@ -352,7 +352,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Regex, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Range
  */
@@ -382,7 +382,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Range, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Null
  */
@@ -417,7 +417,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Null, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Include field in response
  */
@@ -479,7 +479,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
     BOOST_CHECK_EQUAL(count, 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Compute attribute
  */
@@ -543,7 +543,7 @@ BOOST_FIXTURE_TEST_CASE(Compute_Attribute, ServicesTestClass)
     BOOST_CHECK_EQUAL(object.isEmpty(), true);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Connection with database is failed
  */
@@ -562,7 +562,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
     BOOST_CHECK_EQUAL(result, 0xa701);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: User is not allow to perform query
  */
@@ -582,7 +582,7 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
                       0xa701);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing mandatory field QueryRetrieveLevel
  */

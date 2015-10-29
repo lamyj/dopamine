@@ -32,7 +32,7 @@ struct TestDataCSV
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
  */
@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, TestDataCSV)
     delete authenticatorcsv;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => true
  */
@@ -67,7 +67,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
     delete identity;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Empty identity => false
  */
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataCSV)
     BOOST_CHECK_EQUAL(authenticatorcsv(NULL), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with Bad user => false
  */
@@ -97,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
     delete identity;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with Bad password => false
  */
@@ -116,7 +116,7 @@ BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
     delete identity;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with Bad identity type => false
  */
@@ -135,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
     delete identity;
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Construction failure => Unknown file
  */

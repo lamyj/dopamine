@@ -11,7 +11,7 @@
 
 #include "authenticator/AuthenticatorNone.h"
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
  */
@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete authenticatorNone;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Execute with NULL identity (true)
  */
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(NULLIdentity)
     BOOST_CHECK_EQUAL(authenticatorNone(NULL), true);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Execute with identity = NONE (true)
  */
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(NONEIdentity)
     delete identity;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Execute with identity != NONE (false)
  */

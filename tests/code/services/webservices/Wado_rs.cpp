@@ -86,7 +86,7 @@ void check_response(std::string const & response, std::string const & boundary)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
  */
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_NE(wadors.get_boundary(), "");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study)
  */
@@ -117,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series)
  */
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series/Instance)
  */
@@ -152,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
  */
@@ -230,7 +230,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No parameter
  */
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown first parameter
  */
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Study Instance UID
  */
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyInstance)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown second parameter
  */
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Series Instance UID
  */
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown third parameter
  */
@@ -336,7 +336,7 @@ BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing SOP Instance UID
  */
@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(MissingSOPInstance)
                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
  */
@@ -374,7 +374,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
                           exc.statusmessage() == "Not Found"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No database
  */
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
                           exc.statusmessage() == "Internal Server Error"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
  */

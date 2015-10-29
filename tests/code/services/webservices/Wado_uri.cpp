@@ -25,7 +25,7 @@
  *          * DOPAMINE_TEST_DICOMFILE
  */
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
  */
@@ -45,7 +45,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_EQUAL(wadouri.get_boundary(), "");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_uri request
  */
@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
                       SOP_INSTANCE_UID_01_01_01_01);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Unknown parameter
  */
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(UnknownParameters)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Missing mandatory parameters
  */
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Not implemented
  */
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(NotImplemented)
                               exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: bad request type
  */
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(BadRequestType)
                               exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
  */
@@ -174,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
                               exc.statusmessage() == "Not Found"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No database
  */
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
                           exc.statusmessage() == "Internal Server Error"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
  */

@@ -11,7 +11,7 @@
 
 #include "core/ExceptionPACS.h"
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Throw exception
  */

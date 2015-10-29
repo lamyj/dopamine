@@ -72,7 +72,7 @@ public:
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
  */
@@ -86,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
     delete storegenerator;
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Getter and Setter
  */
@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "LOCAL");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Function Cancel
  */
@@ -116,7 +116,7 @@ BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
     generator.cancel();
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Empty request
  */
@@ -152,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     BOOST_CHECK_EQUAL(cursor->more(), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Insert all attribute VR
  */
@@ -245,7 +245,7 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     BOOST_CHECK_EQUAL(cursor->more(), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Perform Store with user constraint
  */
@@ -284,7 +284,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     BOOST_CHECK_EQUAL(cursor->more(), false);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Connection with database is failed
  */
@@ -295,7 +295,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
     BOOST_CHECK_EQUAL(result, 0xa700);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: User is not allow to perform query
  */
@@ -320,7 +320,7 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
     BOOST_CHECK_EQUAL(result, 0xa700);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing mandatory field SOPInstanceUID
  */
