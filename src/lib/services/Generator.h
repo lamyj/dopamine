@@ -11,10 +11,6 @@
 
 #include <string>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/ofstd/oftypes.h>
-
 #include <dcmtkpp/DataSet.h>
 
 #include <mongo/client/dbclient.h>

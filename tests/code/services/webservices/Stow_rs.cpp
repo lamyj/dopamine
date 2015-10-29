@@ -14,12 +14,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcistrmb.h>
-
 #include "services/ServicesTools.h"
 #include "services/webservices/Stow_rs.h"
 #include "services/webservices/WebServiceException.h"

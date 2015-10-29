@@ -13,17 +13,10 @@
 
 /* make sure OS specific configuration is included first */
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcdeftag.h>
-#include <dcmtk/dcmdata/dcelem.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcostrmb.h>
-#include <dcmtk/dcmdata/dctag.h>
 #include <dcmtk/dcmnet/dcuserid.h>
-#include <dcmtk/dcmnet/dimse.h>
-#include <dcmtk/ofstd/ofcond.h>
 
 #include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Tag.h>
 
 #include <mongo/client/dbclient.h>
 
@@ -77,10 +70,11 @@ database_status insert_dataset(mongo::DBClientConnection & connection,
  * @param errorCode: Error code
  * @param key: Tag in error
  * @param comment: error detail
- * @param statusDetail: return the status detail Dataset
+ * @return the status detail Dataset
  */
-void create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
-                          OFString const & comment, DcmDataset **statusDetail);
+dcmtkpp::DataSet create_status_detail(Uint16 const errorCode,
+                                      dcmtkpp::Tag const & key,
+                                      std::string const & comment);
 
 /**
  * @brief Find the username into UserIdentityNegotiationSubItemRQ
@@ -162,9 +156,9 @@ mongo::BSONObj dataset_to_bson(dcmtkpp::DataSet const & dataset,
  * @param object: to retrieve
  * @return Dataset
  */
-DcmDataset * bson_to_dataset(mongo::DBClientConnection &connection,
-                             std::string const & db_name,
-                             mongo::BSONObj object);
+dcmtkpp::DataSet bson_to_dataset(mongo::DBClientConnection &connection,
+                                 std::string const & db_name,
+                                 mongo::BSONObj object);
 
 /**
  * @brief Retrieve Dataset from Database

@@ -14,6 +14,7 @@
 #include <boost/regex.hpp>
 
 #include <dcmtkpp/conversion.h>
+#include <dcmtkpp/Reader.h>
 #include <dcmtkpp/registry.h>
 #include <dcmtkpp/Writer.h>
 
@@ -26,9 +27,6 @@
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "ServicesTools.h"
-
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcistrmb.h>
 
 namespace dopamine
 {
@@ -97,59 +95,16 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     return true;
 }
 
-void
-create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
-                     OFString const & comment, DcmDataset **statusDetail)
+
+dcmtkpp::DataSet
+create_status_detail(Uint16 const errorCode,
+                     dcmtkpp::Tag const & key,
+                     std::string const & comment)
 {
-    DcmElement * element;
-    std::vector<Uint16> vect;
-
-    (*statusDetail) = new DcmDataset();
-
-    OFCondition condition = (*statusDetail)->insertEmptyElement(DCM_Status);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-    condition = (*statusDetail)->findAndGetElement(DCM_Status, element);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-    vect.clear();
-    vect.push_back(errorCode);
-    condition = element->putUint16Array(&vect[0], vect.size());
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-
-    condition = (*statusDetail)->insertEmptyElement(DCM_OffendingElement);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-    condition = (*statusDetail)->findAndGetElement(DCM_OffendingElement,
-                                                   element);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-    vect.clear();
-    vect.push_back(key.getGroup());
-    vect.push_back(key.getElement());
-    condition = element->putUint16Array(&vect[0], vect.size()/2);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
-
-    condition = (*statusDetail)->putAndInsertOFStringArray(DCM_ErrorComment,
-                                                           comment);
-    if (condition.bad())
-    {
-        throw ExceptionPACS(condition.text());
-    }
+    dcmtkpp::DataSet data_set;
+    data_set.add(dcmtkpp::registry::Status, dcmtkpp::Element({errorCode}, dcmtkpp::VR::US));
+    data_set.add(dcmtkpp::registry::OffendingElement, dcmtkpp::Element({key.group, key.element}, dcmtkpp::VR::AT));
+    data_set.add(dcmtkpp::registry::ErrorComment, dcmtkpp::Element({comment}, dcmtkpp::VR::LO));
 }
 
 std::string
@@ -374,47 +329,33 @@ dataset_to_bson(dcmtkpp::DataSet const & dataset, bool isforstorage)
     return as_bson(dataset, FilterAction::INCLUDE, filters);
 }
 
-DcmDataset *
+dcmtkpp::DataSet
 bson_to_dataset(mongo::DBClientConnection &connection,
                 std::string const & db_name,
                 mongo::BSONObj object)
 {
-    DcmDataset* dataset = NULL;
-
     if ( ! object.hasField("Content"))
     {
-        auto const result = as_dataset(object);
-
-        dataset = dynamic_cast<DcmDataset*>(dcmtkpp::convert(result, true));
+        return as_dataset(object);
     }
-    else
+
+    std::stringstream value;
+    value << get_dataset_as_string(connection, db_name, object);
+
+    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> file;
+    try
     {
-        std::string value = get_dataset_as_string(connection, db_name, object);
-
-        // Create buffer for DCMTK
-        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-        inputbufferstream->setBuffer(value.c_str(), value.size());
-        inputbufferstream->setEos();
-
-        // Convert buffer into Dataset
-        DcmFileFormat fileformat;
-        fileformat.transferInit();
-        OFCondition condition = fileformat.read(*inputbufferstream);
-        fileformat.transferEnd();
-
-        delete inputbufferstream;
-
-        if (condition.bad())
-        {
-            std::stringstream streamerror;
-            streamerror << "Cannot read dataset: " << condition.text();
-            throw ExceptionPACS(streamerror.str());
-        }
-
-        dataset = fileformat.getAndRemoveDataset();
+        file = dcmtkpp::Reader::read_file(value);
+    }
+    catch(std::exception & e)
+    {
+        std::stringstream error;
+        error << "Could not read dataset: " << e.what();
+        throw ExceptionPACS(error.str());
     }
 
-    return dataset;
+    auto const & data_set = file.second;
+    return data_set;
 }
 
 database_status

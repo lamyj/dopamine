@@ -11,6 +11,10 @@
 
 #include <boost/filesystem.hpp>
 
+/* make sure OS specific configuration is included first */
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmnet/assoc.h>
+
 #include <mongo/client/dbclient.h>
 
 #include "authenticator/AuthenticatorCSV.h"

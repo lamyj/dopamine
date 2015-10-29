@@ -11,6 +11,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include <dcmtkpp/Response.h>
+
 #include "services/RetrieveGenerator.h"
 #include "Wado_uri.h"
 #include "WebServiceException.h"
@@ -31,7 +33,7 @@ Wado_uri
     RetrieveGenerator generator(this->_username);
 
     Uint16 const status = generator.process_bson(object);
-    if (status != STATUS_Pending)
+    if (status != dcmtkpp::Response::Pending)
     {
         if ( ! generator.is_allow())
         {

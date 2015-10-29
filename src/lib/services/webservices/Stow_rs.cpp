@@ -11,15 +11,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcistrmb.h>
-#include <dcmtk/dcmdata/dctk.h>
-
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/Reader.h>
+#include <dcmtkpp/Response.h>
 #include <dcmtkpp/registry.h>
 
 #include <mimetic/mimeentity.h>
@@ -30,8 +24,6 @@
 #include "services/StoreGenerator.h"
 #include "Stow_rs.h"
 #include "WebServiceException.h"
-
-#define DCM_RetrieveURL DcmTagKey(0x0008, 0x1190)
 
 namespace dopamine
 {
@@ -47,13 +39,6 @@ Stow_rs
     Webservices(pathinfo, querystring, remoteuser),
     _content_type(""), _status(200), _code("OK")
 {
-    // First add unreferenced DICOM Tag
-    DcmDataDictionary &dictionary = dcmDataDict.wrlock();
-    dictionary.addEntry(new DcmDictEntry(0x0008, 0x1190, DcmVR("UT"),
-                                         "RetrieveURL", 1, 1, NULL,
-                                         OFTrue, NULL));
-    dcmDataDict.unlock();
-
     // Decode entries
     mongo::BSONObj object = this->_parse_string();
 
@@ -272,7 +257,7 @@ Stow_rs
 
             // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
-            Uint16 result = STATUS_Pending;
+            Uint16 result = dcmtkpp::Response::Pending;
             // Check StudyInstanceUID
             if (!studyinstanceuid.isEmpty())
             {
@@ -285,7 +270,7 @@ Stow_rs
                 }
             }
 
-            if (result == STATUS_Pending)
+            if (result == dcmtkpp::Response::Pending)
             {
                 // Insert dataset into DataBase
                 StoreGenerator generator(this->_username);
@@ -298,7 +283,7 @@ Stow_rs
                 }
             }
 
-            if (result != STATUS_Pending)
+            if (result != dcmtkpp::Response::Pending)
             {
                 // ERROR: add an item into failedsopsequence
                 dcmtkpp::DataSet failedsopsequence;

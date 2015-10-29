@@ -10,8 +10,8 @@
 #define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
 /* make sure OS specific configuration is included first */
-#include "dcmtk/config/osconfig.h"
-#include <dcmtk/dcmqrdb/dcmqropt.h>
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmnet/dcuserid.h>
 
 namespace dopamine
 {

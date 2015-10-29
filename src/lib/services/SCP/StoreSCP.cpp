@@ -7,6 +7,9 @@
  ************************************************************************/
 
 #include <dcmtkpp/conversion.h>
+#include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Response.h>
+#include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
@@ -42,15 +45,14 @@ static void store_callback(
 {
     if(progress->state == DIMSE_StoreEnd)
     {
+        dcmtkpp::DataSet details;
+
         if (!dcmIsaStorageSOPClassUID(req->AffectedSOPClassUID))
         {
             /* callback will send back sop class not supported status */
             rsp->DimseStatus = STATUS_STORE_Refused_SOPClassNotSupported;
-            create_status_detail(
-                    STATUS_STORE_Refused_SOPClassNotSupported,
-                    DCM_UndefinedTagKey,
-                    OFString("An error occured while processing Storage"),
-                    stDetail);
+            details = create_status_detail(0xa800, dcmtkpp::Tag(0xffff, 0xffff),
+                                           "An error occured while processing Storage");
         }
         else
         {
@@ -58,20 +60,22 @@ static void store_callback(
                     reinterpret_cast<StoreGenerator*>(callbackData);
             Uint16 status = context->process_dataset(dcmtkpp::convert(*imageDataSet), true);
 
-            if (status != STATUS_Pending)
+            if (status != dcmtkpp::Response::Pending)
             {
                 rsp->DimseStatus = status;
-                create_status_detail(
-                        status, DCM_UndefinedTagKey,
-                        OFString("An error occured while processing Storage"),
-                        stDetail);
+                details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
+                                               "An error occured while processing Storage");
             }
             else
             {
-                status = STATUS_Success;
+                status = dcmtkpp::Response::Success;
             }
         }
 
+        if (!details.empty())
+        {
+            (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
+        }
     }
 }
 

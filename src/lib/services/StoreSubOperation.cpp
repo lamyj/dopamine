@@ -6,6 +6,9 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtkpp/conversion.h>
+#include <dcmtkpp/registry.h>
+
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "StoreSubOperation.h"
@@ -144,27 +147,27 @@ StoreSubOperation
 
 OFCondition
 StoreSubOperation
-::perform_sub_operation(DcmDataset *dataset, T_DIMSE_Priority priority)
+::perform_sub_operation(dcmtkpp::DataSet const & dataset,
+                        T_DIMSE_Priority priority)
 {
-    OFString sopclassuid;
-    OFCondition condition = dataset->findAndGetOFString(DCM_SOPClassUID,
-                                                        sopclassuid);
-    if (condition.bad())
+    if (!dataset.has(dcmtkpp::registry::SOPClassUID) ||
+         dataset.as_string(dcmtkpp::registry::SOPClassUID).size() != 1)
     {
-        dopamine::logger_error() << "Cannot retrieve SOPClassUID from dataset: "
-                                 << condition.text();
-        return condition;
+        dopamine::logger_error() << "Cannot retrieve SOPClassUID from dataset";
+        return EC_TagNotFound;
     }
-    OFString sopinstanceuid;
-    condition = dataset->findAndGetOFString(DCM_SOPInstanceUID,
-                                            sopinstanceuid);
-    if (condition.bad())
+    std::string const sopclassuid =
+            dataset.as_string(dcmtkpp::registry::SOPClassUID)[0];
+
+    if (!dataset.has(dcmtkpp::registry::SOPInstanceUID) ||
+         dataset.as_string(dcmtkpp::registry::SOPInstanceUID).size() != 1)
     {
         dopamine::logger_error()
-                << "Cannot retrieve SOPInstanceUID from dataset: "
-                << condition.text();
-        return condition;
+                << "Cannot retrieve SOPInstanceUID from dataset";
+        return EC_TagNotFound;
     }
+    std::string const sopinstanceuid =
+            dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
 
     /* which presentation context should be used */
     T_ASC_PresentationContextID presentation_id =
@@ -221,8 +224,9 @@ StoreSubOperation
     T_DIMSE_DetectedCancelParameters cancelParameters;
     T_DIMSE_C_StoreRSP rsp;
     DcmDataset* stdetail = NULL;
+    DcmDataset* dcmdataset = dynamic_cast<DcmDataset*>(dcmtkpp::convert(dataset));
     return DIMSE_storeUser(this->_response_association, presentation_id,
-                           &req, NULL, dataset, sub_process_callback,
+                           &req, NULL, dcmdataset, sub_process_callback,
                            this, DIMSE_BLOCKING, 0, &rsp, &stdetail,
                            &cancelParameters);
 }

@@ -6,6 +6,11 @@
  * for details.
  ************************************************************************/
 
+#include <dcmtkpp/conversion.h>
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Response.h>
+#include <dcmtkpp/Tag.h>
+
 #include "core/LoggerPACS.h"
 #include "EchoSCP.h"
 #include "services/ServicesTools.h"
@@ -44,8 +49,8 @@ EchoSCP
     bool const connection_state = create_db_connection(connection, db_name);
 
     // Default response is SUCCESS
-    DIC_US status = STATUS_Success;
-    DcmDataset * details = NULL;
+    DIC_US status = dcmtkpp::Response::Success;
+    dcmtkpp::DataSet details;
 
     if (connection_state)
     {
@@ -59,9 +64,8 @@ EchoSCP
             status = 0xa700;
             logger_warning() << "User not allowed to perform ECHO";
 
-            create_status_detail(0xa700, DCM_UndefinedTagKey,
-                                 OFString("User not allowed to perform ECHO"),
-                                 &details);
+            details = create_status_detail(0xa700, dcmtkpp::Tag(0xffff, 0xffff),
+                                           "User not allowed to perform ECHO");
         }
     }
     else
@@ -70,16 +74,20 @@ EchoSCP
         status = 0xa700;
         logger_warning() << "Could not connect to database: " << db_name;
 
-        create_status_detail(0xa700, DCM_UndefinedTagKey,
-                             OFString("Could not connect to database"),
-                             &details);
+        details = create_status_detail(0xa700, dcmtkpp::Tag(0xffff, 0xffff),
+                                       "Could not connect to database");
     }
 
+    DcmDataset * dcmdetails = NULL;
+    if (!details.empty())
+    {
+        dcmdetails = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
+    }
     // Send the response
     return DIMSE_sendEchoResponse(this->_association,
                                   this->_presentation_context_id,
                                   this->_request,
-                                  status, details);
+                                  status, dcmdetails);
 }
 
 } // namespace services

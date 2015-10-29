@@ -9,9 +9,9 @@
 #ifndef _76b2ab31_bb60_4366_ad0b_55c6eb286fdf
 #define _76b2ab31_bb60_4366_ad0b_55c6eb286fdf
 
-#include "Generator.h"
+#include <dcmtkpp/DataSet.h>
 
-#include <dcmtk/dcmdata/dcdatset.h>
+#include "Generator.h"
 
 namespace dopamine
 {
@@ -54,7 +54,7 @@ public:
      * @param object: Query
      * @return dataset
      */
-    DcmDataset* retrieve_dataset(mongo::BSONObj const & object);
+    dcmtkpp::DataSet retrieve_dataset(mongo::BSONObj const & object);
 
     /**
      * @brief Accessor for attribute _instance_count_tags

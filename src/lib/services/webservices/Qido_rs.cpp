@@ -8,11 +8,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include "boost/regex.hpp"
+#include <boost/regex.hpp>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dctag.h>
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Response.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
@@ -123,7 +122,7 @@ Qido_rs
     generator.set_fuzzy_matching(this->_fuzzy_matching);
 
     Uint16 status = generator.process_bson(object);
-    if (status != STATUS_Pending)
+    if (status != dcmtkpp::Response::Pending)
     {
         if ( ! generator.is_allow())
         {
@@ -459,54 +458,57 @@ Qido_rs
     }
     // else value is Keyword
 
-    DcmTag response;
-    OFCondition condition = DcmTag::findTagFromName(tagstr.c_str(), response);
-    if (condition.bad())
+    try
+    {
+        dcmtkpp::Tag dcmtkpptag(tag);
+        std::stringstream groupelement;
+
+        std::stringstream streamgroup;
+        streamgroup << std::hex << dcmtkpptag.group;
+        std::string group = streamgroup.str();
+        while (group.length() != 4)
+        {
+            group = "0" + group;
+        }
+
+        std::stringstream streamelement;
+        streamelement << std::hex << dcmtkpptag.element;
+        std::string element = streamelement.str();
+        while (element.length() != 4)
+        {
+            element = "0" + element;
+        }
+
+        groupelement << group << element;
+
+        auto const vr = dcmtkpp::as_vr(dcmtkpptag);
+
+        if (vr == dcmtkpp::VR::PN)
+        {
+            builder << groupelement.str()
+                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                            "Value" << BSON_ARRAY(BSON("Alphabetic" << value)));
+        }
+        else if (vr == dcmtkpp::VR::OB || vr == dcmtkpp::VR::OF ||
+                 vr == dcmtkpp::VR::OW || vr == dcmtkpp::VR::UN)
+        {
+            builder << groupelement.str()
+                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                            "InlineBinary" << value);
+        }
+        else
+        {
+            builder << groupelement.str()
+                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                            "Value" << BSON_ARRAY(value));
+        }
+    }
+    catch (dcmtkpp::Exception const & exc)
     {
         std::stringstream stream;
         stream << "Unknown DICOM Tag: " << tag;
         throw WebServiceException(400, "Bad Request",
                                   stream.str());
-    }
-
-    std::stringstream streamgroup;
-    streamgroup << std::hex << response.getGroup();
-    std::string group = streamgroup.str();
-    while (group.length() != 4)
-    {
-        group = "0" + group;
-    }
-
-    std::stringstream streamelement;
-    streamelement << std::hex << response.getElement();
-    std::string element = streamelement.str();
-    while (element.length() != 4)
-    {
-        element = "0" + element;
-    }
-    std::stringstream groupelement;
-    groupelement << group << element;
-
-    if (response.getVR().getEVR() == EVR_PN)
-    {
-        builder << groupelement.str()
-                << BSON("vr" << response.getVR().getVRName() <<
-                        "Value" << BSON_ARRAY(BSON("Alphabetic" << value)));
-    }
-    else if (response.getVR().getEVR() == EVR_OB ||
-             response.getVR().getEVR() == EVR_OF ||
-             response.getVR().getEVR() == EVR_OW ||
-             response.getVR().getEVR() == EVR_UN)
-    {
-        builder << groupelement.str()
-                << BSON("vr" << response.getVR().getVRName() <<
-                        "InlineBinary" << value);
-    }
-    else
-    {
-        builder << groupelement.str()
-                << BSON("vr" << response.getVR().getVRName() <<
-                        "Value" << BSON_ARRAY(value));
     }
 }
 

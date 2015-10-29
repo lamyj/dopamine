@@ -9,6 +9,8 @@
 #ifndef _137519da_5031_4188_b52f_b1a3616696c5
 #define _137519da_5031_4188_b52f_b1a3616696c5
 
+#include <string>
+
 #include "services/Generator.h"
 
 namespace dopamine

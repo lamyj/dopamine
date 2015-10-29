@@ -11,10 +11,10 @@
 
 /* make sure OS specific configuration is included first */
 #include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/assoc.h>
 #include <dcmtk/dcmnet/dimse.h>
+
+#include <dcmtkpp/DataSet.h>
 
 namespace dopamine
 {
@@ -54,7 +54,7 @@ public:
      * @param priority: Priority of the operation
      * @return EC_Normal if successful, an error code otherwise
      */
-    OFCondition perform_sub_operation(DcmDataset* dataset,
+    OFCondition perform_sub_operation(dcmtkpp::DataSet const & dataset,
                                       T_DIMSE_Priority priority);
 
 protected:

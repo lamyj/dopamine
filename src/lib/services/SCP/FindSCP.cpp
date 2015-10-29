@@ -7,6 +7,9 @@
  ************************************************************************/
 
 #include <dcmtkpp/conversion.h>
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Response.h>
+#include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
 #include "FindSCP.h"
@@ -41,35 +44,34 @@ static void find_callback(
     QueryGenerator* context =
             reinterpret_cast<QueryGenerator*>(callbackData);
 
-    Uint16 status = STATUS_Pending;
+    Uint16 status = dcmtkpp::Response::Pending;
+    dcmtkpp::DataSet details;
 
     if (responseCount == 1)
     {
         status = context->process_dataset(dcmtkpp::convert(requestIdentifiers), false);
-        if (status != STATUS_Pending)
+        if (status != dcmtkpp::Response::Pending)
         {
-            create_status_detail(
-                    status, DCM_UndefinedTagKey,
-                    OFString("An error occured while processing Find operation"),
-                    stDetail);
+            details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
+                                           "An error occured while processing Find operation");
         }
     }
 
     /* only cancel if we have pending responses */
-    if (cancelled && status == STATUS_Pending)
+    if (cancelled && status == dcmtkpp::Response::Pending)
     {
         context->cancel();
     }
 
     /* Process next result */
-    if (status == STATUS_Pending)
+    if (status == dcmtkpp::Response::Pending)
     {
         mongo::BSONObj object = context->next();
 
         if (object.isValid() && object.isEmpty())
         {
             // We're done.
-            status = STATUS_Success;
+            status = dcmtkpp::Response::Success;
         }
         else if (object.hasField("$err"))
         {
@@ -79,34 +81,16 @@ static void find_callback(
 
             status = STATUS_FIND_Failed_UnableToProcess;
 
-            create_status_detail(STATUS_FIND_Failed_UnableToProcess,
-                                 DCM_UndefinedTagKey,
-                                 OFString(object["$err"].String().c_str()),
-                                 stDetail);
+            details = create_status_detail(0xc000, dcmtkpp::Tag(0xffff, 0xffff),
+                                           object["$err"].String());
         }
         else
         {
-            (*responseIdentifiers) = context->retrieve_dataset(object);
+            dcmtkpp::DataSet data_set = context->retrieve_dataset(object);
 
-            OFCondition condition =
-                    (*responseIdentifiers)->putAndInsertOFStringArray(
-                        DCM_QueryRetrieveLevel,
-                        context->get_query_retrieve_level().c_str());
+            data_set.add(dcmtkpp::registry::QueryRetrieveLevel, dcmtkpp::Element({context->get_query_retrieve_level()}, dcmtkpp::VR::CS));
 
-            if (condition.bad())
-            {
-                dopamine::logger_error()
-                        << "Cannot insert DCM_QueryRetrieveLevel: "
-                        << condition .text();
-
-                status = STATUS_FIND_Failed_UnableToProcess;
-
-                create_status_detail(STATUS_FIND_Failed_UnableToProcess,
-                                     DCM_QueryRetrieveLevel,
-                                     OFString(condition.text()), stDetail);
-            }
-
-            if (status == STATUS_Pending && object.hasField("instance_count"))
+            if (status == dcmtkpp::Response::Pending && object.hasField("instance_count"))
             {
                 /*OFString count(12, '\0');
                 snprintf(&count[0], 12, "%i",
@@ -132,46 +116,34 @@ static void find_callback(
                 }*/
             }
 
-            if (status == STATUS_Pending &&
+            if (status == dcmtkpp::Response::Pending &&
                 context->get_convert_modalities_in_study())
             {
-                (*responseIdentifiers)->remove(DCM_Modality);
+                data_set.remove(dcmtkpp::registry::Modality);
                 std::vector<mongo::BSONElement> const modalities =
                         object.getField("modalities_in_study").Array();
-                std::string value;
+                dcmtkpp::Value::Strings values;
                 for(unsigned int i=0; i<modalities.size(); ++i)
                 {
-                    value += modalities[i].String();
-                    if(i!=modalities.size()-1)
-                    {
-                        value += "\\";
-                    }
+                    values.push_back(modalities[i].String());
                 }
-                condition = (*responseIdentifiers)->putAndInsertOFStringArray(
-                                        DCM_ModalitiesInStudy,
-                                        OFString(value.c_str()));
-
-                if (condition.bad())
-                {
-                    dopamine::logger_error()
-                            << "Cannot insert DCM_ModalitiesInStudy: "
-                            << condition .text();
-
-                    status = STATUS_FIND_Failed_UnableToProcess;
-
-                    create_status_detail(STATUS_FIND_Failed_UnableToProcess,
-                                         DCM_ModalitiesInStudy,
-                                         OFString(condition.text()), stDetail);
-                }
+                data_set.add(dcmtkpp::registry::ModalitiesInStudy, dcmtkpp::Element(values, dcmtkpp::VR::CS));
             }
+
+            (*responseIdentifiers) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(data_set, true));
         }
     }
 
     /* set response status */
     response->DimseStatus = status;
-    if (status == STATUS_Pending || status == STATUS_Success)
+    if (status == dcmtkpp::Response::Pending ||
+        status == dcmtkpp::Response::Success)
     {
         *stDetail = NULL;
+    }
+    else
+    {
+        (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
     }
 }
     

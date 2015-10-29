@@ -6,9 +6,7 @@
  * for details.
  ************************************************************************/
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmnet/dimse.h>
+#include <dcmtkpp/Response.h>
 
 #include "core/LoggerPACS.h"
 #include "QueryRetrieveGenerator.h"
@@ -214,7 +212,7 @@ QueryRetrieveGenerator
                                             query, this->_maximum_results,
                                             this->_skipped_results, &fields);
 
-    return STATUS_Pending;
+    return dcmtkpp::Response::Pending;
 }
 
 std::string
@@ -232,7 +230,7 @@ QueryRetrieveGenerator
     return get_dataset_as_string(this->_connection, this->_db_name, localobject);
 }
 
-DcmDataset *
+dcmtkpp::DataSet
 QueryRetrieveGenerator
 ::retrieve_dataset(mongo::BSONObj const & object)
 {

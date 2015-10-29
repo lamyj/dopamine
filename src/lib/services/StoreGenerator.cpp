@@ -9,13 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcmetinf.h>
-#include <dcmtk/dcmnet/dimse.h>
-
 #include <dcmtkpp/registry.h>
+#include <dcmtkpp/Response.h>
 
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
@@ -49,7 +44,7 @@ StoreGenerator
     if (this->_connection.isFailed())
     {
         logger_warning() << "Could not connect to database: " << this->_db_name;
-        return STATUS_STORE_Refused_OutOfResources;
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
     // Look for user authorization
@@ -60,13 +55,13 @@ StoreGenerator
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform "
                          << Service_Store;
-        return STATUS_STORE_Refused_OutOfResources;
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
     // Dataset should not be empty
     if (this->_dataset.empty())
     {
-        return STATUS_STORE_Refused_OutOfResources;
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
     // Get the SOP Instance UID
@@ -87,7 +82,7 @@ StoreGenerator
     {
         logger_warning() << "Could not connect to database: "
                          << this->_db_name;
-        return STATUS_STORE_Refused_OutOfResources;
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
     // If the command correctly executed and database entries match
@@ -95,18 +90,18 @@ StoreGenerator
     {
         // We already have this SOP Instance UID, do not store it
         logger_warning() << "Store: SOP Instance UID already register";
-        return STATUS_Pending; // Nothing to do
+        return dcmtkpp::Response::Pending; // Nothing to do
     }
 
     if (insert_dataset(this->_connection, this->_db_name,
                        this->_username, this->_dataset,
                        this->_calling_aptitle) != NO_ERROR)
     {
-        return STATUS_STORE_Refused_OutOfResources;
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
     // Everything OK
-    return STATUS_Pending;
+    return dcmtkpp::Response::Pending;
 }
 
 void

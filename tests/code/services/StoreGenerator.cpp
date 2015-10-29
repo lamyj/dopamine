@@ -10,6 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/Response.h>
 
 #include "core/ExceptionPACS.h"
 #include "ServicesTestClass.h"
@@ -98,13 +99,9 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK(generator.get_dataset().empty());
     BOOST_CHECK_EQUAL(generator.is_allow(), false);
 
-    DcmDataset* dataset = new DcmDataset();
-
     // Setter
     generator.set_calling_aptitle("LOCAL");
     BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "LOCAL");
-
-    delete dataset;
 }
 
 /*************************** TEST Nominal *******************************/
@@ -139,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" <<
@@ -205,7 +202,7 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Element(value, dcmtkpp::VR::OB));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" <<
@@ -268,7 +265,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     cursor = this->connection.query(this->db_name + ".datasets",
                               BSON("00080018.Value" <<
@@ -293,7 +290,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 {
     dopamine::services::StoreGenerator generator("");
     Uint16 result = generator.process_dataset(dcmtkpp::DataSet(), true);
-    BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 }
 
 /*************************** TEST Error *********************************/
@@ -309,15 +306,15 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 
     dopamine::services::StoreGenerator generator("");
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 
     dopamine::services::StoreGenerator generator_root("root");
     result = generator_root.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 
     dopamine::services::StoreGenerator generator_notme("not_me");
     result = generator_notme.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_STORE_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 }
 
 /*************************** TEST Error *********************************/
@@ -333,5 +330,5 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 }

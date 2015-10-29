@@ -7,6 +7,10 @@
  ************************************************************************/
 
 #include <dcmtkpp/conversion.h>
+#include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Response.h>
+#include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
 #include "GetSCP.h"
@@ -42,38 +46,37 @@ static void get_callback(
     RetrieveContext * context =
             reinterpret_cast<RetrieveContext*>(callbackData);
 
-    Uint16 status = STATUS_Pending;
+    Uint16 status = dcmtkpp::Response::Pending;
+    dcmtkpp::DataSet details;
 
     if (responseCount == 1)
     {
         status = context->get_generator()->process_dataset(dcmtkpp::convert(requestIdentifiers),
                                                            false);
 
-        if (status != STATUS_Pending)
+        if (status != dcmtkpp::Response::Pending)
         {
-            create_status_detail(
-                    status, DCM_UndefinedTagKey,
-                    OFString("An error occured while processing Get operation"),
-                    stDetail);
+            details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
+                                           "An error occured while processing Get operation");
         }
     }
 
     /* only cancel if we have pending responses */
-    if (cancelled && status == STATUS_Pending)
+    if (cancelled && status == dcmtkpp::Response::Pending)
     {
         // Todo: not implemented yet
         context->get_generator()->cancel();
     }
 
     /* Process next result */
-    if (status == STATUS_Pending)
+    if (status == dcmtkpp::Response::Pending)
     {
         mongo::BSONObj const object = context->get_generator()->next();
 
         if (object.isValid() && object.isEmpty())
         {
             // We're done.
-            status = STATUS_Success;
+            status = dcmtkpp::Response::Success;
         }
         else
         {
@@ -86,20 +89,24 @@ static void get_callback(
             {
                 dopamine::logger_error() << "Cannot process sub association: "
                                          << condition.text();
-                create_status_detail(0xc000, DCM_UndefinedTagKey,
-                                     OFString(condition.text()), stDetail);
+                details = create_status_detail(0xc000, dcmtkpp::Tag(0xffff, 0xffff),
+                                               condition.text());
 
                 status = 0xc000; // Unable to process
             }
-            // else status = STATUS_Pending
+            // else status = dcmtkpp::Response::Pending
         }
     }
 
     /* set response status */
     response->DimseStatus = status;
-    if (status == STATUS_Pending || status == STATUS_Success)
+    if (status == dcmtkpp::Response::Pending || status == dcmtkpp::Response::Success)
     {
         (*stDetail) = NULL;
+    }
+    else
+    {
+        (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
     }
 }
     

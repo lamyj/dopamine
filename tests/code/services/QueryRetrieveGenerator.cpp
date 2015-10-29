@@ -9,6 +9,8 @@
 #define BOOST_TEST_MODULE ModuleQueryRetrieveGenerator
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/Response.h>
+
 #include "ServicesTestClass.h"
 #include "services/QueryRetrieveGenerator.h"
 #include "services/ServicesTools.h"
@@ -124,7 +126,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
             BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("STUDY")));
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -134,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("SERIES")));
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -144,7 +146,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("IMAGE")));
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -158,7 +160,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("STUDY")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -168,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("SERIES")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -178,7 +180,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("IMAGE")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -202,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
                 "", dopamine::services::Service_Query);
 
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -219,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
                 "", dopamine::services::Service_Retrieve);
 
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_retrieve.next();
     count = 0;
@@ -305,7 +307,7 @@ BOOST_FIXTURE_TEST_CASE(Request_No_Match, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -338,7 +340,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Regex, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -368,7 +370,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Range, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -403,7 +405,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Null, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -438,7 +440,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
 
     // First without fields
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -459,7 +461,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
     generator_query.set_include_fields(fields_to_get);
 
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, STATUS_Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
 
     findedobject = generator_query.next();
     count = 0;
@@ -551,13 +553,13 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
     dopamine::services::QueryRetrieveGenerator generator_query(
                 "", dopamine::services::Service_Query);
     Uint16 result = generator_query.process_bson(mongo::BSONObj());
-    BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 
     // Service Retrieve
     dopamine::services::QueryRetrieveGenerator generator_retrieve(
                 "", dopamine::services::Service_Retrieve);
     result = generator_retrieve.process_bson(mongo::BSONObj());
-    BOOST_CHECK_EQUAL(result, STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches);
+    BOOST_CHECK_EQUAL(result, 0xa701);
 }
 
 /*************************** TEST Error *********************************/
@@ -570,14 +572,14 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
     dopamine::services::QueryRetrieveGenerator generator_query(
                 "not_root", dopamine::services::Service_Query);
     Uint16 result = generator_query.process_bson(mongo::BSONObj());
-    BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 
     // Service Retrieve
     dopamine::services::QueryRetrieveGenerator generator_retrieve(
                 "not_root", dopamine::services::Service_Retrieve);
     result = generator_retrieve.process_bson(mongo::BSONObj());
     BOOST_CHECK_EQUAL(result,
-                      STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches);
+                      0xa701);
 }
 
 /*************************** TEST Error *********************************/
@@ -590,12 +592,12 @@ BOOST_FIXTURE_TEST_CASE(No_QueryRetrieveLevel, ServicesTestClass)
     dopamine::services::QueryRetrieveGenerator generator_query(
                 "", dopamine::services::Service_Query);
     Uint16 result = generator_query.process_bson(mongo::BSONObj());
-    BOOST_CHECK_EQUAL(result, STATUS_FIND_Refused_OutOfResources);
+    BOOST_CHECK_EQUAL(result, 0xa700);
 
     // Service Retrieve
     dopamine::services::QueryRetrieveGenerator generator_retrieve(
                 "", dopamine::services::Service_Retrieve);
     result = generator_retrieve.process_bson(mongo::BSONObj());
     BOOST_CHECK_EQUAL(result,
-                      STATUS_MOVE_Refused_OutOfResourcesNumberOfMatches);
+                      0xa701);
 }

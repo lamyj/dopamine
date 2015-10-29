@@ -27,9 +27,6 @@
 #include "core/ConfigurationPACS.h"
 #include "services/ServicesTools.h"
 
-//#include <dcmtk/dcmdata/dcistrmb.h>
-//#include <dcmtk/dcmdata/dcwcache.h>
-
 std::string const STUDY_INSTANCE_UID_01_01 =
         "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
 std::string const STUDY_INSTANCE_UID_02_01 =
