@@ -131,6 +131,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     dopamine::services::StoreGenerator generator("");
 
     dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
@@ -259,6 +260,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     dopamine::services::StoreGenerator generator("root");
 
     dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
     dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
@@ -300,6 +302,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
     dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
@@ -326,6 +329,7 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
     dopamine::services::StoreGenerator generator("");
 
     dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 

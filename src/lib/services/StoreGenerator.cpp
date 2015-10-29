@@ -64,6 +64,11 @@ StoreGenerator
         return 0xa700; //dcmtkpp::Response::Todo_Refused;
     }
 
+    if (!this->_dataset.has(dcmtkpp::registry::SOPInstanceUID))
+    {
+        return 0xa700; //dcmtkpp::Response::Todo_Refused;
+    }
+
     // Get the SOP Instance UID
     std::string const sopinstanceuid =
             this->_dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];

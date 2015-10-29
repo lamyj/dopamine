@@ -320,7 +320,6 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             continue;
         }
-
         dcmtkpp::Tag const tag(field_name);
 
         // Value holding the VR and the data
@@ -341,36 +340,42 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             element = dcmtkpp::Element(dcmtkpp::Value::Strings(), vr);
 
-            auto const values = object.getField("Value").Array();
-            for(auto const & bson_item: values)
+            if (object.hasField("Value") && !object.getField("Value").isNull())
             {
-                element.as_string().push_back(bson_item.String());
+                auto const values = object.getField("Value").Array();
+                for(auto const & bson_item: values)
+                {
+                    element.as_string().push_back(bson_item.String());
+                }
             }
         }
         else if(vr == dcmtkpp::VR::PN)
         {
             element = dcmtkpp::Element(dcmtkpp::Value::Strings(), vr);
 
-            auto const values = object.getField("Value").Array();
-            for(auto const & bson_item: values)
+            if (object.hasField("Value") && !object.getField("Value").isNull())
             {
-                dcmtkpp::Value::Strings::value_type dicom_item;
-                auto const fields = { "Alphabetic", "Ideographic", "Phonetic" };
-                for(auto const & field: fields)
+                auto const values = object.getField("Value").Array();
+                for(auto const & bson_item: values)
                 {
-                    if(bson_item.Obj().hasField(field))
+                    dcmtkpp::Value::Strings::value_type dicom_item;
+                    auto const fields = { "Alphabetic", "Ideographic", "Phonetic" };
+                    for(auto const & field: fields)
                     {
-                        dicom_item += bson_item.Obj().getField(field).String();
+                        if(bson_item.Obj().hasField(field))
+                        {
+                            dicom_item += bson_item.Obj().getField(field).String();
+                        }
+                        dicom_item += "=";
                     }
-                    dicom_item += "=";
-                }
 
-                while(*dicom_item.rbegin() == '=')
-                {
-                    dicom_item = dicom_item.substr(0, dicom_item.size()-1);
-                }
+                    while(*dicom_item.rbegin() == '=')
+                    {
+                        dicom_item = dicom_item.substr(0, dicom_item.size()-1);
+                    }
 
-                element.as_string().push_back(dicom_item);
+                    element.as_string().push_back(dicom_item);
+                }
             }
         }
         else if(vr == dcmtkpp::VR::DS || vr == dcmtkpp::VR::FD ||
@@ -378,10 +383,13 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             element = dcmtkpp::Element(dcmtkpp::Value::Reals(), vr);
 
-            auto const values = object.getField("Value").Array();
-            for(auto const & bson_item: values)
+            if (object.hasField("Value") && !object.getField("Value").isNull())
             {
-                element.as_real().push_back(bson_item.Double());
+                auto const values = object.getField("Value").Array();
+                for(auto const & bson_item: values)
+                {
+                    element.as_real().push_back(bson_item.Double());
+                }
             }
         }
         else if(vr == dcmtkpp::VR::IS || vr == dcmtkpp::VR::SL ||
@@ -390,26 +398,29 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             element = dcmtkpp::Element(dcmtkpp::Value::Integers(), vr);
 
-            auto const values = object.getField("Value").Array();
-            for(auto const & bson_item: values)
+            if (object.hasField("Value") && !object.getField("Value").isNull())
             {
-                if (bson_item.type() == mongo::BSONType::NumberLong)
+                auto const values = object.getField("Value").Array();
+                for(auto const & bson_item: values)
                 {
-                    element.as_int().push_back(
-                        static_cast<dcmtkpp::Value::Integers::value_type>(
-                                    bson_item.Long()));
-                }
-                else if (bson_item.type() == mongo::BSONType::NumberDouble)
-                {
-                    element.as_int().push_back(
-                        static_cast<dcmtkpp::Value::Integers::value_type>(
-                                    bson_item.Double()));
-                }
-                else
-                {
-                    element.as_int().push_back(
-                        static_cast<dcmtkpp::Value::Integers::value_type>(
-                                    bson_item.Int()));
+                    if (bson_item.type() == mongo::BSONType::NumberLong)
+                    {
+                        element.as_int().push_back(
+                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                                        bson_item.Long()));
+                    }
+                    else if (bson_item.type() == mongo::BSONType::NumberDouble)
+                    {
+                        element.as_int().push_back(
+                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                                        bson_item.Double()));
+                    }
+                    else
+                    {
+                        element.as_int().push_back(
+                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                                        bson_item.Int()));
+                    }
                 }
             }
         }
@@ -417,11 +428,14 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             element = dcmtkpp::Element(dcmtkpp::Value::DataSets(), vr);
 
-            auto const values = object.getField("Value").Array();
-            for(auto const & bson_item: values)
+            if (object.hasField("Value") && !object.getField("Value").isNull())
             {
-                auto const dicom_item = as_dataset(bson_item.Obj());
-                element.as_data_set().push_back(dicom_item);
+                auto const values = object.getField("Value").Array();
+                for(auto const & bson_item: values)
+                {
+                    auto const dicom_item = as_dataset(bson_item.Obj());
+                    element.as_data_set().push_back(dicom_item);
+                }
             }
         }
         else if(vr == dcmtkpp::VR::OB || vr == dcmtkpp::VR::OF ||

@@ -80,7 +80,7 @@ public:
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs Accessors
  */
@@ -99,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
     BOOST_CHECK_EQUAL(stowrs.get_code(), "OK");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset
  */
@@ -169,7 +169,7 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
                                             SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 3 dataset
  */
@@ -268,7 +268,7 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
                                             SOP_INSTANCE_UID_04_01_01_03)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
  */
@@ -370,11 +370,11 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
     // Get the GridFile corresponding to the filename
     mongo::GridFile file = gridfs.findFile(sopinstanceuid);
 
-    BOOST_CHECK_EQUAL(file.getContentLength(), 16777742);
+    BOOST_CHECK_EQUAL(file.getContentLength(), 16777738);
 }
 
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert DICOM already register
  */
@@ -441,7 +441,7 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
                                             SOP_INSTANCE_UID_01_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs check return status code
  */
@@ -632,7 +632,7 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 identified Study
  */
@@ -704,7 +704,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
                                             SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 wrong Study
  */
@@ -779,7 +779,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
                                             SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Bad content-type for the part
  */
@@ -847,7 +847,7 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
                                             SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Cannot read dataset
  */
@@ -916,7 +916,7 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
                                             SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Content-type not supported
  */
@@ -977,7 +977,7 @@ BOOST_FIXTURE_TEST_CASE(TypeNotSupported, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Not allow
  */
@@ -1030,7 +1030,7 @@ BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
                                               SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad parameter (first parameter should be studies)
  */
@@ -1044,7 +1044,7 @@ BOOST_FIXTURE_TEST_CASE(BadParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing parameter
  */
@@ -1058,7 +1058,7 @@ BOOST_FIXTURE_TEST_CASE(MissingParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Too Many parameter
  */
@@ -1072,7 +1072,7 @@ BOOST_FIXTURE_TEST_CASE(TooManyParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad Content-Type
  */
@@ -1131,7 +1131,7 @@ BOOST_FIXTURE_TEST_CASE(BadContentType, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Media type not supported
  */

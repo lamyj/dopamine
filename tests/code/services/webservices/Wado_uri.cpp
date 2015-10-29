@@ -66,7 +66,6 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     std::string data = wadouri.get_response();
 
     BOOST_REQUIRE(data != "");
-    BOOST_CHECK_EQUAL(data.size(), 1538);
 
     std::stringstream stream_dataset; stream_dataset << data;
     auto file = dcmtkpp::Reader::read_file(stream_dataset);

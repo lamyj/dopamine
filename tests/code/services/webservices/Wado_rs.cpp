@@ -29,7 +29,7 @@
 void check_response(std::string const & response, std::string const & boundary)
 {
     BOOST_REQUIRE(response != "");
-    BOOST_REQUIRE_EQUAL(response.size(), 1735);
+    BOOST_REQUIRE_EQUAL(response.size(), 1711);
     BOOST_REQUIRE(response.find(SOP_INSTANCE_UID_01_01_01_01) !=
                   std::string::npos);
 
@@ -171,7 +171,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
     std::string const boundary = wadors.get_boundary();
 
     BOOST_REQUIRE(response != "");
-    BOOST_REQUIRE_EQUAL(response.size(), 16777915);
+    BOOST_REQUIRE_EQUAL(response.size(), 16777911);
     BOOST_REQUIRE(response.find(SOP_INSTANCE_UID_BIG_01) !=
                   std::string::npos);
 

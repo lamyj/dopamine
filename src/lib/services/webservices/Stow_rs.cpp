@@ -299,7 +299,7 @@ Stow_rs
                 referencedsopsequence.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
                 referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
                 referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
-                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(referencedsopsequence);
+                responseDataset.as_data_set(dcmtkpp::registry::ReferencedSOPSequence).push_back(referencedsopsequence);
             }
         }
 
