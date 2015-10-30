@@ -143,7 +143,9 @@ static void find_callback(
     }
     else
     {
-        (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
+        DcmItem* item = dcmtkpp::convert(details, true);
+        DcmDataset* dcmdtset = dynamic_cast<DcmDataset*>(item);
+        (*stDetail) = new DcmDataset(*dcmdtset);
     }
 }
     

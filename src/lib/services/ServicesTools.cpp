@@ -68,27 +68,25 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
 
     for (auto currentIndex : indexeslist)
     {
-        DcmTag dcmtag;
-        OFCondition condition = DcmTag::findTagFromName(currentIndex.c_str(),
-                                                        dcmtag);
-
-        if (condition.good())
+        try
         {
-            // convert Uint16 => string XXXXYYYY
-            char buffer[9];
-            snprintf(buffer, 9, "%04x%04x",
-                     dcmtag.getGroup(), dcmtag.getElement());
+            dcmtkpp::Tag currenttag(currentIndex);
 
             std::stringstream stream;
-            stream << "\"" << buffer << "\"";
+            stream << "\"" << std::string(currenttag) << "\"";
 
             connection.ensureIndex
                 (
                     datasets,
                     BSON(stream.str() << 1),
                     false,
-                    std::string(dcmtag.getTagName())
+                    currenttag.get_name()
                 );
+        }
+        catch (dcmtkpp::Exception const & exc)
+        {
+            logger_warning() << "Ignore index '" << currentIndex
+                             << "', reason: " << exc.what();
         }
     }
 
@@ -103,8 +101,10 @@ create_status_detail(Uint16 const errorCode,
 {
     dcmtkpp::DataSet data_set;
     data_set.add(dcmtkpp::registry::Status, dcmtkpp::Element({errorCode}, dcmtkpp::VR::US));
-    data_set.add(dcmtkpp::registry::OffendingElement, dcmtkpp::Element({key.group, key.element}, dcmtkpp::VR::AT));
+    data_set.add(dcmtkpp::registry::OffendingElement, dcmtkpp::Element({std::string(key)}, dcmtkpp::VR::AT));
     data_set.add(dcmtkpp::registry::ErrorComment, dcmtkpp::Element({comment}, dcmtkpp::VR::LO));
+
+    return data_set;
 }
 
 std::string
