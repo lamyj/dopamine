@@ -6,9 +6,9 @@
  * for details.
  ************************************************************************/
 
-#include <qt4/Qt/qstring.h>
-#include <qt4/Qt/qstringlist.h>
-#include <qt4/Qt/qprocess.h>
+#include <Qt/qstring.h>
+#include <Qt/qstringlist.h>
+#include <Qt/qprocess.h>
 #include <fstream>
 
 #define BOOST_TEST_MODULE ModuleNetworkPACS

@@ -3,7 +3,7 @@ add_subdirectory(tools)
 
 find_package(DCMTK REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-find_package(Qt4 REQUIRED QtGui)
+find_package(Qt4 REQUIRED QtCore QtGui)
 include(${QT_USE_FILE})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/lib
