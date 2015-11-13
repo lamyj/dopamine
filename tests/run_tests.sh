@@ -8,8 +8,10 @@ start_mongodb() {
 
     if [ -z "$(pgrep mongod)" ]
     then
+	echo "Starting MongoDB"
         /usr/bin/mongod --quiet --dbpath $1 --smallfiles > /dev/null 2>&1 &
-        sleep 1
+	MONGO_PID=$!
+        sleep 10
     fi 
 
     if [ -z "$(pgrep mongod)" ]
@@ -123,13 +125,21 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-# FIXME: no xunit for older nosetests
-nosetests --with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml -w ${DOPAMINE_BUILD_DIR}/../tests/code
+if [ -n "$(nosetests --help | grep xunit)" ]
+then 
+    XUNIT_OPTIONS="--with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml"
+else
+    XUNIT_OPTIONS=""
+fi
+nosetests ${XUNIT_OPTIONS} -w ${DOPAMINE_BUILD_DIR}/../tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
 
-# FIXME: kill mongo if necessary
+if [ -n ${MONGO_PID} ]
+then
+    kill ${MONGO_PID}
+fi
 
 # Remove all temporary files
 rm -rf ${DIRECTORY}
