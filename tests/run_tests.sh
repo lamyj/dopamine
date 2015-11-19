@@ -8,11 +8,11 @@ start_mongodb() {
 
     if [ -z "$(pgrep mongod)" ]
     then
-	echo "Starting MongoDB"
+        echo "Starting MongoDB"
         /usr/bin/mongod --quiet --dbpath $1 --smallfiles > /dev/null 2>&1 &
-	MONGO_PID=$!
+        MONGO_PID=$!
         sleep 10
-    fi 
+    fi
 
     if [ -z "$(pgrep mongod)" ]
     then
@@ -53,7 +53,7 @@ EOF
     do
         envsubst < ${TEST_ROOT}/data/${script}.js > ${DIRECTORY}/${script}.js
     done
-    
+
     mongo --quiet ${DIRECTORY}/delete_db.js
     mongo --quiet ${DIRECTORY}/create_db.js
     mongo --quiet ${DIRECTORY}/create_authorization.js
@@ -80,7 +80,7 @@ create_data_sets() {
     export DOPAMINE_TEST_DICOMFILE_09=${DOPAMINE_TEST_DATA}/Patient04_Study01_Series01_Instance03
 
     files=$(cat << EOF
-        ${DOPAMINE_TEST_DICOMFILE_01} ${DOPAMINE_TEST_DICOMFILE_02} 
+        ${DOPAMINE_TEST_DICOMFILE_01} ${DOPAMINE_TEST_DICOMFILE_02}
         ${DOPAMINE_TEST_DICOMFILE_03} ${DOPAMINE_TEST_DICOMFILE_04}
         ${DOPAMINE_TEST_DICOMFILE_05} ${DOPAMINE_TEST_DICOMFILE_06}
         ${DOPAMINE_TEST_DICOMFILE_07} ${DOPAMINE_TEST_DICOMFILE_08}
@@ -114,7 +114,7 @@ mkdir ${DOPAMINE_TEST_OUTPUTDIR}
 
 export DOPAMINE_BUILD_DIR=${PWD}
 
-./src/appli/dopamine &
+./src/appli/dopamine -f ${DOPAMINE_TEST_CONFIG} &
 
 sleep 1
 
@@ -125,18 +125,12 @@ termscu localhost ${DOPAMINE_TEST_LISTENINGPORT}
 
 sleep 1
 
-if [ -n "$(nosetests --help | grep xunit)" ]
-then 
-    XUNIT_OPTIONS="--with-xunit --xunit-file=${DOPAMINE_BUILD_DIR}/../generatedJUnitFiles/nosetests.xml"
-else
-    XUNIT_OPTIONS=""
-fi
-nosetests ${XUNIT_OPTIONS} -w ${DOPAMINE_BUILD_DIR}/../tests/code
+nosetests -w ${DOPAMINE_BUILD_DIR}/../tests/code
 
 # Remove Database
 mongo --quiet ${DIRECTORY}/delete_db.js
 
-if [ -n ${MONGO_PID} ]
+if [ -n "${MONGO_PID:-}" ]
 then
     kill ${MONGO_PID}
 fi

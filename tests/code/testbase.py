@@ -6,7 +6,7 @@ import time
 import unittest
 
 class TestBase(unittest.TestCase) :
-    
+
     def __init__(self, *args, **kwargs) :
         self._dopamine_build_dir = os.environ["DOPAMINE_BUILD_DIR"]
         self._dopamine_port = os.environ["DOPAMINE_TEST_LISTENINGPORT"]
@@ -21,17 +21,20 @@ class TestBase(unittest.TestCase) :
 
         if not hasattr(self, "assertRegexpMatches"):
             self.assertRegexpMatches = self._assertRegexpMatches
-    
+
     def setUp(self) :
         # Add authorization in database
         subprocess.Popen(str(self._create_authorization), shell=True)
         # Add data
         subprocess.Popen(str(self._add_doe_jane), shell=True)
         # launch dopamine in a subprocess
-        subprocess.Popen(os.path.join(str(self._dopamine_build_dir), "src/appli/dopamine"))
+        subprocess.Popen([
+            os.path.join(str(self._dopamine_build_dir), "src/appli/dopamine"),
+            "-f", os.environ["DOPAMINE_TEST_CONFIG"]
+        ])
         # wait for dopamine initialization
         time.sleep(1)
-    
+
     def tearDown(self) :
         # Remove authorization from database
         subprocess.Popen(self._remove_authorization, shell=True)
@@ -50,6 +53,6 @@ class TestBase(unittest.TestCase) :
             msg = msg or "Regexp didn't match"
             msg = '%s: %r not found in %r' % (msg, expected_regexp.pattern, text)
             raise self.failureException(msg)
-    
+
 if __name__ == '__main__':
     unittest.main()
