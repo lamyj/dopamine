@@ -36,10 +36,14 @@ int main(int argc, char** argv)
     }
 
     // Create and Initialize Logger
-    dopamine::initialize_logger
-    (
-        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority")
-    );
+    auto const priority =
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority");
+    auto const destination =
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.destination");
+    auto const path =
+        (destination=="file")?
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.path"):"";
+    dopamine::initialize_logger(priority, destination, path);
 
     // Create and run Network listener
     dopamine::NetworkPACS::get_instance().run();

@@ -1,5 +1,6 @@
 [logger]
 priority=ERROR
+destination=console
 
 [dicom]
 storage_path=${DIRECTORY}/temp_dir
