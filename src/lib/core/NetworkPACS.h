@@ -16,6 +16,7 @@
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -81,21 +82,19 @@ public:
      * Get the connection with database
      * @return database connection
      */
-    mongo::DBClientConnection const & get_connection() const
-        { return this->_connection; }
+    mongo::DBClientConnection const & get_connection() const;
 
     /**
      * Get the connection with database
      * @return database connection
      */
-    mongo::DBClientConnection & get_connection()
-        { return this->_connection; }
+    mongo::DBClientConnection & get_connection();
 
-    /**
-     * Get the database name
-     * @return database name
-     */
-    std::string const & get_db_name() const { return this->_db_name; }
+    /// @brief Return the name of the database holding the meta-data.
+    std::string const & get_db_name() const;
+
+    /// @brief Return the name of the database holding the bulk data.
+    std::string const & get_bulk_data_db() const;
 
 protected:
     /** perform association negotiation for an incoming A-ASSOCIATE request
@@ -118,11 +117,8 @@ private:
     /// Unique Instance
     static NetworkPACS * _instance;
 
-    /// Database connection
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
+    /// Database information
+    services::DataBaseInformation _database_information;
     
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;

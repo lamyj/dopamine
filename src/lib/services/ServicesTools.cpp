@@ -33,8 +33,7 @@ namespace dopamine
 namespace services
 {
 
-bool
-create_db_connection(mongo::DBClientConnection &connection, std::string &db_name)
+bool create_db_connection(DataBaseInformation & db_information)
 {
     // Get all indexes
     std::string const indexlist =
@@ -42,13 +41,20 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     std::vector<std::string> indexeslist;
     boost::split(indexeslist, indexlist, boost::is_any_of(";"));
 
-    db_name = ConfigurationPACS::get_instance().get_value("database.dbname");
+    db_information.db_name =
+        ConfigurationPACS::get_instance().get_value("database.dbname");
+    db_information.bulk_data =
+        ConfigurationPACS::get_instance().get_value("database.bulk_data");
+    if(db_information.bulk_data.empty())
+    {
+        db_information.bulk_data = db_information.db_name;
+    }
     std::string const db_host =
             ConfigurationPACS::get_instance().get_value("database.hostname");
     std::string const db_port =
             ConfigurationPACS::get_instance().get_value("database.port");
 
-    if (db_name == "" || db_host == "" || db_port == "")
+    if(db_information.db_name == "" || db_host == "" || db_port == "")
     {
         return false;
     }
@@ -56,14 +62,14 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
     // Try to connect database
     // Disconnect is automatic when it calls the destructors
     std::string errormsg = "";
-    if ( ! connection.connect(mongo::HostAndPort(db_host + ":" + db_port),
-                              errormsg) )
+    if(!db_information.connection.connect(
+        mongo::HostAndPort(db_host + ":" + db_port), errormsg))
     {
         return false;
     }
 
     // Create indexes
-    std::string const datasets = db_name + ".datasets";
+    std::string const datasets = db_information.db_name + ".datasets";
 
     for (auto currentIndex : indexeslist)
     {
@@ -81,14 +87,17 @@ create_db_connection(mongo::DBClientConnection &connection, std::string &db_name
             std::stringstream stream;
             stream << "\"" << buffer << "\"";
 
-            connection.ensureIndex
-                (
-                    datasets,
-                    BSON(stream.str() << 1),
-                    false,
-                    std::string(dcmtag.getTagName())
-                );
+            db_information.connection.ensureIndex(
+                datasets, BSON(stream.str() << 1), false,
+                std::string(dcmtag.getTagName())
+            );
         }
+    }
+
+    if(db_information.db_name != db_information.bulk_data)
+    {
+        db_information.connection.ensureIndex(
+            db_information.bulk_data+".datasets", BSON("SOPInstanceUID" << 1));
     }
 
     return true;
@@ -172,8 +181,7 @@ get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
 }
 
 bool
-is_authorized(mongo::DBClientConnection & connection,
-              std::string const & db_name,
+is_authorized(DataBaseInformation & db_information,
               std::string const & username,
               std::string const & servicename)
 {
@@ -193,7 +201,8 @@ is_authorized(mongo::DBClientConnection & connection,
                                               "query" << fields_builder.obj());
 
     mongo::BSONObj info;
-    connection.runCommand(db_name, group_command, info, 0);
+    db_information.connection.runCommand(
+        db_information.db_name, group_command, info, 0);
 
     // If the command correctly executed and database entries match
     if (info["ok"].Double() == 1 && info["n"].Double() > 0)
@@ -206,8 +215,7 @@ is_authorized(mongo::DBClientConnection & connection,
 }
 
 mongo::BSONObj
-get_constraint_for_user(mongo::DBClientConnection &connection,
-                        std::string const & db_name,
+get_constraint_for_user(DataBaseInformation & db_information,
                         std::string const & username,
                         std::string const & servicename)
 {
@@ -233,7 +241,8 @@ get_constraint_for_user(mongo::DBClientConnection &connection,
     ));
 
     mongo::BSONObj result;
-    connection.runCommand(db_name, group_command, result, 0);
+    db_information.connection.runCommand(
+        db_information.db_name, group_command, result, 0);
 
     if (result["ok"].Double() != 1 || result["count"].Double() == 0)
     {
@@ -374,8 +383,7 @@ dataset_to_bson(DcmDataset * const dataset, bool isforstorage)
 }
 
 DcmDataset *
-bson_to_dataset(mongo::DBClientConnection &connection,
-                std::string const & db_name,
+bson_to_dataset(DataBaseInformation & db_information,
                 mongo::BSONObj object)
 {
     DcmDataset* dataset = NULL;
@@ -388,7 +396,7 @@ bson_to_dataset(mongo::DBClientConnection &connection,
     }
     else
     {
-        std::string value = get_dataset_as_string(connection, db_name, object);
+        std::string value = get_dataset_as_string(db_information, object);
 
         // Create buffer for DCMTK
         DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
@@ -417,8 +425,7 @@ bson_to_dataset(mongo::DBClientConnection &connection,
 }
 
 database_status
-insert_dataset(mongo::DBClientConnection &connection,
-               std::string const & db_name,
+insert_dataset(DataBaseInformation & db_information,
                std::string const & username,
                DcmDataset *dataset,
                std::string const & callingaet)
@@ -431,101 +438,134 @@ insert_dataset(mongo::DBClientConnection &connection,
     }
 
     // Check user's constraints (user's Rights)
-    if (!is_dataset_allowed_for_storage(connection, db_name, username, object))
+    if (!is_dataset_allowed_for_storage(db_information, username, object))
     {
         return NOT_ALLOW;
     }
 
-    mongo::BSONObjBuilder builder;
-    builder.appendElements(object);
-
-    // Create the header of the new file
-    DcmFileFormat file_format(dataset);
-    // Keep the original transfer syntax (if available)
-    E_TransferSyntax xfer = dataset->getOriginalXfer();
-    if (xfer == EXS_Unknown)
-    {
-      // No information about the original transfer syntax: This is
-      // most probably a DICOM dataset that was read from memory.
-      xfer = EXS_LittleEndianExplicit;
-    }
-    file_format.getMetaInfo()->putAndInsertString(
-                DCM_SourceApplicationEntityTitle, callingaet.c_str());
-    OFCondition condition = file_format.validateMetaInfo(xfer);
-    if (condition.bad())
-    {
-        return CONVERSION_ERROR;
-    }
-    file_format.removeInvalidGroups();
-
-    // Create a memory buffer with the proper size
-    Uint32 size = file_format.calcElementLength(xfer, EET_ExplicitLength);
+    // Convert the dataset to its binary representation
     std::string buffer;
-    buffer.resize(size);
-
-    // Create buffer for DCMTK
-    DcmOutputBufferStream* outputstream =
-            new DcmOutputBufferStream(&buffer[0], size);
-
-    // Fill the memory buffer with the meta-header and the dataset
-    file_format.transferInit();
-    condition = file_format.write(*outputstream, xfer,
-                                  EET_ExplicitLength, NULL);
-    file_format.transferEnd();
-
-    delete outputstream;
-
-    if (condition.bad())
     {
-        return CONVERSION_ERROR;
+        // Create the header of the new file
+        DcmFileFormat file_format(dataset);
+        // Keep the original transfer syntax (if available)
+        E_TransferSyntax xfer = dataset->getOriginalXfer();
+        if (xfer == EXS_Unknown)
+        {
+          // No information about the original transfer syntax: This is
+          // most probably a DICOM dataset that was read from memory.
+          xfer = EXS_LittleEndianExplicit;
+        }
+        file_format.getMetaInfo()->putAndInsertString(
+                    DCM_SourceApplicationEntityTitle, callingaet.c_str());
+        OFCondition condition = file_format.validateMetaInfo(xfer);
+        if (condition.bad())
+        {
+            return CONVERSION_ERROR;
+        }
+        file_format.removeInvalidGroups();
+
+        // Create a memory buffer with the proper size
+        Uint32 size = file_format.calcElementLength(xfer, EET_ExplicitLength);
+        buffer.resize(size);
+
+        // Create buffer for DCMTK
+        DcmOutputBufferStream* outputstream =
+                new DcmOutputBufferStream(&buffer[0], size);
+
+        // Fill the memory buffer with the meta-header and the dataset
+        file_format.transferInit();
+        condition = file_format.write(*outputstream, xfer,
+                                      EET_ExplicitLength, NULL);
+        file_format.transferEnd();
+
+        delete outputstream;
+
+        if (condition.bad())
+        {
+            return CONVERSION_ERROR;
+        }
     }
+
+    mongo::BSONObjBuilder meta_data_builder;
+    meta_data_builder.appendElements(object);
 
     std::string const sopinstanceuid =
             object["00080018"].Obj().getField("Value").Array()[0].String();
 
-    // check size
-    int const totalsize = builder.len() + buffer.size();
+    auto const use_gridfs = (meta_data_builder.len()+buffer.size()>16777000);
 
-    if (totalsize > 16777000) // 16 MB = 16777216
+    if(use_gridfs)
     {
-        // insert into GridSF
-        mongo::GridFS gridfs(connection, db_name);
-        mongo::BSONObj objret =
-                gridfs.storeFile(buffer.c_str(),
-                                 buffer.size(),
-                                 sopinstanceuid);
-
-        if (!objret.isValid() || objret.isEmpty())
+        mongo::GridFS gridfs(
+            db_information.connection, db_information.bulk_data);
+        mongo::BSONObj gridfs_object = gridfs.storeFile(
+            buffer.c_str(), buffer.size(), sopinstanceuid);
+        if(!gridfs_object.isValid() || gridfs_object.isEmpty())
         {
             // Return an error
             return INSERTION_FAILED;
         }
 
-        // Prepare for insertion into database
-        builder << "Content" << objret.getField("_id").OID().toString();
+        // Update the meta-data builder with the reference to GridFS
+        meta_data_builder << "Content"
+            << gridfs_object.getField("_id").OID().toString();
     }
     else
     {
-        // Prepare for insertion into database
-        builder.appendBinData("Content", buffer.size(),
-                                         mongo::BinDataGeneral, buffer.c_str());
+        if(db_information.db_name == db_information.bulk_data)
+        {
+            meta_data_builder.appendBinData(
+                "Content", buffer.size(), mongo::BinDataGeneral,
+                buffer.c_str());
+        }
+        else
+        {
+            mongo::BSONObjBuilder bulk_data_builder;
+            bulk_data_builder.genOID();
+            bulk_data_builder << "SOPInstanceUID" << sopinstanceuid;
+            bulk_data_builder.appendBinData(
+                "Content", buffer.size(), mongo::BinDataGeneral, buffer.c_str());
+            auto bulk_data_object = bulk_data_builder.obj();
+
+            db_information.connection.insert(
+                db_information.bulk_data+".datasets", bulk_data_object);
+
+            auto const result = db_information.connection.getLastError(
+                db_information.bulk_data);
+            if(result != "")
+            {
+                return INSERTION_FAILED;
+            }
+
+            // Update the meta-data builder with the reference to bulk-data
+            meta_data_builder << "Content"
+                << bulk_data_object.getField("_id").OID().toString();
+        }
     }
 
-    // insert into db
-    std::stringstream stream;
-    stream << db_name << ".datasets";
-    connection.insert(stream.str(), builder.obj());
-    std::string result = connection.getLastError(db_name);
-    if (result != "") // empty string if no error
+    db_information.connection.insert(
+        db_information.db_name+".datasets", meta_data_builder.obj());
+    auto const result = db_information.connection.getLastError(
+        db_information.db_name);
+    if(!result.empty())
     {
-        // Rollback for GridFS
-        if (totalsize > 16777000)
+        if(use_gridfs)
         {
-            mongo::GridFS gridfs(connection, db_name);
+            mongo::GridFS gridfs(
+                db_information.connection, db_information.bulk_data);
             gridfs.removeFile(sopinstanceuid);
         }
+        else if(db_information.db_name != db_information.bulk_data)
+        {
 
-        // Return an error
+            db_information.connection.remove(
+                db_information.bulk_data+".datasets",
+                BSON("SOPInstanceUID" << sopinstanceuid));
+        }
+        // Else db_information.db_name == db_information.bulk_data:
+        // nothing to roll back
+
         return INSERTION_FAILED;
     }
 
@@ -533,15 +573,13 @@ insert_dataset(mongo::DBClientConnection &connection,
 }
 
 bool
-is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
-                               std::string const & db_name,
+is_dataset_allowed_for_storage(DataBaseInformation & db_information,
                                std::string const & username,
                                mongo::BSONObj const & dataset)
 {
     // Retrieve user's Rights
-    mongo::BSONObj constraint =
-            get_constraint_for_user(connection, db_name,
-                                    username, Service_Store);
+    mongo::BSONObj constraint = get_constraint_for_user(
+        db_information, username, Service_Store);
 
     if (constraint.isEmpty())
     {
@@ -624,48 +662,51 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
 }
 
 std::string
-get_dataset_as_string(mongo::DBClientConnection &connection,
-                      std::string const & db_name,
+get_dataset_as_string(DataBaseInformation & db_information,
                       mongo::BSONObj object)
 {
-    mongo::BSONElement const element = object.getField("Content");
-    if (element.type() == mongo::BSONType::String)
+    mongo::BSONElement const content = object.getField("Content");
+    if (content.type() == mongo::BSONType::String)
     {
-        std::string const filesid = element.String();
+        auto const reference = content.String();
+        mongo::GridFS gridfs(
+            db_information.connection, db_information.bulk_data);
+        auto const file = gridfs.findFile(reference);
+        if(file.exists())
+        {
+            std::stringstream stream;
+            file.write(stream);
+            return stream.str();
+        }
+        else
+        {
+            auto const sop_instance_uid =
+                object["00080018"].Obj().getField("Value").Array()[0].String();
+            auto const bulk_data = db_information.connection.findOne(
+                db_information.bulk_data+".datasets",
+                BSON("SOPInstanceUID" << sop_instance_uid));
+            if(bulk_data.isEmpty())
+            {
+                throw ExceptionPACS("No bulk data");
+            }
+            auto const bulk_data_content = bulk_data.getField("Content");
+            int size=0;
+            char const * begin = bulk_data_content.binDataClean(size);
 
-        // Retrieve Filename
-        mongo::BSONObjBuilder builder;
-        mongo::OID oid(filesid);
-        builder.appendOID(std::string("_id"), &oid);
-        mongo::Query const query = builder.obj();
-        mongo::BSONObj const fields = BSON("filename" << 1);
-        mongo::BSONObj const sopinstanceuidobj =
-                connection.findOne(db_name + ".fs.files", query, &fields);
-        std::string const sopinstanceuid =
-                sopinstanceuidobj.getField("filename").String();
-
-        // Create GridFS interface
-        mongo::GridFS gridfs(connection, db_name);
-
-        // Get the GridFile corresponding to the filename
-        mongo::GridFile const file = gridfs.findFile(sopinstanceuid);
-
-        // Get the binary content
-        std::stringstream stream;
-        auto size = file.write(stream);
-        return stream.str();
+            return std::string(begin, size);
+        }
     }
-    else if (element.type() == mongo::BSONType::BinData)
+    else if (content.type() == mongo::BSONType::BinData)
     {
         int size=0;
-        char const * begin = element.binDataClean(size);
+        char const * begin = content.binDataClean(size);
 
         return std::string(begin, size);
     }
     else
     {
         std::stringstream streamerror;
-        streamerror << "Unknown type '" << element.type()
+        streamerror << "Unknown type '" << content.type()
                     << "' for Content attribute";
         throw ExceptionPACS(streamerror.str());
     }

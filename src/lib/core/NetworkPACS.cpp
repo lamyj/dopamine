@@ -58,7 +58,7 @@ NetworkPACS
 {
     this->_create_authenticator();
 
-    services::create_db_connection(this->_connection, this->_db_name);
+    services::create_db_connection(this->_database_information);
     
     int port = std::atoi(ConfigurationPACS::
                          get_instance().get_value("dicom.port").c_str());
@@ -346,6 +346,34 @@ NetworkPACS
         stream << "Cannot Destroy Association: " << condition.text();
         throw ExceptionPACS(stream.str());
     }
+}
+
+mongo::DBClientConnection const &
+NetworkPACS
+::get_connection() const
+{
+    return this->_database_information.connection;
+}
+
+mongo::DBClientConnection &
+NetworkPACS
+::get_connection()
+{
+    return this->_database_information.connection;
+}
+
+std::string const &
+NetworkPACS
+::get_db_name() const
+{
+    return this->_database_information.db_name;
+}
+
+std::string const &
+NetworkPACS
+::get_bulk_data_db() const
+{
+    return this->_database_information.bulk_data;
 }
 
 OFCondition

@@ -18,6 +18,8 @@
 
 #include <mongo/client/dbclient.h>
 
+#include "services/ServicesTools.h"
+
 namespace dopamine
 {
 
@@ -80,9 +82,7 @@ public:
 
 protected:
 
-    mongo::DBClientConnection _connection;
-
-    std::string _db_name;
+    services::DataBaseInformation _db_information;
 
     bool _isconnected;
 

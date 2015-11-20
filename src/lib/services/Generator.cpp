@@ -247,7 +247,7 @@ Generator
     _dataset(NULL)
 {
     // Create DataBase Connection
-    this->_isconnected = create_db_connection(this->_connection, this->_db_name);
+    this->_isconnected = create_db_connection(this->_db_information);
 }
 
 Generator

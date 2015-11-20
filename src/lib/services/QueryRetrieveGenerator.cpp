@@ -42,9 +42,10 @@ QueryRetrieveGenerator
 {
     this->_allow = true;
 
-    if (!this->_isconnected || this->_connection.isFailed())
+    if (!this->_isconnected || this->_db_information.connection.isFailed())
     {
-        logger_warning() << "Could not connect to database: " << this->_db_name;
+        logger_warning() << "Could not connect to database: "
+            << this->_db_information.db_name;
         if (this->_service_name == Service_Query)
         {
             return 0xa700; // STATUS_FIND_Refused_OutOfResources
@@ -53,7 +54,7 @@ QueryRetrieveGenerator
                        // STATUS_GET_Refused_OutOfResourcesNumberOfMatches
     }
 
-    this->_allow = is_authorized(this->_connection, this->_db_name,
+    this->_allow = is_authorized(this->_db_information,
                                  this->_username, this->_service_name);
 
     // Look for user authorization
@@ -71,7 +72,7 @@ QueryRetrieveGenerator
     }
 
     mongo::BSONObj const constraint =
-            get_constraint_for_user(this->_connection, this->_db_name,
+            get_constraint_for_user(this->_db_information,
                                     this->_username, this->_service_name);
 
     mongo::BSONObj query_object = this->_bsonquery;
@@ -210,9 +211,9 @@ QueryRetrieveGenerator
     mongo::BSONObj const fields = fields_builder.obj();
 
     // Searching into database...
-    this->_cursor = this->_connection.query(this->_db_name + ".datasets",
-                                            query, this->_maximum_results,
-                                            this->_skipped_results, &fields);
+    this->_cursor = this->_db_information.connection.query(
+        this->_db_information.db_name + ".datasets", query,
+        this->_maximum_results, this->_skipped_results, &fields);
 
     return STATUS_Pending;
 }
@@ -229,7 +230,7 @@ QueryRetrieveGenerator
     {
         localobject.removeField("00080018");
     }
-    return get_dataset_as_string(this->_connection, this->_db_name, localobject);
+    return get_dataset_as_string(this->_db_information, localobject);
 }
 
 DcmDataset *
@@ -244,7 +245,7 @@ QueryRetrieveGenerator
     {
         localobject.removeField("00080018");
     }
-    return bson_to_dataset(this->_connection, this->_db_name, localobject);
+    return bson_to_dataset(this->_db_information, localobject);
 }
 
 std::vector<std::string>
@@ -328,8 +329,8 @@ QueryRetrieveGenerator
                                        "query" << BSON(ofElement << value));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name,
-                                            object, info);
+    bool ret = this->_db_information.connection.runCommand(
+        this->_db_information.db_name, object, info);
     if (!ret)
     {
         // error
@@ -356,8 +357,8 @@ QueryRetrieveGenerator
                                                            value));
 
         mongo::BSONObj info;
-        bool ret = this->_connection.runCommand(this->_db_name,
-                                       object, info);
+        bool ret = this->_db_information.connection.runCommand(
+            this->_db_information.db_name, object, info);
         if (!ret)
         {
             // error
