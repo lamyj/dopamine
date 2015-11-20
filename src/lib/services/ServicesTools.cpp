@@ -668,10 +668,13 @@ get_dataset_as_string(DataBaseInformation & db_information,
     mongo::BSONElement const content = object.getField("Content");
     if (content.type() == mongo::BSONType::String)
     {
+        auto const sop_instance_uid =
+            object["00080018"].Obj().getField("Value").Array()[0].String();
+
         auto const reference = content.String();
         mongo::GridFS gridfs(
             db_information.connection, db_information.bulk_data);
-        auto const file = gridfs.findFile(reference);
+        auto const file = gridfs.findFile(sop_instance_uid);
         if(file.exists())
         {
             std::stringstream stream;
@@ -680,8 +683,6 @@ get_dataset_as_string(DataBaseInformation & db_information,
         }
         else
         {
-            auto const sop_instance_uid =
-                object["00080018"].Obj().getField("Value").Array()[0].String();
             auto const bulk_data = db_information.connection.findOne(
                 db_information.bulk_data+".datasets",
                 BSON("SOPInstanceUID" << sop_instance_uid));
