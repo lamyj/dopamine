@@ -105,8 +105,8 @@ private:
     /// Allowed AE Titles
     std::vector<std::string> _aetitles;
     
-    /// List of known network (AETitle <=> address)
-    std::map<std::string, std::string> _addressPortList;
+    /// List of known peers (AETitle <=> address)
+    std::map<std::string, std::string> _peers;
 
     // Purposely not implemented
     ConfigurationPACS(ConfigurationPACS const & other);

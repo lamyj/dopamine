@@ -58,8 +58,7 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "# Request filter (only for type = LDAP)\n";
     myfile << "ldap_filter=(&(uid=%user)"
            << "(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
-    myfile << "[listAddressPort]\n";
-    myfile << "allowed=LANGUEDOC,LOCAL\n";
+    myfile << "[peers]\n";
     myfile << "LANGUEDOC=languedoc:11113\n";
     myfile << "LOCAL=vexin:11114\n";
     myfile.close();
@@ -245,8 +244,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=None\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
