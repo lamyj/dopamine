@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleQueryRetrieveGenerator
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 
 #include "ServicesTestClass.h"
 #include "services/QueryRetrieveGenerator.h"
@@ -126,7 +126,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
             BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("STUDY")));
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -136,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("SERIES")));
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -146,7 +146,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("IMAGE")));
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_query.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -160,7 +160,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("STUDY")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("SERIES")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -180,7 +180,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     query = BSON("00080052" << BSON("vr" << "CS" <<
                                     "Value" << BSON_ARRAY("IMAGE")));
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_retrieve.next();
     BOOST_CHECK_EQUAL(findedobject.isEmpty(), false);
@@ -204,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
                 "", dopamine::services::Service_Query);
 
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -221,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
                 "", dopamine::services::Service_Retrieve);
 
     result = generator_retrieve.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_retrieve.next();
     count = 0;
@@ -307,7 +307,7 @@ BOOST_FIXTURE_TEST_CASE(Request_No_Match, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -340,7 +340,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Regex, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -370,7 +370,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Range, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -405,7 +405,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Null, ServicesTestClass)
 
     mongo::BSONObj const query = builder.obj();
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -440,7 +440,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
 
     // First without fields
     Uint16 result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     mongo::BSONObj findedobject = generator_query.next();
     unsigned int count = 0;
@@ -461,7 +461,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
     generator_query.set_include_fields(fields_to_get);
 
     result = generator_query.process_bson(query);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     findedobject = generator_query.next();
     count = 0;

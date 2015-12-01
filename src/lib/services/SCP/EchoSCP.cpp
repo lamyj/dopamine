@@ -8,7 +8,7 @@
 
 #include <dcmtkpp/conversion.h>
 #include <dcmtkpp/registry.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
@@ -49,7 +49,7 @@ EchoSCP
     bool const connection_state = create_db_connection(connection, db_name);
 
     // Default response is SUCCESS
-    DIC_US status = dcmtkpp::Response::Success;
+    DIC_US status = dcmtkpp::message::Response::Success;
     dcmtkpp::DataSet details;
 
     if (connection_state)

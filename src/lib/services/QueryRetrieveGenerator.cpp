@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 
 #include "core/LoggerPACS.h"
 #include "QueryRetrieveGenerator.h"
@@ -212,7 +212,7 @@ QueryRetrieveGenerator
                                             query, this->_maximum_results,
                                             this->_skipped_results, &fields);
 
-    return dcmtkpp::Response::Pending;
+    return dcmtkpp::message::Response::Pending;
 }
 
 std::string

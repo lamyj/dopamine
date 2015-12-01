@@ -8,7 +8,7 @@
 
 #include <dcmtkpp/conversion.h>
 #include <dcmtkpp/registry.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
@@ -44,13 +44,13 @@ static void find_callback(
     QueryGenerator* context =
             reinterpret_cast<QueryGenerator*>(callbackData);
 
-    Uint16 status = dcmtkpp::Response::Pending;
+    Uint16 status = dcmtkpp::message::Response::Pending;
     dcmtkpp::DataSet details;
 
     if (responseCount == 1)
     {
         status = context->process_dataset(dcmtkpp::convert(requestIdentifiers), false);
-        if (status != dcmtkpp::Response::Pending)
+        if (status != dcmtkpp::message::Response::Pending)
         {
             details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
                                            "An error occured while processing Find operation");
@@ -58,20 +58,20 @@ static void find_callback(
     }
 
     /* only cancel if we have pending responses */
-    if (cancelled && status == dcmtkpp::Response::Pending)
+    if (cancelled && status == dcmtkpp::message::Response::Pending)
     {
         context->cancel();
     }
 
     /* Process next result */
-    if (status == dcmtkpp::Response::Pending)
+    if (status == dcmtkpp::message::Response::Pending)
     {
         mongo::BSONObj object = context->next();
 
         if (object.isValid() && object.isEmpty())
         {
             // We're done.
-            status = dcmtkpp::Response::Success;
+            status = dcmtkpp::message::Response::Success;
         }
         else if (object.hasField("$err"))
         {
@@ -90,7 +90,7 @@ static void find_callback(
 
             data_set.add(dcmtkpp::registry::QueryRetrieveLevel, dcmtkpp::Element({context->get_query_retrieve_level()}, dcmtkpp::VR::CS));
 
-            if (status == dcmtkpp::Response::Pending && object.hasField("instance_count"))
+            if (status == dcmtkpp::message::Response::Pending && object.hasField("instance_count"))
             {
                 /*OFString count(12, '\0');
                 snprintf(&count[0], 12, "%i",
@@ -116,7 +116,7 @@ static void find_callback(
                 }*/
             }
 
-            if (status == dcmtkpp::Response::Pending &&
+            if (status == dcmtkpp::message::Response::Pending &&
                 context->get_convert_modalities_in_study())
             {
                 data_set.remove(dcmtkpp::registry::Modality);
@@ -136,8 +136,8 @@ static void find_callback(
 
     /* set response status */
     response->DimseStatus = status;
-    if (status == dcmtkpp::Response::Pending ||
-        status == dcmtkpp::Response::Success)
+    if (status == dcmtkpp::message::Response::Pending ||
+        status == dcmtkpp::message::Response::Success)
     {
         *stDetail = NULL;
     }

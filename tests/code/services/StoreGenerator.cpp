@@ -10,7 +10,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 
 #include "core/ExceptionPACS.h"
 #include "ServicesTestClass.h"
@@ -137,7 +137,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" <<
@@ -203,7 +203,7 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Element(value, dcmtkpp::VR::OB));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     cursor = connection.query(db_name + ".datasets",
                               BSON("00080018.Value" <<
@@ -267,7 +267,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
 
     Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::Response::Pending);
+    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
 
     cursor = this->connection.query(this->db_name + ".datasets",
                               BSON("00080018.Value" <<

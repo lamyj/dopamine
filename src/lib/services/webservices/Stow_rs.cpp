@@ -13,7 +13,7 @@
 
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/Reader.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/registry.h>
 
 #include <mimetic/mimeentity.h>
@@ -257,7 +257,7 @@ Stow_rs
 
             // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
-            Uint16 result = dcmtkpp::Response::Pending;
+            Uint16 result = dcmtkpp::message::Response::Pending;
             // Check StudyInstanceUID
             if (!studyinstanceuid.isEmpty())
             {
@@ -270,7 +270,7 @@ Stow_rs
                 }
             }
 
-            if (result == dcmtkpp::Response::Pending)
+            if (result == dcmtkpp::message::Response::Pending)
             {
                 // Insert dataset into DataBase
                 StoreGenerator generator(this->_username);
@@ -283,7 +283,7 @@ Stow_rs
                 }
             }
 
-            if (result != dcmtkpp::Response::Pending)
+            if (result != dcmtkpp::message::Response::Pending)
             {
                 // ERROR: add an item into failedsopsequence
                 dcmtkpp::DataSet failedsopsequence;

@@ -8,7 +8,7 @@
 
 #include <dcmtkpp/conversion.h>
 #include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
@@ -60,7 +60,7 @@ static void store_callback(
                     reinterpret_cast<StoreGenerator*>(callbackData);
             Uint16 status = context->process_dataset(dcmtkpp::convert(*imageDataSet), true);
 
-            if (status != dcmtkpp::Response::Pending)
+            if (status != dcmtkpp::message::Response::Pending)
             {
                 rsp->DimseStatus = status;
                 details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
@@ -68,7 +68,7 @@ static void store_callback(
             }
             else
             {
-                status = dcmtkpp::Response::Success;
+                status = dcmtkpp::message::Response::Success;
             }
         }
 

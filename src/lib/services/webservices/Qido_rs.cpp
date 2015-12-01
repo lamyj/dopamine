@@ -11,7 +11,7 @@
 #include <boost/regex.hpp>
 
 #include <dcmtkpp/registry.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
@@ -122,7 +122,7 @@ Qido_rs
     generator.set_fuzzy_matching(this->_fuzzy_matching);
 
     Uint16 status = generator.process_bson(object);
-    if (status != dcmtkpp::Response::Pending)
+    if (status != dcmtkpp::message::Response::Pending)
     {
         if ( ! generator.is_allow())
         {

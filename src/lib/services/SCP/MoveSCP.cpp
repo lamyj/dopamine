@@ -8,7 +8,7 @@
 
 #include <dcmtkpp/conversion.h>
 #include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/Response.h>
+#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Tag.h>
 
 #include "core/LoggerPACS.h"
@@ -44,7 +44,7 @@ static void move_callback(
     RetrieveContext * context =
             reinterpret_cast<RetrieveContext*>(callbackData);
 
-    Uint16 status = dcmtkpp::Response::Pending;
+    Uint16 status = dcmtkpp::message::Response::Pending;
     dcmtkpp::DataSet details;
 
     if (responseCount == 1)
@@ -52,7 +52,7 @@ static void move_callback(
         status = context->get_generator()->process_dataset(dcmtkpp::convert(requestIdentifiers),
                                                            false);
 
-        if (status != dcmtkpp::Response::Pending)
+        if (status != dcmtkpp::message::Response::Pending)
         {
             details = create_status_detail(
                     status, dcmtkpp::Tag(0xffff, 0xffff),
@@ -76,21 +76,21 @@ static void move_callback(
     }
 
     /* only cancel if we have pending responses */
-    if (cancelled && status == dcmtkpp::Response::Pending)
+    if (cancelled && status == dcmtkpp::message::Response::Pending)
     {
         // Todo: not implemented yet
         context->get_generator()->cancel();
     }
 
     /* Process next result */
-    if (status == dcmtkpp::Response::Pending)
+    if (status == dcmtkpp::message::Response::Pending)
     {
         mongo::BSONObj const object = context->get_generator()->next();
 
         if (object.isValid() && object.isEmpty())
         {
             // We're done.
-            status = dcmtkpp::Response::Success;
+            status = dcmtkpp::message::Response::Success;
         }
         else
         {
@@ -109,13 +109,13 @@ static void move_callback(
 
                 status = 0xc000; // Unable to process
             }
-            // else status = dcmtkpp::Response::Pending
+            // else status = dcmtkpp::message::Response::Pending
         }
     }
 
     /* set response status */
     response->DimseStatus = status;
-    if (status == dcmtkpp::Response::Pending || status == dcmtkpp::Response::Success)
+    if (status == dcmtkpp::message::Response::Pending || status == dcmtkpp::message::Response::Success)
     {
         (*stDetail) = NULL;
     }
