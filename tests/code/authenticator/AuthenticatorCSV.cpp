@@ -9,6 +9,8 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorCSV
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/Association.h>
+
 #include "authenticator/AuthenticatorCSV.h"
 #include "core/ExceptionPACS.h"
 
@@ -56,15 +58,10 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-    identity->setPrimField("user2", 5);
-    identity->setSecField("password2", 9);
+    dcmtkpp::Association association;
+    association.set_user_identity_to_username_and_password("user2", "password2");
     
-    BOOST_CHECK_EQUAL(authenticatorcsv(identity), true);
-    
-    delete identity;
+    BOOST_CHECK_EQUAL(authenticatorcsv(association), true);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -75,7 +72,9 @@ BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    BOOST_CHECK_EQUAL(authenticatorcsv(NULL), false);
+    dcmtkpp::Association association;
+
+    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -86,15 +85,11 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-    identity->setPrimField("baduser", 5);
-    identity->setSecField("password2", 9);
+    dcmtkpp::Association association;
+    association.set_user_identity_to_username_and_password("baduser",
+                                                           "password2");
 
-    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
-
-    delete identity;
+    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -105,15 +100,11 @@ BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-    identity->setPrimField("user2", 5);
-    identity->setSecField("badpassword", 9);
+    dcmtkpp::Association association;
+    association.set_user_identity_to_username_and_password("user2",
+                                                           "badpassword");
 
-    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
-
-    delete identity;
+    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -124,15 +115,10 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_KERBEROS);
-    identity->setPrimField("user2", 5);
-    identity->setSecField("password2", 9);
+    dcmtkpp::Association association;
+    association.set_user_identity_to_kerberos("user2");
 
-    BOOST_CHECK_EQUAL(authenticatorcsv(identity), false);
-
-    delete identity;
+    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
 }
 
 /******************************* TEST Error ************************************/

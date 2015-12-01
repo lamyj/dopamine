@@ -9,9 +9,7 @@
 #ifndef _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 #define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmnet/dcuserid.h>
+#include <dcmtkpp/Association.h>
 
 namespace dopamine
 {
@@ -38,8 +36,7 @@ public:
      * @param identity: requested authentication
      * @return true if authentication success, false otherwise
      */
-    virtual bool operator()
-        (UserIdentityNegotiationSubItemRQ * identity) const = 0;
+    virtual bool operator()(dcmtkpp::Association const & association) const = 0;
 };
 
 } // namespace authenticator

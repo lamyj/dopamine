@@ -42,18 +42,13 @@ AuthenticatorLDAP
 
 bool
 AuthenticatorLDAP
-::operator()(UserIdentityNegotiationSubItemRQ *identity) const
+::operator()(dcmtkpp::Association const & association) const
 {
-    // Not available if Identity is not defined
-    if (identity == NULL)
-    {
-        return false;
-    }
-
     bool return_ = false;
 
     // Only available for Identity type: User / Password
-    if (identity->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+    if (association.get_user_identity_type() ==
+            dcmtkpp::UserIdentityType::UsernameAndPassword)
     {
         LDAP *ld;
 
@@ -66,25 +61,19 @@ AuthenticatorLDAP
             throw ExceptionPACS(stream.str());
         }
 
-        // Get user
-        char * user;
-        Uint16 user_length;
-        identity->getPrimField(user, user_length);
-        // user is not NULL-terminated
-        std::string const userstr = std::string(user, user_length);
+        std::string const username = association.get_user_identity_primary_field();
+        std::string const pwd = association.get_user_identity_secondary_field();
 
         std::string bind_dn = this->_ldap_bind_user;
-        boost::replace_all(bind_dn, "%user", userstr.c_str());
+        boost::replace_all(bind_dn, "%user", username.c_str());
 
-        // Get password
-        char * password;
-        Uint16 password_length;
-        identity->getSecField(password, password_length);
+        char* password = new char[pwd.size()];
+        strncpy(password, &pwd[0], pwd.size());
 
         // Password
         berval credential;
         credential.bv_val = password;
-        credential.bv_len = password_length;
+        credential.bv_len = pwd.size();
 
         /* User authentication (bind) */
         rc = ldap_sasl_bind_s( ld, bind_dn.c_str(), NULL, &credential,
@@ -100,7 +89,7 @@ AuthenticatorLDAP
         }
 
         std::string filter = this->_ldap_filter;
-        boost::replace_all(filter, "%user", userstr.c_str());
+        boost::replace_all(filter, "%user", username.c_str());
 
         LDAPMessage * msg;
         // Request

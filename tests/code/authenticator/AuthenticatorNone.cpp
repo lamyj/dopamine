@@ -9,6 +9,8 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorNone
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/Association.h>
+
 #include "authenticator/AuthenticatorNone.h"
 
 /******************************* TEST Nominal **********************************/
@@ -27,30 +29,16 @@ BOOST_AUTO_TEST_CASE(Constructor)
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case: Execute with NULL identity (true)
- */
-BOOST_AUTO_TEST_CASE(NULLIdentity)
-{
-    dopamine::authenticator::AuthenticatorNone authenticatorNone;
-
-    BOOST_CHECK_EQUAL(authenticatorNone(NULL), true);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
  * Nominal test case: Execute with identity = NONE (true)
  */
 BOOST_AUTO_TEST_CASE(NONEIdentity)
 {
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_NONE);
+    dcmtkpp::Association association;
+    association.set_user_identity_to_none();
 
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), true);
-
-    delete identity;
+    BOOST_CHECK_EQUAL(authenticatorNone(association), true);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -61,34 +49,21 @@ BOOST_AUTO_TEST_CASE(BadIdentity)
 {
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
-    // ASC_USER_IDENTITY_UNKNOWN
-    UserIdentityNegotiationSubItemRQ * identity =
-            new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
-    delete identity;
+    dcmtkpp::Association association;
 
     // ASC_USER_IDENTITY_USER
-    identity = new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER);
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
-    delete identity;
+    association.set_user_identity_to_username("user");
+    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
 
     // ASC_USER_IDENTITY_USER_PASSWORD
-    identity = new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
-    delete identity;
+    association.set_user_identity_to_username_and_password("user", "pwd");
+    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
 
     // ASC_USER_IDENTITY_KERBEROS
-    identity = new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_KERBEROS);
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
-    delete identity;
+    association.set_user_identity_to_kerberos("ticket");
+    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
 
     // ASC_USER_IDENTITY_SAML
-    identity = new UserIdentityNegotiationSubItemRQ();
-    identity->setIdentityType(ASC_USER_IDENTITY_SAML);
-    BOOST_CHECK_EQUAL(authenticatorNone(identity), false);
-    delete identity;
+    association.set_user_identity_to_saml("assertion");
+    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
 }

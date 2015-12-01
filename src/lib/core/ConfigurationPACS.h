@@ -37,6 +37,8 @@ public:
     
     /// Destroy the Configuration
     virtual ~ConfigurationPACS();
+
+    std::vector<std::string> get_aetitles() const;
     
     /**
      * Parse a given configuration file
@@ -49,7 +51,7 @@ public:
      * @param key: searched key (like 'Section.key')
      * @return value of the given key, empty string if key does not exist
      */
-    std::string get_value(std::string const & key);
+    std::string get_value(std::string const & key) const;
     
     /**
      * Get value of a given key
@@ -57,14 +59,15 @@ public:
      * @param key: searched key
      * @return value of the given key, empty string if key does not exist
      */
-    std::string get_value(std::string const & section, std::string const & key);
+    std::string get_value(std::string const & section,
+                          std::string const & key) const;
     
     /**
      * Check if key is in configuration file
      * @param key: searched key
      * @return true if key exist, false otherwise
      */
-    bool has_value(std::string const & key);
+    bool has_value(std::string const & key) const;
     
     /**
      * Check if key is in configuration file
@@ -72,7 +75,7 @@ public:
      * @param key: searched key
      * @return true if key exist, false otherwise
      */
-    bool has_value(std::string const & section, std::string const & key);
+    bool has_value(std::string const & section, std::string const & key) const;
     
     /**
      * Check if a given peer is in allowed AE Title

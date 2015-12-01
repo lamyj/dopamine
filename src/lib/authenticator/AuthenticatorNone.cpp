@@ -29,13 +29,11 @@ AuthenticatorNone
 
 bool
 AuthenticatorNone
-::operator()(UserIdentityNegotiationSubItemRQ *identity) const
+::operator()(dcmtkpp::Association const & association) const
 {
-    // Only available for
-    //   - No identity
-    //   - Identity type: None
-    return identity == NULL ||
-           identity->getIdentityType() == ASC_USER_IDENTITY_NONE;
+    // Only available for Identity type: None
+    return association.get_user_identity_type() ==
+           dcmtkpp::UserIdentityType::None;
 }
 
 } // namespace authenticator

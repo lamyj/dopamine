@@ -11,6 +11,8 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorLDAP
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/Association.h>
+
 #include "authenticator/AuthenticatorLDAP.h"
 #include "core/ExceptionPACS.h"
 
@@ -26,7 +28,7 @@
 
 struct TestDataLDAP
 {
-    UserIdentityNegotiationSubItemRQ * identity = NULL;
+    dcmtkpp::Association association;
     std::string ldap_server;
     std::string ldap_bind_user;
     std::string ldap_base;
@@ -51,28 +53,12 @@ struct TestDataLDAP
         this->ldap_bind_user  = bind;
         this->ldap_filter     = "samaccountname=%user";
 
-        identity = new UserIdentityNegotiationSubItemRQ();
-        identity->setIdentityType(ASC_USER_IDENTITY_USER_PASSWORD);
-        identity->setPrimField(user.c_str(), user.length());
-        identity->setSecField(password.c_str(), password.length());
-    }
-
-    TestDataLDAP(TestDataLDAP const & other)
-    {
-        this->identity =
-                new UserIdentityNegotiationSubItemRQ(*other.identity);
-        this->ldap_server    = other.ldap_server;
-        this->ldap_base      = other.ldap_base;
-        this->ldap_bind_user = other.ldap_bind_user;
-        this->ldap_filter    = other.ldap_filter;
+        association.set_user_identity_to_username_and_password(user, password);
     }
 
     ~TestDataLDAP()
     {
-        if (identity != NULL)
-        {
-            delete identity;
-        }
+        // Nothing to do
     }
 };
 
@@ -90,23 +76,9 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
 
     BOOST_REQUIRE(authenticatorldap != NULL);
 
-    BOOST_CHECK_EQUAL((*authenticatorldap)(identity), true);
+    BOOST_CHECK_EQUAL((*authenticatorldap)(association), true);
 
     delete authenticatorldap;
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Get authorization => false (No Identity)
- */
-BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataLDAP)
-{
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
-
-    BOOST_CHECK_EQUAL(authenticatorldap(NULL), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -120,8 +92,8 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
                                                                  ldap_base,
                                                                  ldap_filter);
 
-    identity->setIdentityType(ASC_USER_IDENTITY_UNKNOWN);
-    BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
+    association.set_user_identity_type(dcmtkpp::UserIdentityType::None);
+    BOOST_CHECK_EQUAL(authenticatorldap(association), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -137,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
                                                                  ldap_base,
                                                                  ldap_filter);
 
-    BOOST_CHECK_EQUAL(authenticatorldap(identity), false);
+    BOOST_CHECK_EQUAL(authenticatorldap(association), false);
 }
 
 /******************************* TEST Error ************************************/
@@ -154,7 +126,7 @@ BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
                                                                  ldap_base,
                                                                  ldap_filter);
 
-    BOOST_REQUIRE_THROW(authenticatorldap(identity),
+    BOOST_REQUIRE_THROW(authenticatorldap(association),
                         dopamine::ExceptionPACS);
 }
 
@@ -169,8 +141,8 @@ BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
                                                                  ldap_base,
                                                                  ldap_filter);
 
-    identity->setPrimField("bad_user", 8);
-    BOOST_REQUIRE_THROW(authenticatorldap(identity),
+    association.set_user_identity_primary_field("bad_user");
+    BOOST_REQUIRE_THROW(authenticatorldap(association),
                         dopamine::ExceptionPACS);
 }
 
@@ -187,6 +159,6 @@ BOOST_FIXTURE_TEST_CASE(BadFilter, TestDataLDAP)
                                                                  ldap_base,
                                                                  ldap_filter);
 
-    BOOST_REQUIRE_THROW(authenticatorldap(identity),
+    BOOST_REQUIRE_THROW(authenticatorldap(association),
                         dopamine::ExceptionPACS);
 }

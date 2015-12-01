@@ -59,45 +59,28 @@ AuthenticatorCSV
 
 bool
 AuthenticatorCSV
-::operator ()(UserIdentityNegotiationSubItemRQ * identity) const
+::operator ()(dcmtkpp::Association const & association) const
 {
     bool authorized = false;
-    
-    // Only available if Identity is defined
-    if (identity != NULL)
+
+    // Only available for Identity type: User / Password
+    if (association.get_user_identity_type() ==
+            dcmtkpp::UserIdentityType::UsernameAndPassword)
     {
-        // Only available for Identity type: User / Password
-        if (identity->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD)
+        std::string const username =
+                association.get_user_identity_primary_field();
+        std::string const pwd = association.get_user_identity_secondary_field();
+
+        // Search in map
+        std::map<std::string, std::string>::const_iterator const it =
+            this->_table.find(username);
+        // If User exist
+        if(it != this->_table.end())
         {
-            // Get user
-            char * user;
-            Uint16 user_length;
-            identity->getPrimField(user, user_length);
-            // user is not NULL-terminated
-            std::string const userstr = std::string(user, user_length);
-            
-            // Search in map
-            std::map<std::string, std::string>::const_iterator const it =
-                this->_table.find(userstr.c_str());
-            // If User exist
-            if(it != this->_table.end())
-            {
-                // Get password
-                char * password;
-                Uint16 password_length;
-                identity->getSecField(password, password_length);
-                
-                // password is not NULL-terminated
-                std::string const passwordstr(password, password_length);
-            
-                authorized = it->second == passwordstr;
-                
-                delete[] password;
-            }
-            
-            delete[] user;
+            authorized = it->second == pwd;
         }
     }
+
     return authorized;
 }
 

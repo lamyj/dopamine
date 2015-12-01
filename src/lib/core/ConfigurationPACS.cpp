@@ -53,6 +53,11 @@ ConfigurationPACS
     // nothing to do
 }
 
+std::vector<std::string> ConfigurationPACS::get_aetitles() const
+{
+    return this->_aetitles;
+}
+
 void
 ConfigurationPACS
 ::parse(std::string const & file)
@@ -88,7 +93,7 @@ ConfigurationPACS
 
 std::string
 ConfigurationPACS
-::get_value(std::string const & key)
+::get_value(std::string const & key) const
 {
     if (!this->has_value(key))
     {
@@ -99,14 +104,14 @@ ConfigurationPACS
 
 std::string
 ConfigurationPACS
-::get_value(std::string const & section, std::string const & key)
+::get_value(std::string const & section, std::string const & key) const
 {
     return this->get_value(section + "." + key);
 }
 
 bool
 ConfigurationPACS
-::has_value(std::string const & key)
+::has_value(std::string const & key) const
 {
     auto child = this->_configuration_node.get_optional<std::string>( key );
     return child;
@@ -114,7 +119,7 @@ ConfigurationPACS
 
 bool
 ConfigurationPACS
-::has_value(std::string const & section, std::string const & key)
+::has_value(std::string const & section, std::string const & key) const
 {
     return this->has_value(section + "." + key);
 }

@@ -45,7 +45,7 @@ public:
      * @param identity: requested authentication
      * @return true if authentication success, false otherwise
      */
-    virtual bool operator()(UserIdentityNegotiationSubItemRQ * identity) const;
+    virtual bool operator()(dcmtkpp::Association const & association) const;
 
 private:
     ///
