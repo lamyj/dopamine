@@ -20,9 +20,36 @@ namespace services
 class EchoSCP : public dcmtkpp::SCP
 {
 public:
+    /// @brief Callback called when a request is received.
+    typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
+                                                  dcmtkpp::message::CEchoRequest const &)> Callback;
+
+    /// @brief Default constructor.
     EchoSCP();
 
+    /// @brief Constructor with default callback.
+    EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+
+    /// @brief Constructor.
+    EchoSCP(
+        dcmtkpp::Network * network, dcmtkpp::Association * association,
+        Callback const & callback);
+
+    /// @brief Destructor.
+    virtual ~EchoSCP();
+
+    /// @brief Return the callback.
+    Callback const & get_callback() const;
+
+    /// @brief Set the callback.
+    void set_callback(Callback const & callback);
+
+    /// @brief Process a C-Echo request.
     virtual void operator()(dcmtkpp::message::Message const & message);
+
+private:
+    Callback _callback;
+
 };
 
 } // namespace services

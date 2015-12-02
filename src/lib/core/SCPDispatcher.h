@@ -41,9 +41,11 @@ public:
     void set_scp(dcmtkpp::Value::Integer command, TSCP const & scp);
 
     bool dispatch();
+
 private:
     typedef std::shared_ptr<dcmtkpp::SCP> SCPPointer;
     std::map<dcmtkpp::Value::Integer, SCPPointer> _providers;
+
 };
 
 }

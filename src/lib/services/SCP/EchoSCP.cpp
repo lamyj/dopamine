@@ -9,12 +9,6 @@
 #include "EchoSCP.h"
 
 #include <dcmtkpp/message/CEchoResponse.h>
-#include <dcmtkpp/message/Response.h>
-
-#include <mongo/client/dbclientinterface.h>
-
-#include "core/LoggerPACS.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -24,41 +18,64 @@ namespace services
 
 EchoSCP
 ::EchoSCP() :
-    dcmtkpp::SCP()
+    dcmtkpp::SCP(), _callback()
 {
     // Nothing else.
 }
 
-void EchoSCP::operator()(dcmtkpp::message::Message const & message)
+EchoSCP
+::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
+    dcmtkpp::SCP(network, association), _callback()
 {
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    bool const connection_state = create_db_connection(connection, db_name);
+    // Nothing else.
+}
 
-    // Default response is SUCCESS
-    Uint16 status = dcmtkpp::message::Response::Success;
+EchoSCP
+::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association,
+          EchoSCP::Callback const & callback) :
+    dcmtkpp::SCP(network, association), _callback()
+{
+    this->set_callback(callback);
+}
 
-    if (connection_state)
-    {
-        std::string const username =
-                    this->_association->get_user_identity_primary_field();
+EchoSCP::~EchoSCP()
+{
+    // Nothing to do.
+}
 
-        // Look for user authorization
-        if ( ! is_authorized(connection, db_name, username, Service_Echo) )
-        {
-            // no echo status defined, used STATUS_STORE_Refused_OutOfResources
-            status = dcmtkpp::message::Response::RefusedNotAuthorized;
-            logger_warning() << "User not allowed to perform ECHO";
-        }
-    }
-    else
-    {
-        // no echo status defined, used STATUS_STORE_Refused_OutOfResources
-        status = dcmtkpp::message::Response::RefusedNotAuthorized;
-        logger_warning() << "Could not connect to database: " << db_name;
-    }
+EchoSCP::Callback const &
+EchoSCP
+::get_callback() const
+{
+    return this->_callback;
+}
 
+void
+EchoSCP
+::set_callback(EchoSCP::Callback const & callback)
+{
+    this->_callback = callback;
+}
+
+void
+EchoSCP
+::operator()(dcmtkpp::message::Message const & message)
+{
     dcmtkpp::message::CEchoRequest const request(message);
+
+    dcmtkpp::Value::Integer status = dcmtkpp::message::CEchoResponse::Success;
+
+    try
+    {
+        status = this->_callback(*this->_association, request);
+    }
+    catch(dcmtkpp::Exception const & exception)
+    {
+        status = dcmtkpp::message::CEchoResponse::MistypedArgument;
+        // Error Comment
+        // Error ID
+        // Affected SOP Class UID
+    }
 
     dcmtkpp::message::CEchoResponse response(
         request.get_message_id(), status,
