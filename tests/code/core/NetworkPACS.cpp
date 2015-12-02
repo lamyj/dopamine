@@ -99,7 +99,7 @@ struct TestDataOK01
 BOOST_FIXTURE_TEST_CASE(Constructor_None, TestDataOK01)
 {
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
-    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+    BOOST_CHECK_EQUAL(networkpacs.is_running(), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -136,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_None, TestDataOK01)
 BOOST_FIXTURE_TEST_CASE(Constructor_CSV, TestDataOK02)
 {
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
-    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+    BOOST_CHECK_EQUAL(networkpacs.is_running(), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -162,21 +162,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor_CSV, TestDataOK02)
 BOOST_FIXTURE_TEST_CASE(Constructor_LDAP, TestDataOK03)
 {
     dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
-    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Run
- */
-
-BOOST_FIXTURE_TEST_CASE(Run_forceStop, TestDataOK01)
-{
-    dopamine::NetworkPACS& networkpacs = dopamine::NetworkPACS::get_instance();
-    networkpacs.force_stop();
-    networkpacs.set_timeout(1);
-    networkpacs.run();
-    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+    BOOST_CHECK_EQUAL(networkpacs.is_running(), false);
 }
 
 /******************************* TEST Nominal **********************************/
@@ -193,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE(Shutdown_Request, TestDataOK01)
 
     // Start NetworkPACS (stopped by another thread)
     networkpacs.run();
-    BOOST_CHECK_EQUAL(networkpacs.get_network() != NULL, true);
+    BOOST_CHECK_EQUAL(networkpacs.is_running(), false);
 }
 
 /******************************* TEST Error ************************************/

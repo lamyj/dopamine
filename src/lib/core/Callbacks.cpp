@@ -33,7 +33,7 @@ dcmtkpp::Value::Integer echo(dcmtkpp::Association const & association,
                     association.get_user_identity_primary_field();
 
         // Look for user authorization
-        if (  services::is_authorized(connection, db_name, username, services::Service_Echo) )
+        if ( ! services::is_authorized(connection, db_name, username, services::Service_Echo) )
         {
             logger_warning() << "User not allowed to perform ECHO";
             throw dcmtkpp::Exception("User not allowed to perform ECHO");

@@ -9,41 +9,18 @@
 #ifndef _95305138_fbe7_4b3a_99d8_9f73013477fd
 #define _95305138_fbe7_4b3a_99d8_9f73013477fd
 
-#include <boost/filesystem.hpp>
-
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmnet/assoc.h>
+#include <dcmtkpp/Association.h>
+#include <dcmtkpp/Network.h>
 
 #include <mongo/client/dbclient.h>
 
-#include "authenticator/AuthenticatorCSV.h"
-#include "authenticator/AuthenticatorLDAP.h"
-#include "authenticator/AuthenticatorNone.h"
+#include "authenticator/AuthenticatorBase.h"
 
 namespace dopamine
 {
-    
-/// enumeration describing reasons for refusing an association request
-enum CTN_RefuseReason
-{
-    /// too many concurrent associations
-    CTN_TooManyAssociations,
-    /// fork system function failed
-    CTN_CannotFork,
-    /// bad application context (not DICOM)
-    CTN_BadAppContext,
-    /// unknown peer application entity title (access not authorised)
-    CTN_BadAEPeer,
-    /// unknown peer application entity title (access not authorised)
-    CTN_BadAEService,
-    /// other non-specific reason
-    CTN_NoReason
-};
 
-/**
- * @brief \class to create and manage a Network
- */
+int const TIMEOUT = 1000;
+
 class NetworkPACS
 {
 public:
@@ -52,99 +29,54 @@ public:
      * @return unique instance of NetworkPACS
      */
     static NetworkPACS & get_instance();
-    
+
     /**
      * Remove the unique instance of NetworkPACS
      */
     static void delete_instance();
-    
+
     /// Destroy the Network
     virtual ~NetworkPACS();
-    
+
     /// While loop to listen the network
     void run();
-    
-    /**
-     * Get the created network
-     * @return current network
-     */
-    T_ASC_Network* get_network() const { return this->_network; }
-    
+
     /**
      * Stop running after the next received association or time out
      */
-    void force_stop();
-    
-    /**
-     * Set the waiting time out
-     * @param new time-out value (in second)
-     */
-    void set_timeout(int const & timeout) { this->_timeout = timeout; }
+    void stop_running();
 
-    /**
-     * Get the connection with database
-     * @return database connection
-     */
-    mongo::DBClientConnection const & get_connection() const
-        { return this->_connection; }
-
-    /**
-     * Get the connection with database
-     * @return database connection
-     */
-    mongo::DBClientConnection & get_connection()
-        { return this->_connection; }
-
-    /**
-     * Get the database name
-     * @return database name
-     */
-    std::string const & get_db_name() const { return this->_db_name; }
+    bool is_running() const;
 
 protected:
-    /** perform association negotiation for an incoming A-ASSOCIATE request
-     *  based on the SCP configuration and option flags.
-     *  No A-ASSOCIATE response is generated, this is left to the caller.
-     *  @param assoc incoming association
-     *  @return EC_Normal if successful, an error code otherwise
-     */
-    OFCondition _negotiate_association(T_ASC_Association * assoc);
-  
-    void _refuse_association(T_ASC_Association ** assoc,
-                             CTN_RefuseReason reason);
-    
-    void _handle_association(T_ASC_Association * assoc);
 
 private:
     /// Create an instance of NetworkPACS and initialize the network
     NetworkPACS();
-    
+
     /// Unique Instance
     static NetworkPACS * _instance;
+
+    /// Network for listening/sending Requests and Responses
+    dcmtkpp::Network _network;
 
     /// Database connection
     mongo::DBClientConnection _connection;
 
     /// Database name
     std::string _db_name;
-    
+
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;
-    
-    /// Network for listening/sending Requests and Responses
-    T_ASC_Network * _network;
-    
-    /// flag indicating if while loop should be Stop
-    bool _force_stop;
-    
-    /// Waiting time-out
-    int _timeout;
-    
+
+    /// flag indicating Network is running
+    bool _is_running;
+
     /// Initialize the authenticator manager
     void _create_authenticator();
 
 };
-    
+
 } // namespace dopamine
 
 #endif // _95305138_fbe7_4b3a_99d8_9f73013477fd

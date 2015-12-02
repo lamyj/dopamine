@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <boost/filesystem.hpp>
+
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
