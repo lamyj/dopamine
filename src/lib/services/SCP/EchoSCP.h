@@ -6,10 +6,10 @@
  * for details.
  ************************************************************************/
 
-#ifndef _6f9b5539_5d0b_4f90_8779_314e21a8661f
-#define _6f9b5539_5d0b_4f90_8779_314e21a8661f
+#ifndef _fc8d9861_729f_4ef3_9723_9588628a4ee4
+#define _fc8d9861_729f_4ef3_9723_9588628a4ee4
 
-#include "SCP.h"
+#include <dcmtkpp/SCP.h>
 
 namespace dopamine
 {
@@ -17,41 +17,16 @@ namespace dopamine
 namespace services
 {
 
-/**
- * @brief \class SCP for C-ECHO services
- */
-class EchoSCP : public SCP
+class EchoSCP : public dcmtkpp::SCP
 {
 public:
-    /**
-     * Create a default EchoSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-ECHO request
-     */
-    EchoSCP(T_ASC_Association * association,
-            T_ASC_PresentationContextID presentation_context_id,
-            T_DIMSE_C_EchoRQ * request);
-    
-    /// Destroy the SCP
-    virtual ~EchoSCP();
-    
-    /**
-     * Send the C-ECHO response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
+    EchoSCP();
 
-protected:
-
-private:
-    /// Associated C-ECHO request
-    T_DIMSE_C_EchoRQ * _request;
-
+    virtual void operator()(dcmtkpp::message::Message const & message);
 };
 
 } // namespace services
-    
+
 } // namespace dopamine
 
-#endif // _6f9b5539_5d0b_4f90_8779_314e21a8661f
+#endif // _fc8d9861_729f_4ef3_9723_9588628a4ee4

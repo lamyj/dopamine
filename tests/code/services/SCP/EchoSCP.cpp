@@ -22,12 +22,5 @@
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::EchoSCP * echoscp =
-            new dopamine::services::EchoSCP(NULL,
-                                            T_ASC_PresentationContextID(),
-                                            NULL);
-
-    BOOST_REQUIRE_EQUAL(echoscp != NULL, true);
-
-    delete echoscp;
+    // TODO RLA
 }
