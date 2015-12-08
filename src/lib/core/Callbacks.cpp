@@ -29,32 +29,12 @@ dcmtkpp::Value::Integer echo(dcmtkpp::Association const & association,
                              dcmtkpp::message::CEchoRequest const & request,
                              services::Generator::Pointer generator)
 {
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    bool const connection_state = services::create_db_connection(connection, db_name);
-
-    if (connection_state)
+    if (generator->done())
     {
-        std::string const username =
-                    association.get_user_identity_primary_field();
-
-        // Look for user authorization
-        if ( ! services::is_authorized(connection, db_name, username,
-                                       dcmtkpp::message::Message::Command::C_ECHO_RQ) )
-        {
-            logger_warning() << "User not allowed to perform ECHO";
-            throw dcmtkpp::Exception("User not allowed to perform ECHO");
-        }
-    }
-    else
-    {
-        std::stringstream error;
-        error << "Could not connect to database: " << db_name;
-        logger_warning() << error.str();
-        throw dcmtkpp::Exception(error.str());
+        return dcmtkpp::message::CEchoResponse::Success;
     }
 
-    return dcmtkpp::message::CEchoResponse::Success;
+    return generator->next();
 }
 
 dcmtkpp::Value::Integer find(dcmtkpp::Association const & association,

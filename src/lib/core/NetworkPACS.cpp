@@ -15,6 +15,7 @@
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "core/SCPDispatcher.h"
+#include "services/EchoGenerator.h"
 #include "services/FindGenerator.h"
 #include "services/GetGenerator.h"
 #include "services/MoveGenerator.h"
@@ -125,6 +126,7 @@ void NetworkPACS::run()
     // SCP
     services::EchoSCP echoscp;
     echoscp.set_callback(echo);
+    echoscp.set_generator(services::EchoGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_ECHO_RQ, echoscp);
 
     services::FindSCP findscp;

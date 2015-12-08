@@ -63,25 +63,35 @@ EchoSCP
 {
     dcmtkpp::message::CEchoRequest const request(message);
 
-    dcmtkpp::Value::Integer status = dcmtkpp::message::CEchoResponse::Success;
-
-    try
+    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    if (status != dcmtkpp::message::CEchoResponse::Pending)
     {
-        status = this->_callback(*this->_association, request, this->_generator);
+        // Send Error
+        dcmtkpp::message::CEchoResponse response(
+            request.get_message_id(), status,
+                    request.get_affected_sop_class_uid());
+        this->_send(response, request.get_affected_sop_class_uid());
     }
-    catch(dcmtkpp::Exception const & exception)
+    else
     {
-        status = dcmtkpp::message::CEchoResponse::MistypedArgument;
-        // Error Comment
-        // Error ID
-        // Affected SOP Class UID
+        try
+        {
+            status = this->_callback(*this->_association, request, this->_generator);
+        }
+        catch(dcmtkpp::Exception const & exception)
+        {
+            status = dcmtkpp::message::CEchoResponse::MistypedArgument;
+            // Error Comment
+            // Error ID
+            // Affected SOP Class UID
+        }
+
+        dcmtkpp::message::CEchoResponse response(
+            request.get_message_id(), status,
+            request.get_affected_sop_class_uid());
+
+        this->_send(response, request.get_affected_sop_class_uid());
     }
-
-    dcmtkpp::message::CEchoResponse response(
-        request.get_message_id(), status,
-        request.get_affected_sop_class_uid());
-
-    this->_send(response, request.get_affected_sop_class_uid());
 }
 
 } // namespace services

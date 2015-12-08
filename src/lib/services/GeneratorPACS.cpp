@@ -272,6 +272,11 @@ bool
 GeneratorPACS
 ::done() const
 {
+    if (this->_cursor == NULL)
+    {
+        return true;
+    }
+
     return !this->_cursor->more();
 }
 
