@@ -13,6 +13,7 @@
 #include <dcmtkpp/message/CEchoResponse.h>
 #include <dcmtkpp/Network.h>
 
+#include "services/EchoGenerator.h"
 #include "services/SCP/EchoSCP.h"
 
 /******************************* TEST Nominal **********************************/
@@ -78,4 +79,9 @@ BOOST_AUTO_TEST_CASE(Accessors)
     getcallback = echoscp.get_callback();
     BOOST_REQUIRE_EQUAL(getcallback(association, request, NULL),
                         dcmtkpp::message::CEchoResponse::Pending);
+
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(echoscp.get_generator() == NULL);
+    echoscp.set_generator(dopamine::services::EchoGenerator::New());
+    BOOST_REQUIRE(echoscp.get_generator() != NULL);
 }

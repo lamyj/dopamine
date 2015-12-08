@@ -30,7 +30,8 @@ namespace services
 class SCP : public dcmtkpp::ServiceRole
 {
 public:
-    /// @brief Create a default Service Class Provider with no network and no association.
+    /// @brief Create a default Service Class Provider
+    ///        with no network and no association.
     SCP();
 
     /// @brief Create a Service Class Provider with network and association.
