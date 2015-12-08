@@ -11,6 +11,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include <dcmtkpp/message/CGetResponse.h>
 #include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Writer.h>
 
@@ -35,9 +36,9 @@ Wado_uri
     mongo::BSONObj const object = this->_parse_string();
 
     auto status = generator->initialize(object);
-    if (status != dcmtkpp::message::Response::Pending)
+    if (status != dcmtkpp::message::CGetResponse::Pending)
     {
-        if ( ! generator->is_allow())
+        if (status == dcmtkpp::message::CGetResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);

@@ -34,12 +34,16 @@ SCP
     // Nothing to do.
 }
 
-const Generator::Pointer SCP::get_generator() const
+Generator::Pointer const
+SCP
+::get_generator() const
 {
     return this->_generator;
 }
 
-void SCP::set_generator(const Generator::Pointer generator)
+void
+SCP
+::set_generator(Generator::Pointer const generator)
 {
     this->_generator = generator;
 }

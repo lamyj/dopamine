@@ -124,7 +124,7 @@ StoreGenerator
     {
         // We already have this SOP Instance UID, do not store it
         logger_warning() << "Store: SOP Instance UID already register";
-        return dcmtkpp::message::Response::Pending; // Nothing to do
+        return dcmtkpp::message::CStoreResponse::Pending; // Nothing to do
     }
 
     return insert_dataset(this->_connection, this->_db_name,

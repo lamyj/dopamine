@@ -13,6 +13,7 @@
 #include <boost/regex.hpp>
 
 #include <dcmtkpp/registry.h>
+#include <dcmtkpp/message/CFindResponse.h>
 #include <dcmtkpp/message/Response.h>
 
 #include "ConverterBSON/bson_converter.h"
@@ -104,9 +105,9 @@ Qido_rs
     generator->set_fuzzy_matching(this->_fuzzy_matching);
 
     auto status = generator->initialize(object);
-    if (status != dcmtkpp::message::Response::Pending)
+    if (status != dcmtkpp::message::CFindResponse::Pending)
     {
-        if ( ! generator->is_allow())
+        if (status == dcmtkpp::message::CFindResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);

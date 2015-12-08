@@ -13,6 +13,7 @@
 
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/Reader.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 #include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/registry.h>
 
@@ -276,7 +277,7 @@ Stow_rs
                 StoreGenerator::Pointer generator = StoreGenerator::New();
                 result = generator->initialize(dataset);
 
-                if ( ! generator->is_allow())
+                if (result == dcmtkpp::message::CStoreResponse::RefusedNotAuthorized)
                 {
                     throw WebServiceException(401, "Unauthorized",
                                               authentication_string);

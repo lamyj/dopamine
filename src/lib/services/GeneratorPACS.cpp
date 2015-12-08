@@ -245,7 +245,7 @@ GeneratorPACS
 
 GeneratorPACS
 ::GeneratorPACS():
-    _isconnected(false), _username(""), _allow(false)
+    _isconnected(false), _username("")
 {
     // Nothing else.
 }
@@ -256,7 +256,10 @@ GeneratorPACS
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer GeneratorPACS::initialize(dcmtkpp::Association const & association, dcmtkpp::message::Message const & message)
+dcmtkpp::Value::Integer
+GeneratorPACS
+::initialize(dcmtkpp::Association const & association,
+             dcmtkpp::message::Message const & message)
 {
     // Get user identity
     this->_username = association.get_user_identity_primary_field();
@@ -292,13 +295,6 @@ GeneratorPACS
 ::set_username(const std::string &name)
 {
     this->_username = name;
-}
-
-bool
-GeneratorPACS
-::is_allow() const
-{
-    return this->_allow;
 }
 
 GeneratorPACS::Match::Type

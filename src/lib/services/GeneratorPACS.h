@@ -63,12 +63,6 @@ public:
 
     void set_username(std::string const & name);
 
-    /**
-     * @brief Accessor for the attribute _allow
-     * @return attribute _allow
-     */
-    bool is_allow() const;
-
     dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag, dcmtkpp::VR const & vr, std::string const & value);
 
 protected:
@@ -86,9 +80,6 @@ protected:
 
     /// Cursor to the database
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
-
-    /// Indicate if user is allowed to process operation
-    bool _allow;
 
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr,

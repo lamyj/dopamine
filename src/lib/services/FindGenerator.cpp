@@ -275,7 +275,7 @@ FindGenerator
                                             query, this->_maximum_results,
                                             this->_skipped_results, &fields);
 
-    return dcmtkpp::message::Response::Pending;
+    return dcmtkpp::message::CFindResponse::Pending;
 }
 
 void
