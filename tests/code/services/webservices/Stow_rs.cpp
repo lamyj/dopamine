@@ -15,10 +15,10 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "services/ServicesTools.h"
-#include "services/webservices/Stow_rs.h"
-#include "services/webservices/WebServiceException.h"
+//#include "services/webservices/Stow_rs.h"
+//#include "services/webservices/WebServiceException.h"
 #include "../ServicesTestClass.h"
-
+/*
 class TestDataRequest : public ServicesTestClass
 {
 public:
@@ -83,7 +83,7 @@ public:
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs Accessors
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 {
     std::stringstream dataset;
@@ -102,7 +102,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -172,7 +172,7 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 3 dataset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -271,7 +271,7 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -377,7 +377,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert DICOM already register
- */
+ *
 BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -444,7 +444,7 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs check return status code
- */
+ *
 BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -635,7 +635,7 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 identified Study
- */
+ *
 BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -707,7 +707,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 wrong Study
- */
+ *
 BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -782,7 +782,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Bad content-type for the part
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -850,7 +850,7 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Cannot read dataset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
@@ -919,7 +919,7 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Content-type not supported
- */
+ *
 BOOST_FIXTURE_TEST_CASE(TypeNotSupported, TestDataRequest)
 {
     {
@@ -980,7 +980,7 @@ BOOST_FIXTURE_TEST_CASE(TypeNotSupported, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Not allow
- */
+ *
 BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
 {
     // Check SOP Instance UID not present in database
@@ -1033,7 +1033,7 @@ BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad parameter (first parameter should be studies)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadParameter, TestDataRequest)
 {
     BOOST_CHECK_EXCEPTION(dopamine::services::Stow_rs("/badValue", "",
@@ -1047,7 +1047,7 @@ BOOST_FIXTURE_TEST_CASE(BadParameter, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing parameter
- */
+ *
 BOOST_FIXTURE_TEST_CASE(MissingParameter, TestDataRequest)
 {
     BOOST_CHECK_EXCEPTION(dopamine::services::Stow_rs("", "",
@@ -1061,7 +1061,7 @@ BOOST_FIXTURE_TEST_CASE(MissingParameter, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Too Many parameter
- */
+ *
 BOOST_FIXTURE_TEST_CASE(TooManyParameter, TestDataRequest)
 {
     BOOST_CHECK_EXCEPTION(dopamine::services::Stow_rs("/studies/1.2.3/tooMany",
@@ -1075,7 +1075,7 @@ BOOST_FIXTURE_TEST_CASE(TooManyParameter, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad Content-Type
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadContentType, TestDataRequest)
 {
     {
@@ -1134,7 +1134,7 @@ BOOST_FIXTURE_TEST_CASE(BadContentType, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Media type not supported
- */
+ *
 BOOST_FIXTURE_TEST_CASE(UnknownMediaType, TestDataRequest)
 {
     std::stringstream dataset;
@@ -1162,3 +1162,4 @@ BOOST_FIXTURE_TEST_CASE(UnknownMediaType, TestDataRequest)
                             { return (exc.status() == 400 &&
                                       exc.statusmessage() == "Bad Request"); });
 }
+*/

@@ -10,18 +10,24 @@
 
 #include <dcmtkpp/Exception.h>
 #include <dcmtkpp/message/CEchoResponse.h>
+#include <dcmtkpp/message/CFindResponse.h>
+#include <dcmtkpp/message/CGetResponse.h>
+#include <dcmtkpp/message/CMoveResponse.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 
 #include <mongo/client/dbclientinterface.h>
 
 #include "core/Callbacks.h"
 #include "core/LoggerPACS.h"
 #include "services/ServicesTools.h"
+//#include "services/StoreGenerator.h"
 
 namespace dopamine
 {
 
 dcmtkpp::Value::Integer echo(dcmtkpp::Association const & association,
-                             dcmtkpp::message::CEchoRequest const & request)
+                             dcmtkpp::message::CEchoRequest const & request,
+                             services::Generator::Pointer generator)
 {
     mongo::DBClientConnection connection;
     std::string db_name;
@@ -48,6 +54,54 @@ dcmtkpp::Value::Integer echo(dcmtkpp::Association const & association,
     }
 
     return dcmtkpp::message::CEchoResponse::Success;
+}
+
+dcmtkpp::Value::Integer find(dcmtkpp::Association const & association,
+                             dcmtkpp::message::CFindRequest const & request,
+                             services::Generator::Pointer generator)
+{
+    if (generator->done())
+    {
+        return dcmtkpp::message::CFindResponse::Success;
+    }
+
+    return generator->next();
+}
+
+dcmtkpp::Value::Integer get(dcmtkpp::Association const & association,
+                            dcmtkpp::message::CGetRequest const & request,
+                            services::Generator::Pointer generator)
+{
+    if (generator->done())
+    {
+        return dcmtkpp::message::CGetResponse::Success;
+    }
+
+    return generator->next();
+}
+
+dcmtkpp::Value::Integer move(dcmtkpp::Association const & association,
+                             dcmtkpp::message::CMoveRequest const & request,
+                             services::Generator::Pointer generator)
+{
+    if (generator->done())
+    {
+        return dcmtkpp::message::CMoveResponse::Success;
+    }
+
+    return generator->next();
+}
+
+dcmtkpp::Value::Integer store(dcmtkpp::Association const & association,
+                              dcmtkpp::message::CStoreRequest const & request,
+                              services::Generator::Pointer generator)
+{
+    if (generator->done())
+    {
+        return dcmtkpp::message::CMoveResponse::Success;
+    }
+
+    return generator->next();
 }
 
 } // namespace dopamine

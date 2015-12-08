@@ -9,7 +9,9 @@
 #ifndef _fc8d9861_729f_4ef3_9723_9588628a4ee4
 #define _fc8d9861_729f_4ef3_9723_9588628a4ee4
 
-#include <dcmtkpp/SCP.h>
+#include <dcmtkpp/message/CEchoRequest.h>
+
+#include "SCP.h"
 
 namespace dopamine
 {
@@ -17,12 +19,13 @@ namespace dopamine
 namespace services
 {
 
-class EchoSCP : public dcmtkpp::SCP
+class EchoSCP : public SCP
 {
 public:
     /// @brief Callback called when a request is received.
     typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
-                                                  dcmtkpp::message::CEchoRequest const &)> Callback;
+                                                  dcmtkpp::message::CEchoRequest const &,
+                                                  Generator::Pointer)> Callback;
 
     /// @brief Default constructor.
     EchoSCP();

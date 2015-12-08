@@ -9,7 +9,8 @@
 #ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
 #define _7e2166a1_25b3_48eb_8226_abe9d64ba064
 
-#include "services/RetrieveGenerator.h"
+#include <dcmtkpp/message/CMoveRequest.h>
+
 #include "services/SCP/SCP.h"
 
 namespace dopamine
@@ -21,37 +22,39 @@ namespace services
 /**
  * @brief \class SCP for C-MOVE services
  */
-class MoveSCP : public services::SCP
+class MoveSCP : public SCP
 {
 public:
-    /**
-     * Create a default MoveSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-STORE request
-     */
-    MoveSCP(T_ASC_Association * association,
-            T_ASC_PresentationContextID presentation_context_id,
-            T_DIMSE_C_MoveRQ * request);
-    
-    /// Destroy the SCP
+    /// @brief Callback called when a request is received.
+    typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
+                                                  dcmtkpp::message::CMoveRequest const &,
+                                                  Generator::Pointer)> Callback;
+
+    /// @brief Default constructor.
+    MoveSCP();
+
+    /// @brief Constructor with default callback.
+    MoveSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+
+    /// @brief Constructor.
+    MoveSCP(
+        dcmtkpp::Network * network, dcmtkpp::Association * association,
+        Callback const & callback);
+
+    /// @brief Destructor.
     virtual ~MoveSCP();
-    
-    /**
-     * Send the C-MOVE response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
 
-    void set_network(T_ASC_Network *network);
+    /// @brief Return the callback.
+    Callback const & get_callback() const;
 
-protected:
+    /// @brief Set the callback.
+    void set_callback(Callback const & callback);
+
+    /// @brief Process a C-Move request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-MOVE request
-    T_DIMSE_C_MoveRQ * _request;
-
-    T_ASC_Network * _network;
+    Callback _callback;
     
 };
 

@@ -14,6 +14,7 @@
 #include <boost/regex.hpp>
 
 #include <dcmtkpp/conversion.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 #include <dcmtkpp/Reader.h>
 #include <dcmtkpp/registry.h>
 #include <dcmtkpp/Writer.h>
@@ -329,14 +330,14 @@ dataset_to_bson(dcmtkpp::DataSet const & dataset, bool isforstorage)
     return as_bson(dataset, FilterAction::INCLUDE, filters);
 }
 
-dcmtkpp::DataSet
+std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
 bson_to_dataset(mongo::DBClientConnection &connection,
                 std::string const & db_name,
                 mongo::BSONObj object)
 {
     if ( ! object.hasField("Content"))
     {
-        return as_dataset(object);
+        return std::make_pair(dcmtkpp::DataSet(), as_dataset(object));
     }
 
     std::stringstream value;
@@ -354,11 +355,10 @@ bson_to_dataset(mongo::DBClientConnection &connection,
         throw ExceptionPACS(error.str());
     }
 
-    auto const & data_set = file.second;
-    return data_set;
+    return file;
 }
 
-database_status
+dcmtkpp::Value::Integer
 insert_dataset(mongo::DBClientConnection &connection,
                std::string const & db_name,
                std::string const & username,
@@ -369,13 +369,13 @@ insert_dataset(mongo::DBClientConnection &connection,
     mongo::BSONObj object = dataset_to_bson(dataset, true);
     if (!object.isValid() || object.isEmpty())
     {
-        return CONVERSION_ERROR;
+        return dcmtkpp::message::CStoreResponse::ErrorCannotUnderstand;
     }
 
     // Check user's constraints (user's Rights)
     if (!is_dataset_allowed_for_storage(connection, db_name, username, object))
     {
-        return NOT_ALLOW;
+        return dcmtkpp::message::CStoreResponse::RefusedNotAuthorized;
     }
 
     mongo::BSONObjBuilder builder;
@@ -413,7 +413,7 @@ insert_dataset(mongo::DBClientConnection &connection,
         if (!objret.isValid() || objret.isEmpty())
         {
             // Return an error
-            return INSERTION_FAILED;
+            return dcmtkpp::message::CStoreResponse::ProcessingFailure;
         }
 
         // Prepare for insertion into database
@@ -441,10 +441,10 @@ insert_dataset(mongo::DBClientConnection &connection,
         }
 
         // Return an error
-        return INSERTION_FAILED;
+        return dcmtkpp::message::CStoreResponse::ProcessingFailure;
     }
 
-    return NO_ERROR;
+    return dcmtkpp::message::CStoreResponse::Success;
 }
 
 bool

@@ -18,7 +18,6 @@
 
 #include "core/ConfigurationPACS.h"
 #include "services/webservices/Qido_rs.h"
-#include "services/webservices/Webservices.h"
 #include "services/webservices/WebServiceException.h"
 
 int main(int argc, char** argv)

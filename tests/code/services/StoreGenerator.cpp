@@ -14,7 +14,7 @@
 
 #include "core/ExceptionPACS.h"
 #include "ServicesTestClass.h"
-#include "services/StoreGenerator.h"
+//#include "services/StoreGenerator.h"
 #include "services/ServicesTools.h"
 
 class TestDataGenerator_constraint : public ServicesTestClass
@@ -75,7 +75,7 @@ public:
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
 {
     dopamine::services::StoreGenerator * storegenerator =
@@ -89,7 +89,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Getter and Setter
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 {
     dopamine::services::StoreGenerator generator("");
@@ -107,7 +107,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Function Cancel
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
 {
     dopamine::services::StoreGenerator generator("");
@@ -119,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Empty request
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
@@ -155,7 +155,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Insert all attribute VR
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
@@ -248,7 +248,7 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Perform Store with user constraint
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
@@ -287,7 +287,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Connection with database is failed
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 {
     dopamine::services::StoreGenerator generator("");
@@ -298,7 +298,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: User is not allow to perform query
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
     dcmtkpp::DataSet dataset;
@@ -323,7 +323,7 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing mandatory field SOPInstanceUID
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
 {
     dopamine::services::StoreGenerator generator("");
@@ -336,3 +336,4 @@ BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, 0xa700);
 }
+*/

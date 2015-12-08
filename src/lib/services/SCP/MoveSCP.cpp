@@ -6,14 +6,11 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/conversion.h>
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/message/Response.h>
-#include <dcmtkpp/Tag.h>
+#include <dcmtkpp/message/CMoveResponse.h>
+#include <dcmtkpp/StoreSCU.h>
 
-#include "core/LoggerPACS.h"
+#include "core/ConfigurationPACS.h"
 #include "MoveSCP.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -21,152 +18,141 @@ namespace dopamine
 namespace services
 {
 
-/**
- * Callback handler called by the DIMSE_moveProvider callback function
- * @param callbackdata: Callback context (in)
- * @param cancelled: flag indicating wheter a C-CANCEL was received (in)
- * @param request: original move request (in)
- * @param requestIdentifiers: original move request identifiers (in)
- * @param responseCount: move response count (in)
- * @param response: final move response (out)
- * @param stDetail: status detail for move response (out)
- * @param responseIdentifiers: move response identifiers (out)
- */
-static void move_callback(
-        /* in */
-        void *callbackData,
-        OFBool cancelled, T_DIMSE_C_MoveRQ* request,
-        DcmDataset* requestIdentifiers, int responseCount,
-        /* out */
-        T_DIMSE_C_MoveRSP* response,
-        DcmDataset** stDetail, DcmDataset** responseIdentifiers)
-{
-    RetrieveContext * context =
-            reinterpret_cast<RetrieveContext*>(callbackData);
-
-    Uint16 status = dcmtkpp::message::Response::Pending;
-    dcmtkpp::DataSet details;
-
-    if (responseCount == 1)
-    {
-        status = context->get_generator()->process_dataset(dcmtkpp::convert(requestIdentifiers),
-                                                           false);
-
-        if (status != dcmtkpp::message::Response::Pending)
-        {
-            details = create_status_detail(
-                    status, dcmtkpp::Tag(0xffff, 0xffff),
-                    "An error occured while processing Move operation");
-        }
-
-        // Create Move SubAssociation
-        OFCondition condition =
-                context->get_storeprovider()->build_sub_association(
-                                request->MoveDestination);
-        if (condition.bad())
-        {
-            dopamine::logger_error() << "Cannot create sub association: "
-                                    << condition.text();
-            details = create_status_detail(
-                    0xc000, dcmtkpp::Tag(0xffff, 0xffff),
-                    condition.text());
-
-            status = 0xc000; // Unable to process
-        }
-    }
-
-    /* only cancel if we have pending responses */
-    if (cancelled && status == dcmtkpp::message::Response::Pending)
-    {
-        // Todo: not implemented yet
-        context->get_generator()->cancel();
-    }
-
-    /* Process next result */
-    if (status == dcmtkpp::message::Response::Pending)
-    {
-        mongo::BSONObj const object = context->get_generator()->next();
-
-        if (object.isValid() && object.isEmpty())
-        {
-            // We're done.
-            status = dcmtkpp::message::Response::Success;
-        }
-        else
-        {
-            OFCondition condition =
-                context->get_storeprovider()->perform_sub_operation(
-                        context->get_generator()->retrieve_dataset(object),
-                        request->Priority);
-
-            if (condition.bad())
-            {
-                dopamine::logger_error() << "Cannot process sub association: "
-                                         << condition.text();
-                details = create_status_detail(
-                        0xc000, dcmtkpp::Tag(0xffff, 0xffff),
-                        condition.text());
-
-                status = 0xc000; // Unable to process
-            }
-            // else status = dcmtkpp::message::Response::Pending
-        }
-    }
-
-    /* set response status */
-    response->DimseStatus = status;
-    if (status == dcmtkpp::message::Response::Pending || status == dcmtkpp::message::Response::Success)
-    {
-        (*stDetail) = NULL;
-    }
-    else
-    {
-        (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
-    }
-}
-    
 MoveSCP
-::MoveSCP(T_ASC_Association * association,
-          T_ASC_PresentationContextID presentation_context_id,
-          T_DIMSE_C_MoveRQ * request):
-    services::SCP(association, presentation_context_id),
-    _request(request), _network(NULL)
+::MoveSCP() :
+    SCP(), _callback()
 {
-    // Nothing to do
+    // Nothing else.
 }
 
 MoveSCP
-::~MoveSCP()
+::MoveSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
+    SCP(network, association), _callback()
 {
-    // Nothing to do
+    // Nothing else.
 }
 
-OFCondition
 MoveSCP
-::process()
+::MoveSCP(dcmtkpp::Network *network, dcmtkpp::Association *association,
+          MoveSCP::Callback const & callback) :
+    SCP(network, association), _callback()
 {
-   dopamine::logger_info() << "Received Move SCP: MsgID "
-                               << this->_request->MessageID;
+    this->set_callback(callback);
+}
 
-    std::string const username =
-           get_username(this->_association->params->DULparams.reqUserIdentNeg);
-    RetrieveGenerator generator(username);
+MoveSCP::~MoveSCP()
+{
+    // Nothing to do.
+}
 
-    StoreSubOperation storeprovider(this->_network, this->_association,
-                                    this->_request->MessageID);
-
-    RetrieveContext context(&generator, &storeprovider);
-    
-    return DIMSE_moveProvider(this->_association, this->_presentation_context_id,
-                              this->_request, move_callback, &context,
-                              DIMSE_BLOCKING, 0);
+MoveSCP::Callback const &
+MoveSCP
+::get_callback() const
+{
+    return this->_callback;
 }
 
 void
 MoveSCP
-::set_network(T_ASC_Network *network)
+::set_callback(MoveSCP::Callback const & callback)
 {
-    this->_network = network;
+    this->_callback = callback;
+}
+
+void
+MoveSCP
+::operator()(dcmtkpp::message::Message const & message)
+{
+    dcmtkpp::message::CMoveRequest const request(message);
+
+    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    if (status != dcmtkpp::message::CMoveResponse::Pending)
+    {
+        // Send Error
+        dcmtkpp::message::CMoveResponse response(
+            request.get_message_id(), status);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
+
+    std::string peer_host_name_and_port;
+    if (!ConfigurationPACS::
+            get_instance().peer_for_aetitle(request.get_move_destination(),
+                                            peer_host_name_and_port))
+    {
+        // Send Error
+        dcmtkpp::message::CMoveResponse response(
+            request.get_message_id(), dcmtkpp::message::CMoveResponse::RefusedMoveDestinationUnknown);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
+
+    dcmtkpp::Association association;
+
+    association.set_own_ae_title(this->_association->get_own_ae_title());
+    std::string peer_host_name = peer_host_name_and_port.substr(0, peer_host_name_and_port.find(':'));
+    association.set_peer_host_name(peer_host_name);
+    std::string peer_port = peer_host_name_and_port.substr(peer_host_name_and_port.find(':')+1);
+    association.set_peer_port(atoi(peer_port.c_str()));
+    association.set_peer_ae_title(request.get_move_destination());
+
+    // TODO modify, add all presentation context
+    association.add_presentation_context(
+        dcmtkpp::registry::MRImageStorage,
+        { dcmtkpp::registry::ImplicitVRLittleEndian });
+
+    association.add_presentation_context(
+        dcmtkpp::registry::EnhancedMRImageStorage,
+        { dcmtkpp::registry::ImplicitVRLittleEndian });
+
+    association.add_presentation_context(
+        dcmtkpp::registry::VerificationSOPClass,
+        { dcmtkpp::registry::ImplicitVRLittleEndian });
+    // End TODO
+
+    association.associate(*(this->_network));
+
+    dcmtkpp::StoreSCU scu;
+    scu.set_network(this->_network);
+    scu.set_association(&association);
+
+    try
+    {
+        scu.echo();
+    }
+    catch (dcmtkpp::Exception const & exc)
+    {
+        // Send Error
+        dcmtkpp::message::CMoveResponse response(
+            request.get_message_id(), dcmtkpp::message::CMoveResponse::UnableToProcess);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
+
+    while (status == dcmtkpp::message::CMoveResponse::Pending)
+    {
+        try
+        {
+            status = this->_callback(*this->_association, request, this->_generator);
+        }
+        catch(dcmtkpp::Exception const & exception)
+        {
+            status = dcmtkpp::message::CMoveResponse::Status::UnableToProcess;
+            // Error Comment
+            // Error ID
+            // Affected SOP Class UID
+        }
+
+        if (status == dcmtkpp::message::CMoveResponse::Pending)
+        {
+            // send CSTORE request
+            scu.set_affected_sop_class(this->_generator->get().second);
+            scu.store(this->_generator->get().second);
+        }
+
+        dcmtkpp::message::CMoveResponse response(
+            request.get_message_id(), status);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
+
+    association.release();
 }
 
 } // namespace services

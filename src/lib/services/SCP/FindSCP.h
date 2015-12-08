@@ -9,7 +9,9 @@
 #ifndef _c3674b2f_3f18_4264_89db_24dd4aaec99a
 #define _c3674b2f_3f18_4264_89db_24dd4aaec99a
 
-#include "services/SCP/SCP.h"
+#include <dcmtkpp/message/CFindRequest.h>
+
+#include "SCP.h"
 
 namespace dopamine
 {
@@ -20,33 +22,39 @@ namespace services
 /**
  * @brief \class SCP for C-FIND services
  */
-class FindSCP : public services::SCP
+class FindSCP : public SCP
 {
 public:
-    /**
-     * Create a default FindSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-FIND request
-     */
-    FindSCP(T_ASC_Association * association,
-            T_ASC_PresentationContextID presentation_context_id,
-            T_DIMSE_C_FindRQ * request);
-    
-    /// Destroy the SCP
-    virtual ~FindSCP();
-    
-    /**
-     * Send the C-FIND response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
+    /// @brief Callback called when a request is received.
+    typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
+                                                  dcmtkpp::message::CFindRequest const &,
+                                                  Generator::Pointer)> Callback;
 
-protected:
+    /// @brief Default constructor.
+    FindSCP();
+
+    /// @brief Constructor with default callback.
+    FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+
+    /// @brief Constructor.
+    FindSCP(
+        dcmtkpp::Network * network, dcmtkpp::Association * association,
+        Callback const & callback);
+
+    /// @brief Destructor.
+    virtual ~FindSCP();
+
+    /// @brief Return the callback.
+    Callback const & get_callback() const;
+
+    /// @brief Set the callback.
+    void set_callback(Callback const & callback);
+
+    /// @brief Process a C-Find request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-FIND request
-    T_DIMSE_C_FindRQ * _request;
+    Callback _callback;
 
 };
 

@@ -11,13 +11,36 @@
 
 #include <dcmtkpp/Association.h>
 #include <dcmtkpp/message/CEchoRequest.h>
+#include <dcmtkpp/message/CFindRequest.h>
+#include <dcmtkpp/message/CGetRequest.h>
+#include <dcmtkpp/message/CMoveRequest.h>
+#include <dcmtkpp/message/CStoreRequest.h>
 #include <dcmtkpp/Value.h>
+
+#include "services/Generator.h"
 
 namespace dopamine
 {
 
 dcmtkpp::Value::Integer echo(dcmtkpp::Association const & association,
-                             dcmtkpp::message::CEchoRequest const & request);
+                             dcmtkpp::message::CEchoRequest const & request,
+                             services::Generator::Pointer generator);
+
+dcmtkpp::Value::Integer find(dcmtkpp::Association const & association,
+                             dcmtkpp::message::CFindRequest const & request,
+                             services::Generator::Pointer generator);
+
+dcmtkpp::Value::Integer get(dcmtkpp::Association const & association,
+                            dcmtkpp::message::CGetRequest const & request,
+                            services::Generator::Pointer generator);
+
+dcmtkpp::Value::Integer move(dcmtkpp::Association const & association,
+                             dcmtkpp::message::CMoveRequest const & request,
+                             services::Generator::Pointer generator);
+
+dcmtkpp::Value::Integer store(dcmtkpp::Association const & association,
+                              dcmtkpp::message::CStoreRequest const & request,
+                              services::Generator::Pointer generator);
 
 } // namespace dopamine
 

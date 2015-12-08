@@ -11,8 +11,8 @@
 #include <mimetic/mimeentity.h>
 
 #include "core/ExceptionPACS.h"
-#include "services/webservices/Qido_rs.h"
-#include "services/webservices/WebServiceException.h"
+//#include "services/webservices/Qido_rs.h"
+//#include "services/webservices/WebServiceException.h"
 #include "../ServicesTestClass.h"
 
 class TestDataRequest : public ServicesTestClass
@@ -68,7 +68,7 @@ public:
         // Nothing to do
     }
 };
-
+/*
 mimetic::MimeEntity to_MIME_message(std::string const & message,
                                     std::string const & boundary)
 {
@@ -88,7 +88,7 @@ mimetic::MimeEntity to_MIME_message(std::string const & message,
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs Accessors
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 {
     dopamine::services::Qido_rs qidors_xml(
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Study level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -206,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
     }
 }
 
-/******************************* TEST Nominal **********************************/
+/******************************* TEST Nominal **********************************
 BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -274,7 +274,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -375,7 +375,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -445,7 +445,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
 {
     std::string const pathinfo = "/series";
@@ -560,7 +560,7 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/series";
@@ -641,7 +641,7 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -739,7 +739,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -805,7 +805,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -914,7 +914,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
 {
     std::stringstream streampathinfo;
@@ -991,7 +991,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
 {
     std::string const pathinfo = "/instances";
@@ -1119,7 +1119,7 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/instances";
@@ -1206,7 +1206,7 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request IncludeField
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -1312,7 +1312,7 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request Limit
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -1388,7 +1388,7 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request Offset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -1457,7 +1457,7 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Study level)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -1533,7 +1533,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad query
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
 {
     std::vector<std::string> pathinfo_to_test =
@@ -1567,7 +1567,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad tag
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
 {
     std::string const pathinfo = "/instances";
@@ -1587,7 +1587,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Fuzzy Matching (not implemented)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestFuzzyMatching, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -1603,3 +1603,4 @@ BOOST_FIXTURE_TEST_CASE(RequestFuzzyMatching, TestDataRequest)
                     { return (exc.status() == 299 &&
                               exc.statusmessage() == "Warning"); });
 }
+*/

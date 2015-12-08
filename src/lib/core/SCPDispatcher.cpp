@@ -6,17 +6,15 @@
  * for details.
  ************************************************************************/
 
-#include "SCPDispatcher.h"
-
 #include <map>
 #include <memory>
 
 #include <dcmtkpp/Exception.h>
-#include <dcmtkpp/SCP.h>
 #include <dcmtkpp/ServiceRole.h>
 #include <dcmtkpp/Value.h>
 
 #include "LoggerPACS.h"
+#include "SCPDispatcher.h"
 
 namespace dopamine
 {
@@ -49,7 +47,7 @@ SCPDispatcher
     return (it != this->_providers.end());
 }
 
-dcmtkpp::SCP const &
+services::SCP const &
 SCPDispatcher
 ::get_scp(dcmtkpp::Value::Integer command) const
 {
@@ -61,7 +59,7 @@ SCPDispatcher
     return *(it->second);
 }
 
-dcmtkpp::SCP &
+services::SCP &
 SCPDispatcher
 ::get_scp(dcmtkpp::Value::Integer command)
 {

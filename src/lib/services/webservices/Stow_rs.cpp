@@ -36,7 +36,7 @@ Stow_rs
           std::string const & querystring,
           std::string const & postdata,
           std::string const & remoteuser):
-    Webservices(pathinfo, querystring, remoteuser),
+    Webservices(pathinfo, querystring),
     _content_type(""), _status(200), _code("OK")
 {
     // Decode entries
@@ -273,10 +273,10 @@ Stow_rs
             if (result == dcmtkpp::message::Response::Pending)
             {
                 // Insert dataset into DataBase
-                StoreGenerator generator(this->_username);
-                result = generator.process_dataset(dataset, true);
+                StoreGenerator::Pointer generator = StoreGenerator::New();
+                result = generator->initialize(dataset);
 
-                if ( ! generator.is_allow())
+                if ( ! generator->is_allow())
                 {
                     throw WebServiceException(401, "Unauthorized",
                                               authentication_string);

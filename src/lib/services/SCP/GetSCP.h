@@ -9,7 +9,8 @@
 #ifndef _9514edbc_0abe_4f43_bf55_f064fb974d2e
 #define _9514edbc_0abe_4f43_bf55_f064fb974d2e
 
-#include "services/RetrieveGenerator.h"
+#include <dcmtkpp/message/CGetRequest.h>
+
 #include "services/SCP/SCP.h"
 
 namespace dopamine
@@ -17,37 +18,43 @@ namespace dopamine
 
 namespace services
 {
-    
+
 /**
  * @brief \class SCP for C-GET services
  */
-class GetSCP : public services::SCP
+class GetSCP : public SCP
 {
 public:
-    /**
-     * Create a default GetSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-GET request
-     */
-    GetSCP(T_ASC_Association * association,
-           T_ASC_PresentationContextID presentation_context_id,
-           T_DIMSE_C_GetRQ * request);
-    
-    /// Destroy the SCP
-    virtual ~GetSCP();
-    
-    /**
-     * Send the C-GET response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
+    /// @brief Callback called when a request is received.
+    typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
+                                                  dcmtkpp::message::CGetRequest const &,
+                                                  Generator::Pointer)> Callback;
 
-protected:
+    /// @brief Default constructor.
+    GetSCP();
+
+    /// @brief Constructor with default callback.
+    GetSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+
+    /// @brief Constructor.
+    GetSCP(
+        dcmtkpp::Network * network, dcmtkpp::Association * association,
+        Callback const & callback);
+
+    /// @brief Destructor.
+    virtual ~GetSCP();
+
+    /// @brief Return the callback.
+    Callback const & get_callback() const;
+
+    /// @brief Set the callback.
+    void set_callback(Callback const & callback);
+
+    /// @brief Process a C-Get request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-GET request
-    T_DIMSE_C_GetRQ * _request;
+    Callback _callback;
 
 };
 

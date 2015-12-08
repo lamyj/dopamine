@@ -18,14 +18,14 @@ namespace services
 
 EchoSCP
 ::EchoSCP() :
-    dcmtkpp::SCP(), _callback()
+    SCP(), _callback()
 {
     // Nothing else.
 }
 
 EchoSCP
 ::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
-    dcmtkpp::SCP(network, association), _callback()
+    SCP(network, association), _callback()
 {
     // Nothing else.
 }
@@ -33,7 +33,7 @@ EchoSCP
 EchoSCP
 ::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association,
           EchoSCP::Callback const & callback) :
-    dcmtkpp::SCP(network, association), _callback()
+    SCP(network, association), _callback()
 {
     this->set_callback(callback);
 }
@@ -67,7 +67,7 @@ EchoSCP
 
     try
     {
-        status = this->_callback(*this->_association, request);
+        status = this->_callback(*this->_association, request, this->_generator);
     }
     catch(dcmtkpp::Exception const & exception)
     {

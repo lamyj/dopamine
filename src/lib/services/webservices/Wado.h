@@ -30,8 +30,7 @@ public:
      * @param username
      */
     Wado(std::string const & pathinfo,
-         std::string const & querystring,
-         std::string const & username);
+         std::string const & querystring);
 
     /// Destroy the instance of Wado
     virtual ~Wado();

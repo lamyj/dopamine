@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleFindSCP
 #include <boost/test/unit_test.hpp>
 
-#include "services/SCP/FindSCP.h"
+//#include "services/SCP/FindSCP.h"
 
 /**
  * Pre-conditions:
@@ -22,12 +22,12 @@
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::FindSCP * findscp =
+    /*dopamine::services::FindSCP * findscp =
             new dopamine::services::FindSCP(NULL,
                                             T_ASC_PresentationContextID(),
                                             NULL);
 
     BOOST_REQUIRE_EQUAL(findscp != NULL, true);
 
-    delete findscp;
+    delete findscp;*/
 }

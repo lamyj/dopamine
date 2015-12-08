@@ -59,11 +59,12 @@ bool create_db_connection(mongo::DBClientConnection & connection,
  * @param callingaet: Calling AE Title
  * @return status of the operation
  */
-database_status insert_dataset(mongo::DBClientConnection & connection,
-                               std::string const & db_name,
-                               std::string const & username,
-                               dcmtkpp::DataSet const & dataset,
-                               std::string const & callingaet = "");
+dcmtkpp::Value::Integer insert_dataset(
+        mongo::DBClientConnection & connection,
+        std::string const & db_name,
+        std::string const & username,
+        dcmtkpp::DataSet const & dataset,
+        std::string const & callingaet = "");
 
 /**
  * @brief Create the status detail Dataset
@@ -156,9 +157,10 @@ mongo::BSONObj dataset_to_bson(dcmtkpp::DataSet const & dataset,
  * @param object: to retrieve
  * @return Dataset
  */
-dcmtkpp::DataSet bson_to_dataset(mongo::DBClientConnection &connection,
-                                 std::string const & db_name,
-                                 mongo::BSONObj object);
+std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> bson_to_dataset(
+        mongo::DBClientConnection &connection,
+        std::string const & db_name,
+        mongo::BSONObj object);
 
 /**
  * @brief Retrieve Dataset from Database

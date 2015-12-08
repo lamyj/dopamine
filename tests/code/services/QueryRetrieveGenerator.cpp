@@ -12,7 +12,7 @@
 #include <dcmtkpp/message/Response.h>
 
 #include "ServicesTestClass.h"
-#include "services/QueryRetrieveGenerator.h"
+//#include "services/QueryRetrieveGenerator.h"
 #include "services/ServicesTools.h"
 
 class TestDataGenerator_badconnection
@@ -49,7 +49,7 @@ public:
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
 {
     dopamine::services::QueryRetrieveGenerator * generator_query =
@@ -72,7 +72,7 @@ BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Getter and Setter
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 {
     // Same for Service_Query and Service_Retrieve
@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Function Cancel
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
 {
     // Same for Service_Query and Service_Retrieve
@@ -114,7 +114,7 @@ BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Empty request
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 {
     // Service QUERY
@@ -190,7 +190,7 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with matching
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
 {
     mongo::BSONObj const query =
@@ -237,7 +237,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Request with no matching (all attributes VR)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_No_Match, ServicesTestClass)
 {
     // Service QUERY
@@ -322,7 +322,7 @@ BOOST_FIXTURE_TEST_CASE(Request_No_Match, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Regex
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_Match_Regex, ServicesTestClass)
 {
     // Service QUERY
@@ -355,7 +355,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Regex, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Range
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_Match_Range, ServicesTestClass)
 {
     // Service QUERY
@@ -385,7 +385,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Range, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Match Null
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_Match_Null, ServicesTestClass)
 {
     // Service QUERY
@@ -420,7 +420,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Match_Null, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Include field in response
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
 {
     // Service QUERY
@@ -482,7 +482,7 @@ BOOST_FIXTURE_TEST_CASE(Request_IncludeField, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Compute attribute
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Compute_Attribute, ServicesTestClass)
 {
     // Service QUERY
@@ -546,7 +546,7 @@ BOOST_FIXTURE_TEST_CASE(Compute_Attribute, ServicesTestClass)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Connection with database is failed
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 {
     // Service Query
@@ -565,7 +565,7 @@ BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: User is not allow to perform query
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 {
     // Service Query
@@ -585,7 +585,7 @@ BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing mandatory field QueryRetrieveLevel
- */
+ *
 BOOST_FIXTURE_TEST_CASE(No_QueryRetrieveLevel, ServicesTestClass)
 {
     // Service Query
@@ -601,3 +601,4 @@ BOOST_FIXTURE_TEST_CASE(No_QueryRetrieveLevel, ServicesTestClass)
     BOOST_CHECK_EQUAL(result,
                       0xa701);
 }
+*/

@@ -12,8 +12,8 @@
 
 #include <boost/filesystem.hpp>
 
-#include "services/webservices/Wado_uri.h"
-#include "services/webservices/WebServiceException.h"
+//#include "services/webservices/Wado_uri.h"
+//#include "services/webservices/WebServiceException.h"
 #include "../ServicesTestClass.h"
 
 /**
@@ -28,7 +28,7 @@
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 {
     std::stringstream stream;
@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_uri request
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
 {
     std::stringstream stream;
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Unknown parameter
- */
+ *
 BOOST_AUTO_TEST_CASE(UnknownParameters)
 {
     BOOST_CHECK_EXCEPTION(
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(UnknownParameters)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Missing mandatory parameters
- */
+ *
 BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
 {
     std::stringstream stream;
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Not implemented
- */
+ *
 BOOST_AUTO_TEST_CASE(NotImplemented)
 {
     std::stringstream stream;
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(NotImplemented)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: bad request type
- */
+ *
 BOOST_AUTO_TEST_CASE(BadRequestType)
 {
     std::stringstream stream;
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(BadRequestType)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
- */
+ *
 BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
 {
     std::stringstream stream;
@@ -177,7 +177,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: No database
- */
+ *
 BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 {
     std::stringstream stream;
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
 {
     std::stringstream stream;
@@ -216,3 +216,4 @@ BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
                 { return (exc.status() == 500 &&
                           exc.statusmessage() == "Internal Server Error"); });
 }
+*/

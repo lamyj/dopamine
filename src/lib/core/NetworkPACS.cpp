@@ -15,7 +15,15 @@
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "core/SCPDispatcher.h"
+#include "services/FindGenerator.h"
+#include "services/GetGenerator.h"
+#include "services/MoveGenerator.h"
+#include "services/StoreGenerator.h"
 #include "services/SCP/EchoSCP.h"
+#include "services/SCP/FindSCP.h"
+#include "services/SCP/GetSCP.h"
+#include "services/SCP/MoveSCP.h"
+#include "services/SCP/StoreSCP.h"
 #include "services/ServicesTools.h"
 
 namespace dopamine
@@ -118,6 +126,26 @@ void NetworkPACS::run()
     services::EchoSCP echoscp;
     echoscp.set_callback(echo);
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_ECHO_RQ, echoscp);
+
+    services::FindSCP findscp;
+    findscp.set_callback(find);
+    findscp.set_generator(services::FindGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_FIND_RQ, findscp);
+
+    services::GetSCP getscp;
+    getscp.set_callback(get);
+    getscp.set_generator(services::GetGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_GET_RQ, getscp);
+
+    services::MoveSCP movescp;
+    movescp.set_callback(move);
+    movescp.set_generator(services::MoveGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_MOVE_RQ, movescp);
+
+    services::StoreSCP storescp;
+    storescp.set_callback(store);
+    storescp.set_generator(services::StoreGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_STORE_RQ, storescp);
 
     // Loop Processing
     while(this->_is_running)

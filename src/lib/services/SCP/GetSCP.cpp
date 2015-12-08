@@ -6,15 +6,10 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/conversion.h>
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/registry.h>
-#include <dcmtkpp/message/Response.h>
-#include <dcmtkpp/Tag.h>
+#include <dcmtkpp/message/CGetResponse.h>
+#include <dcmtkpp/StoreSCU.h>
 
-#include "core/LoggerPACS.h"
 #include "GetSCP.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -22,129 +17,92 @@ namespace dopamine
 namespace services
 {
 
-/**
- * Callback handler called by the DIMSE_getProvider callback function
- * @param callbackdata: Callback context (in)
- * @param cancelled: flag indicating wheter a C-CANCEL was received (in)
- * @param request: original get request (in)
- * @param requestIdentifiers: original get request identifiers (in)
- * @param responseCount: get response count (in)
- * @param response: final get response (out)
- * @param stDetail: status detail for get response (out)
- * @param responseIdentifiers: get response identifiers (out)
- */
-static void get_callback(
-        /* in */
-        void *callbackData,
-        OFBool cancelled, T_DIMSE_C_GetRQ *request,
-        DcmDataset *requestIdentifiers, int responseCount,
-        /* out */
-        T_DIMSE_C_GetRSP *response,
-        DcmDataset **stDetail,
-        DcmDataset **responseIdentifiers)
-{
-    RetrieveContext * context =
-            reinterpret_cast<RetrieveContext*>(callbackData);
-
-    Uint16 status = dcmtkpp::message::Response::Pending;
-    dcmtkpp::DataSet details;
-
-    if (responseCount == 1)
-    {
-        status = context->get_generator()->process_dataset(dcmtkpp::convert(requestIdentifiers),
-                                                           false);
-
-        if (status != dcmtkpp::message::Response::Pending)
-        {
-            details = create_status_detail(status, dcmtkpp::Tag(0xffff, 0xffff),
-                                           "An error occured while processing Get operation");
-        }
-    }
-
-    /* only cancel if we have pending responses */
-    if (cancelled && status == dcmtkpp::message::Response::Pending)
-    {
-        // Todo: not implemented yet
-        context->get_generator()->cancel();
-    }
-
-    /* Process next result */
-    if (status == dcmtkpp::message::Response::Pending)
-    {
-        mongo::BSONObj const object = context->get_generator()->next();
-
-        if (object.isValid() && object.isEmpty())
-        {
-            // We're done.
-            status = dcmtkpp::message::Response::Success;
-        }
-        else
-        {
-            OFCondition condition =
-                context->get_storeprovider()->perform_sub_operation(
-                        context->get_generator()->retrieve_dataset(object),
-                        request->Priority);
-
-            if (condition.bad())
-            {
-                dopamine::logger_error() << "Cannot process sub association: "
-                                         << condition.text();
-                details = create_status_detail(0xc000, dcmtkpp::Tag(0xffff, 0xffff),
-                                               condition.text());
-
-                status = 0xc000; // Unable to process
-            }
-            // else status = dcmtkpp::message::Response::Pending
-        }
-    }
-
-    /* set response status */
-    response->DimseStatus = status;
-    if (status == dcmtkpp::message::Response::Pending || status == dcmtkpp::message::Response::Success)
-    {
-        (*stDetail) = NULL;
-    }
-    else
-    {
-        (*stDetail) = dynamic_cast<DcmDataset*>(dcmtkpp::convert(details, true));
-    }
-}
-    
 GetSCP
-::GetSCP(T_ASC_Association * association,
-         T_ASC_PresentationContextID presentation_context_id,
-         T_DIMSE_C_GetRQ * request):
-    services::SCP(association, presentation_context_id),
-    _request(request)
+::GetSCP() :
+    SCP(), _callback()
 {
-    // nothing to do
+    // Nothing else.
+}
+
+GetSCP
+::GetSCP(dcmtkpp::Network *network, dcmtkpp::Association *association) :
+    SCP(network, association), _callback()
+{
+    // Nothing else.
+}
+
+GetSCP
+::GetSCP(dcmtkpp::Network *network, dcmtkpp::Association *association,
+         GetSCP::Callback const & callback) :
+    SCP(network, association), _callback()
+{
+    this->set_callback(callback);
 }
 
 GetSCP
 ::~GetSCP()
 {
-    // nothing to do
+    // Nothing to do.
 }
 
-OFCondition
+GetSCP::Callback const &
 GetSCP
-::process()
+::get_callback() const
 {
-    dopamine::logger_info() << "Received Get SCP: MsgID "
-                                << this->_request->MessageID;
+    return this->_callback;
+}
 
-    std::string const username =
-           get_username(this->_association->params->DULparams.reqUserIdentNeg);
-    RetrieveGenerator generator(username);
+void
+GetSCP
+::set_callback(GetSCP::Callback const & callback)
+{
+    this->_callback = callback;
+}
 
-    StoreSubOperation storeprovider(NULL, this->_association,
-                                    this->_request->MessageID);
+void
+GetSCP
+::operator()(dcmtkpp::message::Message const & message)
+{
+    dcmtkpp::message::CGetRequest const request(message);
 
-    RetrieveContext context(&generator, &storeprovider);
+    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    if (status != dcmtkpp::message::CGetResponse::Pending)
+    {
+        // Send Error
+        dcmtkpp::message::CGetResponse response(
+            request.get_message_id(), status);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
 
-    return DIMSE_getProvider(this->_association, this->_presentation_context_id,
-                             this->_request, get_callback, &context,
-                             DIMSE_BLOCKING, 0);
+    dcmtkpp::StoreSCU scu;
+    scu.set_network(this->_network);
+    scu.set_association(this->_association);
+
+    while (status == dcmtkpp::message::CGetResponse::Pending)
+    {
+        try
+        {
+            status = this->_callback(*this->_association, request, this->_generator);
+        }
+        catch(dcmtkpp::Exception const & exception)
+        {
+            status = dcmtkpp::message::CGetResponse::Status::UnableToProcess;
+            // Error Comment
+            // Error ID
+            // Affected SOP Class UID
+        }
+
+        if (status == dcmtkpp::message::CGetResponse::Pending)
+        {
+            // send CSTORE request
+            scu.set_affected_sop_class(this->_generator->get().second);
+            scu.store(this->_generator->get().second);
+        }
+
+        dcmtkpp::message::CGetResponse response(
+            request.get_message_id(), status);
+        this->_send(response, request.get_affected_sop_class_uid());
+    }
 }
 
 } // namespace services

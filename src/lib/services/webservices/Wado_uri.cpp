@@ -12,8 +12,9 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include <dcmtkpp/message/Response.h>
+#include <dcmtkpp/Writer.h>
 
-#include "services/RetrieveGenerator.h"
+#include "services/GetGenerator.h"
 #include "Wado_uri.h"
 #include "WebServiceException.h"
 
@@ -26,16 +27,17 @@ namespace services
 Wado_uri
 ::Wado_uri(std::string const & querystring,
            std::string const & remoteuser):
-    Wado("", querystring, remoteuser), _filename("")
+    Wado("", querystring), _filename("")
 {
+    GetGenerator::Pointer generator = GetGenerator::New();
+    generator->set_username(remoteuser);
+
     mongo::BSONObj const object = this->_parse_string();
 
-    RetrieveGenerator generator(this->_username);
-
-    Uint16 const status = generator.process_bson(object);
+    auto status = generator->initialize(object);
     if (status != dcmtkpp::message::Response::Pending)
     {
-        if ( ! generator.is_allow())
+        if ( ! generator->is_allow())
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -45,15 +47,22 @@ Wado_uri
                                   "Error while searching into database");
     }
 
-    mongo::BSONObj findedobject = generator.next();
-    if (!findedobject.isValid() || findedobject.isEmpty())
+    if (generator->done())
     {
         throw WebServiceException(404, "Not Found", "No Dataset");
     }
 
     try
     {
-        this->_response = generator.retrieve_dataset_as_string(findedobject);
+        generator->next();
+        std::stringstream stream_dataset;
+        auto datasets = generator->get();
+        dcmtkpp::Writer::write_file(
+                    datasets.second, stream_dataset, datasets.first,
+                    dcmtkpp::registry::ExplicitVRLittleEndian,
+                    dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+
+        this->_response = stream_dataset.str();
     }
     catch (ExceptionPACS const & exc)
     {

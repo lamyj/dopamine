@@ -13,8 +13,8 @@
 #include <mimetic/mimeentity.h>
 
 #include "core/ExceptionPACS.h"
-#include "services/webservices/Wado_rs.h"
-#include "services/webservices/WebServiceException.h"
+//#include "services/webservices/Wado_rs.h"
+//#include "services/webservices/WebServiceException.h"
 #include "../ServicesTestClass.h"
 
 /**
@@ -24,7 +24,7 @@
  *     - Following Environment variables should be defined
  *          * DOPAMINE_TEST_CONFIG
  *          * DOPAMINE_TEST_DICOMFILE
- */
+ *
 
 void check_response(std::string const & response, std::string const & boundary)
 {
@@ -89,7 +89,7 @@ void check_response(std::string const & response, std::string const & boundary)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
- */
+ *
 BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 {
     std::stringstream stream;
@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudy, ServicesTestClass)
 {
     std::stringstream stream;
@@ -120,7 +120,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeries, ServicesTestClass)
 {
     std::stringstream stream;
@@ -137,7 +137,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series/Instance)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
 {
     std::stringstream stream;
@@ -155,7 +155,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
- */
+ *
 BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
 {
     std::stringstream stream;
@@ -233,7 +233,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: No parameter
- */
+ *
 BOOST_AUTO_TEST_CASE(MissingStudyParameter)
 {
     BOOST_CHECK_EXCEPTION(
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyParameter)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown first parameter
- */
+ *
 BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
 {
     BOOST_CHECK_EXCEPTION(
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Study Instance UID
- */
+ *
 BOOST_AUTO_TEST_CASE(MissingStudyInstance)
 {
     BOOST_CHECK_EXCEPTION(
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyInstance)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown second parameter
- */
+ *
 BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
 {
     BOOST_CHECK_EXCEPTION(
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Series Instance UID
- */
+ *
 BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
 {
     BOOST_CHECK_EXCEPTION(
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown third parameter
- */
+ *
 BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
 {
     BOOST_CHECK_EXCEPTION(
@@ -339,7 +339,7 @@ BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Missing SOP Instance UID
- */
+ *
 BOOST_AUTO_TEST_CASE(MissingSOPInstance)
 {
     BOOST_CHECK_EXCEPTION(
@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE(MissingSOPInstance)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
- */
+ *
 BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
 {
     BOOST_CHECK_EXCEPTION(
@@ -377,7 +377,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: No database
- */
+ *
 BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 {
     BOOST_CHECK_EXCEPTION(
@@ -392,7 +392,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
 {
     std::stringstream stream;
@@ -408,3 +408,4 @@ BOOST_FIXTURE_TEST_CASE(BadDatasetBufferValue, ServicesTestClass)
                 { return (exc.status() == 500 &&
                           exc.statusmessage() == "Internal Server Error"); });
 }
+*/
