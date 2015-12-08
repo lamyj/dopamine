@@ -63,7 +63,11 @@ public:
 
     void set_username(std::string const & name);
 
-    dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag, dcmtkpp::VR const & vr, std::string const & value);
+    std::string get_username() const;
+
+    dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag,
+                                       dcmtkpp::VR const & vr,
+                                       std::string const & value);
 
 protected:
     /// Connection to the Database

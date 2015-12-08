@@ -302,6 +302,13 @@ GeneratorPACS
     this->_username = name;
 }
 
+std::string
+GeneratorPACS
+::get_username() const
+{
+    return this->_username;
+}
+
 GeneratorPACS::Match::Type
 GeneratorPACS
 ::_get_match_type(std::string const & vr,
