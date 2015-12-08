@@ -134,7 +134,7 @@ bool
 is_authorized(mongo::DBClientConnection & connection,
               std::string const & db_name,
               std::string const & username,
-              std::string const & servicename)
+              dcmtkpp::message::Message::Command::Type command_type)
 {
     mongo::BSONArrayBuilder builder;
     if (username != "")
@@ -143,9 +143,37 @@ is_authorized(mongo::DBClientConnection & connection,
     }
     builder << username;
 
+    // TODO: use command type into Database
+    std::string servicename = "";
+    switch (command_type)
+    {
+    case dcmtkpp::message::Message::Command::C_ECHO_RQ:
+    case dcmtkpp::message::Message::Command::C_ECHO_RSP:
+        servicename = "Echo";
+        break;
+    case dcmtkpp::message::Message::Command::C_FIND_RQ:
+    case dcmtkpp::message::Message::Command::C_FIND_RSP:
+        servicename = "Query";
+        break;
+    case dcmtkpp::message::Message::Command::C_GET_RQ:
+    case dcmtkpp::message::Message::Command::C_GET_RSP:
+        servicename = "Retrieve";
+        break;
+    case dcmtkpp::message::Message::Command::C_MOVE_RQ:
+    case dcmtkpp::message::Message::Command::C_MOVE_RSP:
+        servicename = "Retrieve";
+        break;
+    case dcmtkpp::message::Message::Command::C_STORE_RQ:
+    case dcmtkpp::message::Message::Command::C_STORE_RSP:
+        servicename = "Store";
+        break;
+    default:
+        break;
+    }
+
     mongo::BSONObjBuilder fields_builder;
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All <<
+                   << "service" << BSON("$in" << BSON_ARRAY("*" <<
                                                             servicename));
 
     mongo::BSONObj const group_command = BSON("count" << "authorization" <<
@@ -168,7 +196,7 @@ mongo::BSONObj
 get_constraint_for_user(mongo::DBClientConnection &connection,
                         std::string const & db_name,
                         std::string const & username,
-                        std::string const & servicename)
+                        dcmtkpp::message::Message::Command::Type command_type)
 {
     mongo::BSONArrayBuilder builder;
     if (username != "")
@@ -177,10 +205,38 @@ get_constraint_for_user(mongo::DBClientConnection &connection,
     }
     builder << username;
 
+    // TODO: use command type into Database
+    std::string servicename = "";
+    switch (command_type)
+    {
+    case dcmtkpp::message::Message::Command::C_ECHO_RQ:
+    case dcmtkpp::message::Message::Command::C_ECHO_RSP:
+        servicename = "Echo";
+        break;
+    case dcmtkpp::message::Message::Command::C_FIND_RQ:
+    case dcmtkpp::message::Message::Command::C_FIND_RSP:
+        servicename = "Query";
+        break;
+    case dcmtkpp::message::Message::Command::C_GET_RQ:
+    case dcmtkpp::message::Message::Command::C_GET_RSP:
+        servicename = "Retrieve";
+        break;
+    case dcmtkpp::message::Message::Command::C_MOVE_RQ:
+    case dcmtkpp::message::Message::Command::C_MOVE_RSP:
+        servicename = "Retrieve";
+        break;
+    case dcmtkpp::message::Message::Command::C_STORE_RQ:
+    case dcmtkpp::message::Message::Command::C_STORE_RSP:
+        servicename = "Store";
+        break;
+    default:
+        break;
+    }
+
     // Create Query with user's authorization
     mongo::BSONObjBuilder fields_builder;
     fields_builder << "principal_name" << BSON("$in" << builder.arr())
-                   << "service" << BSON("$in" << BSON_ARRAY(Service_All <<
+                   << "service" << BSON("$in" << BSON_ARRAY("*" <<
                                                             servicename));
     mongo::BSONObjBuilder initial_builder;
     mongo::BSONObj const group_command =
@@ -454,9 +510,9 @@ is_dataset_allowed_for_storage(mongo::DBClientConnection &connection,
                                mongo::BSONObj const & dataset)
 {
     // Retrieve user's Rights
-    mongo::BSONObj constraint =
-            get_constraint_for_user(connection, db_name,
-                                    username, Service_Store);
+    mongo::BSONObj constraint = get_constraint_for_user(
+                connection, db_name, username,
+                dcmtkpp::message::Message::Command::C_STORE_RQ);
 
     if (constraint.isEmpty())
     {

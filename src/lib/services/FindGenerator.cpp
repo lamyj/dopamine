@@ -136,16 +136,17 @@ FindGenerator
     }
 
     if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username, Service_Query)) // TODO replace service_query by dcmtkpp::message::Message::Command::C_FIND_RQ
+                       this->_username,
+                       dcmtkpp::message::Message::Command::C_FIND_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Find Operation";
         return dcmtkpp::message::CFindResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObj const constraint =
-            get_constraint_for_user(this->_connection, this->_db_name,
-                                    this->_username, Service_Query); // TODO replace service_query by dcmtkpp::message::Message::Command::C_FIND_RQ
+    mongo::BSONObj const constraint = get_constraint_for_user(
+                this->_connection, this->_db_name, this->_username,
+                dcmtkpp::message::Message::Command::C_FIND_RQ);
 
     mongo::BSONObj query_object = request;
 

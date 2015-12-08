@@ -78,7 +78,8 @@ StoreGenerator
     }
 
     if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username, Service_Store)) // TODO replace Service_Retrieve by dcmtkpp::message::Message::Command::C_STORE_RQ
+                       this->_username,
+                       dcmtkpp::message::Message::Command::C_STORE_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Store Operation";

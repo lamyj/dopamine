@@ -95,16 +95,17 @@ GetGenerator
     }
 
     if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username, Service_Retrieve)) // TODO replace Service_Retrieve by dcmtkpp::message::Message::Command::C_GET_RQ
+                       this->_username,
+                       dcmtkpp::message::Message::Command::C_GET_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Get Operation";
         return dcmtkpp::message::CGetResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObj const constraint =
-            get_constraint_for_user(this->_connection, this->_db_name,
-                                    this->_username, Service_Retrieve); // TODO replace Service_Retrieve by dcmtkpp::message::Message::Command::C_GET_RQ
+    mongo::BSONObj const constraint = get_constraint_for_user(
+                this->_connection, this->_db_name, this->_username,
+                dcmtkpp::message::Message::Command::C_GET_RQ);
 
     mongo::BSONObj query_object = request;
 

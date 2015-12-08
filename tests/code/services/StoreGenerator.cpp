@@ -24,8 +24,8 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder << "00080060" << "MR";
-        this->add_constraint(dopamine::services::Service_Store,
-                             "root", builder.obj());
+        //this->add_constraint(dopamine::services::Service_Store,
+        //                     "root", builder.obj());
     }
 
     virtual ~TestDataGenerator_constraint()
@@ -57,13 +57,13 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder.appendRegex("00080018", "Unknown");
-        this->set_authorization(dopamine::services::Service_Store,
-                                "root", builder.obj());
+        //this->set_authorization(dopamine::services::Service_Store,
+        //                        "root", builder.obj());
 
         mongo::BSONObjBuilder builder2;
         builder2 << "00080060" << "NotMR";
-        this->add_constraint(dopamine::services::Service_Store,
-                             "not_me", builder2.obj());
+        //this->add_constraint(dopamine::services::Service_Store,
+        //                     "not_me", builder2.obj());
     }
 
     virtual ~TestDataGenerator_notallow()

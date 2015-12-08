@@ -51,16 +51,17 @@ MoveGenerator
     }
 
     if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username, Service_Retrieve)) // TODO replace Service_Retrieve by dcmtkpp::message::Message::Command::C_MOVE_RQ
+                       this->_username,
+                       dcmtkpp::message::Message::Command::C_MOVE_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Move Operation";
         return dcmtkpp::message::CMoveResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObj const constraint =
-            get_constraint_for_user(this->_connection, this->_db_name,
-                                    this->_username, Service_Retrieve); // TODO replace Service_Retrieve by dcmtkpp::message::Message::Command::C_MOVE_RQ
+    mongo::BSONObj const constraint = get_constraint_for_user(
+                this->_connection, this->_db_name, this->_username,
+                dcmtkpp::message::Message::Command::C_MOVE_RQ);
 
     dcmtkpp::message::CMoveRequest moverequest(message);
     mongo::BSONObj query_object = dataset_to_bson(moverequest.get_data_set());

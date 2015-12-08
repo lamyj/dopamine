@@ -16,6 +16,7 @@
 #include <dcmtk/dcmnet/dcuserid.h>
 
 #include <dcmtkpp/DataSet.h>
+#include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Tag.h>
 
 #include <mongo/client/dbclient.h>
@@ -25,12 +26,6 @@ namespace dopamine
 
 namespace services
 {
-
-std::string const Service_All       = "*";
-std::string const Service_Echo      = "Echo";
-std::string const Service_Store     = "Store";
-std::string const Service_Query     = "Query";
-std::string const Service_Retrieve  = "Retrieve";
 
 enum database_status
 {
@@ -95,7 +90,7 @@ std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg);
 bool is_authorized(mongo::DBClientConnection &connection,
                    std::string const & db_name,
                    std::string const & username,
-                   std::string const & servicename);
+                   dcmtkpp::message::Message::Command::Type command_type);
 
 /**
  * @brief Get the constraint for a given user and a given service
@@ -105,10 +100,11 @@ bool is_authorized(mongo::DBClientConnection &connection,
  * @param servicename: service name
  * @return the constraints
  */
-mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection &connection,
-                                       std::string const & db_name,
-                                       std::string const & username,
-                                       std::string const & servicename);
+mongo::BSONObj get_constraint_for_user(
+        mongo::DBClientConnection &connection,
+        std::string const & db_name,
+        std::string const & username,
+        dcmtkpp::message::Message::Command::Type command_type);
 
 /**
  * @brief Check if user is allowed to store dataset

@@ -36,8 +36,8 @@ class TestDataGenerator_notallow : public ServicesTestClass
 public:
     TestDataGenerator_notallow() : ServicesTestClass()
     {
-        this->set_authorization(dopamine::services::Service_Query, "root");
-        this->set_authorization(dopamine::services::Service_Retrieve, "root");
+        //this->set_authorization(dopamine::services::Service_Query, "root");
+        //this->set_authorization(dopamine::services::Service_Retrieve, "root");
     }
 
     virtual ~TestDataGenerator_notallow()
