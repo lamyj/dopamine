@@ -127,7 +127,7 @@ BOOST_FIXTURE_TEST_CASE(NoDataset, ServicesTestClass)
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"}, dcmtkpp::VR::CS);
-    dataset.add(dcmtkpp::registry::PersonName, {"John"}, dcmtkpp::VR::PN);
+    dataset.add(dcmtkpp::registry::PatientName, {"John"}, dcmtkpp::VR::PN);
     dcmtkpp::message::CGetRequest request(1, dcmtkpp::registry::MRImageStorage, dcmtkpp::message::Message::Priority::MEDIUM, dataset);
     auto status = getgenerator->initialize(association, request);
     BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CGetResponse::Pending);
