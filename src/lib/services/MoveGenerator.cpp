@@ -50,6 +50,48 @@ MoveGenerator
         return status;
     }
 
+    dcmtkpp::message::CMoveRequest moverequest(message);
+    mongo::BSONObj query_object = dataset_to_bson(moverequest.get_data_set());
+
+    return this->initialize(query_object);
+}
+
+dcmtkpp::Value::Integer
+MoveGenerator
+::next()
+{
+    mongo::BSONObj current_bson = this->_cursor->next();
+
+    if (current_bson.isValid() && current_bson.isEmpty())
+    {
+        // We're done.
+        return dcmtkpp::message::CMoveResponse::Success;
+    }
+    else if (current_bson.hasField("$err"))
+    {
+        dopamine::logger_warning()
+                << "An error occured while processing Move operation: "
+                << current_bson.getField("$err").String();
+        return dcmtkpp::message::CMoveResponse::ProcessingFailure;
+    }
+    else
+    {
+        auto data_set = this->_retrieve_dataset(current_bson);
+        this->_meta_information = data_set.first;
+        this->_current_dataset = data_set.second;
+    }
+
+    return dcmtkpp::message::CMoveResponse::Pending;
+}
+
+dcmtkpp::Value::Integer MoveGenerator::initialize(const mongo::BSONObj &request)
+{
+    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(request);
+    if (status != dcmtkpp::message::Response::Success)
+    {
+        return status;
+    }
+
     if (!is_authorized(this->_connection, this->_db_name,
                        this->_username,
                        dcmtkpp::message::Message::Command::C_MOVE_RQ))
@@ -63,8 +105,7 @@ MoveGenerator
                 this->_connection, this->_db_name, this->_username,
                 dcmtkpp::message::Message::Command::C_MOVE_RQ);
 
-    dcmtkpp::message::CMoveRequest moverequest(message);
-    mongo::BSONObj query_object = dataset_to_bson(moverequest.get_data_set());
+    mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
     if (!query_object.hasField("00080052"))
@@ -193,32 +234,49 @@ MoveGenerator
     return dcmtkpp::message::CMoveResponse::Pending;
 }
 
-dcmtkpp::Value::Integer
-MoveGenerator
-::next()
+void MoveGenerator::set_query_retrieve_level(const std::string &query_retrieve_level)
 {
-    mongo::BSONObj current_bson = this->_cursor->next();
+    this->_query_retrieve_level = query_retrieve_level;
+}
 
-    if (current_bson.isValid() && current_bson.isEmpty())
-    {
-        // We're done.
-        return dcmtkpp::message::CMoveResponse::Success;
-    }
-    else if (current_bson.hasField("$err"))
-    {
-        dopamine::logger_warning()
-                << "An error occured while processing Move operation: "
-                << current_bson.getField("$err").String();
-        return dcmtkpp::message::CMoveResponse::ProcessingFailure;
-    }
-    else
-    {
-        auto data_set = this->_retrieve_dataset(current_bson);
-        this->_meta_information = data_set.first;
-        this->_current_dataset = data_set.second;
-    }
+std::string MoveGenerator::get_query_retrieve_level() const
+{
+    return this->_query_retrieve_level;
+}
 
-    return dcmtkpp::message::CMoveResponse::Pending;
+std::vector<std::string> MoveGenerator::get_instance_count_tags() const
+{
+    return this->_instance_count_tags;
+}
+
+void MoveGenerator::set_include_fields(const std::vector<std::string> &include_fields)
+{
+    this->_include_fields = include_fields;
+}
+
+std::vector<std::string> &MoveGenerator::get_include_fields()
+{
+    return this->_include_fields;
+}
+
+void MoveGenerator::set_maximum_results(int maximum_results)
+{
+    this->_maximum_results = maximum_results;
+}
+
+int MoveGenerator::get_maximum_results() const
+{
+    return this->_maximum_results;
+}
+
+void MoveGenerator::set_skipped_results(int skipped_results)
+{
+    this->_skipped_results = skipped_results;
+}
+
+int MoveGenerator::get_skipped_results() const
+{
+    return this->_skipped_results;
 }
 
 std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
