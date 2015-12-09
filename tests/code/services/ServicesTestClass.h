@@ -252,55 +252,7 @@ private:
 
             auto const & data_set = file.second;
 
-            // Convert Dataset into BSON object
-            dopamine::Filters filters = {};
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::IsPrivateTag::New(),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OB),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OF),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OW),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::UN),
-                dopamine::FilterAction::EXCLUDE));
-
-            mongo::BSONObj object =
-                    dopamine::as_bson(data_set, dopamine::FilterAction::INCLUDE,
-                                      filters);
-            if (!object.isValid() || object.isEmpty())
-            {
-                BOOST_FAIL("Could not convert Dataset to BSON");
-            }
-
-            // Get the SOPInstanceUID for delete
-            this->_sop_instance_uids.push_back(
-                        object["00080018"].Obj()["Value"].Array()[0].String());
-
-            std::stringstream stream_dataset;
-            dcmtkpp::Writer::write_file(data_set, stream_dataset);
-
-            // Create a memory buffer with the proper size
-            std::string const buffer = stream_dataset.str();
-
-            // Create BSON to insert into DataBase
-            mongo::BSONObjBuilder builder;
-            builder.appendElements(object);
-            builder.appendBinData("Content", buffer.size(),
-                                  mongo::BinDataGeneral, buffer.c_str());
-
-            // insert into DataBase
-            this->connection.insert(streamTable.str(), builder.obj());
-            std::string result = this->connection.getLastError(this->db_name);
-            if (result != "") // empty string if no error
-            {
-                BOOST_FAIL(result);
-            }
+            this->insert_dataset(data_set);
         }
 
         // insert entry with bad Content
