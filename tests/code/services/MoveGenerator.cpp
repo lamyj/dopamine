@@ -15,6 +15,78 @@
 #include "services/MoveGenerator.h"
 #include "ServicesTestClass.h"
 
+class MoveGeneratorTest : public ServicesTestClass
+{
+public:
+    MoveGeneratorTest() : ServicesTestClass(), _sop_instance_uid_for_find("1.2.3.4.5.6")
+    {
+        // Create a new dataset
+        _dataset.add(dcmtkpp::registry::InstanceCreationDate, {"20151201"}, dcmtkpp::VR::DA);
+        _dataset.add(dcmtkpp::registry::InstanceCreationTime, {"090909"}, dcmtkpp::VR::TM);
+        _dataset.add(dcmtkpp::registry::SOPClassUID, {dcmtkpp::registry::PositronEmissionTomographyImageStorage}, dcmtkpp::VR::UI);
+        _dataset.add(dcmtkpp::registry::SOPInstanceUID, {this->_sop_instance_uid_for_find}, dcmtkpp::VR::UI);
+        _dataset.add(dcmtkpp::registry::AcquisitionDateTime, {"20150101101010.202"}, dcmtkpp::VR::DT);
+        _dataset.add(dcmtkpp::registry::RetrieveAETitle, {"LOCAL"}, dcmtkpp::VR::AE);
+        _dataset.add(dcmtkpp::registry::Modality, {"MyModality"}, dcmtkpp::VR::CS);
+        _dataset.add(dcmtkpp::registry::Manufacturer, {"Manufacturer"}, dcmtkpp::VR::LO);
+        //_dataset.add(dcmtkpp::registry::InstitutionAddress, {"value"}, dcmtkpp::VR::ST);
+        _dataset.add(dcmtkpp::registry::SimpleFrameList, {22}, dcmtkpp::VR::UL);
+        _dataset.add(dcmtkpp::registry::FailureReason, {42}, dcmtkpp::VR::US);
+        _dataset.add(dcmtkpp::registry::StageNumber, {12}, dcmtkpp::VR::IS);
+        _dataset.add(dcmtkpp::registry::RecommendedDisplayFrameRateInFloat, {42.5}, dcmtkpp::VR::FL);
+        _dataset.add(dcmtkpp::registry::PatientName, {"Name^Surname^Middle"}, dcmtkpp::VR::PN);
+        _dataset.add(dcmtkpp::registry::PatientAge, {"89Y"}, dcmtkpp::VR::AS);
+        _dataset.add(dcmtkpp::registry::PatientWeight, {11.11}, dcmtkpp::VR::DS);
+        _dataset.add(dcmtkpp::registry::EthnicGroup, {"value"}, dcmtkpp::VR::SH);
+        //_dataset.add(dcmtkpp::registry::AdditionalPatientHistory, {"value"}, dcmtkpp::VR::LT);
+        _dataset.add(dcmtkpp::registry::ReferencePixelX0, {32}, dcmtkpp::VR::SL);
+        _dataset.add(dcmtkpp::registry::TagAngleSecondAxis, {32}, dcmtkpp::VR::SS);
+        //_dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Value::Binary({0x1, 0x2, 0x3, 0x4, 0x5}), dcmtkpp::VR::OB); // Cannot compare Binary field
+        //_dataset.add(dcmtkpp::registry::PixelDataProviderURL, {"value"}, dcmtkpp::VR::UT);
+        _dataset.add(dcmtkpp::registry::PupilSize, {42.5}, dcmtkpp::VR::FD);
+
+        insert_dataset(_dataset);
+    }
+
+    virtual ~MoveGeneratorTest()
+    {
+        // Nothing to do.
+    }
+
+    void move(dcmtkpp::Tag const & tag, dcmtkpp::Element const & element)
+    {
+        auto movegenerator = dopamine::services::MoveGenerator::New();
+        movegenerator->set_include_fields({"00080018"}); // get the SOP Instance UID
+
+        dcmtkpp::Association association;
+        association.set_user_identity_primary_field("");
+
+        dcmtkpp::DataSet dataset;
+        dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"STUDY"}, dcmtkpp::VR::CS);
+        dataset.add(tag, element);
+
+        dcmtkpp::message::CMoveRequest request(1, dcmtkpp::registry::MRImageStorage, dcmtkpp::message::Message::Priority::MEDIUM, "DESTINATION", dataset);
+        auto status = movegenerator->initialize(association, request);
+        BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CMoveResponse::Pending);
+
+        // Find one result
+        BOOST_REQUIRE(!movegenerator->done());
+        BOOST_REQUIRE_EQUAL(movegenerator->next(),
+                            dcmtkpp::message::CMoveResponse::Pending);
+        auto data_set = movegenerator->get();
+        BOOST_REQUIRE(data_set.second == this->_dataset);
+
+        // No more result
+        BOOST_REQUIRE(movegenerator->done());
+    }
+
+    dcmtkpp::DataSet _dataset;
+
+private:
+    std::string _sop_instance_uid_for_find;
+
+};
+
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
@@ -168,6 +240,44 @@ BOOST_FIXTURE_TEST_CASE(GetIncludeFields, ServicesTestClass)
 
     // No more result
     BOOST_REQUIRE(movegenerator->done());
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Request Match for each VR
+ */
+BOOST_FIXTURE_TEST_CASE(RequestEachVR, MoveGeneratorTest)
+{
+    for (auto item : this->_dataset)
+    {
+        if (item.second.vr == dcmtkpp::VR::OB ||
+            item.second.vr == dcmtkpp::VR::OF ||
+            item.second.vr == dcmtkpp::VR::OW ||
+            item.second.vr == dcmtkpp::VR::UN)
+        {
+            // don't watch for binary VR
+            continue;
+        }
+        move(item.first, item.second);
+    }
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Request Match Regex
+ */
+BOOST_FIXTURE_TEST_CASE(RequestRegEx, MoveGeneratorTest)
+{
+    move(dcmtkpp::registry::PatientName, dcmtkpp::Element({"N?me*"}, dcmtkpp::VR::PN));
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Request Match Range
+ */
+BOOST_FIXTURE_TEST_CASE(RequestRange, MoveGeneratorTest)
+{
+    move(dcmtkpp::registry::InstanceCreationDate, dcmtkpp::Element({"20151105-20151220"}, dcmtkpp::VR::DA));
 }
 
 /******************************* TEST Error ************************************/

@@ -76,16 +76,6 @@ public:
         auto data_set = getgenerator->get();
         BOOST_REQUIRE(data_set.second == this->_dataset);
 
-
-        BOOST_REQUIRE(!data_set.second.empty());
-        BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPInstanceUID));
-        BOOST_REQUIRE_EQUAL(data_set.second.as_string(dcmtkpp::registry::SOPInstanceUID)[0], this->_sop_instance_uid_for_find);
-
-        for (auto item : this->_dataset)
-        {
-            BOOST_REQUIRE(data_set.second.has(item.first));
-        }
-
         // No more result
         BOOST_REQUIRE(getgenerator->done());
     }
