@@ -29,7 +29,9 @@ FindGenerator
 FindGenerator
 ::FindGenerator():
     GeneratorPACS(), // base class initialisation
-    _query_retrieve_level(""), _instance_count_tags({}), _convert_modalities_in_study(false), _include_fields({}), _maximum_results(0), _skipped_results(0)
+    _query_retrieve_level(""), _instance_count_tags({}),
+    _convert_modalities_in_study(false), _include_fields({}),
+    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
 {
     // Nothing else.
 }
@@ -292,6 +294,16 @@ FindGenerator
     return this->_query_retrieve_level;
 }
 
+std::vector<std::string> FindGenerator::get_instance_count_tags() const
+{
+    return this->_instance_count_tags;
+}
+
+bool FindGenerator::get_convert_modalities_in_study() const
+{
+    return this->_convert_modalities_in_study;
+}
+
 void
 FindGenerator
 ::set_include_fields(std::vector<std::string> const & include_fields)
@@ -311,6 +323,11 @@ FindGenerator
 ::set_maximum_results(int maximum_results)
 {
     this->_maximum_results = maximum_results;
+}
+
+int FindGenerator::get_maximum_results() const
+{
+    return this->_maximum_results;
 }
 
 void

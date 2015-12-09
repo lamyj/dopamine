@@ -132,6 +132,11 @@ StoreGenerator
                           this->_peer_ae_title);
 }
 
+std::string StoreGenerator::get_peer_ae_title() const
+{
+    return this->_peer_ae_title;
+}
+
 } // namespace services
 
 } // namespace dopamine

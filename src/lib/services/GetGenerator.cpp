@@ -236,6 +236,51 @@ GetGenerator
     return dcmtkpp::message::CGetResponse::Pending;
 }
 
+void GetGenerator::set_query_retrieve_level(std::string const & query_retrieve_level)
+{
+    this->_query_retrieve_level = query_retrieve_level;
+}
+
+std::string GetGenerator::get_query_retrieve_level() const
+{
+    return this->_query_retrieve_level;
+}
+
+std::vector<std::string> GetGenerator::get_instance_count_tags() const
+{
+    return this->_instance_count_tags;
+}
+
+void GetGenerator::set_include_fields(const std::vector<std::string> &include_fields)
+{
+    this->_include_fields = include_fields;
+}
+
+std::vector<std::string> &GetGenerator::get_include_fields()
+{
+    return this->_include_fields;
+}
+
+void GetGenerator::set_maximum_results(int maximum_results)
+{
+    this->_maximum_results = maximum_results;
+}
+
+int GetGenerator::get_maximum_results() const
+{
+    return this->_maximum_results;
+}
+
+void GetGenerator::set_skipped_results(int skipped_results)
+{
+    this->_skipped_results = skipped_results;
+}
+
+int GetGenerator::get_skipped_results() const
+{
+    return this->_skipped_results;
+}
+
 std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> GetGenerator::_retrieve_dataset(mongo::BSONObj const & object)
 {
     mongo::BSONObj localobject = object;

@@ -39,6 +39,24 @@ public:
 
     virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
 
+    void set_query_retrieve_level(std::string const & query_retrieve_level);
+
+    std::string get_query_retrieve_level() const;
+
+    std::vector<std::string> get_instance_count_tags() const;
+
+    void set_include_fields(std::vector<std::string> const & include_fields);
+
+    std::vector<std::string>& get_include_fields();
+
+    void set_maximum_results(int maximum_results);
+
+    int get_maximum_results() const;
+
+    void set_skipped_results(int skipped_results);
+
+    int get_skipped_results() const;
+
 protected:
     /// Create a default get response generator
     GetGenerator();

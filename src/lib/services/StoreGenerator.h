@@ -39,6 +39,8 @@ public:
 
     dcmtkpp::Value::Integer initialize(dcmtkpp::DataSet const & dataset);
 
+    std::string get_peer_ae_title() const;
+
 protected:
     /// Create a default store response generator
     StoreGenerator();
