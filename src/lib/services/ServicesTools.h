@@ -27,15 +27,6 @@ namespace dopamine
 namespace services
 {
 
-enum database_status
-{
-    NO_ERROR = 0,
-    NOT_CONNECTED,
-    CONVERSION_ERROR,
-    NOT_ALLOW,
-    INSERTION_FAILED
-};
-
 /**
  * @brief Create connection to the database
  * @param connection: return the connection to the database

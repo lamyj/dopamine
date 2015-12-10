@@ -58,12 +58,12 @@ Wado_rs
     std::stringstream stream;
     while (!generator->done())
     {
-        generator->next();
-
         std::string filename = "";
         std::stringstream stream_dataset;
         try
         {
+            generator->next();
+
             auto datasets = generator->get();
             dcmtkpp::Writer::write_file(
                         datasets.second, stream_dataset, datasets.first,

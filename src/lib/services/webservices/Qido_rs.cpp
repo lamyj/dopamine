@@ -90,7 +90,8 @@ Qido_rs
           std::string const & remoteuser):
     Webservices(pathinfo, querystring),
     _contenttype(contenttype), _study_instance_uid_present(false),
-    _series_instance_uid_present(false)
+    _series_instance_uid_present(false), _include_fields({}),
+    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
 {
     FindGenerator::Pointer generator = FindGenerator::New();
     generator->set_username(remoteuser);

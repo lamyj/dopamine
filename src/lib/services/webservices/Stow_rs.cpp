@@ -284,7 +284,7 @@ Stow_rs
                 }
             }
 
-            if (result != dcmtkpp::message::Response::Pending)
+            if (result != dcmtkpp::message::Response::Success)
             {
                 // ERROR: add an item into failedsopsequence
                 dcmtkpp::DataSet failedsopsequence;
