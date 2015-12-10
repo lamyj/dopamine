@@ -245,7 +245,7 @@ GeneratorPACS
 
 GeneratorPACS
 ::GeneratorPACS():
-    _isconnected(false), _username("")
+    Generator(), _isconnected(false), _username("")
 {
     // Nothing else.
 }
@@ -307,6 +307,13 @@ GeneratorPACS
 ::get_username() const
 {
     return this->_username;
+}
+
+bool
+GeneratorPACS
+::is_connected() const
+{
+    return this->_isconnected;
 }
 
 GeneratorPACS::Match::Type

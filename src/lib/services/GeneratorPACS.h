@@ -23,7 +23,7 @@ namespace services
  * @brief \class The Generator class
  * Base class for all response generator
  */
-class GeneratorPACS : public services::Generator
+class GeneratorPACS : public Generator
 {
 public:
     typedef GeneratorPACS Self;
@@ -45,13 +45,10 @@ public:
         };
     };
 
-    /**
-     * @brief Create an instance of Generator
-     * @param username
-     */
+    /// @brief Default Constructor for GeneratorPACS
     GeneratorPACS();
 
-    /// Destroy the instance of Generator
+    /// Destroy the instance of GeneratorPACS
     virtual ~GeneratorPACS();
 
     virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
@@ -65,26 +62,13 @@ public:
 
     std::string get_username() const;
 
+    bool is_connected() const;
+
     dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag,
                                        dcmtkpp::VR const & vr,
                                        std::string const & value);
 
 protected:
-    /// Connection to the Database
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
-
-    /// Flag indicating if connection is established
-    bool _isconnected;
-
-    /// User name
-    std::string _username;
-
-    /// Cursor to the database
-    mongo::unique_ptr<mongo::DBClientCursor> _cursor;
-
     /// @brief Return the DICOM Match Type of an element in BSON form.
     Match::Type _get_match_type(std::string const & vr,
                                 mongo::BSONElement const & element) const;
@@ -103,6 +87,21 @@ protected:
      */
     DicomQueryToMongoQuery _get_query_conversion(
                         Match::Type const & match_type) const;
+
+    /// Connection to the Database
+    mongo::DBClientConnection _connection;
+
+    /// Database name
+    std::string _db_name;
+
+    /// Flag indicating if connection is established
+    bool _isconnected;
+
+    /// User name
+    std::string _username;
+
+    /// Cursor to the database
+    mongo::unique_ptr<mongo::DBClientCursor> _cursor;
 
 private:
     /**

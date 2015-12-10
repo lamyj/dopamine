@@ -29,7 +29,7 @@ public:
         _dataset.add(dcmtkpp::registry::RetrieveAETitle, {"LOCAL"}, dcmtkpp::VR::AE);
         _dataset.add(dcmtkpp::registry::Modality, {"MyModality"}, dcmtkpp::VR::CS);
         _dataset.add(dcmtkpp::registry::Manufacturer, {"Manufacturer"}, dcmtkpp::VR::LO);
-        //_dataset.add(dcmtkpp::registry::InstitutionAddress, {"value"}, dcmtkpp::VR::ST);
+        _dataset.add(dcmtkpp::registry::InstitutionAddress, {"value"}, dcmtkpp::VR::ST);
         _dataset.add(dcmtkpp::registry::SimpleFrameList, {22}, dcmtkpp::VR::UL);
         _dataset.add(dcmtkpp::registry::FailureReason, {42}, dcmtkpp::VR::US);
         _dataset.add(dcmtkpp::registry::StageNumber, {12}, dcmtkpp::VR::IS);
@@ -38,11 +38,11 @@ public:
         _dataset.add(dcmtkpp::registry::PatientAge, {"89Y"}, dcmtkpp::VR::AS);
         _dataset.add(dcmtkpp::registry::PatientWeight, {11.11}, dcmtkpp::VR::DS);
         _dataset.add(dcmtkpp::registry::EthnicGroup, {"value"}, dcmtkpp::VR::SH);
-        //_dataset.add(dcmtkpp::registry::AdditionalPatientHistory, {"value"}, dcmtkpp::VR::LT);
+        _dataset.add(dcmtkpp::registry::AdditionalPatientHistory, {"value"}, dcmtkpp::VR::LT);
         _dataset.add(dcmtkpp::registry::ReferencePixelX0, {32}, dcmtkpp::VR::SL);
         _dataset.add(dcmtkpp::registry::TagAngleSecondAxis, {32}, dcmtkpp::VR::SS);
         //_dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Value::Binary({0x1, 0x2, 0x3, 0x4, 0x5}), dcmtkpp::VR::OB); // Cannot compare Binary field
-        //_dataset.add(dcmtkpp::registry::PixelDataProviderURL, {"value"}, dcmtkpp::VR::UT);
+        _dataset.add(dcmtkpp::registry::PixelDataProviderURL, {"value"}, dcmtkpp::VR::UT);
         _dataset.add(dcmtkpp::registry::PupilSize, {42.5}, dcmtkpp::VR::FD);
 
         insert_dataset(_dataset);
