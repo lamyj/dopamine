@@ -44,9 +44,6 @@ public:
     /// @brief Set the generator.
     void set_generator(Generator::Pointer const generator);
 
-    /// @brief Receive and process a message.
-    void receive_and_process();
-
     /// @brief Process a message.
     virtual void operator()(dcmtkpp::message::Message const & message) =0;
 

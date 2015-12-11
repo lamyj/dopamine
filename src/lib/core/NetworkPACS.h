@@ -41,11 +41,6 @@ public:
     /// While loop to listen the network
     void run();
 
-    /**
-     * Stop running after the next received association or time out
-     */
-    void stop_running();
-
     bool is_running() const;
 
 protected:

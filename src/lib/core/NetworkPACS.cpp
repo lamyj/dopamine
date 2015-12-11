@@ -186,13 +186,6 @@ void NetworkPACS::run()
     }
 }
 
-void
-NetworkPACS
-::stop_running()
-{
-    this->_is_running = false;
-}
-
 bool
 NetworkPACS
 ::is_running() const

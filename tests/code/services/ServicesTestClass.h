@@ -82,7 +82,7 @@ public:
     {
         // Load configuration
         dopamine::ConfigurationPACS::
-                get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
+            get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
         // Create DataBase Connection
         dopamine::services::create_db_connection(connection, db_name);
@@ -204,7 +204,7 @@ private:
     std::vector<std::string> _sop_instance_uids;
     std::vector<std::string> _sop_instance_uids_gridfs;
 
-    std::string _get_env_variable(std::string const & name) const
+    static std::string _get_env_variable(std::string const & name)
     {
         char* value = getenv(name.c_str());
         if(value == NULL)
@@ -234,7 +234,7 @@ private:
         for (std::string testfile : testfiles)
         {
             // Get file name
-            std::string const filename = this->_get_env_variable(testfile);
+            std::string const filename = _get_env_variable(testfile);
 
             std::ifstream stream(filename, std::ios::in | std::ios::binary);
 

@@ -48,14 +48,6 @@ SCP
     this->_generator = generator;
 }
 
-void
-SCP
-::receive_and_process()
-{
-    auto const message = this->_receive();
-    (*this)(message);
-}
-
 } // namespace services
     
 } // namespace dopamine
