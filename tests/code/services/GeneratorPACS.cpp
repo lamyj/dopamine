@@ -58,44 +58,6 @@ public:
                                                 builder.obj().getField("key"));
         BOOST_REQUIRE(match_type == expected_result);
     }
-
-    void test_convert_to_query(mongo::BSONObj const & query_object)
-    {
-        mongo::BSONArrayBuilder arraybuilder;
-        for(mongo::BSONObj::iterator it = query_object.begin(); it.more();)
-        {
-            mongo::BSONObjBuilder db_query_sub;
-
-            mongo::BSONElement const element = it.next();
-            mongo::BSONObj const bsonobj = element.Obj();
-
-            // Always include the field in the results
-            std::string const vr = bsonobj.getField("vr").String();
-
-            std::string fieldtoget = "Value";
-            if (vr == "OB" || vr == "OF" || vr == "OW" || vr == "UN")
-            {
-                fieldtoget = "InlineBinary";
-            }
-
-            mongo::BSONElement const & value = bsonobj.getField(fieldtoget);
-            Match::Type const match_type = this->_get_match_type(vr, value);
-
-            DicomQueryToMongoQuery function =
-                    this->_get_query_conversion(match_type);
-
-            std::stringstream field;
-            field << std::string(element.fieldName()) << "." << fieldtoget;
-            if (vr == "PN")
-            {
-                field << ".Alphabetic";
-            }
-            // Match the array element containing the value
-            (this->*function)(field.str(), vr, value, db_query_sub);
-
-            arraybuilder << db_query_sub.obj();
-        }
-    }
 };
 
 /******************************* TEST Nominal **********************************/
