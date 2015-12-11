@@ -13,7 +13,7 @@
 
 #include <dcmtkpp/Association.h>
 #include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/message/Request.h>
+#include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Value.h>
 
 namespace dopamine
@@ -38,8 +38,9 @@ public:
     /// @brief Destructor.
     virtual ~Generator();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message) = 0;
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message) = 0;
 
     virtual bool done() const = 0;
 

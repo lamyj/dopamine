@@ -32,8 +32,9 @@ public:
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message);
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message);
 
     virtual dcmtkpp::Value::Integer next();
 

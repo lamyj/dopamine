@@ -32,8 +32,9 @@ public:
     /// Destroy the get response generator
     virtual ~GetGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message);
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message);
 
     virtual dcmtkpp::Value::Integer next();
 
@@ -77,7 +78,8 @@ private:
     /// Number of response to ignore
     int _skipped_results;
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> _retrieve_dataset(mongo::BSONObj const & object);
+    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+            _retrieve_dataset(mongo::BSONObj const & object);
 
 };
 

@@ -11,7 +11,7 @@
 
 #include "core/LoggerPACS.h"
 #include "GetGenerator.h"
-#include "ServicesTools.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -28,7 +28,8 @@ GetGenerator
 
 GetGenerator
 ::GetGenerator():
-    GeneratorPACS(), _query_retrieve_level(""), _instance_count_tags({}), _include_fields({}), _maximum_results(0), _skipped_results(0)
+    GeneratorPACS(), _query_retrieve_level(""), _instance_count_tags({}),
+    _include_fields({}), _maximum_results(0), _skipped_results(0)
 {
     // Nothing else.
 }
@@ -44,16 +45,16 @@ GetGenerator
 ::initialize(dcmtkpp::Association const & association,
              dcmtkpp::message::Message const & message)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(association, message);
+    auto const status = GeneratorPACS::initialize(association, message);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
     }
 
     dcmtkpp::message::CGetRequest getrequest(message);
-    mongo::BSONObj query_object = dataset_to_bson(getrequest.get_data_set());
+    mongo::BSONObj const object = dataset_to_bson(getrequest.get_data_set());
 
-    return this->initialize(query_object);
+    return this->initialize(object);
 }
 
 dcmtkpp::Value::Integer
@@ -69,9 +70,8 @@ GetGenerator
     }
     else if (current_bson.hasField("$err"))
     {
-        dopamine::logger_warning()
-                << "An error occured while processing Get operation: "
-                << current_bson.getField("$err").String();
+        logger_warning() << "An error occured while processing Get operation: "
+                         << current_bson.getField("$err").String();
         return dcmtkpp::message::CGetResponse::ProcessingFailure;
     }
     else
@@ -88,7 +88,7 @@ dcmtkpp::Value::Integer
 GetGenerator
 ::initialize(mongo::BSONObj const & request)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(request);
+    auto const status = GeneratorPACS::initialize(request);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -236,52 +236,72 @@ GetGenerator
     return dcmtkpp::message::CGetResponse::Pending;
 }
 
-void GetGenerator::set_query_retrieve_level(std::string const & query_retrieve_level)
+void
+GetGenerator
+::set_query_retrieve_level(std::string const & query_retrieve_level)
 {
     this->_query_retrieve_level = query_retrieve_level;
 }
 
-std::string GetGenerator::get_query_retrieve_level() const
+std::string
+GetGenerator
+::get_query_retrieve_level() const
 {
     return this->_query_retrieve_level;
 }
 
-std::vector<std::string> GetGenerator::get_instance_count_tags() const
+std::vector<std::string>
+GetGenerator
+::get_instance_count_tags() const
 {
     return this->_instance_count_tags;
 }
 
-void GetGenerator::set_include_fields(const std::vector<std::string> &include_fields)
+void
+GetGenerator
+::set_include_fields(std::vector<std::string> const & include_fields)
 {
     this->_include_fields = include_fields;
 }
 
-std::vector<std::string> &GetGenerator::get_include_fields()
+std::vector<std::string> &
+GetGenerator
+::get_include_fields()
 {
     return this->_include_fields;
 }
 
-void GetGenerator::set_maximum_results(int maximum_results)
+void
+GetGenerator
+::set_maximum_results(int maximum_results)
 {
     this->_maximum_results = maximum_results;
 }
 
-int GetGenerator::get_maximum_results() const
+int
+GetGenerator
+::get_maximum_results() const
 {
     return this->_maximum_results;
 }
 
-void GetGenerator::set_skipped_results(int skipped_results)
+void
+GetGenerator
+::set_skipped_results(int skipped_results)
 {
     this->_skipped_results = skipped_results;
 }
 
-int GetGenerator::get_skipped_results() const
+int
+GetGenerator
+::get_skipped_results() const
 {
     return this->_skipped_results;
 }
 
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> GetGenerator::_retrieve_dataset(mongo::BSONObj const & object)
+std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+GetGenerator
+::_retrieve_dataset(mongo::BSONObj const & object)
 {
     mongo::BSONObj localobject = object;
     if (this->_query_retrieve_level != "IMAGE" &&

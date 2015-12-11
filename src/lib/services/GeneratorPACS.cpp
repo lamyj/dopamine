@@ -8,7 +8,6 @@
 
 #include <dcmtkpp/message/Response.h>
 
-#include "core/LoggerPACS.h"
 #include "GeneratorPACS.h"
 #include "services/ServicesTools.h"
 
@@ -89,22 +88,46 @@ GeneratorPACS
         }
     }
 
-    if      (vr == "DS") this->_add_value_to_builder<Float64>(builder, field,
-                                                              bsonelement_to_string(value));
-    else if (vr == "FD") this->_add_value_to_builder<Float64>(builder, field,
-                                                              bsonelement_to_string(value));
-    else if (vr == "FL") this->_add_value_to_builder<Float32>(builder, field,
-                                                              bsonelement_to_string(value));
-    else if (vr == "IS") this->_add_value_to_builder<Sint32>(builder, field,
-                                                             bsonelement_to_string(value));
-    else if (vr == "SL") this->_add_value_to_builder<Sint32>(builder, field,
-                                                             bsonelement_to_string(value));
-    else if (vr == "SS") this->_add_value_to_builder<Sint16>(builder, field,
-                                                             bsonelement_to_string(value));
-    else if (vr == "UL") this->_add_value_to_builder<Uint32>(builder, field,
-                                                             bsonelement_to_string(value));
-    else if (vr == "US") this->_add_value_to_builder<Uint16>(builder, field,
-                                                             bsonelement_to_string(value));
+    if      (vr == "DS")
+    {
+        this->_add_value_to_builder<Float64>(builder, field,
+                                             bsonelement_to_string(value));
+    }
+    else if (vr == "FD")
+    {
+        this->_add_value_to_builder<Float64>(builder, field,
+                                             bsonelement_to_string(value));
+    }
+    else if (vr == "FL")
+    {
+        this->_add_value_to_builder<Float32>(builder, field,
+                                             bsonelement_to_string(value));
+    }
+    else if (vr == "IS")
+    {
+        this->_add_value_to_builder<Sint32>(builder, field,
+                                            bsonelement_to_string(value));
+    }
+    else if (vr == "SL")
+    {
+        this->_add_value_to_builder<Sint32>(builder, field,
+                                            bsonelement_to_string(value));
+    }
+    else if (vr == "SS")
+    {
+        this->_add_value_to_builder<Sint16>(builder, field,
+                                            bsonelement_to_string(value));
+    }
+    else if (vr == "UL")
+    {
+        this->_add_value_to_builder<Uint32>(builder, field,
+                                            bsonelement_to_string(value));
+    }
+    else if (vr == "US")
+    {
+        this->_add_value_to_builder<Uint16>(builder, field,
+                                            bsonelement_to_string(value));
+    }
     else
     {
         builder << field << value.String();
@@ -297,7 +320,7 @@ GeneratorPACS
 
 void
 GeneratorPACS
-::set_username(const std::string &name)
+::set_username(std::string const & name)
 {
     this->_username = name;
 }

@@ -40,7 +40,8 @@ MoveSCP
     this->set_callback(callback);
 }
 
-MoveSCP::~MoveSCP()
+MoveSCP
+::~MoveSCP()
 {
     // Nothing to do.
 }
@@ -65,32 +66,35 @@ MoveSCP
 {
     dcmtkpp::message::CMoveRequest const request(message);
 
-    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    auto status = this->_generator->initialize(*this->_association, message);
     if (status != dcmtkpp::message::CMoveResponse::Pending)
     {
         // Send Error
-        dcmtkpp::message::CMoveResponse response(
-            request.get_message_id(), status);
+        dcmtkpp::message::CMoveResponse response(request.get_message_id(),
+                                                 status);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 
-    std::string peer_host_name_and_port;
+    std::string peer_hostname_port;
     if (!ConfigurationPACS::
             get_instance().peer_for_aetitle(request.get_move_destination(),
-                                            peer_host_name_and_port))
+                                            peer_hostname_port))
     {
         // Send Error
         dcmtkpp::message::CMoveResponse response(
-            request.get_message_id(), dcmtkpp::message::CMoveResponse::RefusedMoveDestinationUnknown);
+                request.get_message_id(),
+                dcmtkpp::message::CMoveResponse::RefusedMoveDestinationUnknown);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 
     dcmtkpp::Association association;
 
     association.set_own_ae_title(this->_association->get_own_ae_title());
-    std::string peer_host_name = peer_host_name_and_port.substr(0, peer_host_name_and_port.find(':'));
+    std::string peer_host_name =
+            peer_hostname_port.substr(0, peer_hostname_port.find(':'));
     association.set_peer_host_name(peer_host_name);
-    std::string peer_port = peer_host_name_and_port.substr(peer_host_name_and_port.find(':')+1);
+    std::string peer_port =
+            peer_hostname_port.substr(peer_hostname_port.find(':')+1);
     association.set_peer_port(atoi(peer_port.c_str()));
     association.set_peer_ae_title(request.get_move_destination());
 
@@ -122,7 +126,8 @@ MoveSCP
     {
         // Send Error
         dcmtkpp::message::CMoveResponse response(
-            request.get_message_id(), dcmtkpp::message::CMoveResponse::UnableToProcess);
+                    request.get_message_id(),
+                    dcmtkpp::message::CMoveResponse::UnableToProcess);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 
@@ -130,7 +135,8 @@ MoveSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request, this->_generator);
+            status = this->_callback(*this->_association, request,
+                                     this->_generator);
         }
         catch(dcmtkpp::Exception const & exception)
         {
@@ -147,8 +153,8 @@ MoveSCP
             scu.store(this->_generator->get().second);
         }
 
-        dcmtkpp::message::CMoveResponse response(
-            request.get_message_id(), status);
+        dcmtkpp::message::CMoveResponse response(request.get_message_id(),
+                                                 status);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 

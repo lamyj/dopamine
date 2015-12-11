@@ -11,7 +11,7 @@
 
 #include "core/LoggerPACS.h"
 #include "FindGenerator.h"
-#include "ServicesTools.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -42,19 +42,21 @@ FindGenerator
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer FindGenerator::initialize(dcmtkpp::Association const & association,
-                                                  dcmtkpp::message::Message const & message)
+dcmtkpp::Value::Integer
+FindGenerator
+::initialize(dcmtkpp::Association const & association,
+             dcmtkpp::message::Message const & message)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(association, message);
+    auto status = GeneratorPACS::initialize(association, message);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
     }
 
     dcmtkpp::message::CFindRequest findrequest(message);
-    mongo::BSONObj query_object = dataset_to_bson(findrequest.get_data_set());
+    mongo::BSONObj const object = dataset_to_bson(findrequest.get_data_set());
 
-    return this->initialize(query_object);
+    return this->initialize(object);
 }
 
 dcmtkpp::Value::Integer
@@ -70,9 +72,8 @@ FindGenerator
     }
     else if (current_bson.hasField("$err"))
     {
-        dopamine::logger_warning()
-                << "An error occured while processing Find operation: "
-                << current_bson.getField("$err").String();
+        logger_warning() << "An error occured while processing Find operation: "
+                         << current_bson.getField("$err").String();
         return dcmtkpp::message::CFindResponse::ProcessingFailure;
     }
     else
@@ -131,7 +132,7 @@ dcmtkpp::Value::Integer
 FindGenerator
 ::initialize(mongo::BSONObj const & request)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(request);
+    auto status = GeneratorPACS::initialize(request);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -294,12 +295,16 @@ FindGenerator
     return this->_query_retrieve_level;
 }
 
-std::vector<std::string> FindGenerator::get_instance_count_tags() const
+std::vector<std::string>
+FindGenerator
+::get_instance_count_tags() const
 {
     return this->_instance_count_tags;
 }
 
-bool FindGenerator::get_convert_modalities_in_study() const
+bool
+FindGenerator
+::get_convert_modalities_in_study() const
 {
     return this->_convert_modalities_in_study;
 }
@@ -325,7 +330,9 @@ FindGenerator
     this->_maximum_results = maximum_results;
 }
 
-int FindGenerator::get_maximum_results() const
+int
+FindGenerator
+::get_maximum_results() const
 {
     return this->_maximum_results;
 }

@@ -11,7 +11,7 @@
 
 #include "core/LoggerPACS.h"
 #include "MoveGenerator.h"
-#include "ServicesTools.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -28,7 +28,8 @@ MoveGenerator
 
 MoveGenerator
 ::MoveGenerator():
-    GeneratorPACS(), _query_retrieve_level(""), _instance_count_tags({}), _include_fields({}), _maximum_results(0), _skipped_results(0)
+    GeneratorPACS(), _query_retrieve_level(""), _instance_count_tags({}),
+    _include_fields({}), _maximum_results(0), _skipped_results(0)
 {
     // Nothing else.
 }
@@ -44,16 +45,16 @@ MoveGenerator
 ::initialize(dcmtkpp::Association const & association,
              dcmtkpp::message::Message const & message)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(association, message);
+    auto const status = GeneratorPACS::initialize(association, message);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
     }
 
     dcmtkpp::message::CMoveRequest moverequest(message);
-    mongo::BSONObj query_object = dataset_to_bson(moverequest.get_data_set());
+    mongo::BSONObj const object = dataset_to_bson(moverequest.get_data_set());
 
-    return this->initialize(query_object);
+    return this->initialize(object);
 }
 
 dcmtkpp::Value::Integer
@@ -69,9 +70,8 @@ MoveGenerator
     }
     else if (current_bson.hasField("$err"))
     {
-        dopamine::logger_warning()
-                << "An error occured while processing Move operation: "
-                << current_bson.getField("$err").String();
+        logger_warning() << "An error occured while processing Move operation: "
+                         << current_bson.getField("$err").String();
         return dcmtkpp::message::CMoveResponse::ProcessingFailure;
     }
     else
@@ -84,9 +84,11 @@ MoveGenerator
     return dcmtkpp::message::CMoveResponse::Pending;
 }
 
-dcmtkpp::Value::Integer MoveGenerator::initialize(const mongo::BSONObj &request)
+dcmtkpp::Value::Integer
+MoveGenerator
+::initialize(const mongo::BSONObj &request)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(request);
+    auto const status = GeneratorPACS::initialize(request);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -234,47 +236,64 @@ dcmtkpp::Value::Integer MoveGenerator::initialize(const mongo::BSONObj &request)
     return dcmtkpp::message::CMoveResponse::Pending;
 }
 
-void MoveGenerator::set_query_retrieve_level(const std::string &query_retrieve_level)
+void
+MoveGenerator
+::set_query_retrieve_level(std::string const & query_retrieve_level)
 {
     this->_query_retrieve_level = query_retrieve_level;
 }
 
-std::string MoveGenerator::get_query_retrieve_level() const
+std::string
+MoveGenerator
+::get_query_retrieve_level() const
 {
     return this->_query_retrieve_level;
 }
 
-std::vector<std::string> MoveGenerator::get_instance_count_tags() const
+std::vector<std::string>
+MoveGenerator
+::get_instance_count_tags() const
 {
     return this->_instance_count_tags;
 }
 
-void MoveGenerator::set_include_fields(const std::vector<std::string> &include_fields)
+void
+MoveGenerator
+::set_include_fields(std::vector<std::string> const & include_fields)
 {
     this->_include_fields = include_fields;
 }
 
-std::vector<std::string> &MoveGenerator::get_include_fields()
+std::vector<std::string> &
+MoveGenerator::get_include_fields()
 {
     return this->_include_fields;
 }
 
-void MoveGenerator::set_maximum_results(int maximum_results)
+void
+MoveGenerator
+::set_maximum_results(int maximum_results)
 {
     this->_maximum_results = maximum_results;
 }
 
-int MoveGenerator::get_maximum_results() const
+int
+MoveGenerator
+::get_maximum_results() const
 {
     return this->_maximum_results;
 }
 
-void MoveGenerator::set_skipped_results(int skipped_results)
+void
+MoveGenerator
+::set_skipped_results(int skipped_results)
 {
     this->_skipped_results = skipped_results;
 }
 
-int MoveGenerator::get_skipped_results() const
+int
+MoveGenerator
+::get_skipped_results() const
 {
     return this->_skipped_results;
 }

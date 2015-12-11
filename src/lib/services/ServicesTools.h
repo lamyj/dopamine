@@ -11,13 +11,10 @@
 
 #include <string>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmnet/dcuserid.h>
-
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Tag.h>
+#include <dcmtkpp/Value.h>
 
 #include <mongo/client/dbclient.h>
 
@@ -62,13 +59,6 @@ dcmtkpp::Value::Integer insert_dataset(
 dcmtkpp::DataSet create_status_detail(Uint16 const errorCode,
                                       dcmtkpp::Tag const & key,
                                       std::string const & comment);
-
-/**
- * @brief Find the username into UserIdentityNegotiationSubItemRQ
- * @param userIdentNeg: UserIdentityNegotiationSubItemRQ
- * @return the username
- */
-std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg);
 
 /**
  * @brief Check if user is allowed to do given services

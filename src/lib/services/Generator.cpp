@@ -27,7 +27,9 @@ Generator
     // Nothing to do.
 }
 
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> Generator::get() const
+std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+Generator
+::get() const
 {
     return std::make_pair(this->_meta_information, this->_current_dataset);
 }

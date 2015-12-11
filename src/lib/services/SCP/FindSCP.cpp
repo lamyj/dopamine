@@ -6,9 +6,9 @@
  * for details.
  ************************************************************************/
 
-#include "FindSCP.h"
-
 #include <dcmtkpp/message/CFindResponse.h>
+
+#include "FindSCP.h"
 
 namespace dopamine
 {
@@ -38,7 +38,8 @@ FindSCP
     this->set_callback(callback);
 }
 
-FindSCP::~FindSCP()
+FindSCP
+::~FindSCP()
 {
     // Nothing to do.
 }
@@ -63,12 +64,12 @@ FindSCP
 {
     dcmtkpp::message::CFindRequest const request(message);
 
-    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    auto status = this->_generator->initialize(*this->_association, message);
     if (status != dcmtkpp::message::CFindResponse::Pending)
     {
         // Send Error
-        dcmtkpp::message::CFindResponse response(
-            request.get_message_id(), status);
+        dcmtkpp::message::CFindResponse response(request.get_message_id(),
+                                                 status);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 
@@ -76,7 +77,8 @@ FindSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request, this->_generator);
+            status = this->_callback(*this->_association, request,
+                                     this->_generator);
         }
         catch(dcmtkpp::Exception const & exception)
         {
@@ -95,8 +97,8 @@ FindSCP
         }
         else
         {
-            dcmtkpp::message::CFindResponse response(
-                request.get_message_id(), status);
+            dcmtkpp::message::CFindResponse response(request.get_message_id(),
+                                                     status);
             this->_send(response, request.get_affected_sop_class_uid());
         }
     }

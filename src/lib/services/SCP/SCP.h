@@ -9,8 +9,6 @@
 #ifndef _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 #define _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 
-#include <boost/shared_ptr.hpp>
-
 #include <dcmtkpp/Association.h>
 #include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Network.h>

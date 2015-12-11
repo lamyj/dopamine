@@ -12,12 +12,11 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include <dcmtkpp/message/CGetResponse.h>
-#include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/Writer.h>
 
 #include "services/GetGenerator.h"
+#include "services/webservices/WebServiceException.h"
 #include "Wado_rs.h"
-#include "WebServiceException.h"
 
 namespace dopamine
 {

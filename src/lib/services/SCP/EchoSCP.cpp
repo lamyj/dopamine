@@ -6,9 +6,9 @@
  * for details.
  ************************************************************************/
 
-#include "EchoSCP.h"
-
 #include <dcmtkpp/message/CEchoResponse.h>
+
+#include "EchoSCP.h"
 
 namespace dopamine
 {
@@ -38,7 +38,8 @@ EchoSCP
     this->set_callback(callback);
 }
 
-EchoSCP::~EchoSCP()
+EchoSCP
+::~EchoSCP()
 {
     // Nothing to do.
 }
@@ -63,12 +64,12 @@ EchoSCP
 {
     dcmtkpp::message::CEchoRequest const request(message);
 
-    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    auto status = this->_generator->initialize(*this->_association, message);
     if (status != dcmtkpp::message::CEchoResponse::Pending)
     {
         // Send Error
         dcmtkpp::message::CEchoResponse response(
-            request.get_message_id(), status,
+                    request.get_message_id(), status,
                     request.get_affected_sop_class_uid());
         this->_send(response, request.get_affected_sop_class_uid());
     }
@@ -76,7 +77,8 @@ EchoSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request, this->_generator);
+            status = this->_callback(*this->_association, request,
+                                     this->_generator);
         }
         catch(dcmtkpp::Exception const & exception)
         {

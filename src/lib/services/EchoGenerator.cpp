@@ -6,12 +6,11 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/CEchoRequest.h>
 #include <dcmtkpp/message/CEchoResponse.h>
 
 #include "core/LoggerPACS.h"
 #include "EchoGenerator.h"
-#include "ServicesTools.h"
+#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -44,7 +43,7 @@ EchoGenerator
 ::initialize(dcmtkpp::Association const & association,
              dcmtkpp::message::Message const & message)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(association, message);
+    auto const status = GeneratorPACS::initialize(association, message);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -58,7 +57,7 @@ dcmtkpp::Value::Integer
 EchoGenerator
 ::initialize(mongo::BSONObj const & request)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(request);
+    auto const status = GeneratorPACS::initialize(request);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;

@@ -44,7 +44,7 @@ StoreGenerator
 ::initialize(dcmtkpp::Association const & association,
              dcmtkpp::message::Message const & message)
 {
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(association, message);
+    auto const status = GeneratorPACS::initialize(association, message);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -71,7 +71,7 @@ StoreGenerator
 ::initialize(dcmtkpp::DataSet const & dataset)
 {
     mongo::BSONObj const object;
-    dcmtkpp::Value::Integer status = GeneratorPACS::initialize(object);
+    auto const status = GeneratorPACS::initialize(object);
     if (status != dcmtkpp::message::Response::Success)
     {
         return status;
@@ -132,7 +132,9 @@ StoreGenerator
                           this->_peer_ae_title);
 }
 
-std::string StoreGenerator::get_peer_ae_title() const
+std::string
+StoreGenerator
+::get_peer_ae_title() const
 {
     return this->_peer_ae_title;
 }

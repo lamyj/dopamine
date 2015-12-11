@@ -65,12 +65,12 @@ GetSCP
 {
     dcmtkpp::message::CGetRequest const request(message);
 
-    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    auto status = this->_generator->initialize(*this->_association, message);
     if (status != dcmtkpp::message::CGetResponse::Pending)
     {
         // Send Error
-        dcmtkpp::message::CGetResponse response(
-            request.get_message_id(), status);
+        dcmtkpp::message::CGetResponse response(request.get_message_id(),
+                                                status);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 
@@ -82,7 +82,8 @@ GetSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request, this->_generator);
+            status = this->_callback(*this->_association, request,
+                                     this->_generator);
         }
         catch(dcmtkpp::Exception const & exception)
         {
@@ -99,8 +100,8 @@ GetSCP
             scu.store(this->_generator->get().second);
         }
 
-        dcmtkpp::message::CGetResponse response(
-            request.get_message_id(), status);
+        dcmtkpp::message::CGetResponse response(request.get_message_id(),
+                                                status);
         this->_send(response, request.get_affected_sop_class_uid());
     }
 }

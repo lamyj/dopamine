@@ -11,7 +11,7 @@
 
 #include <map>
 
-#include "Wado.h"
+#include "services/webservices/Wado.h"
 
 namespace dopamine
 {

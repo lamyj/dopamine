@@ -32,8 +32,9 @@ public:
     /// Destroy the echo response generator
     virtual ~EchoGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message);
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message);
 
     virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
 

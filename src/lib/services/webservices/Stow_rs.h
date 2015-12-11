@@ -9,10 +9,7 @@
 #ifndef _f3f03ce9_754b_4843_9c32_7b7000d94934
 #define _f3f03ce9_754b_4843_9c32_7b7000d94934
 
-#include <string>
-#include <vector>
-
-#include "Webservices.h"
+#include "services/webservices/Webservices.h"
 
 namespace dopamine
 {

@@ -51,8 +51,9 @@ public:
     /// Destroy the instance of GeneratorPACS
     virtual ~GeneratorPACS();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message);
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message);
 
     virtual bool done() const;
 

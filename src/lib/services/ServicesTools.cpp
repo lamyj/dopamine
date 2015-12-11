@@ -101,33 +101,14 @@ create_status_detail(Uint16 const errorCode,
                      std::string const & comment)
 {
     dcmtkpp::DataSet data_set;
-    data_set.add(dcmtkpp::registry::Status, dcmtkpp::Element({errorCode}, dcmtkpp::VR::US));
-    data_set.add(dcmtkpp::registry::OffendingElement, dcmtkpp::Element({std::string(key)}, dcmtkpp::VR::AT));
-    data_set.add(dcmtkpp::registry::ErrorComment, dcmtkpp::Element({comment}, dcmtkpp::VR::LO));
+    data_set.add(dcmtkpp::registry::Status,
+                 dcmtkpp::Element({errorCode}, dcmtkpp::VR::US));
+    data_set.add(dcmtkpp::registry::OffendingElement,
+                 dcmtkpp::Element({std::string(key)}, dcmtkpp::VR::AT));
+    data_set.add(dcmtkpp::registry::ErrorComment,
+                 dcmtkpp::Element({comment}, dcmtkpp::VR::LO));
 
     return data_set;
-}
-
-std::string
-get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg)
-{
-    std::string lcurrentUser = "";
-
-    // Retrieve UserName for Identity Type: User or User/Pasword
-    if ((userIdentNeg != NULL) &&
-        (userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER ||
-         userIdentNeg->getIdentityType() == ASC_USER_IDENTITY_USER_PASSWORD))
-    {
-        // Get user name
-        char * user;
-        Uint16 user_length;
-        userIdentNeg->getPrimField(user, user_length);
-        // user is not NULL-terminated
-        lcurrentUser = std::string(user, user_length);
-        delete [] user;
-    }
-
-    return lcurrentUser;
 }
 
 bool

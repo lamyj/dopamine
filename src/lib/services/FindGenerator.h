@@ -32,8 +32,9 @@ public:
     /// Destroy the find response generator
     virtual ~FindGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(dcmtkpp::Association const & association,
-                                               dcmtkpp::message::Message const & message);
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::Association const & association,
+            dcmtkpp::message::Message const & message);
 
     virtual dcmtkpp::Value::Integer next();
 
@@ -88,7 +89,8 @@ private:
 
     bool _fuzzy_matching;
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> _retrieve_dataset(mongo::BSONObj const & object);
+    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+            _retrieve_dataset(mongo::BSONObj const & object);
 
 };
 

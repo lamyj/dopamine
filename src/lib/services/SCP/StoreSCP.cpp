@@ -7,7 +7,6 @@
  ************************************************************************/
 
 #include <dcmtkpp/message/CStoreResponse.h>
-#include <dcmtkpp/Value.h>
 
 #include "StoreSCP.h"
 
@@ -33,7 +32,7 @@ StoreSCP
 
 StoreSCP
 ::StoreSCP(dcmtkpp::Network *network, dcmtkpp::Association *association,
-               StoreSCP::Callback const & callback) :
+           StoreSCP::Callback const & callback) :
     SCP(network, association), _callback()
 {
     this->set_callback(callback);
@@ -65,12 +64,13 @@ StoreSCP
 {
     dcmtkpp::message::CStoreRequest const request(message);
 
-    dcmtkpp::Value::Integer status = this->_generator->initialize(*this->_association, message);
+    auto status = this->_generator->initialize(*this->_association, message);
     if (status == dcmtkpp::message::CStoreResponse::Pending)
     {
         try
         {
-            status = this->_callback(*this->_association, request, this->_generator);
+            status = this->_callback(*this->_association, request,
+                                     this->_generator);
         }
         catch(dcmtkpp::Exception const & exception)
         {
@@ -81,7 +81,8 @@ StoreSCP
         }
     }
 
-    dcmtkpp::message::CStoreResponse const response(request.get_message_id(), status);
+    dcmtkpp::message::CStoreResponse const response(request.get_message_id(),
+                                                    status);
     this->_send(response, request.get_affected_sop_class_uid());
 }
 

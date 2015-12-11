@@ -11,7 +11,7 @@
 
 #include <dcmtkpp/message/CFindRequest.h>
 
-#include "SCP.h"
+#include "services/SCP/SCP.h"
 
 namespace dopamine
 {
@@ -26,9 +26,10 @@ class FindSCP : public SCP
 {
 public:
     /// @brief Callback called when a request is received.
-    typedef std::function<dcmtkpp::Value::Integer(dcmtkpp::Association const &,
-                                                  dcmtkpp::message::CFindRequest const &,
-                                                  Generator::Pointer)> Callback;
+    typedef std::function<dcmtkpp::Value::Integer(
+            dcmtkpp::Association const &,
+            dcmtkpp::message::CFindRequest const &,
+            Generator::Pointer)> Callback;
 
     /// @brief Default constructor.
     FindSCP();
@@ -37,9 +38,8 @@ public:
     FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
 
     /// @brief Constructor.
-    FindSCP(
-        dcmtkpp::Network * network, dcmtkpp::Association * association,
-        Callback const & callback);
+    FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association,
+            Callback const & callback);
 
     /// @brief Destructor.
     virtual ~FindSCP();

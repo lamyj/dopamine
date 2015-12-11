@@ -12,9 +12,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 
-#include <dcmtkpp/registry.h>
 #include <dcmtkpp/message/CFindResponse.h>
-#include <dcmtkpp/message/Response.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
@@ -35,45 +33,68 @@ check_mandatory_field_in_response(dcmtkpp::DataSet & response,
                                   std::vector<Attribute> attributes)
 {
     // Add Query retrieve level
-    response.add(dcmtkpp::registry::QueryRetrieveLevel, {generator->get_query_retrieve_level()}, dcmtkpp::VR::CS);
+    response.add(dcmtkpp::registry::QueryRetrieveLevel,
+                 {generator->get_query_retrieve_level()}, dcmtkpp::VR::CS);
 
     for (Attribute attribute : attributes)
     {
-        if (attribute.get_tag() == dcmtkpp::registry::QueryRetrieveLevel) continue;
+        if (attribute.get_tag() == dcmtkpp::registry::QueryRetrieveLevel)
+        {
+            continue;
+        }
+
         if (!response.has(attribute.get_tag()))
         {
             // Instance Availability
             if (attribute.get_tag() == dcmtkpp::registry::InstanceAvailability)
             {
-                response.add(dcmtkpp::registry::InstanceAvailability, generator->compute_attribute(attribute.get_tag(), attribute.get_vr(), ""));
+                response.add(dcmtkpp::registry::InstanceAvailability,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          ""));
             }
             // Modalities in Study
             else if (attribute.get_tag() == dcmtkpp::registry::ModalitiesInStudy)
             {
                 std::string const value =
-                        response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::ModalitiesInStudy, generator->compute_attribute(attribute.get_tag(), attribute.get_vr(), value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::ModalitiesInStudy,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Study Related Series
-            else if (attribute.get_tag() == dcmtkpp::registry::NumberOfStudyRelatedSeries)
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfStudyRelatedSeries)
             {
                 std::string const value =
-                        response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfStudyRelatedSeries, generator->compute_attribute(attribute.get_tag(), attribute.get_vr(), value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfStudyRelatedSeries,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Study Related Instances
-            else if (attribute.get_tag() == dcmtkpp::registry::NumberOfStudyRelatedInstances)
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfStudyRelatedInstances)
             {
                 std::string const value =
-                        response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfStudyRelatedInstances, generator->compute_attribute(attribute.get_tag(), attribute.get_vr(), value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfStudyRelatedInstances,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Series Related Instances
-            else if (attribute.get_tag() == dcmtkpp::registry::NumberOfSeriesRelatedInstances)
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfSeriesRelatedInstances)
             {
                 std::string const value =
-                        response.as_string(dcmtkpp::registry::SeriesInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfSeriesRelatedInstances, generator->compute_attribute(attribute.get_tag(), attribute.get_vr(), value));
+                    response.as_string(dcmtkpp::registry::SeriesInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfSeriesRelatedInstances,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             else
             {
@@ -169,7 +190,8 @@ Qido_rs
             else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
             {
                 stream << "--" << this->_boundary << "\n";
-                stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
+                stream << CONTENT_TYPE
+                       << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
 
                 std::string currentdata = dataset_to_xml_string(dataset);
 
@@ -550,7 +572,8 @@ Qido_rs
         // tag not already added
         if (std::find(this->_include_fields.begin(),
                       this->_include_fields.end(),
-                      std::string(tag.get_tag())) != this->_include_fields.end() ||
+                      std::string(tag.get_tag())) !=
+                this->_include_fields.end() ||
             queryobject.hasField(std::string(tag.get_tag())))
         {
             continue;
