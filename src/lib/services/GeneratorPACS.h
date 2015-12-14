@@ -66,9 +66,38 @@ public:
 
     bool is_connected() const;
 
+    void set_query_retrieve_level(std::string const & query_retrieve_level);
+
+    std::string get_query_retrieve_level() const;
+
+    std::vector<std::string> get_instance_count_tags() const;
+
+    void set_include_fields(std::vector<std::string> const & include_fields);
+
+    std::vector<std::string>& get_include_fields();
+
+    void set_maximum_results(int maximum_results);
+
+    int get_maximum_results() const;
+
+    void set_skipped_results(int skipped_results);
+
+    int get_skipped_results() const;
+
     dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag,
                                        dcmtkpp::VR const & vr,
                                        std::string const & value);
+
+    /**
+     * Replace all given pattern by another
+     * @param value: given input string
+     * @param old: search pattern to be replaced
+     * @param new_: new pattern
+     * @return string
+     */
+    static std::string replace(std::string const & value,
+                               std::string const & old,
+                               std::string const & new_);
 
 protected:
     /// @brief Return the DICOM Match Type of an element in BSON form.
@@ -90,6 +119,8 @@ protected:
     DicomQueryToMongoQuery _get_query_conversion(
                         Match::Type const & match_type) const;
 
+    bool extract_query_retrieve_level(mongo::BSONObj const & mongo_object);
+
     /// Connection to the Database
     MongoDBConnection * _connection;
 
@@ -101,6 +132,21 @@ protected:
 
     /// Cursor to the database
     mongo::unique_ptr<mongo::DBClientCursor> _cursor;
+
+    /// QueryRetrieveLevel
+    std::string _query_retrieve_level;
+
+    ///
+    std::vector<std::string> _instance_count_tags;
+
+    /// Fields to retrieve
+    std::vector<std::string> _include_fields;
+
+    /// Maximum number of dataset to retrieve
+    int _maximum_results;
+
+    /// Number of response to ignore
+    int _skipped_results;
 
 private:
     /**

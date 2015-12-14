@@ -28,8 +28,7 @@ GetGenerator
 
 GetGenerator
 ::GetGenerator():
-    GeneratorPACS(), _query_retrieve_level(""), _instance_count_tags({}),
-    _include_fields({}), _maximum_results(0), _skipped_results(0)
+    GeneratorPACS()
 {
     // Nothing else.
 }
@@ -117,17 +116,10 @@ GetGenerator
     mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
-    if (!query_object.hasField("00080052"))
+    if (!this->extract_query_retrieve_level(query_object))
     {
         logger_warning() << "Cannot find field QueryRetrieveLevel";
         return dcmtkpp::message::CGetResponse::MissingAttribute;
-    }
-    // Read the Query Retrieve Level
-    {
-    mongo::BSONObj const field_00080052 =
-            query_object.getField("00080052").Obj();
-    this->_query_retrieve_level =
-            field_00080052.getField("Value").Array()[0].String();
     }
 
     // Remove unused elements
@@ -240,69 +232,6 @@ GetGenerator
                 query, this->_maximum_results, this->_skipped_results, &fields);
 
     return dcmtkpp::message::CGetResponse::Pending;
-}
-
-void
-GetGenerator
-::set_query_retrieve_level(std::string const & query_retrieve_level)
-{
-    this->_query_retrieve_level = query_retrieve_level;
-}
-
-std::string
-GetGenerator
-::get_query_retrieve_level() const
-{
-    return this->_query_retrieve_level;
-}
-
-std::vector<std::string>
-GetGenerator
-::get_instance_count_tags() const
-{
-    return this->_instance_count_tags;
-}
-
-void
-GetGenerator
-::set_include_fields(std::vector<std::string> const & include_fields)
-{
-    this->_include_fields = include_fields;
-}
-
-std::vector<std::string> &
-GetGenerator
-::get_include_fields()
-{
-    return this->_include_fields;
-}
-
-void
-GetGenerator
-::set_maximum_results(int maximum_results)
-{
-    this->_maximum_results = maximum_results;
-}
-
-int
-GetGenerator
-::get_maximum_results() const
-{
-    return this->_maximum_results;
-}
-
-void
-GetGenerator
-::set_skipped_results(int skipped_results)
-{
-    this->_skipped_results = skipped_results;
-}
-
-int
-GetGenerator
-::get_skipped_results() const
-{
-    return this->_skipped_results;
 }
 
 } // namespace services

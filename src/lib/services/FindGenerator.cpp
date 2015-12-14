@@ -29,9 +29,7 @@ FindGenerator
 FindGenerator
 ::FindGenerator():
     GeneratorPACS(), // base class initialisation
-    _query_retrieve_level(""), _instance_count_tags({}),
-    _convert_modalities_in_study(false), _include_fields({}),
-    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
+    _convert_modalities_in_study(false), _fuzzy_matching(false)
 {
     // Nothing else.
 }
@@ -92,29 +90,6 @@ FindGenerator
                             dcmtkpp::Element({this->_query_retrieve_level},
                                              dcmtkpp::VR::CS));
 
-        if (current_bson.hasField("instance_count"))
-        {
-            /*OFString count(12, '\0');
-            snprintf(&count[0], 12, "%i",
-            int(current_bson.getField("instance_count").Number()));
-            condition =
-            (*responseIdentifiers)->putAndInsertOFStringArray(
-            context->get_instance_count_tag(), count);
-            if (condition.bad())
-            {
-            dopamine::logger_error()
-            << "Cannot insert "
-            << context->get_instance_count_tag().getGroup()
-            << ","
-            << context->get_instance_count_tag().getElement()
-            << ": " << condition .text();
-            status = STATUS_FIND_Failed_UnableToProcess;
-            create_status_detail(STATUS_FIND_Failed_UnableToProcess,
-            context->get_instance_count_tag(),
-            OFString(condition.text()), stDetail);
-            }*/
-        }
-
         if (this->_convert_modalities_in_study)
         {
             data_set.second.remove(dcmtkpp::registry::Modality);
@@ -160,17 +135,10 @@ FindGenerator
     mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
-    if (!query_object.hasField("00080052"))
+    if (!this->extract_query_retrieve_level(query_object))
     {
         logger_warning() << "Cannot find field QueryRetrieveLevel";
         return dcmtkpp::message::CFindResponse::MissingAttribute;
-    }
-    // Read the Query Retrieve Level
-    {
-    mongo::BSONObj const field_00080052 =
-            query_object.getField("00080052").Obj();
-    this->_query_retrieve_level =
-            field_00080052.getField("Value").Array()[0].String();
     }
 
     // Remove unused elements
@@ -286,74 +254,11 @@ FindGenerator
     return dcmtkpp::message::CFindResponse::Pending;
 }
 
-void
-FindGenerator
-::set_query_retrieve_level(std::string const & query_retrieve_level)
-{
-    this->_query_retrieve_level = query_retrieve_level;
-}
-
-std::string
-FindGenerator
-::get_query_retrieve_level() const
-{
-    return this->_query_retrieve_level;
-}
-
-std::vector<std::string>
-FindGenerator
-::get_instance_count_tags() const
-{
-    return this->_instance_count_tags;
-}
-
 bool
 FindGenerator
 ::get_convert_modalities_in_study() const
 {
     return this->_convert_modalities_in_study;
-}
-
-void
-FindGenerator
-::set_include_fields(std::vector<std::string> const & include_fields)
-{
-    this->_include_fields = include_fields;
-}
-
-std::vector<std::string> &
-FindGenerator
-::get_include_fields()
-{
-    return this->_include_fields;
-}
-
-void
-FindGenerator
-::set_maximum_results(int maximum_results)
-{
-    this->_maximum_results = maximum_results;
-}
-
-int
-FindGenerator
-::get_maximum_results() const
-{
-    return this->_maximum_results;
-}
-
-void
-FindGenerator
-::set_skipped_results(int skipped_results)
-{
-    this->_skipped_results = skipped_results;
-}
-
-int
-FindGenerator
-::get_skipped_results() const
-{
-    return this->_skipped_results;
 }
 
 void

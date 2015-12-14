@@ -17,7 +17,6 @@
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
 #include "services/FindGenerator.h"
-#include "services/ServicesTools.h"
 #include "services/webservices/Qido_rs.h"
 #include "services/webservices/WebServiceException.h"
 
@@ -199,7 +198,7 @@ Qido_rs
                 std::stringstream xmlheader;
                 xmlheader << "<?xml version=\"1.0\" "
                           << "encoding=\"utf-8\" xml:space=\"preserve\" ?>";
-                currentdata = replace(
+                currentdata = GeneratorPACS::replace(
                                 currentdata,
                                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
                                 xmlheader.str());

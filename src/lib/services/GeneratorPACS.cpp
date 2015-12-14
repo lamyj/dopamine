@@ -9,8 +9,8 @@
 #include <dcmtkpp/message/Response.h>
 
 #include "core/ConfigurationPACS.h"
+#include "core/LoggerPACS.h"
 #include "GeneratorPACS.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -269,7 +269,9 @@ GeneratorPACS
 
 GeneratorPACS
 ::GeneratorPACS():
-    Generator(), _connection(NULL), _isconnected(false), _username("")
+    Generator(), _connection(NULL), _isconnected(false), _username(""),
+    _query_retrieve_level(""), _instance_count_tags({}), _include_fields({}),
+    _maximum_results(0), _skipped_results(0)
 {
     // Nothing else.
 }
@@ -356,6 +358,69 @@ GeneratorPACS
 ::is_connected() const
 {
     return this->_isconnected;
+}
+
+void
+GeneratorPACS
+::set_query_retrieve_level(std::string const & query_retrieve_level)
+{
+    this->_query_retrieve_level = query_retrieve_level;
+}
+
+std::string
+GeneratorPACS
+::get_query_retrieve_level() const
+{
+    return this->_query_retrieve_level;
+}
+
+std::vector<std::string>
+GeneratorPACS
+::get_instance_count_tags() const
+{
+    return this->_instance_count_tags;
+}
+
+void
+GeneratorPACS
+::set_include_fields(std::vector<std::string> const & include_fields)
+{
+    this->_include_fields = include_fields;
+}
+
+std::vector<std::string> &
+GeneratorPACS
+::get_include_fields()
+{
+    return this->_include_fields;
+}
+
+void
+GeneratorPACS
+::set_maximum_results(int maximum_results)
+{
+    this->_maximum_results = maximum_results;
+}
+
+int
+GeneratorPACS
+::get_maximum_results() const
+{
+    return this->_maximum_results;
+}
+
+void
+GeneratorPACS
+::set_skipped_results(int skipped_results)
+{
+    this->_skipped_results = skipped_results;
+}
+
+int
+GeneratorPACS
+::get_skipped_results() const
+{
+    return this->_skipped_results;
 }
 
 GeneratorPACS::Match::Type
@@ -485,6 +550,26 @@ GeneratorPACS
     return function;
 }
 
+bool
+GeneratorPACS
+::extract_query_retrieve_level(mongo::BSONObj const & mongo_object)
+{
+    // Query retrieve level should be present
+    if (!mongo_object.hasField("00080052"))
+    {
+        logger_warning() << "Cannot find field QueryRetrieveLevel";
+        return false;
+    }
+
+    // Read the Query Retrieve Level
+    mongo::BSONObj const field_00080052 =
+            mongo_object.getField("00080052").Obj();
+    this->_query_retrieve_level =
+            field_00080052.getField("Value").Array()[0].String();
+
+    return true;
+}
+
 dcmtkpp::Value::Integer
 GeneratorPACS
 ::_get_count(std::string const & relatedElement,
@@ -568,6 +653,24 @@ GeneratorPACS
     }
 
     return dcmtkpp::Element();
+}
+
+std::string
+GeneratorPACS
+::replace(std::string const & value,
+          std::string const & old,
+          std::string const & new_)
+{
+    std::string result(value);
+    size_t begin=0;
+    while(std::string::npos != (begin=result.find(old, begin)))
+    {
+        result = result.replace(begin, old.size(), new_);
+        begin = (begin+new_.size()<result.size())?begin+new_.size()
+                                                 :std::string::npos;
+    }
+
+    return result;
 }
 
 } // namespace services

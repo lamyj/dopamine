@@ -40,25 +40,7 @@ public:
 
     virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
 
-    void set_query_retrieve_level(std::string const & query_retrieve_level);
-
-    std::string get_query_retrieve_level() const;
-
-    std::vector<std::string> get_instance_count_tags() const;
-
     bool get_convert_modalities_in_study() const;
-
-    void set_include_fields(std::vector<std::string> const & include_fields);
-
-    std::vector<std::string>& get_include_fields();
-
-    void set_maximum_results(int maximum_results);
-
-    int get_maximum_results() const;
-
-    void set_skipped_results(int skipped_results);
-
-    int get_skipped_results() const;
 
     void set_fuzzy_matching(bool fuzzy_matching);
 
@@ -69,23 +51,9 @@ protected:
     FindGenerator();
 
 private:
-    /// QueryRetrieveLevel
-    std::string _query_retrieve_level;
-
-    ///
-    std::vector<std::string> _instance_count_tags;
 
     /// flag indicating if modalities should be convert
     bool _convert_modalities_in_study;
-
-    /// Fields to retrieve
-    std::vector<std::string> _include_fields;
-
-    /// Maximum number of dataset to retrieve
-    int _maximum_results;
-
-    /// Number of response to ignore
-    int _skipped_results;
 
     bool _fuzzy_matching;
 
