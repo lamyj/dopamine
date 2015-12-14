@@ -10,7 +10,6 @@
 
 #include "core/LoggerPACS.h"
 #include "EchoGenerator.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -64,9 +63,8 @@ EchoGenerator
     }
 
     // Look for user authorization
-    if ( ! is_authorized(
-             this->_connection, this->_db_name, this->_username,
-             dcmtkpp::message::Message::Command::C_ECHO_RQ) )
+    if ( ! this->_connection->is_authorized(
+             this->_username, dcmtkpp::message::Message::Command::C_ECHO_RQ) )
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Echo Operation";

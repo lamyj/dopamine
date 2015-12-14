@@ -15,6 +15,7 @@
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "core/SCPDispatcher.h"
+#include "dbconnection/MongoDBConnection.h"
 #include "services/EchoGenerator.h"
 #include "services/FindGenerator.h"
 #include "services/GetGenerator.h"
@@ -25,7 +26,6 @@
 #include "services/SCP/GetSCP.h"
 #include "services/SCP/MoveSCP.h"
 #include "services/SCP/StoreSCP.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -56,11 +56,28 @@ NetworkPACS
 
 NetworkPACS
 ::NetworkPACS():
-    _db_name(""), _authenticator(NULL), _is_running(false)
+    _authenticator(NULL), _is_running(false)
 {
     this->_create_authenticator();
 
-    services::create_db_connection(this->_connection, this->_db_name);
+    // Get configuration for Database connection
+    std::string db_name = "";
+    std::string db_host = "";
+    int db_port = -1;
+    std::vector<std::string> indexeslist;
+    ConfigurationPACS::get_instance().get_database_configuration(db_name,
+                                                                 db_host,
+                                                                 db_port,
+                                                                 indexeslist);
+
+    // Create connection with Database
+    MongoDBConnection connection(db_name, db_host, db_port, indexeslist);
+
+    // Try to connect
+    if (!connection.connect())
+    {
+        throw ExceptionPACS("cannot connect to database");
+    }
 
     int port = std::atoi(ConfigurationPACS::
                          get_instance().get_value("dicom.port").c_str());

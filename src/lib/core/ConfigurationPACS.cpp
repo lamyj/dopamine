@@ -157,4 +157,22 @@ ConfigurationPACS
     return false;
 }
 
+void
+ConfigurationPACS
+::get_database_configuration(std::string &db_name,
+                             std::string &hostname,
+                             int &port,
+                             std::vector<std::string> &indexes)
+{
+    db_name = this->get_value("database.dbname");
+    hostname = this->get_value("database.hostname");
+    port = atoi(this->get_value("database.port").c_str());
+
+    // Get all indexes
+    std::string const indexlist = this->get_value("database.indexlist");
+    std::vector<std::string> indexeslist;
+    boost::split(indexeslist, indexlist, boost::is_any_of(";"));
+    indexes = indexeslist;
+}
+
 } // namespace dopamine

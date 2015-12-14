@@ -12,7 +12,7 @@
 
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
-#include "services/ServicesTools.h"
+#include "dbconnection/MongoDBConnection.h"
 
 int main()
 {
@@ -45,16 +45,31 @@ int main()
         dopamine::ConfigurationPACS::get_instance().get_value("logger.priority")
     );
 
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    dopamine::services::create_db_connection(connection, db_name);
+    // Get configuration for Database connection
+    std::string db_name = "";
+    std::string db_host = "";
+    int db_port = -1;
+    std::vector<std::string> indexeslist;
+    dopamine::ConfigurationPACS::get_instance().get_database_configuration(
+                db_name, db_host, db_port, indexeslist);
+
+    // Create connection with Database
+    dopamine::MongoDBConnection connection(db_name, db_host, db_port,
+                                           indexeslist);
+
+    // Try to connect
+    if (!connection.connect())
+    {
+        dopamine::logger_error() << "cannot connect to database";
+        return EXIT_FAILURE;
+    }
 
     mongo::BSONObj const object = BSON("distinct" << "datasets" <<
                                        "key" << "00081030" <<
                                        "query" << mongo::BSONObj());
 
     mongo::BSONObj info;
-    bool ret = connection.runCommand(db_name, object, info);
+    bool ret = connection.run_command(object, info);
 
     dopamine::logger_info() << "Study number: " << info["values"].Array().size();
     for (mongo::BSONElement const value : info["values"].Array())
@@ -70,7 +85,7 @@ int main()
                                             "query" << BSON("00081030.Value" <<
                                                             study));
         mongo::BSONObj infop;
-        bool retp = connection.runCommand(db_name, objectp, infop);
+        bool retp = connection.run_command(objectp, infop);
 
         dopamine::logger_info() << "    patient number: "
                                 << infop["values"].Array().size();
@@ -82,7 +97,7 @@ int main()
                                          "00100020.Value" << valuep.Obj()
                                             ["Value"].Array()[0].String()));
             mongo::BSONObj infoe;
-            bool rete = connection.runCommand(db_name, objecte, infoe);
+            bool rete = connection.run_command(objecte, infoe);
 
             std::stringstream stream;
             stream << infoe["values"].Array().size();
@@ -102,7 +117,7 @@ int main()
                                             "query" << BSON("00081030.Value" <<
                                                             study));
         mongo::BSONObj infop;
-        bool retp = connection.runCommand(db_name, objectp, infop);
+        bool retp = connection.run_command(objectp, infop);
 
         dopamine::logger_info() << "    Series number: "
                                 << infop["values"].Array().size();

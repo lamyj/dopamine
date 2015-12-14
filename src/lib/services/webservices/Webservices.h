@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <mongo/client/dbclient.h>
+#include <mongo/bson/bson.h>
 
 namespace dopamine
 {

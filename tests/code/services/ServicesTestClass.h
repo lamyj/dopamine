@@ -19,13 +19,11 @@
 #include <dcmtkpp/Reader.h>
 #include <dcmtkpp/Writer.h>
 
-#include <mongo/client/dbclient.h>
-
 #include "ConverterBSON/bson_converter.h"
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
-#include "services/ServicesTools.h"
+#include "dbconnection/MongoDBConnection.h"
 
 std::string const STUDY_INSTANCE_UID_01_01 =
         "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
@@ -75,17 +73,29 @@ class ServicesTestClass
 {
 public:
 
-    mongo::DBClientConnection connection;
-    std::string db_name;
+    dopamine::MongoDBConnection * connection;
 
-    ServicesTestClass()
+    ServicesTestClass() : connection(NULL)
     {
         // Load configuration
         dopamine::ConfigurationPACS::
             get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
+        // Get configuration for Database connection
+        std::string db_name = "";
+        std::string db_host = "";
+        int db_port = -1;
+        std::vector<std::string> indexeslist;
+        dopamine::ConfigurationPACS::get_instance().get_database_configuration(
+                    db_name, db_host, db_port, indexeslist);
         // Create DataBase Connection
-        dopamine::services::create_db_connection(connection, db_name);
+        connection = new dopamine::MongoDBConnection(db_name, db_host,
+                                                     db_port, indexeslist);
+
+        if (!connection->connect())
+        {
+            BOOST_FAIL("Unable to connect to database.");
+        }
 
         // Add data into DataBase
         this->_insert_data();
@@ -101,6 +111,11 @@ public:
 
         this->_reset_authorization();
 
+        if (this->connection != NULL)
+        {
+            delete this->connection;
+        }
+
         // Delete configuration
         dopamine::ConfigurationPACS::delete_instance();
         sleep(1);
@@ -114,9 +129,12 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.update(this->db_name + ".authorization",
-                                BSON("service" << service), value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().update(
+                    this->connection->get_db_name() + ".authorization",
+                    BSON("service" << service), value);
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -133,8 +151,11 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.insert(this->db_name + ".authorization", value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(
+                    this->connection->get_db_name() + ".authorization", value);
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -189,9 +210,12 @@ protected:
 
         // insert into DataBase
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
-        this->connection.insert(streamTable.str(), builder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        streamTable << this->connection->get_db_name() << ".datasets";
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  builder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -230,7 +254,7 @@ private:
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_03);
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->connection->get_db_name() << ".datasets";
         for (std::string testfile : testfiles)
         {
             // Get file name
@@ -270,8 +294,11 @@ private:
 
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BAD);
 
-        this->connection.insert(streamTable.str(), badbuilder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  badbuilder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -283,18 +310,29 @@ private:
         // Create the dataset
         dcmtkpp::DataSet dataset;
 
-        dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_BIG_01}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
-        dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
-        dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+        dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                    dcmtkpp::Element({SOP_INSTANCE_UID_BIG_01},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                    dcmtkpp::Element({STUDY_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                    dcmtkpp::Element({SERIES_INSTANCE_UID_BIG},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientName,
+                    dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
+        dataset.add(dcmtkpp::registry::Modality,
+                    dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+        dataset.add(dcmtkpp::registry::SOPClassUID,
+                    dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientID,
+                    dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
 
         // Binary
         size_t vectorsize = 4096*4096;
         dcmtkpp::Value::Binary value(vectorsize, 0);
-        dataset.add(dcmtkpp::registry::PixelData, dcmtkpp::Element(value, dcmtkpp::VR::OW));
+        dataset.add(dcmtkpp::registry::PixelData,
+                    dcmtkpp::Element(value, dcmtkpp::VR::OW));
 
         // Convert Dataset into BSON object
         dopamine::Filters filters = {};
@@ -334,7 +372,8 @@ private:
         std::string const buffer = stream_dataset.str();
 
         // insert into GridSF
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(connection->get_connection(),
+                             this->connection->get_db_name());
         mongo::BSONObj objret =
                 gridfs.storeFile(buffer.c_str(),
                                  buffer.size(),
@@ -351,10 +390,13 @@ private:
         builder << "Content" << objret.getField("_id").OID().toString();
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->connection->get_db_name() << ".datasets";
         // insert into DataBase
-        this->connection.insert(streamTable.str(), builder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  builder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -366,12 +408,14 @@ private:
         // Delete all data
         for (std::string const SOPInstanceUID : this->_sop_instance_uids)
         {
-            this->connection.remove(this->db_name + ".datasets",
-                                    BSON("00080018.Value" << SOPInstanceUID));
+            this->connection->get_connection().remove(
+                        this->connection->get_db_name() + ".datasets",
+                        BSON("00080018.Value" << SOPInstanceUID));
         }
 
         // Delete data from GridFS
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(connection->get_connection(),
+                             connection->get_db_name());
         for (std::string const SOPInstanceUIDgridfs :
              this->_sop_instance_uids_gridfs)
         {
@@ -383,8 +427,9 @@ private:
     {
         for (auto const constraint : this->_constraints)
         {
-            this->connection.remove(this->db_name + ".authorization",
-                                    constraint);
+            this->connection->get_connection().remove(
+                        this->connection->get_db_name() + ".authorization",
+                        constraint);
         }
     }
 
@@ -396,9 +441,12 @@ private:
                                         "principal_type" << "" <<
                                         "service" << service <<
                                         "dataset" << mongo::BSONObj());
-            this->connection.update(this->db_name + ".authorization",
-                                    BSON("service" << service), value);
-            std::string result = this->connection.getLastError(this->db_name);
+            this->connection->get_connection().update(
+                        this->connection->get_db_name() + ".authorization",
+                        BSON("service" << service), value);
+            std::string result =
+                    this->connection->get_connection().getLastError(
+                        this->connection->get_db_name());
             if (result != "") // empty string if no error
             {
                 BOOST_FAIL(result);

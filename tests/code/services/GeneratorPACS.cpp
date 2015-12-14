@@ -41,7 +41,7 @@ public:
         this->initialize(mongo::BSONObj());
         mongo::BSONObj const fields();
         mongo::Query const query();
-        this->_cursor = this->_connection.query(this->_db_name + ".datasets");
+        this->_cursor = this->_connection->get_datasets_cursor();
     }
 
     template<typename T>

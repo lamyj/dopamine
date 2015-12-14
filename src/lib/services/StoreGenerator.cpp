@@ -10,7 +10,6 @@
 #include <dcmtkpp/message/CStoreResponse.h>
 
 #include "core/LoggerPACS.h"
-#include "services/ServicesTools.h"
 #include "StoreGenerator.h"
 
 namespace dopamine
@@ -77,9 +76,8 @@ StoreGenerator
         return status;
     }
 
-    if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username,
-                       dcmtkpp::message::Message::Command::C_STORE_RQ))
+    if (!this->_connection->is_authorized(
+                this->_username, dcmtkpp::message::Message::Command::C_STORE_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Store Operation";
@@ -102,34 +100,32 @@ StoreGenerator
     std::string const sopinstanceuid =
             dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
 
-    mongo::BSONObj const group_command =
+    mongo::BSONObj const command =
             BSON("count" << "datasets" << "query"
                  << BSON("00080018.Value" <<
                          BSON_ARRAY(sopinstanceuid)));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name,
-                                            group_command, info, 0);
+    bool result = this->_connection->run_command(command, info);
 
     // If an error occurred
-    if (!ret || info["ok"].Double() != 1)
+    if (!result)
     {
-        logger_warning() << "Could not connect to database: "
-                         << this->_db_name;
+        logger_warning() << "Could not connect to database";
         return dcmtkpp::message::CStoreResponse::ProcessingFailure;
     }
 
     // If the command correctly executed and database entries match
-    if (info["ok"].Double() == 1 && info["n"].Double() > 0)
+    if (info["n"].Double() > 0)
     {
         // We already have this SOP Instance UID, do not store it
         logger_warning() << "Store: SOP Instance UID already register";
         return dcmtkpp::message::CStoreResponse::Pending; // Nothing to do
     }
 
-    return insert_dataset(this->_connection, this->_db_name,
-                          this->_username, dataset,
-                          this->_peer_ae_title);
+    return this->_connection->insert_dataset(this->_username,
+                                             dataset,
+                                             this->_peer_ae_title);
 }
 
 std::string

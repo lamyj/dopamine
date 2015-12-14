@@ -9,9 +9,9 @@
 #include <dcmtkpp/message/CGetRequest.h>
 #include <dcmtkpp/message/CGetResponse.h>
 
+#include "ConverterBSON/bson_converter.h"
 #include "core/LoggerPACS.h"
 #include "GetGenerator.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -52,7 +52,8 @@ GetGenerator
     }
 
     dcmtkpp::message::CGetRequest getrequest(message);
-    mongo::BSONObj const object = dataset_to_bson(getrequest.get_data_set());
+    mongo::BSONObj const object = as_bson(getrequest.get_data_set(),
+                                          FilterAction::INCLUDE);
 
     return this->initialize(object);
 }
@@ -76,7 +77,14 @@ GetGenerator
     }
     else
     {
-        auto data_set = this->_retrieve_dataset(current_bson);
+        if (this->_query_retrieve_level != "IMAGE" &&
+            std::find(this->_include_fields.begin(),
+                      this->_include_fields.end(),
+                      "00080018") != this->_include_fields.end())
+        {
+            current_bson.removeField("00080018");
+        }
+        auto data_set = this->_connection->get_dataset(current_bson);
         this->_meta_information = data_set.first;
         this->_current_dataset = data_set.second;
     }
@@ -94,17 +102,16 @@ GetGenerator
         return status;
     }
 
-    if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username,
-                       dcmtkpp::message::Message::Command::C_GET_RQ))
+    if (!this->_connection->is_authorized(
+                this->_username, dcmtkpp::message::Message::Command::C_GET_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Get Operation";
         return dcmtkpp::message::CGetResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObj const constraint = get_constraint_for_user(
-                this->_connection, this->_db_name, this->_username,
+    mongo::BSONObj const constraint = this->_connection->get_constraints(
+                this->_username,
                 dcmtkpp::message::Message::Command::C_GET_RQ);
 
     mongo::BSONObj query_object = request;
@@ -229,9 +236,8 @@ GetGenerator
     mongo::BSONObj const fields = fields_builder.obj();
 
     // Searching into database...
-    this->_cursor = this->_connection.query(this->_db_name + ".datasets",
-                                            query, this->_maximum_results,
-                                            this->_skipped_results, &fields);
+    this->_cursor = this->_connection->get_datasets_cursor(
+                query, this->_maximum_results, this->_skipped_results, &fields);
 
     return dcmtkpp::message::CGetResponse::Pending;
 }
@@ -297,21 +303,6 @@ GetGenerator
 ::get_skipped_results() const
 {
     return this->_skipped_results;
-}
-
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
-GetGenerator
-::_retrieve_dataset(mongo::BSONObj const & object)
-{
-    mongo::BSONObj localobject = object;
-    if (this->_query_retrieve_level != "IMAGE" &&
-        std::find(this->_include_fields.begin(),
-                  this->_include_fields.end(),
-                  "00080018") != this->_include_fields.end())
-    {
-        localobject.removeField("00080018");
-    }
-    return bson_to_dataset(this->_connection, this->_db_name, localobject);
 }
 
 } // namespace services

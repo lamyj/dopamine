@@ -12,8 +12,6 @@
 #include <dcmtkpp/Association.h>
 #include <dcmtkpp/Network.h>
 
-#include <mongo/client/dbclient.h>
-
 #include "authenticator/AuthenticatorBase.h"
 
 namespace dopamine
@@ -54,12 +52,6 @@ private:
 
     /// Network for listening/sending Requests and Responses
     dcmtkpp::Network _network;
-
-    /// Database connection
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
 
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;

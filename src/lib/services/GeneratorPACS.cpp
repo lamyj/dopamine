@@ -8,6 +8,7 @@
 
 #include <dcmtkpp/message/Response.h>
 
+#include "core/ConfigurationPACS.h"
 #include "GeneratorPACS.h"
 #include "services/ServicesTools.h"
 
@@ -90,43 +91,43 @@ GeneratorPACS
 
     if      (vr == "DS")
     {
-        this->_add_value_to_builder<Float64>(builder, field,
-                                             bsonelement_to_string(value));
+        this->_add_value_to_builder<Float64>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "FD")
     {
-        this->_add_value_to_builder<Float64>(builder, field,
-                                             bsonelement_to_string(value));
+        this->_add_value_to_builder<Float64>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "FL")
     {
-        this->_add_value_to_builder<Float32>(builder, field,
-                                             bsonelement_to_string(value));
+        this->_add_value_to_builder<Float32>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "IS")
     {
-        this->_add_value_to_builder<Sint32>(builder, field,
-                                            bsonelement_to_string(value));
+        this->_add_value_to_builder<Sint32>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "SL")
     {
-        this->_add_value_to_builder<Sint32>(builder, field,
-                                            bsonelement_to_string(value));
+        this->_add_value_to_builder<Sint32>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "SS")
     {
-        this->_add_value_to_builder<Sint16>(builder, field,
-                                            bsonelement_to_string(value));
+        this->_add_value_to_builder<Sint16>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "UL")
     {
-        this->_add_value_to_builder<Uint32>(builder, field,
-                                            bsonelement_to_string(value));
+        this->_add_value_to_builder<Uint32>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "US")
     {
-        this->_add_value_to_builder<Uint16>(builder, field,
-                                            bsonelement_to_string(value));
+        this->_add_value_to_builder<Uint16>(
+                    builder, field, MongoDBConnection::as_string(value));
     }
     else
     {
@@ -268,7 +269,7 @@ GeneratorPACS
 
 GeneratorPACS
 ::GeneratorPACS():
-    Generator(), _isconnected(false), _username("")
+    Generator(), _connection(NULL), _isconnected(false), _username("")
 {
     // Nothing else.
 }
@@ -276,7 +277,11 @@ GeneratorPACS
 GeneratorPACS
 ::~GeneratorPACS()
 {
-    // Nothing to do.
+    if (this->_connection != NULL)
+    {
+        this->_cursor.release();
+        delete this->_connection;
+    }
 }
 
 dcmtkpp::Value::Integer
@@ -307,8 +312,22 @@ dcmtkpp::Value::Integer
 GeneratorPACS
 ::initialize(mongo::BSONObj const & request)
 {
-    // Try to connect to database
-    this->_isconnected = create_db_connection(this->_connection, this->_db_name);
+    // Get configuration for Database connection
+    std::string db_name = "";
+    std::string db_host = "";
+    int db_port = -1;
+    std::vector<std::string> indexeslist;
+    ConfigurationPACS::get_instance().get_database_configuration(db_name,
+                                                                 db_host,
+                                                                 db_port,
+                                                                 indexeslist);
+
+    // Create connection with Database
+    this->_connection = new MongoDBConnection(db_name, db_host, db_port,
+                                              indexeslist);
+
+    // Try to connect
+    this->_isconnected = this->_connection->connect();
     if (this->_isconnected == false)
     {
         return dcmtkpp::message::Response::ProcessingFailure;
@@ -477,8 +496,7 @@ GeneratorPACS
                                        "query" << BSON(ofElement << value));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name,
-                                            object, info);
+    bool ret = this->_connection->run_command(object, info);
     if (!ret)
     {
         // error
@@ -504,8 +522,7 @@ GeneratorPACS
                                                            value));
 
         mongo::BSONObj info;
-        bool ret = this->_connection.runCommand(this->_db_name,
-                                       object, info);
+        bool ret = this->_connection->run_command(object, info);
         if (!ret)
         {
             // error

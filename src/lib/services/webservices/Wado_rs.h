@@ -32,7 +32,7 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Wado_rs
-    ~Wado_rs();
+    virtual ~Wado_rs();
 
 protected:
 

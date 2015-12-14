@@ -37,7 +37,7 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Stow_rs
-    ~Stow_rs();
+    virtual ~Stow_rs();
 
     std::string get_content_type() const;
 

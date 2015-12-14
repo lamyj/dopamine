@@ -102,7 +102,7 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Qido_rs
-    ~Qido_rs();
+    virtual ~Qido_rs();
 
     std::string get_contenttype() const;
 

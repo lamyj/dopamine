@@ -89,9 +89,6 @@ private:
 
     bool _fuzzy_matching;
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
-            _retrieve_dataset(mongo::BSONObj const & object);
-
 };
 
 } // namespace services

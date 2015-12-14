@@ -20,7 +20,6 @@
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
-#include "services/ServicesTools.h"
 #include "services/StoreGenerator.h"
 #include "services/webservices/WebServiceException.h"
 #include "Stow_rs.h"

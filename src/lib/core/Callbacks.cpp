@@ -6,21 +6,13 @@
  * for details.
  ************************************************************************/
 
-#include <string>
-
-#include <dcmtkpp/Exception.h>
 #include <dcmtkpp/message/CEchoResponse.h>
 #include <dcmtkpp/message/CFindResponse.h>
 #include <dcmtkpp/message/CGetResponse.h>
 #include <dcmtkpp/message/CMoveResponse.h>
 #include <dcmtkpp/message/CStoreResponse.h>
 
-#include <mongo/client/dbclientinterface.h>
-
 #include "core/Callbacks.h"
-#include "core/LoggerPACS.h"
-#include "services/ServicesTools.h"
-//#include "services/StoreGenerator.h"
 
 namespace dopamine
 {

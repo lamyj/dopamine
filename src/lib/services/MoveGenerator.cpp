@@ -9,9 +9,9 @@
 #include <dcmtkpp/message/CMoveRequest.h>
 #include <dcmtkpp/message/CMoveResponse.h>
 
+#include "ConverterBSON/bson_converter.h"
 #include "core/LoggerPACS.h"
 #include "MoveGenerator.h"
-#include "services/ServicesTools.h"
 
 namespace dopamine
 {
@@ -52,7 +52,8 @@ MoveGenerator
     }
 
     dcmtkpp::message::CMoveRequest moverequest(message);
-    mongo::BSONObj const object = dataset_to_bson(moverequest.get_data_set());
+    mongo::BSONObj const object = as_bson(moverequest.get_data_set(),
+                                          FilterAction::INCLUDE);
 
     return this->initialize(object);
 }
@@ -76,7 +77,14 @@ MoveGenerator
     }
     else
     {
-        auto data_set = this->_retrieve_dataset(current_bson);
+        if (this->_query_retrieve_level != "IMAGE" &&
+            std::find(this->_include_fields.begin(),
+                      this->_include_fields.end(),
+                      "00080018") != this->_include_fields.end())
+        {
+            current_bson.removeField("00080018");
+        }
+        auto data_set = this->_connection->get_dataset(current_bson);
         this->_meta_information = data_set.first;
         this->_current_dataset = data_set.second;
     }
@@ -94,18 +102,16 @@ MoveGenerator
         return status;
     }
 
-    if (!is_authorized(this->_connection, this->_db_name,
-                       this->_username,
-                       dcmtkpp::message::Message::Command::C_MOVE_RQ))
+    if (!this->_connection->is_authorized(
+                this->_username, dcmtkpp::message::Message::Command::C_MOVE_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Move Operation";
         return dcmtkpp::message::CMoveResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObj const constraint = get_constraint_for_user(
-                this->_connection, this->_db_name, this->_username,
-                dcmtkpp::message::Message::Command::C_MOVE_RQ);
+    mongo::BSONObj const constraint = this->_connection->get_constraints(
+                this->_username, dcmtkpp::message::Message::Command::C_MOVE_RQ);
 
     mongo::BSONObj query_object = request;
 
@@ -229,9 +235,8 @@ MoveGenerator
     mongo::BSONObj const fields = fields_builder.obj();
 
     // Searching into database...
-    this->_cursor = this->_connection.query(this->_db_name + ".datasets",
-                                            query, this->_maximum_results,
-                                            this->_skipped_results, &fields);
+    this->_cursor = this->_connection->get_datasets_cursor(
+                query, this->_maximum_results, this->_skipped_results, &fields);
 
     return dcmtkpp::message::CMoveResponse::Pending;
 }
@@ -296,21 +301,6 @@ MoveGenerator
 ::get_skipped_results() const
 {
     return this->_skipped_results;
-}
-
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
-MoveGenerator
-::_retrieve_dataset(mongo::BSONObj const & object)
-{
-    mongo::BSONObj localobject = object;
-    if (this->_query_retrieve_level != "IMAGE" &&
-        std::find(this->_include_fields.begin(),
-                  this->_include_fields.end(),
-                  "00080018") != this->_include_fields.end())
-    {
-        localobject.removeField("00080018");
-    }
-    return bson_to_dataset(this->_connection, this->_db_name, localobject);
 }
 
 } // namespace services

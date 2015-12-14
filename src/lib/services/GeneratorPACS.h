@@ -11,6 +11,7 @@
 
 #include <mongo/client/dbclient.h>
 
+#include "dbconnection/MongoDBConnection.h"
 #include "services/Generator.h"
 
 namespace dopamine
@@ -90,10 +91,7 @@ protected:
                         Match::Type const & match_type) const;
 
     /// Connection to the Database
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
+    MongoDBConnection * _connection;
 
     /// Flag indicating if connection is established
     bool _isconnected;

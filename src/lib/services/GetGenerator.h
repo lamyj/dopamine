@@ -78,9 +78,6 @@ private:
     /// Number of response to ignore
     int _skipped_results;
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
-            _retrieve_dataset(mongo::BSONObj const & object);
-
 };
 
 } // namespace services
