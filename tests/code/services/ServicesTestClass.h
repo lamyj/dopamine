@@ -121,6 +121,16 @@ public:
         sleep(1);
     }
 
+    static std::string _get_env_variable(std::string const & name)
+    {
+        char* value = getenv(name.c_str());
+        if(value == NULL)
+        {
+            BOOST_FAIL(name + " is not defined");
+        }
+        return value;
+    }
+
 protected:
     void set_authorization(std::string const & service, std::string const & user,
                            mongo::BSONObj const & constraint = mongo::BSONObj())
@@ -227,16 +237,6 @@ private:
     std::vector<std::string> _services;
     std::vector<std::string> _sop_instance_uids;
     std::vector<std::string> _sop_instance_uids_gridfs;
-
-    static std::string _get_env_variable(std::string const & name)
-    {
-        char* value = getenv(name.c_str());
-        if(value == NULL)
-        {
-            BOOST_FAIL(name + " is not defined");
-        }
-        return value;
-    }
 
     void _insert_data()
     {

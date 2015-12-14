@@ -128,6 +128,7 @@ MongoDBConnection
                                                         this->get_port()),
                                      errormsg) )
     {
+        logger_error() << errormsg;
         return false;
     }
 

@@ -76,6 +76,9 @@ public:
      */
     static std::string as_string(mongo::BSONElement const & bsonelement);
 
+    static std::string as_string(
+            dcmtkpp::message::Message::Command::Type command);
+
 private:
     /**
      * @brief Retrieve Dataset from Database
@@ -85,8 +88,6 @@ private:
      * @return the Dataset as string
      */
     std::string dataset_as_string(mongo::BSONObj const & object);
-
-    std::string as_string(dcmtkpp::message::Message::Command::Type command);
 
     bool is_dataset_allowed_for_storage(std::string const & username,
                                         mongo::BSONObj const & dataset);
