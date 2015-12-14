@@ -14,6 +14,7 @@
 #include <dcmtkpp/Network.h>
 
 #include "services/SCP/StoreSCP.h"
+#include "services/StoreGenerator.h"
 
 /******************************* TEST Nominal **********************************/
 /**
@@ -30,17 +31,6 @@ BOOST_AUTO_TEST_CASE(Constructor)
 
     storescp = new dopamine::services::StoreSCP(&network, &association);
     BOOST_REQUIRE(storescp != NULL);
-    delete storescp; storescp = NULL;
-
-    dopamine::services::StoreSCP::Callback callback =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CStoreRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CStoreResponse::Success; };
-
-    storescp = new dopamine::services::StoreSCP(&network, &association,
-                                                callback);
-    BOOST_REQUIRE(storescp != NULL);
     delete storescp;
 }
 
@@ -50,36 +40,11 @@ BOOST_AUTO_TEST_CASE(Constructor)
  */
 BOOST_AUTO_TEST_CASE(Accessors)
 {
-    // Create StoreSCP with default Callback
-    dopamine::services::StoreSCP::Callback callback =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CStoreRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CStoreResponse::Success; };
+    dopamine::services::StoreSCP storescp(NULL, NULL);
 
-    dopamine::services::StoreSCP storescp(NULL, NULL, callback);
-
-    dcmtkpp::Association association;
-    dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, {"123"}, dcmtkpp::VR::UI);
-    dcmtkpp::message::CStoreRequest request(1, "", "", 1, dataset);
-
-    // Retrieve default callback
-    auto getcallback = storescp.get_callback();
-    BOOST_REQUIRE_EQUAL(getcallback(association, request, NULL),
-                        dcmtkpp::message::CStoreResponse::Success);
-
-    // Set a new callback
-    dopamine::services::StoreSCP::Callback callback_toset =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CStoreRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CStoreResponse::Pending; };
-    storescp.set_callback(callback_toset);
-
-    // Verify new callback is correctly set
-    getcallback = storescp.get_callback();
-    BOOST_REQUIRE_EQUAL(getcallback(association, request, NULL),
-                        dcmtkpp::message::CStoreResponse::Pending);
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(storescp.get_generator() == NULL);
+    storescp.set_generator(dopamine::services::StoreGenerator::New());
+    BOOST_REQUIRE(storescp.get_generator() != NULL);
 }
 

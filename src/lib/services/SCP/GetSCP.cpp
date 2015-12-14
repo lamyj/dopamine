@@ -19,44 +19,22 @@ namespace services
 
 GetSCP
 ::GetSCP() :
-    SCP(), _callback()
+    SCP()
 {
     // Nothing else.
 }
 
 GetSCP
 ::GetSCP(dcmtkpp::Network *network, dcmtkpp::Association *association) :
-    SCP(network, association), _callback()
+    SCP(network, association)
 {
     // Nothing else.
-}
-
-GetSCP
-::GetSCP(dcmtkpp::Network *network, dcmtkpp::Association *association,
-         GetSCP::Callback const & callback) :
-    SCP(network, association), _callback()
-{
-    this->set_callback(callback);
 }
 
 GetSCP
 ::~GetSCP()
 {
     // Nothing to do.
-}
-
-GetSCP::Callback const &
-GetSCP
-::get_callback() const
-{
-    return this->_callback;
-}
-
-void
-GetSCP
-::set_callback(GetSCP::Callback const & callback)
-{
-    this->_callback = callback;
 }
 
 void
@@ -82,8 +60,14 @@ GetSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request,
-                                     this->_generator);
+            if (this->_generator->done())
+            {
+                status = dcmtkpp::message::CGetResponse::Success;
+            }
+            else
+            {
+                status = this->_generator->next();
+            }
         }
         catch(dcmtkpp::Exception const & exception)
         {

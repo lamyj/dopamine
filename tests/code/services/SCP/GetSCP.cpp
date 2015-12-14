@@ -13,6 +13,7 @@
 #include <dcmtkpp/message/CGetResponse.h>
 #include <dcmtkpp/Network.h>
 
+#include "services/GetGenerator.h"
 #include "services/SCP/GetSCP.h"
 
 /******************************* TEST Nominal **********************************/
@@ -30,16 +31,6 @@ BOOST_AUTO_TEST_CASE(Constructor)
 
     getscp = new dopamine::services::GetSCP(&network, &association);
     BOOST_REQUIRE(getscp != NULL);
-    delete getscp; getscp = NULL;
-
-    dopamine::services::GetSCP::Callback callback =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CGetRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CGetResponse::Success; };
-
-    getscp = new dopamine::services::GetSCP(&network, &association, callback);
-    BOOST_REQUIRE(getscp != NULL);
     delete getscp;
 }
 
@@ -49,35 +40,10 @@ BOOST_AUTO_TEST_CASE(Constructor)
  */
 BOOST_AUTO_TEST_CASE(Accessors)
 {
-    // Create GetSCP with default Callback
-    dopamine::services::GetSCP::Callback callback =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CGetRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CGetResponse::Success; };
+    dopamine::services::GetSCP getscp(NULL, NULL);
 
-    dopamine::services::GetSCP getscp(NULL, NULL, callback);
-
-    dcmtkpp::Association association;
-    dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, {"123"}, dcmtkpp::VR::UI);
-    dcmtkpp::message::CGetRequest request(1, "", 1, dataset);
-
-    // Retrieve default callback
-    auto getcallback = getscp.get_callback();
-    BOOST_REQUIRE_EQUAL(getcallback(association, request, NULL),
-                        dcmtkpp::message::CGetResponse::Success);
-
-    // Set a new callback
-    dopamine::services::GetSCP::Callback callback_toset =
-            [](dcmtkpp::Association const & association,
-               dcmtkpp::message::CGetRequest const & request,
-               dopamine::services::Generator::Pointer generator)
-        { return dcmtkpp::message::CGetResponse::Pending; };
-    getscp.set_callback(callback_toset);
-
-    // Verify new callback is correctly set
-    getcallback = getscp.get_callback();
-    BOOST_REQUIRE_EQUAL(getcallback(association, request, NULL),
-                        dcmtkpp::message::CGetResponse::Pending);
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(getscp.get_generator() == NULL);
+    getscp.set_generator(dopamine::services::GetGenerator::New());
+    BOOST_REQUIRE(getscp.get_generator() != NULL);
 }

@@ -20,44 +20,22 @@ namespace services
 
 MoveSCP
 ::MoveSCP() :
-    SCP(), _callback()
+    SCP()
 {
     // Nothing else.
 }
 
 MoveSCP
 ::MoveSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
-    SCP(network, association), _callback()
+    SCP(network, association)
 {
     // Nothing else.
-}
-
-MoveSCP
-::MoveSCP(dcmtkpp::Network *network, dcmtkpp::Association *association,
-          MoveSCP::Callback const & callback) :
-    SCP(network, association), _callback()
-{
-    this->set_callback(callback);
 }
 
 MoveSCP
 ::~MoveSCP()
 {
     // Nothing to do.
-}
-
-MoveSCP::Callback const &
-MoveSCP
-::get_callback() const
-{
-    return this->_callback;
-}
-
-void
-MoveSCP
-::set_callback(MoveSCP::Callback const & callback)
-{
-    this->_callback = callback;
 }
 
 void
@@ -135,8 +113,14 @@ MoveSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request,
-                                     this->_generator);
+            if (this->_generator->done())
+            {
+                status = dcmtkpp::message::CMoveResponse::Success;
+            }
+            else
+            {
+                status = this->_generator->next();
+            }
         }
         catch(dcmtkpp::Exception const & exception)
         {

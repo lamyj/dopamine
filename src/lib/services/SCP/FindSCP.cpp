@@ -18,44 +18,22 @@ namespace services
 
 FindSCP
 ::FindSCP() :
-    SCP(), _callback()
+    SCP()
 {
     // Nothing else.
 }
 
 FindSCP
 ::FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
-    SCP(network, association), _callback()
+    SCP(network, association)
 {
     // Nothing else.
-}
-
-FindSCP
-::FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association,
-          FindSCP::Callback const & callback) :
-    SCP(network, association), _callback()
-{
-    this->set_callback(callback);
 }
 
 FindSCP
 ::~FindSCP()
 {
     // Nothing to do.
-}
-
-FindSCP::Callback const &
-FindSCP
-::get_callback() const
-{
-    return this->_callback;
-}
-
-void
-FindSCP
-::set_callback(FindSCP::Callback const & callback)
-{
-    this->_callback = callback;
 }
 
 void
@@ -77,8 +55,14 @@ FindSCP
     {
         try
         {
-            status = this->_callback(*this->_association, request,
-                                     this->_generator);
+            if (this->_generator->done())
+            {
+                status = dcmtkpp::message::CFindResponse::Success;
+            }
+            else
+            {
+                status = this->_generator->next();
+            }
         }
         catch(dcmtkpp::Exception const & exception)
         {

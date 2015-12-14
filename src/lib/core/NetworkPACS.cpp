@@ -9,7 +9,6 @@
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
-#include "core/Callbacks.h"
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
@@ -142,27 +141,22 @@ void NetworkPACS::run()
 
     // SCP
     services::EchoSCP echoscp;
-    echoscp.set_callback(echo);
     echoscp.set_generator(services::EchoGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_ECHO_RQ, echoscp);
 
     services::FindSCP findscp;
-    findscp.set_callback(find);
     findscp.set_generator(services::FindGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_FIND_RQ, findscp);
 
     services::GetSCP getscp;
-    getscp.set_callback(get);
     getscp.set_generator(services::GetGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_GET_RQ, getscp);
 
     services::MoveSCP movescp;
-    movescp.set_callback(move);
     movescp.set_generator(services::MoveGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_MOVE_RQ, movescp);
 
     services::StoreSCP storescp;
-    storescp.set_callback(store);
     storescp.set_generator(services::StoreGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_STORE_RQ, storescp);
 
