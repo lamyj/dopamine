@@ -347,7 +347,11 @@ BOOST_FIXTURE_TEST_CASE(InsertDataset, MongoDBConnectionTest)
     status = connection.insert_dataset("user", dataset, "myaet");
     BOOST_REQUIRE(status == dcmtkpp::message::Response::RefusedNotAuthorized);
 
-    set_authorization(connection, "Store", "user", BSON("00080018" << "1.2.3"));
+    mongo::BSONObjBuilder auth;
+    auth.appendRegex("00080016", "1.*");
+    auth.appendElements(BSON("00080018" << "1.2.3"));
+    mongo::BSONObj objauth = auth.obj();
+    set_authorization(connection, "Store", "user", objauth);
 
     status = connection.insert_dataset("user", dataset, "myaet");
     BOOST_REQUIRE(status == dcmtkpp::message::Response::Success);
@@ -357,4 +361,152 @@ BOOST_FIXTURE_TEST_CASE(InsertDataset, MongoDBConnectionTest)
                 BSON("00080018.Value" << "1.2.3"));
 
     set_authorization(connection, "Store", "", mongo::BSONObj());
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: insert_dataset with big size
+ */
+BOOST_FIXTURE_TEST_CASE(InsertBigDataset, MongoDBConnectionTest)
+{
+    // Create connection with Database
+    dopamine::MongoDBConnection connection(db_name, db_host,
+                                           db_port, indexeslist);
+    BOOST_REQUIRE(connection.connect());
+
+    mongo::BSONObj command =
+            BSON("count" << "datasets" << "query"
+                 << BSON("00080018.Value" <<
+                         BSON_ARRAY("1.2.3")));
+
+    mongo::BSONObj info;
+    bool result = connection.run_command(command, info);
+    BOOST_REQUIRE(result);
+    BOOST_CHECK(info == BSON("n" << 0.0 << "ok" << 1.0));
+
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, {"1.2.3.4"}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, {"1.2.3"}, dcmtkpp::VR::UI);
+    dcmtkpp::Value::Binary data; data.resize(16777216);
+    dataset.add(dcmtkpp::registry::PixelData, data, dcmtkpp::VR::OW);
+    auto status = connection.insert_dataset("", dataset, "myaet");
+    BOOST_REQUIRE(status == dcmtkpp::message::Response::Success);
+
+    result = connection.run_command(command, info);
+    BOOST_REQUIRE(result);
+    BOOST_CHECK(info == BSON("n" << 1.0 << "ok" << 1.0));
+
+    connection.get_connection().remove(
+                connection.get_db_name() + ".datasets",
+                BSON("00080018.Value" << "1.2.3"));
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: get_dataset
+ */
+BOOST_FIXTURE_TEST_CASE(GetDataset, MongoDBConnectionTest)
+{
+    // Create connection with Database
+    dopamine::MongoDBConnection connection(db_name, db_host,
+                                           db_port, indexeslist);
+    BOOST_REQUIRE(connection.connect());
+
+    mongo::BSONObj object = BSON("00080016" <<
+                                    BSON("vr" << "UI" <<
+                                         "Value" << BSON_ARRAY("1.2.3.4")) <<
+                                 "00080018" <<
+                                    BSON("vr" << "UI" <<
+                                         "Value" << BSON_ARRAY("1.2.3")));
+    auto data_set = connection.get_dataset(object);
+    BOOST_REQUIRE(data_set.first.empty());
+    BOOST_REQUIRE(!data_set.second.empty());
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPClassUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPClassUID)[0], "1.2.3.4");
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPInstanceUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPInstanceUID)[0], "1.2.3");
+
+    mongo::BSONObj command =
+            BSON("count" << "datasets" << "query"
+                 << BSON("00080018.Value" <<
+                         BSON_ARRAY("1.2.3")));
+
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, {"1.2.3.4"}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, {"1.2.3"}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::PatientID, {"my_id"}, dcmtkpp::VR::LO);
+    auto status = connection.insert_dataset("", dataset, "myaet");
+    BOOST_REQUIRE(status == dcmtkpp::message::Response::Success);
+
+    mongo::BSONObj info;
+    bool result = connection.run_command(command, info);
+    BOOST_REQUIRE(result);
+    BOOST_CHECK(info == BSON("n" << 1.0 << "ok" << 1.0));
+
+    mongo::Query query = BSON("00080018.Value" << "1.2.3");
+    mongo::BSONObj fields = BSON("00080018" << 1 << "Content" << 1);
+    object = connection.get_connection().findOne(
+                connection.get_db_name() + ".datasets", query, &fields);
+    data_set = connection.get_dataset(object);
+    BOOST_REQUIRE(!data_set.first.empty());
+    BOOST_REQUIRE(!data_set.second.empty());
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPClassUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPClassUID)[0], "1.2.3.4");
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPInstanceUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPInstanceUID)[0], "1.2.3");
+
+    connection.get_connection().remove(
+                connection.get_db_name() + ".datasets",
+                BSON("00080018.Value" << "1.2.3"));
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: get_dataset with big size
+ */
+BOOST_FIXTURE_TEST_CASE(GetBigDataset, MongoDBConnectionTest)
+{
+    // Create connection with Database
+    dopamine::MongoDBConnection connection(db_name, db_host,
+                                           db_port, indexeslist);
+    BOOST_REQUIRE(connection.connect());
+
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPClassUID, {"1.2.3.4"}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::SOPInstanceUID, {"1.2.3"}, dcmtkpp::VR::UI);
+    dcmtkpp::Value::Binary data; data.resize(16777216);
+    dataset.add(dcmtkpp::registry::PixelData, data, dcmtkpp::VR::OW);
+    auto status = connection.insert_dataset("", dataset, "myaet");
+    BOOST_REQUIRE(status == dcmtkpp::message::Response::Success);
+
+    mongo::BSONObj command =
+            BSON("count" << "datasets" << "query"
+                 << BSON("00080018.Value" <<
+                         BSON_ARRAY("1.2.3")));
+    mongo::BSONObj info;
+    bool result = connection.run_command(command, info);
+    BOOST_REQUIRE(result);
+    BOOST_CHECK(info == BSON("n" << 1.0 << "ok" << 1.0));
+
+    mongo::Query query = BSON("00080018.Value" << "1.2.3");
+    mongo::BSONObj fields = BSON("00080018" << 1 << "Content" << 1);
+    mongo::BSONObj object = connection.get_connection().findOne(
+                connection.get_db_name() + ".datasets", query, &fields);
+    auto data_set = connection.get_dataset(object);
+    BOOST_REQUIRE(!data_set.first.empty());
+    BOOST_REQUIRE(!data_set.second.empty());
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPClassUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPClassUID)[0], "1.2.3.4");
+    BOOST_REQUIRE(data_set.second.has(dcmtkpp::registry::SOPInstanceUID));
+    BOOST_CHECK_EQUAL(data_set.second.as_string(
+                          dcmtkpp::registry::SOPInstanceUID)[0], "1.2.3");
+
+    connection.get_connection().remove(
+                connection.get_db_name() + ".datasets",
+                BSON("00080018.Value" << "1.2.3"));
 }
