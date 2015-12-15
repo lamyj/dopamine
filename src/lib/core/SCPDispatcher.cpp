@@ -47,18 +47,6 @@ SCPDispatcher
     return (it != this->_providers.end());
 }
 
-services::SCP const &
-SCPDispatcher
-::get_scp(dcmtkpp::Value::Integer command) const
-{
-    auto const it = this->_providers.find(command);
-    if(it == this->_providers.end())
-    {
-        throw dcmtkpp::Exception("No such provider");
-    }
-    return *(it->second);
-}
-
 services::SCP &
 SCPDispatcher
 ::get_scp(dcmtkpp::Value::Integer command)

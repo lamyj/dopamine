@@ -35,7 +35,6 @@ public:
 
     bool has_scp(dcmtkpp::Value::Integer command) const;
 
-    services::SCP const & get_scp(dcmtkpp::Value::Integer command) const;
     services::SCP & get_scp(dcmtkpp::Value::Integer command);
 
     template<typename TSCP>

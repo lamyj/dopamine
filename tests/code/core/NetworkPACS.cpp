@@ -15,6 +15,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
 
+#include <dcmtkpp/Exception.h>
+
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 #include "core/NetworkPACS.h"
@@ -249,5 +251,5 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
     BOOST_REQUIRE_THROW(dopamine::NetworkPACS::get_instance(),
-                        dopamine::ExceptionPACS);
+                        dcmtkpp::Exception);
 }
