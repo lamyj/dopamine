@@ -238,6 +238,12 @@ private:
     std::vector<std::string> _sop_instance_uids;
     std::vector<std::string> _sop_instance_uids_gridfs;
 
+    /// Private undefined copy constructor.
+    ServicesTestClass(const ServicesTestClass& other);
+
+    /// Private undefined assignment operator.
+    ServicesTestClass& operator=(const ServicesTestClass& other);
+
     void _insert_data()
     {
         std::vector<std::string> testfiles = { "DOPAMINE_TEST_DICOMFILE_01",

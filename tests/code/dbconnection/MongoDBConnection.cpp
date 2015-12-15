@@ -40,7 +40,7 @@ struct MongoDBConnectionTest
         dopamine::ConfigurationPACS::delete_instance();
     }
 
-    void set_authorization(dopamine::MongoDBConnection & connection,
+    static void set_authorization(dopamine::MongoDBConnection & connection,
                            std::string const & service, std::string const & user,
                            mongo::BSONObj const & constraint = mongo::BSONObj())
     {
