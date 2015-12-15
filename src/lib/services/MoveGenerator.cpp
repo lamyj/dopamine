@@ -117,7 +117,6 @@ MoveGenerator
     // Always include the keys for the query level and its higher levels
     if (!this->extract_query_retrieve_level(query_object))
     {
-        logger_warning() << "Cannot find field QueryRetrieveLevel";
         return dcmtkpp::message::CMoveResponse::MissingAttribute;
     }
 

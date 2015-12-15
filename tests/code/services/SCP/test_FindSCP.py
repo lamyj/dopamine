@@ -72,9 +72,7 @@ class TestFindSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            self.assertRegexpMatches(err, "Find Response: Refused: OutOfResources")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Find operation\]")
+            self.assertRegexpMatches(err, "Status: 0x120")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -100,9 +98,7 @@ class TestFindSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            self.assertRegexpMatches(err, "Refused: OutOfResources")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Find operation\]")
+            self.assertRegexpMatches(err, "Status: 0x124")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

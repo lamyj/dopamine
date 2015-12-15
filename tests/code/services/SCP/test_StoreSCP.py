@@ -52,9 +52,7 @@ class TestStoreSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            #self.assertRegexpMatches(err, "Refused: OutOfResources")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Storage\]")
+            self.assertEqual(err, "")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -81,9 +79,7 @@ class TestStoreSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            #self.assertRegexpMatches(err, "Refused: OutOfResources")
-            self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            self.assertRegexpMatches(err, "\(0000,0902\) LO \[An error occured while processing Storage\]")
+            self.assertEqual(err, "")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

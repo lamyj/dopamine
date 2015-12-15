@@ -51,6 +51,7 @@ MoveSCP
         dcmtkpp::message::CMoveResponse response(request.get_message_id(),
                                                  status);
         this->_send(response, request.get_affected_sop_class_uid());
+        return;
     }
 
     std::string peer_hostname_port;
@@ -63,6 +64,7 @@ MoveSCP
                 request.get_message_id(),
                 dcmtkpp::message::CMoveResponse::RefusedMoveDestinationUnknown);
         this->_send(response, request.get_affected_sop_class_uid());
+        return;
     }
 
     dcmtkpp::Association association;
