@@ -29,7 +29,7 @@ public:
     FindSCP();
 
     /// @brief Constructor.
-    FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    FindSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     virtual ~FindSCP();

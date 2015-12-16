@@ -42,7 +42,7 @@ FindGenerator
 
 dcmtkpp::Value::Integer
 FindGenerator
-::initialize(dcmtkpp::Association const & association,
+::initialize(dcmtkpp::DcmtkAssociation const & association,
              dcmtkpp::message::Message const & message)
 {
     auto status = GeneratorPACS::initialize(association, message);

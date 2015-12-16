@@ -49,7 +49,7 @@ BOOST_FIXTURE_TEST_CASE(Initialize, ServicesTestClass)
     auto echogenerator = dopamine::services::EchoGenerator::New();
     BOOST_REQUIRE_EQUAL(echogenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::message::CEchoRequest request(1, "");
     auto status = echogenerator->initialize(association, request);
@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE(Next, ServicesTestClass)
     auto echogenerator = dopamine::services::EchoGenerator::New();
     BOOST_REQUIRE_EQUAL(echogenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::message::CEchoRequest request(1, "");
     auto status = echogenerator->initialize(association, request);
@@ -86,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(RefusedNotAuthorized, ServicesTestClass)
     auto echogenerator = dopamine::services::EchoGenerator::New();
     BOOST_REQUIRE_EQUAL(echogenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("bad_user");
     dcmtkpp::message::CEchoRequest request(1, "");
     auto status = echogenerator->initialize(association, request);
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(ProcessingFailure)
     auto echogenerator = dopamine::services::EchoGenerator::New();
     BOOST_REQUIRE_EQUAL(echogenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::message::CEchoRequest request(1, "");
     auto status = echogenerator->initialize(association, request);

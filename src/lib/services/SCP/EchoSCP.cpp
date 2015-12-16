@@ -24,7 +24,7 @@ EchoSCP
 }
 
 EchoSCP
-::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
+::EchoSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
     SCP(network, association)
 {
     // Nothing else.

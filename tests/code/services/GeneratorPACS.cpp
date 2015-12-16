@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleGeneratorPACS
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CEchoRequest.h>
 #include <dcmtkpp/message/Response.h>
 #include <dcmtkpp/registry.h>
@@ -95,7 +95,7 @@ BOOST_FIXTURE_TEST_CASE(Initialize, ServicesTestClass)
     GeneratorPACSTest generator;
     BOOST_REQUIRE_EQUAL(generator.get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("my_user");
     dcmtkpp::message::CEchoRequest request(1, dcmtkpp::registry::VerificationSOPClass);
 

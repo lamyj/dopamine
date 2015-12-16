@@ -29,7 +29,7 @@ AuthenticatorNone
 
 bool
 AuthenticatorNone
-::operator()(dcmtkpp::Association const & association) const
+::operator()(dcmtkpp::DcmtkAssociation const & association) const
 {
     // Only available for Identity type: None
     return association.get_user_identity_type() ==

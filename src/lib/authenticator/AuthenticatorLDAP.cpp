@@ -42,7 +42,7 @@ AuthenticatorLDAP
 
 bool
 AuthenticatorLDAP
-::operator()(dcmtkpp::Association const & association) const
+::operator()(dcmtkpp::DcmtkAssociation const & association) const
 {
     bool return_ = false;
 

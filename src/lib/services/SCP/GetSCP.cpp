@@ -25,7 +25,7 @@ GetSCP
 }
 
 GetSCP
-::GetSCP(dcmtkpp::Network *network, dcmtkpp::Association *association) :
+::GetSCP(dcmtkpp::Network *network, dcmtkpp::DcmtkAssociation *association) :
     SCP(network, association)
 {
     // Nothing else.

@@ -288,7 +288,7 @@ GeneratorPACS
 
 dcmtkpp::Value::Integer
 GeneratorPACS
-::initialize(dcmtkpp::Association const & association,
+::initialize(dcmtkpp::DcmtkAssociation const & association,
              dcmtkpp::message::Message const & message)
 {
     // Get user identity

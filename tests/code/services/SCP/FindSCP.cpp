@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleFindSCP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CFindResponse.h>
 #include <dcmtkpp/Network.h>
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete findscp; findscp = NULL;
 
     dcmtkpp::Network network;
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     findscp = new dopamine::services::FindSCP(&network, &association);
     BOOST_REQUIRE(findscp != NULL);

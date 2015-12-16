@@ -67,7 +67,7 @@ BOOST_FIXTURE_TEST_CASE(Initialize, ServicesTestClass)
 {
     auto storegenerator = dopamine::services::StoreGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
@@ -91,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(Next, ServicesTestClass)
 {
     auto storegenerator = dopamine::services::StoreGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
@@ -123,7 +123,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDataset, ServicesTestClass)
             BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
 
@@ -175,7 +175,7 @@ BOOST_FIXTURE_TEST_CASE(InsertCompleteDataset, ServicesTestClass)
                 BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
 
@@ -307,7 +307,7 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
                 BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("root");
     association.set_peer_ae_title("PEER");
 
@@ -361,7 +361,7 @@ BOOST_FIXTURE_TEST_CASE(RefusedNotAuthorized, ServicesTestClass)
     auto storegenerator = dopamine::services::StoreGenerator::New();
     BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("bad_user");
     association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE(ProcessingFailure)
     auto storegenerator = dopamine::services::StoreGenerator::New();
     BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
@@ -413,7 +413,7 @@ BOOST_FIXTURE_TEST_CASE(InvalidObjectInstance, ServicesTestClass)
     auto storegenerator = dopamine::services::StoreGenerator::New();
     BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;

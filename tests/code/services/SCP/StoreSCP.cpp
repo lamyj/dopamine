@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleStoreSCP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CStoreResponse.h>
 #include <dcmtkpp/Network.h>
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete storescp; storescp = NULL;
 
     dcmtkpp::Network network;
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     storescp = new dopamine::services::StoreSCP(&network, &association);
     BOOST_REQUIRE(storescp != NULL);

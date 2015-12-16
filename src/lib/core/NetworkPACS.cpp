@@ -168,11 +168,11 @@ void NetworkPACS::run()
         // Waiting for association
         if (this->_network.is_association_waiting(TIMEOUT))
         {
-            dcmtkpp::Association association;
+            dcmtkpp::DcmtkAssociation association;
             dispatcher.set_association(&association);
             try
             {
-                auto authenticator_ = [this](dcmtkpp::Association const & assoc)->bool { return (*this->_authenticator)(assoc); };
+                auto authenticator_ = [this](dcmtkpp::DcmtkAssociation const & assoc)->bool { return (*this->_authenticator)(assoc); };
                 association.receive(this->_network, authenticator_, ConfigurationPACS::get_instance().get_aetitles(), true);
             }
             catch (dcmtkpp::Exception const & exception)

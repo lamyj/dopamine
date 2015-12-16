@@ -26,7 +26,7 @@ public:
     EchoSCP();
 
     /// @brief Constructor.
-    EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    EchoSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     virtual ~EchoSCP();

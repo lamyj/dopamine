@@ -29,7 +29,7 @@ public:
     StoreSCP();
 
     /// @brief Constructor with default callback.
-    StoreSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    StoreSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     virtual ~StoreSCP();

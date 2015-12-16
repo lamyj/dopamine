@@ -9,7 +9,7 @@
 #ifndef _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 #define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 
 namespace dopamine
 {
@@ -36,7 +36,8 @@ public:
      * @param identity: requested authentication
      * @return true if authentication success, false otherwise
      */
-    virtual bool operator()(dcmtkpp::Association const & association) const = 0;
+    virtual bool operator()(
+            dcmtkpp::DcmtkAssociation const & association) const = 0;
 };
 
 } // namespace authenticator

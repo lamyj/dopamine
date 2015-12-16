@@ -33,7 +33,7 @@ public:
     virtual ~GetGenerator();
 
     virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::Association const & association,
+            dcmtkpp::DcmtkAssociation const & association,
             dcmtkpp::message::Message const & message);
 
     virtual dcmtkpp::Value::Integer next();

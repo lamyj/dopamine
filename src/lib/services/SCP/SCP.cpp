@@ -22,7 +22,7 @@ SCP
 }
 
 SCP
-::SCP(dcmtkpp::Network * network, dcmtkpp::Association * association)
+::SCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association)
 : dcmtkpp::ServiceRole(network, association)
 {
     // Nothing else.

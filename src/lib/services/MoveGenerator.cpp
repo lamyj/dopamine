@@ -41,7 +41,7 @@ MoveGenerator
 
 dcmtkpp::Value::Integer
 MoveGenerator
-::initialize(dcmtkpp::Association const & association,
+::initialize(dcmtkpp::DcmtkAssociation const & association,
              dcmtkpp::message::Message const & message)
 {
     auto const status = GeneratorPACS::initialize(association, message);

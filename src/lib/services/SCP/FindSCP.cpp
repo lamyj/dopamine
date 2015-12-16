@@ -24,7 +24,7 @@ FindSCP
 }
 
 FindSCP
-::FindSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
+::FindSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
     SCP(network, association)
 {
     // Nothing else.

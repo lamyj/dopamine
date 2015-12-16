@@ -28,7 +28,7 @@ public:
 
     /// @brief Create a dispatcher with network and association.
     SCPDispatcher(dcmtkpp::Network * network,
-                  dcmtkpp::Association * association);
+                  dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     ~SCPDispatcher();

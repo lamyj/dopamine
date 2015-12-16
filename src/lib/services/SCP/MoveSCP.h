@@ -29,7 +29,7 @@ public:
     MoveSCP();
 
     /// @brief Constructor.
-    MoveSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    MoveSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     virtual ~MoveSCP();

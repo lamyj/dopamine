@@ -29,7 +29,7 @@ public:
     GetSCP();
 
     /// @brief Constructor.
-    GetSCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    GetSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     virtual ~GetSCP();

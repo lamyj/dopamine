@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleMoveSCP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CMoveResponse.h>
 #include <dcmtkpp/Network.h>
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete movescp; movescp = NULL;
 
     dcmtkpp::Network network;
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     movescp = new dopamine::services::MoveSCP(&network, &association);
     BOOST_REQUIRE(movescp != NULL);

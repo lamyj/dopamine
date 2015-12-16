@@ -27,7 +27,7 @@ SCPDispatcher
 }
 
 SCPDispatcher
-::SCPDispatcher(dcmtkpp::Network * network, dcmtkpp::Association * association)
+::SCPDispatcher(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association)
 : dcmtkpp::ServiceRole(network, association)
 {
     // Nothing else.

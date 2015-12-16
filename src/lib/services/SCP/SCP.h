@@ -9,7 +9,7 @@
 #ifndef _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 #define _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Network.h>
 #include <dcmtkpp/ServiceRole.h>
@@ -33,7 +33,7 @@ public:
     SCP();
 
     /// @brief Create a Service Class Provider with network and association.
-    SCP(dcmtkpp::Network * network, dcmtkpp::Association * association);
+    SCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor
     virtual ~SCP();

@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleGetSCP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CGetResponse.h>
 #include <dcmtkpp/Network.h>
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete getscp; getscp = NULL;
 
     dcmtkpp::Network network;
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     getscp = new dopamine::services::GetSCP(&network, &association);
     BOOST_REQUIRE(getscp != NULL);

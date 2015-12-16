@@ -58,7 +58,7 @@ public:
         auto findgenerator = dopamine::services::FindGenerator::New();
         findgenerator->set_include_fields({"00080018"}); // get the SOP Instance UID
 
-        dcmtkpp::Association association;
+        dcmtkpp::DcmtkAssociation association;
         association.set_user_identity_primary_field("");
 
         dcmtkpp::DataSet dataset;
@@ -158,7 +158,7 @@ BOOST_FIXTURE_TEST_CASE(Initialize, ServicesTestClass)
 {
     auto findgenerator = dopamine::services::FindGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::SOPInstanceUID, {"123"}, dcmtkpp::VR::UI);
@@ -176,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(Next, ServicesTestClass)
 {
     auto findgenerator = dopamine::services::FindGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::SOPInstanceUID, {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
@@ -206,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(NoDataset, ServicesTestClass)
 {
     auto findgenerator = dopamine::services::FindGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"}, dcmtkpp::VR::CS);
@@ -227,7 +227,7 @@ BOOST_FIXTURE_TEST_CASE(GetIncludeFields, ServicesTestClass)
 {
     auto findgenerator = dopamine::services::FindGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
 
     dcmtkpp::DataSet dataset;
@@ -261,7 +261,7 @@ BOOST_FIXTURE_TEST_CASE(RequestAllAttributes, ServicesTestClass)
 {
     auto findgenerator = dopamine::services::FindGenerator::New();
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
 
     dcmtkpp::DataSet dataset;
@@ -345,7 +345,7 @@ BOOST_FIXTURE_TEST_CASE(RefusedNotAuthorized, ServicesTestClass)
     auto findgenerator = dopamine::services::FindGenerator::New();
     BOOST_REQUIRE_EQUAL(findgenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("bad_user");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::SOPInstanceUID, {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_CASE(ProcessingFailure)
     auto findgenerator = dopamine::services::FindGenerator::New();
     BOOST_REQUIRE_EQUAL(findgenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::SOPInstanceUID, {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
@@ -387,7 +387,7 @@ BOOST_FIXTURE_TEST_CASE(MissingAttribute, ServicesTestClass)
     auto findgenerator = dopamine::services::FindGenerator::New();
     BOOST_REQUIRE_EQUAL(findgenerator->get_username(), "");
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_primary_field("");
     dcmtkpp::DataSet dataset;
     dataset.add(dcmtkpp::registry::SOPInstanceUID, {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);

@@ -24,7 +24,7 @@ StoreSCP
 }
 
 StoreSCP
-::StoreSCP(dcmtkpp::Network *network, dcmtkpp::Association *association) :
+::StoreSCP(dcmtkpp::Network *network, dcmtkpp::DcmtkAssociation *association) :
     SCP(network, association)
 {
     // Nothing else.

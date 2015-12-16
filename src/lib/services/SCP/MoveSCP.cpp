@@ -26,7 +26,7 @@ MoveSCP
 }
 
 MoveSCP
-::MoveSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
+::MoveSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
     SCP(network, association)
 {
     // Nothing else.
@@ -67,7 +67,7 @@ MoveSCP
         return;
     }
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     association.set_own_ae_title(this->_association->get_own_ae_title());
     std::string peer_host_name =

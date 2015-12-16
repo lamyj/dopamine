@@ -9,7 +9,6 @@
 #ifndef _95305138_fbe7_4b3a_99d8_9f73013477fd
 #define _95305138_fbe7_4b3a_99d8_9f73013477fd
 
-#include <dcmtkpp/Association.h>
 #include <dcmtkpp/Network.h>
 
 #include "authenticator/AuthenticatorBase.h"

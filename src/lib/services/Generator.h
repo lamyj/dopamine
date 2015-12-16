@@ -11,7 +11,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/message/Message.h>
 #include <dcmtkpp/Value.h>
@@ -39,7 +39,7 @@ public:
     virtual ~Generator();
 
     virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::Association const & association,
+            dcmtkpp::DcmtkAssociation const & association,
             dcmtkpp::message::Message const & message) = 0;
 
     virtual bool done() const = 0;

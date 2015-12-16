@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleEchoSCP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 #include <dcmtkpp/message/CEchoResponse.h>
 #include <dcmtkpp/Network.h>
 
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete echoscp; echoscp = NULL;
 
     dcmtkpp::Network network;
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     echoscp = new dopamine::services::EchoSCP(&network, &association);
     BOOST_REQUIRE(echoscp != NULL);
