@@ -52,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE(No_Initialization, TestDataLogger)
 BOOST_FIXTURE_TEST_CASE(InitializeLogger_Error, TestDataLogger)
 {
     // Initialize logger
-    dopamine::initialize_logger("ERROR");
+    dopamine::initialize_logger("ERROR", "console", "");
 
     // Test
     dopamine::logger_error() << " test ";
@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(InitializeLogger_Error, TestDataLogger)
 BOOST_FIXTURE_TEST_CASE(InitializeLogger_Warning, TestDataLogger)
 {
     // Initialize logger
-    dopamine::initialize_logger("WARNING");
+    dopamine::initialize_logger("WARNING", "console", "");
 
     // Test
     dopamine::logger_error() << " test ";
@@ -98,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE(InitializeLogger_Warning, TestDataLogger)
 BOOST_FIXTURE_TEST_CASE(InitializeLogger_Info, TestDataLogger)
 {
     // Initialize logger
-    dopamine::initialize_logger("INFO");
+    dopamine::initialize_logger("INFO", "console", "");
 
     // Test
     dopamine::logger_error() << " test ";
@@ -121,7 +121,7 @@ BOOST_FIXTURE_TEST_CASE(InitializeLogger_Info, TestDataLogger)
 BOOST_FIXTURE_TEST_CASE(InitializeLogger_Debug, TestDataLogger)
 {
     // Initialize logger
-    dopamine::initialize_logger("DEBUG");
+    dopamine::initialize_logger("DEBUG", "console", "");
 
     // Test
     dopamine::logger_error() << " test ";
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE(InitializeLogger_Debug, TestDataLogger)
 BOOST_FIXTURE_TEST_CASE(InitializeLogger_Default, TestDataLogger)
 {
     // Initialize logger
-    dopamine::initialize_logger("");
+    dopamine::initialize_logger("", "console", "");
 
     // Test
     dopamine::logger_error() << " test ";
