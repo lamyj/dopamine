@@ -65,8 +65,9 @@ SCPDispatcher
 {
     bool receive_shutdown = false;
     // check if we have negotiated the private "shutdown" SOP Class
-    if (0 != ASC_findAcceptedPresentationContextID(this->_association->get_association(),
-                                                   UID_PrivateShutdownSOPClass))
+    if (0 != ASC_findAcceptedPresentationContextID(
+                this->_association->get_association(),
+                UID_PrivateShutdownSOPClass))
     {
         dopamine::logger_info()
                 << "Shutting down server ... "
@@ -75,14 +76,16 @@ SCPDispatcher
     }
     else
     {
-        auto const message = this->_receive();
-
-        logger_info() << "Received message " << std::hex << message.get_command_field();
-        logger_info() << message.get_command_set().as_string(dcmtkpp::registry::AffectedSOPClassUID)[0];
-        logger_info() << "Message " << (message.has_data_set()?(message.get_data_set().empty()?"has an empty ":"has a "):"has no ") << "data set";
-
         try
         {
+            auto const message = this->_receive();
+
+            logger_info() << "Received message "
+                          << std::hex << message.get_command_field();
+            logger_info() << message.get_command_set().as_string(dcmtkpp::registry::AffectedSOPClassUID)[0];
+            logger_info() << "Message "
+                          << (message.has_data_set()?(message.get_data_set().empty()?"has an empty ":"has a "):"has no ") << "data set";
+
             auto & scp = this->get_scp(message.get_command_field());
             scp.set_network(this->get_network());
             scp.set_association(this->get_association());
@@ -92,7 +95,17 @@ SCPDispatcher
         }
         catch(dcmtkpp::Exception const & e)
         {
-            logger_error() << e.what();
+            if(e.get_condition() == DUL_PEERREQUESTEDRELEASE)
+            {
+                logger_debug() << "Association release";
+                this->_association->drop();
+                this->set_association(NULL);
+                return !receive_shutdown;
+            }
+            else
+            {
+                logger_error() << e.what();
+            }
         }
     }
 

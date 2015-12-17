@@ -78,19 +78,9 @@ MoveSCP
     association.set_peer_port(atoi(peer_port.c_str()));
     association.set_peer_ae_title(request.get_move_destination());
 
-    // TODO modify, add all presentation context
-    association.add_presentation_context(
-        dcmtkpp::registry::MRImageStorage,
-        { dcmtkpp::registry::ImplicitVRLittleEndian });
-
-    association.add_presentation_context(
-        dcmtkpp::registry::EnhancedMRImageStorage,
-        { dcmtkpp::registry::ImplicitVRLittleEndian });
-
-    association.add_presentation_context(
-        dcmtkpp::registry::VerificationSOPClass,
-        { dcmtkpp::registry::ImplicitVRLittleEndian });
-    // End TODO
+    // add all negociated presentation contexts
+    association.set_presentation_contexts(
+                this->_get_all_storage_prensentation_contexts());
 
     association.associate(*(this->_network));
 
@@ -145,6 +135,27 @@ MoveSCP
     }
 
     association.release();
+}
+
+std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
+MoveSCP::
+_get_all_storage_prensentation_contexts() const
+{
+    std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
+            presentation_contexts;
+
+    for (auto item : dcmtkpp::registry::uids_dictionary)
+    {
+        // Attention: cannot add all syntaxes, limit is 127 (odd values of char)
+        if (item.second.keyword.find("ImageStorage") != std::string::npos)
+        {
+            presentation_contexts.push_back(
+                dcmtkpp::DcmtkAssociation::PresentationContext(
+                    item.first, { dcmtkpp::registry::ImplicitVRLittleEndian }));
+        }
+    }
+
+    return presentation_contexts;
 }
 
 } // namespace services

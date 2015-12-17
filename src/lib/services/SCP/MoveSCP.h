@@ -38,6 +38,8 @@ public:
     virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
+    std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
+        _get_all_storage_prensentation_contexts() const;
     
 };
 
