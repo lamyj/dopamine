@@ -64,15 +64,18 @@ configure_files() {
 }
 
 create_data_sets() {
-    export DOPAMINE_TEST_DICOMFILE_01=${DIRECTORY}/data/Patient01_Study01_Series01_Instance01
-    export DOPAMINE_TEST_DICOMFILE_02=${DIRECTORY}/data/Patient02_Study01_Series01_Instance01
-    export DOPAMINE_TEST_DICOMFILE_03=${DIRECTORY}/data/Patient02_Study01_Series01_Instance02
-    export DOPAMINE_TEST_DICOMFILE_04=${DIRECTORY}/data/Patient02_Study01_Series01_Instance03
-    export DOPAMINE_TEST_DICOMFILE_05=${DIRECTORY}/data/Patient03_Study01_Series01_Instance01
-    export DOPAMINE_TEST_DICOMFILE_06=${DIRECTORY}/data/Patient03_Study02_Series01_Instance01
-    export DOPAMINE_TEST_DICOMFILE_07=${DIRECTORY}/data/Patient04_Study01_Series01_Instance01
-    export DOPAMINE_TEST_DICOMFILE_08=${DIRECTORY}/data/Patient04_Study01_Series01_Instance02
-    export DOPAMINE_TEST_DICOMFILE_09=${DIRECTORY}/data/Patient04_Study01_Series01_Instance03
+    export DOPAMINE_TEST_DATA=${DIRECTORY}/data
+    mkdir -p ${DOPAMINE_TEST_DATA}
+
+    export DOPAMINE_TEST_DICOMFILE_01=${DOPAMINE_TEST_DATA}/Patient01_Study01_Series01_Instance01
+    export DOPAMINE_TEST_DICOMFILE_02=${DOPAMINE_TEST_DATA}/Patient02_Study01_Series01_Instance01
+    export DOPAMINE_TEST_DICOMFILE_03=${DOPAMINE_TEST_DATA}/Patient02_Study01_Series01_Instance02
+    export DOPAMINE_TEST_DICOMFILE_04=${DOPAMINE_TEST_DATA}/Patient02_Study01_Series01_Instance03
+    export DOPAMINE_TEST_DICOMFILE_05=${DOPAMINE_TEST_DATA}/Patient03_Study01_Series01_Instance01
+    export DOPAMINE_TEST_DICOMFILE_06=${DOPAMINE_TEST_DATA}/Patient03_Study02_Series01_Instance01
+    export DOPAMINE_TEST_DICOMFILE_07=${DOPAMINE_TEST_DATA}/Patient04_Study01_Series01_Instance01
+    export DOPAMINE_TEST_DICOMFILE_08=${DOPAMINE_TEST_DATA}/Patient04_Study01_Series01_Instance02
+    export DOPAMINE_TEST_DICOMFILE_09=${DOPAMINE_TEST_DATA}/Patient04_Study01_Series01_Instance03
 
     files=$(cat << EOF
         ${DOPAMINE_TEST_DICOMFILE_01} ${DOPAMINE_TEST_DICOMFILE_02} 
@@ -89,7 +92,6 @@ EOF
     done
 
     # Get data tests
-    export DOPAMINE_TEST_DATA=${DIRECTORY}/data
     wget -P ${DOPAMINE_TEST_DATA} http://www.dclunie.com/images/charset/charsettests.20070405.tar.bz2
     tar -C ${DOPAMINE_TEST_DATA} -xf ${DOPAMINE_TEST_DATA}/charsettests.20070405.tar.bz2
 }

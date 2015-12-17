@@ -1,5 +1,6 @@
 
 import os
+import re
 import subprocess
 import time
 import unittest
@@ -17,6 +18,9 @@ class TestBase(unittest.TestCase) :
         self._add_doe_jane = os.environ["DOPAMINE_TEST_ADD_JANE"]
         self._del_doe_jane = os.environ["DOPAMINE_TEST_DEL_JANE"]
         unittest.TestCase.__init__(self, *args, **kwargs)
+
+        if not hasattr(self, "assertRegexpMatches"):
+            self.assertRegexpMatches = self._assertRegexpMatches
     
     def setUp(self) :
         # Add authorization in database
@@ -37,6 +41,15 @@ class TestBase(unittest.TestCase) :
         subprocess.Popen(["termscu localhost " + self._dopamine_port], shell=True)
         # wait for dopamine shutdown
         time.sleep(1)
+
+    def _assertRegexpMatches(self, text, expected_regexp, msg=None):
+        """Fail the test unless the text matches the regular expression."""
+        if isinstance(expected_regexp, basestring):
+            expected_regexp = re.compile(expected_regexp)
+        if not expected_regexp.search(text):
+            msg = msg or "Regexp didn't match"
+            msg = '%s: %r not found in %r' % (msg, expected_regexp.pattern, text)
+            raise self.failureException(msg)
     
 if __name__ == '__main__':
     unittest.main()
