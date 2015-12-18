@@ -6,9 +6,9 @@
  * for details.
  ************************************************************************/
 
-#include "EchoSCP.h"
-
 #include <dcmtkpp/message/CEchoResponse.h>
+
+#include "EchoSCP.h"
 
 namespace dopamine
 {
@@ -18,43 +18,22 @@ namespace services
 
 EchoSCP
 ::EchoSCP() :
-    dcmtkpp::SCP(), _callback()
+    SCP()
 {
     // Nothing else.
 }
 
 EchoSCP
-::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association) :
-    dcmtkpp::SCP(network, association), _callback()
+::EchoSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
+    SCP(network, association)
 {
     // Nothing else.
 }
 
 EchoSCP
-::EchoSCP(dcmtkpp::Network * network, dcmtkpp::Association * association,
-          EchoSCP::Callback const & callback) :
-    dcmtkpp::SCP(network, association), _callback()
-{
-    this->set_callback(callback);
-}
-
-EchoSCP::~EchoSCP()
+::~EchoSCP()
 {
     // Nothing to do.
-}
-
-EchoSCP::Callback const &
-EchoSCP
-::get_callback() const
-{
-    return this->_callback;
-}
-
-void
-EchoSCP
-::set_callback(EchoSCP::Callback const & callback)
-{
-    this->_callback = callback;
 }
 
 void
@@ -63,25 +42,42 @@ EchoSCP
 {
     dcmtkpp::message::CEchoRequest const request(message);
 
-    dcmtkpp::Value::Integer status = dcmtkpp::message::CEchoResponse::Success;
-
-    try
+    auto status = this->_generator->initialize(*this->_association, message);
+    if (status != dcmtkpp::message::CEchoResponse::Pending)
     {
-        status = this->_callback(*this->_association, request);
+        // Send Error
+        dcmtkpp::message::CEchoResponse response(
+                    request.get_message_id(), status,
+                    request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
-    catch(dcmtkpp::Exception const & exception)
+    else
     {
-        status = dcmtkpp::message::CEchoResponse::MistypedArgument;
-        // Error Comment
-        // Error ID
-        // Affected SOP Class UID
+        try
+        {
+            if (this->_generator->done())
+            {
+                status = dcmtkpp::message::CEchoResponse::Success;
+            }
+            else
+            {
+                status = this->_generator->next();
+            }
+        }
+        catch(dcmtkpp::Exception const & exception)
+        {
+            status = dcmtkpp::message::CEchoResponse::MistypedArgument;
+            // Error Comment
+            // Error ID
+            // Affected SOP Class UID
+        }
+
+        dcmtkpp::message::CEchoResponse response(
+            request.get_message_id(), status,
+            request.get_affected_sop_class_uid());
+
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
-
-    dcmtkpp::message::CEchoResponse response(
-        request.get_message_id(), status,
-        request.get_affected_sop_class_uid());
-
-    this->_send(response, request.get_affected_sop_class_uid());
 }
 
 } // namespace services

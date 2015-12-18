@@ -6,15 +6,10 @@
  * for details.
  ************************************************************************/
 
-#include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
+#include <dcmtkpp/message/CStoreRequest.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 
-#include <dcmtkpp/registry.h>
-#include <dcmtkpp/message/Response.h>
-
-#include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
-#include "services/ServicesTools.h"
 #include "StoreGenerator.h"
 
 namespace dopamine
@@ -23,104 +18,121 @@ namespace dopamine
 namespace services
 {
 
+StoreGenerator::Pointer
 StoreGenerator
-::StoreGenerator(const std::string &username):
-    Generator(username), _calling_aptitle(""), _destination_path("")
+::New()
 {
-    // Nothing to do
+    return Pointer(new StoreGenerator());
+}
+
+StoreGenerator
+::StoreGenerator():
+    GeneratorPACS(), _peer_ae_title("")
+{
+    // Nothing else.
 }
 
 StoreGenerator
 ::~StoreGenerator()
 {
-    // Nothing to do
+    // Nothing to do.
 }
 
-Uint16
+dcmtkpp::Value::Integer
 StoreGenerator
-::process()
+::initialize(dcmtkpp::DcmtkAssociation const & association,
+             dcmtkpp::message::Message const & message)
 {
-    // Look for database connection
-    if (this->_connection.isFailed())
+    auto const status = GeneratorPACS::initialize(association, message);
+    if (status != dcmtkpp::message::Response::Success)
     {
-        logger_warning() << "Could not connect to database: " << this->_db_name;
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
+        return status;
     }
 
-    // Look for user authorization
-    this->_allow = is_authorized(this->_connection, this->_db_name,
-                                 this->_username, Service_Store);
-    if ( ! this->_allow )
+    dcmtkpp::message::CStoreRequest storerequest(message);
+
+    this->_peer_ae_title = association.get_peer_ae_title();
+
+    auto dataset = storerequest.get_data_set();
+    return this->initialize(dataset);
+}
+
+dcmtkpp::Value::Integer
+StoreGenerator
+::next()
+{
+    // all work doing into Initilization, nothing to do.
+    return dcmtkpp::message::Response::Success;
+}
+
+dcmtkpp::Value::Integer
+StoreGenerator
+::initialize(dcmtkpp::DataSet const & dataset)
+{
+    mongo::BSONObj const object;
+    auto const status = GeneratorPACS::initialize(object);
+    if (status != dcmtkpp::message::Response::Success)
+    {
+        return status;
+    }
+
+    if (!this->_connection->is_authorized(
+                this->_username, dcmtkpp::message::Message::Command::C_STORE_RQ))
     {
         logger_warning() << "User '" << this->_username
-                         << "' not allowed to perform "
-                         << Service_Store;
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
+                         << "' not allowed to perform Store Operation";
+        return dcmtkpp::message::CStoreResponse::RefusedNotAuthorized;
     }
 
     // Dataset should not be empty
-    if (this->_dataset.empty())
+    if (dataset.empty())
     {
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
+        return dcmtkpp::message::CStoreResponse::ErrorCannotUnderstand;
     }
 
-    if (!this->_dataset.has(dcmtkpp::registry::SOPInstanceUID))
+    // Should have SOP Instance UID
+    if (!dataset.has(dcmtkpp::registry::SOPInstanceUID))
     {
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
+        return dcmtkpp::message::CStoreResponse::InvalidObjectInstance;
     }
 
     // Get the SOP Instance UID
     std::string const sopinstanceuid =
-            this->_dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
+            dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
 
-    mongo::BSONObj const group_command =
+    mongo::BSONObj const command =
             BSON("count" << "datasets" << "query"
                  << BSON("00080018.Value" <<
                          BSON_ARRAY(sopinstanceuid)));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name,
-                                            group_command, info, 0);
+    bool result = this->_connection->run_command(command, info);
 
     // If an error occurred
-    if (!ret || info["ok"].Double() != 1)
+    if (!result)
     {
-        logger_warning() << "Could not connect to database: "
-                         << this->_db_name;
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
+        logger_warning() << "Could not connect to database";
+        return dcmtkpp::message::CStoreResponse::ProcessingFailure;
     }
 
     // If the command correctly executed and database entries match
-    if (info["ok"].Double() == 1 && info["n"].Double() > 0)
+    if (info["n"].Double() > 0)
     {
         // We already have this SOP Instance UID, do not store it
         logger_warning() << "Store: SOP Instance UID already register";
-        return dcmtkpp::message::Response::Pending; // Nothing to do
+        return dcmtkpp::message::CStoreResponse::Pending; // Nothing to do
     }
 
-    if (insert_dataset(this->_connection, this->_db_name,
-                       this->_username, this->_dataset,
-                       this->_calling_aptitle) != NO_ERROR)
-    {
-        return 0xa700; //dcmtkpp::message::Response::Todo_Refused;
-    }
-
-    // Everything OK
-    return dcmtkpp::message::Response::Pending;
-}
-
-void
-StoreGenerator
-::set_calling_aptitle(std::string const & callingaptitle)
-{
-    this->_calling_aptitle = callingaptitle;
+    return this->_connection->insert_dataset(this->_username,
+                                             dataset,
+                                             this->_peer_ae_title);
 }
 
 std::string
 StoreGenerator
-::get_calling_aptitle() const
+::get_peer_ae_title() const
 {
-    return this->_calling_aptitle;
+    return this->_peer_ae_title;
 }
 
 } // namespace services

@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <mongo/client/dbclient.h>
+#include <mongo/bson/bson.h>
 
 namespace dopamine
 {
@@ -49,11 +49,9 @@ public:
      * @brief Create an instance of Webservices
      * @param pathinfo
      * @param querystring
-     * @param username
      */
     Webservices(std::string const & pathinfo,
-                std::string const & querystring,
-                std::string const & username);
+                std::string const & querystring);
 
     /// Destroy the instance of Webservices
     virtual ~Webservices();
@@ -65,13 +63,10 @@ public:
 protected:
     std::string _pathinfo;
     std::string _querystring;
-    std::string _username;
     std::string _response;
     std::string _boundary;
 
-    int _maximum_results;
-    int _skipped_results;
-    bool _fuzzy_matching;
+    std::string _query_retrieve_level;
 
     void _create_boundary();
 

@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorNone
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 
 #include "authenticator/AuthenticatorNone.h"
 
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(NONEIdentity)
 {
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_to_none();
 
     BOOST_CHECK_EQUAL(authenticatorNone(association), true);
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(BadIdentity)
 {
     dopamine::authenticator::AuthenticatorNone authenticatorNone;
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     // ASC_USER_IDENTITY_USER
     association.set_user_identity_to_username("user");

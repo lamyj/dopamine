@@ -13,20 +13,39 @@ namespace dopamine
 
 namespace services
 {
-    
+
 SCP
-::SCP(T_ASC_Association * association,
-      T_ASC_PresentationContextID presentation_context_id):
-    _association(association),
-    _presentation_context_id(presentation_context_id)
+::SCP()
+: dcmtkpp::ServiceRole()
 {
-    // nothing to do
+    // Nothing else.
+}
+
+SCP
+::SCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association)
+: dcmtkpp::ServiceRole(network, association)
+{
+    // Nothing else.
 }
 
 SCP
 ::~SCP()
 {
-    // nothing to do
+    // Nothing to do.
+}
+
+Generator::Pointer const
+SCP
+::get_generator() const
+{
+    return this->_generator;
+}
+
+void
+SCP
+::set_generator(Generator::Pointer const generator)
+{
+    this->_generator = generator;
 }
 
 } // namespace services

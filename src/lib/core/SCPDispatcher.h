@@ -12,9 +12,10 @@
 #include <map>
 #include <memory>
 
-#include <dcmtkpp/SCP.h>
 #include <dcmtkpp/ServiceRole.h>
 #include <dcmtkpp/Value.h>
+
+#include "services/SCP/SCP.h"
 
 namespace dopamine
 {
@@ -27,15 +28,14 @@ public:
 
     /// @brief Create a dispatcher with network and association.
     SCPDispatcher(dcmtkpp::Network * network,
-                  dcmtkpp::Association * association);
+                  dcmtkpp::DcmtkAssociation * association);
 
     /// @brief Destructor.
     ~SCPDispatcher();
 
     bool has_scp(dcmtkpp::Value::Integer command) const;
 
-    dcmtkpp::SCP const & get_scp(dcmtkpp::Value::Integer command) const;
-    dcmtkpp::SCP & get_scp(dcmtkpp::Value::Integer command);
+    services::SCP & get_scp(dcmtkpp::Value::Integer command);
 
     template<typename TSCP>
     void set_scp(dcmtkpp::Value::Integer command, TSCP const & scp);
@@ -43,7 +43,7 @@ public:
     bool dispatch();
 
 private:
-    typedef std::shared_ptr<dcmtkpp::SCP> SCPPointer;
+    typedef std::shared_ptr<services::SCP> SCPPointer;
     std::map<dcmtkpp::Value::Integer, SCPPointer> _providers;
 
 };

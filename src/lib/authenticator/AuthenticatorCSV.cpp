@@ -59,7 +59,7 @@ AuthenticatorCSV
 
 bool
 AuthenticatorCSV
-::operator ()(dcmtkpp::Association const & association) const
+::operator ()(dcmtkpp::DcmtkAssociation const & association) const
 {
     bool authorized = false;
 

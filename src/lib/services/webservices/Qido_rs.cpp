@@ -6,19 +6,19 @@
  * for details.
  ************************************************************************/
 
+#include <memory>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 
-#include <dcmtkpp/registry.h>
-#include <dcmtkpp/message/Response.h>
+#include <dcmtkpp/message/CFindResponse.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
-#include "Qido_rs.h"
-#include "services/QueryGenerator.h"
-#include "services/ServicesTools.h"
-#include "WebServiceException.h"
+#include "services/FindGenerator.h"
+#include "services/webservices/Qido_rs.h"
+#include "services/webservices/WebServiceException.h"
 
 namespace dopamine
 {
@@ -26,80 +26,81 @@ namespace dopamine
 namespace services
 {
 
-mongo::BSONObj
-check_mandatory_field_in_response(mongo::BSONObj const & response,
-                                  QueryGenerator &generator,
-                                  std::string const & query_retrieve_level,
+void
+check_mandatory_field_in_response(dcmtkpp::DataSet & response,
+                                  FindGenerator::Pointer generator,
                                   std::vector<Attribute> attributes)
 {
-    mongo::BSONObjBuilder builderfinal;
-    builderfinal.appendElements(response);
-
     // Add Query retrieve level
-    mongo::BSONObj queryretrievelevel =
-            BSON("00080052" <<
-                 BSON("vr" << "CS" <<
-                      "Value" << BSON_ARRAY(query_retrieve_level)));
-    builderfinal.appendElements(queryretrievelevel);
+    response.add(dcmtkpp::registry::QueryRetrieveLevel,
+                 {generator->get_query_retrieve_level()}, dcmtkpp::VR::CS);
 
     for (Attribute attribute : attributes)
     {
-        if (attribute.get_tag() == "00080052") continue;
-        if (!response.hasField(attribute.get_tag()))
+        if (attribute.get_tag() == dcmtkpp::registry::QueryRetrieveLevel)
+        {
+            continue;
+        }
+
+        if (!response.has(attribute.get_tag()))
         {
             // Instance Availability
-            if (attribute.get_tag() == "00080056")
+            if (attribute.get_tag() == dcmtkpp::registry::InstanceAvailability)
             {
-                builderfinal.appendElements(
-                            generator.compute_attribute("00080056", ""));
+                response.add(dcmtkpp::registry::InstanceAvailability,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          ""));
             }
             // Modalities in Study
-            else if (attribute.get_tag() == "00080061")
+            else if (attribute.get_tag() == dcmtkpp::registry::ModalitiesInStudy)
             {
                 std::string const value =
-                        response["0020000d"].Obj()["Value"].Array()[0].String();
-                builderfinal.appendElements(
-                            generator.compute_attribute("00080061", value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::ModalitiesInStudy,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Study Related Series
-            else if (attribute.get_tag() == "00201206")
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfStudyRelatedSeries)
             {
                 std::string const value =
-                        response["0020000d"].Obj()["Value"].Array()[0].String();
-                builderfinal.appendElements(
-                            generator.compute_attribute("00201206", value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfStudyRelatedSeries,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Study Related Instances
-            else if (attribute.get_tag() == "00201208")
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfStudyRelatedInstances)
             {
                 std::string const value =
-                        response["0020000d"].Obj()["Value"].Array()[0].String();
-                builderfinal.appendElements(
-                            generator.compute_attribute("00201208", value));
+                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfStudyRelatedInstances,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             // Number of Series Related Instances
-            else if (attribute.get_tag() == "00201209")
+            else if (attribute.get_tag() ==
+                     dcmtkpp::registry::NumberOfSeriesRelatedInstances)
             {
                 std::string const value =
-                        response["0020000e"].Obj()["Value"].Array()[0].String();
-                builderfinal.appendElements(
-                            generator.compute_attribute("00201209", value));
+                    response.as_string(dcmtkpp::registry::SeriesInstanceUID)[0];
+                response.add(dcmtkpp::registry::NumberOfSeriesRelatedInstances,
+                             generator->compute_attribute(attribute.get_tag(),
+                                                          attribute.get_vr(),
+                                                          value));
             }
             else
             {
-                mongo::BSONObjBuilder builder;
-                builder << "vr" << attribute.get_vr();
-                builder.appendNull("Value");
-
-                mongo::BSONObj element =
-                        BSON(attribute.get_tag() << builder.obj());
-
-                builderfinal.appendElements(element);
+                response.add(attribute.get_tag(), attribute.get_vr());
             }
         }
     }
-
-    return builderfinal.obj();
 }
 
 Qido_rs
@@ -107,24 +108,27 @@ Qido_rs
           std::string const & querystring,
           std::string const & contenttype,
           std::string const & remoteuser):
-    Webservices(pathinfo, querystring, remoteuser),
+    Webservices(pathinfo, querystring),
     _contenttype(contenttype), _study_instance_uid_present(false),
-    _series_instance_uid_present(false)
+    _series_instance_uid_present(false), _include_fields({}),
+    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
 {
-    mongo::BSONObj object = this->_parse_string();
+    FindGenerator::Pointer generator = FindGenerator::New();
+    generator->set_username(remoteuser);
 
+    mongo::BSONObj object = this->_parse_string();
     this->_add_mandatory_fields(object);
 
-    QueryGenerator generator(this->_username);
-    generator.set_include_fields(this->_includefields);
-    generator.set_maximum_results(this->_maximum_results);
-    generator.set_skipped_results(this->_skipped_results);
-    generator.set_fuzzy_matching(this->_fuzzy_matching);
+    generator->set_query_retrieve_level(this->_query_retrieve_level);
+    generator->set_include_fields(this->_include_fields);
+    generator->set_maximum_results(this->_maximum_results);
+    generator->set_skipped_results(this->_skipped_results);
+    generator->set_fuzzy_matching(this->_fuzzy_matching);
 
-    Uint16 status = generator.process_bson(object);
-    if (status != dcmtkpp::message::Response::Pending)
+    auto status = generator->initialize(object);
+    if (status != dcmtkpp::message::CFindResponse::Pending)
     {
-        if ( ! generator.is_allow())
+        if (status == dcmtkpp::message::CFindResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -139,8 +143,7 @@ Qido_rs
 
     std::stringstream stream;
 
-    mongo::BSONObj findedobject = generator.next();
-    if (!findedobject.isValid() || findedobject.isEmpty())
+    if (generator->done())
     {
         // If there are no matching results, the message body will be empty.
         if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
@@ -157,51 +160,52 @@ Qido_rs
             throw WebServiceException(404, "Not Found", "No Dataset");
         }
     }
-
-    bool isfirst = true;
-    while (findedobject.isValid() && !findedobject.isEmpty())
+    else
     {
-        findedobject = check_mandatory_field_in_response(
-                            findedobject, generator,
-                            this->_query_retrieve_level,
-                            this->_get_mandatory_fields());
-
-        if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
+        bool isfirst = true;
+        while (!generator->done())
         {
-            if (isfirst)
+            generator->next();
+
+            dcmtkpp::DataSet dataset = generator->get().second;
+
+            check_mandatory_field_in_response(dataset, generator,
+                                              this->_get_mandatory_fields());
+
+            if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
             {
-                stream << "[\n";
-                isfirst = false;
+                if (isfirst)
+                {
+                    stream << "[\n";
+                    isfirst = false;
+                }
+                else
+                {
+                    stream << ",\n";
+                }
+
+                stream << dataset_to_json_string(dataset);
             }
-            else
+            else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
             {
-                stream << ",\n";
+                stream << "--" << this->_boundary << "\n";
+                stream << CONTENT_TYPE
+                       << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
+
+                std::string currentdata = dataset_to_xml_string(dataset);
+
+                // The directive xml:space="preserve" shall be included.
+                std::stringstream xmlheader;
+                xmlheader << "<?xml version=\"1.0\" "
+                          << "encoding=\"utf-8\" xml:space=\"preserve\" ?>";
+                currentdata = GeneratorPACS::replace(
+                                currentdata,
+                                "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                                xmlheader.str());
+
+                stream << currentdata << "\n\n";
             }
-
-            auto const dataset = as_dataset(findedobject);
-            stream << dataset_to_json_string(dataset);
         }
-        else if (this->_contenttype == MIME_TYPE_APPLICATION_DICOMXML)
-        {
-            stream << "--" << this->_boundary << "\n";
-            stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOMXML << "\n\n";
-
-            auto const dataset = as_dataset(findedobject);
-            std::string currentdata = dataset_to_xml_string(dataset);
-
-            // The directive xml:space="preserve" shall be included.
-            std::stringstream xmlheader;
-            xmlheader << "<?xml version=\"1.0\" "
-                      << "encoding=\"utf-8\" xml:space=\"preserve\" ?>";
-            currentdata = replace(
-                            currentdata,
-                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                            xmlheader.str());
-
-            stream << currentdata << "\n\n";
-        }
-
-        findedobject = generator.next();
     }
 
     if (this->_contenttype == MIME_TYPE_APPLICATION_JSON)
@@ -258,7 +262,7 @@ Qido_rs
     // look for Study Instance UID
     if (vartemp[0] == "studies")
     {
-        _query_retrieve_level = "STUDY";
+        this->_query_retrieve_level = "STUDY";
         if (vartemp.size() > 1)
         {
             study_instance_uid = vartemp[1];
@@ -267,7 +271,7 @@ Qido_rs
             {
                 if (vartemp[2] == "series")
                 {
-                    _query_retrieve_level = "SERIES";
+                    this->_query_retrieve_level = "SERIES";
                     if (vartemp.size() > 3)
                     {
                         series_instance_uid = vartemp[3];
@@ -276,7 +280,7 @@ Qido_rs
                         {
                             if (vartemp[4] == "instances")
                             {
-                                _query_retrieve_level = "IMAGE";
+                                this->_query_retrieve_level = "IMAGE";
 
                                 if (vartemp.size() > 5)
                                 {
@@ -302,7 +306,7 @@ Qido_rs
                 }
                 else if (vartemp[2] == "instances")
                 {
-                    _query_retrieve_level = "IMAGE";
+                    this->_query_retrieve_level = "IMAGE";
 
                     if (vartemp.size() > 3)
                     {
@@ -328,7 +332,7 @@ Qido_rs
     }
     else if (vartemp[0] == "series")
     {
-        _query_retrieve_level = "SERIES";
+        this->_query_retrieve_level = "SERIES";
 
         if (vartemp.size() > 1)
         {
@@ -338,7 +342,7 @@ Qido_rs
     }
     else if (vartemp[0] == "instances")
     {
-        _query_retrieve_level = "IMAGE";
+        this->_query_retrieve_level = "IMAGE";
 
         if (vartemp.size() > 1)
         {
@@ -378,7 +382,7 @@ Qido_rs
     std::vector<std::string> arraytemp;
     boost::split(arraytemp, this->_querystring, boost::is_any_of("&"));
 
-    this->_includefields.clear();
+    this->_include_fields.clear();
     for (std::string variable : arraytemp)
     {
         std::vector<std::string> data;
@@ -389,7 +393,7 @@ Qido_rs
         {
             mongo::BSONObjBuilder tempbuilder;
             this->_add_to_builder(tempbuilder, data[1], "");
-            this->_includefields.push_back(
+            this->_include_fields.push_back(
                         tempbuilder.obj().firstElementFieldName());
         }
         else if (tag == "limit")
@@ -565,15 +569,16 @@ Qido_rs
     for (Attribute tag : this->_get_mandatory_fields())
     {
         // tag not already added
-        if (std::find(this->_includefields.begin(),
-                      this->_includefields.end(),
-                      tag.get_tag()) != this->_includefields.end() ||
-            queryobject.hasField(tag.get_tag()))
+        if (std::find(this->_include_fields.begin(),
+                      this->_include_fields.end(),
+                      std::string(tag.get_tag())) !=
+                this->_include_fields.end() ||
+            queryobject.hasField(std::string(tag.get_tag())))
         {
             continue;
         }
 
-        this->_includefields.push_back(tag.get_tag());
+        this->_include_fields.push_back(tag.get_tag());
     }
 }
 

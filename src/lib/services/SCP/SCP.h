@@ -9,10 +9,12 @@
 #ifndef _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 #define _2a40efaa_eb3c_40f4_a8ba_e614ae1fb9f8
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmnet/assoc.h>
-#include <dcmtk/dcmnet/dimse.h>
+#include <dcmtkpp/DcmtkAssociation.h>
+#include <dcmtkpp/message/Message.h>
+#include <dcmtkpp/Network.h>
+#include <dcmtkpp/ServiceRole.h>
+
+#include "services/Generator.h"
 
 namespace dopamine
 {
@@ -23,27 +25,30 @@ namespace services
 /**
  * @brief \class Base class for all SCP.
  */
-class SCP
+class SCP : public dcmtkpp::ServiceRole
 {
 public:
-    /// Create a default.
-    SCP(T_ASC_Association * association,
-        T_ASC_PresentationContextID presentation_context_id);
-    
-    /// Destroy the SCP.
+    /// @brief Create a default Service Class Provider
+    ///        with no network and no association.
+    SCP();
+
+    /// @brief Create a Service Class Provider with network and association.
+    SCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
+
+    /// @brief Destructor
     virtual ~SCP();
 
-    /**
-     * Send response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process() = 0;
+    /// @brief Return the generator.
+    Generator::Pointer const get_generator() const;
+
+    /// @brief Set the generator.
+    void set_generator(Generator::Pointer const generator);
+
+    /// @brief Process a message.
+    virtual void operator()(dcmtkpp::message::Message const & message) =0;
 
 protected:
-    /// Linked association
-    mutable T_ASC_Association * _association;
-    /// Linked presentation context
-    T_ASC_PresentationContextID _presentation_context_id;
+    Generator::Pointer _generator;
 
 private:
     

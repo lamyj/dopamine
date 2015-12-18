@@ -6,14 +6,16 @@
  * for details.
  ************************************************************************/
 
-#include <qt4/Qt/qstring.h>
-#include <qt4/Qt/qstringlist.h>
-#include <qt4/Qt/qprocess.h>
+#include <Qt/qstring.h>
+#include <Qt/qstringlist.h>
+#include <Qt/qprocess.h>
 #include <fstream>
 
 #define BOOST_TEST_MODULE ModuleNetworkPACS
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
+
+#include <dcmtkpp/Exception.h>
 
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
@@ -44,6 +46,7 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "hostname=localhost\n";
     myfile << "port=27017\n";
     myfile << "dbname=pacs\n";
+    myfile << "bulk_data=pacs_bulk\n";
     myfile << "[authenticator]\n";
     myfile << "type=" << authenticatortype << "\n";
     myfile << "# path of the authenticator file (only for type = CSV)\n";
@@ -57,8 +60,7 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "# Request filter (only for type = LDAP)\n";
     myfile << "ldap_filter=(&(uid=%user)"
            << "(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
-    myfile << "[listAddressPort]\n";
-    myfile << "allowed=LANGUEDOC,LOCAL\n";
+    myfile << "[peers]\n";
     myfile << "LANGUEDOC=languedoc:11113\n";
     myfile << "LOCAL=vexin:11114\n";
     myfile.close();
@@ -227,10 +229,10 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=None\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
@@ -249,5 +251,5 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
 BOOST_FIXTURE_TEST_CASE(TEST_KO_02, TestDataKO02)
 {
     BOOST_REQUIRE_THROW(dopamine::NetworkPACS::get_instance(),
-                        dopamine::ExceptionPACS);
+                        dcmtkpp::Exception);
 }

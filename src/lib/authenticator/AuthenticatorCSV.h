@@ -41,7 +41,7 @@ public:
      * @param identity: requested authentication
      * @return true if authentication success, false otherwise
      */
-    virtual bool operator()(dcmtkpp::Association const & association) const;
+    virtual bool operator()(dcmtkpp::DcmtkAssociation const & association) const;
     
     /**
      * Get number of dictionary entries

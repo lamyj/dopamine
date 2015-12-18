@@ -9,10 +9,7 @@
 #ifndef _95305138_fbe7_4b3a_99d8_9f73013477fd
 #define _95305138_fbe7_4b3a_99d8_9f73013477fd
 
-#include <dcmtkpp/Association.h>
 #include <dcmtkpp/Network.h>
-
-#include <mongo/client/dbclient.h>
 
 #include "authenticator/AuthenticatorBase.h"
 
@@ -41,11 +38,6 @@ public:
     /// While loop to listen the network
     void run();
 
-    /**
-     * Stop running after the next received association or time out
-     */
-    void stop_running();
-
     bool is_running() const;
 
 protected:
@@ -59,12 +51,6 @@ private:
 
     /// Network for listening/sending Requests and Responses
     dcmtkpp::Network _network;
-
-    /// Database connection
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
 
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;

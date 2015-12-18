@@ -9,14 +9,22 @@
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
-#include "core/Callbacks.h"
 #include "core/ConfigurationPACS.h"
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "core/SCPDispatcher.h"
+#include "dbconnection/MongoDBConnection.h"
+#include "services/EchoGenerator.h"
+#include "services/FindGenerator.h"
+#include "services/GetGenerator.h"
+#include "services/MoveGenerator.h"
+#include "services/StoreGenerator.h"
 #include "services/SCP/EchoSCP.h"
-#include "services/ServicesTools.h"
+#include "services/SCP/FindSCP.h"
+#include "services/SCP/GetSCP.h"
+#include "services/SCP/MoveSCP.h"
+#include "services/SCP/StoreSCP.h"
 
 namespace dopamine
 {
@@ -47,11 +55,29 @@ NetworkPACS
 
 NetworkPACS
 ::NetworkPACS():
-    _db_name(""), _authenticator(NULL), _is_running(false)
+    _authenticator(NULL), _is_running(false)
 {
     this->_create_authenticator();
 
-    services::create_db_connection(this->_connection, this->_db_name);
+    // Get configuration for Database connection
+    MongoDBConnection::DataBaseInformation db_information;
+    std::string db_host = "";
+    int db_port = -1;
+    std::vector<std::string> indexeslist;
+    ConfigurationPACS::get_instance().get_database_configuration(db_information.db_name,
+                                                                 db_information.bulk_data,
+                                                                 db_host,
+                                                                 db_port,
+                                                                 indexeslist);
+
+    // Create connection with Database
+    MongoDBConnection connection(db_information, db_host, db_port, indexeslist);
+
+    // Try to connect
+    if (!connection.connect())
+    {
+        throw ExceptionPACS("cannot connect to database");
+    }
 
     int port = std::atoi(ConfigurationPACS::
                          get_instance().get_value("dicom.port").c_str());
@@ -116,8 +142,24 @@ void NetworkPACS::run()
 
     // SCP
     services::EchoSCP echoscp;
-    echoscp.set_callback(echo);
+    echoscp.set_generator(services::EchoGenerator::New());
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_ECHO_RQ, echoscp);
+
+    services::FindSCP findscp;
+    findscp.set_generator(services::FindGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_FIND_RQ, findscp);
+
+    services::GetSCP getscp;
+    getscp.set_generator(services::GetGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_GET_RQ, getscp);
+
+    services::MoveSCP movescp;
+    movescp.set_generator(services::MoveGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_MOVE_RQ, movescp);
+
+    services::StoreSCP storescp;
+    storescp.set_generator(services::StoreGenerator::New());
+    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_STORE_RQ, storescp);
 
     // Loop Processing
     while(this->_is_running)
@@ -127,11 +169,11 @@ void NetworkPACS::run()
         // Waiting for association
         if (this->_network.is_association_waiting(TIMEOUT))
         {
-            dcmtkpp::Association association;
+            dcmtkpp::DcmtkAssociation association;
             dispatcher.set_association(&association);
             try
             {
-                auto authenticator_ = [this](dcmtkpp::Association const & assoc)->bool { return (*this->_authenticator)(assoc); };
+                auto authenticator_ = [this](dcmtkpp::DcmtkAssociation const & assoc)->bool { return (*this->_authenticator)(assoc); };
                 association.receive(this->_network, authenticator_, ConfigurationPACS::get_instance().get_aetitles(), true);
             }
             catch (dcmtkpp::Exception const & exception)
@@ -154,13 +196,6 @@ void NetworkPACS::run()
             dispatcher.set_association(NULL);
         }
     }
-}
-
-void
-NetworkPACS
-::stop_running()
-{
-    this->_is_running = false;
 }
 
 bool

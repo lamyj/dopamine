@@ -68,11 +68,11 @@ struct TestDataSpecificAllowedAETitle : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
@@ -97,11 +97,11 @@ struct TestDataMissingField : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
@@ -113,7 +113,7 @@ struct TestDataMissingField : public TestDataConfigurationBase
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor / Destructor
  */
@@ -127,7 +127,21 @@ BOOST_AUTO_TEST_CASE(Constructor)
     dopamine::ConfigurationPACS::delete_instance();
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Accessors
+ */
+BOOST_FIXTURE_TEST_CASE(Accessors, TestDataConfiguration)
+{
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
+    confpacs.parse(filename);
+
+    auto aet = confpacs.get_aetitles();
+    BOOST_REQUIRE_EQUAL(aet.size(), 1);
+}
+
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Parsing configuration file
  */
@@ -140,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(ParsingConfigurationFile, TestDataConfiguration)
     BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Retrieve value
  */
@@ -152,9 +166,12 @@ BOOST_FIXTURE_TEST_CASE(GetValue, TestDataConfiguration)
     
     BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
     BOOST_CHECK_EQUAL(confpacs.get_value("database", "port"), "27017");
+
+    // Unknown key
+    BOOST_CHECK_EQUAL(confpacs.get_value("not_know", "port"), "");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Contains value
  */
@@ -171,7 +188,7 @@ BOOST_FIXTURE_TEST_CASE(HasValue, TestDataConfiguration)
     BOOST_CHECK_EQUAL(confpacs.has_value("database", "badfield"), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: testing peerInAETitle Everybody Allowed ('*')
  */
@@ -187,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(AllowedAETtitle, TestDataConfiguration)
     BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle(""), true);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: testing peerInAETitle Specific user Allowed
  */
@@ -204,7 +221,7 @@ BOOST_FIXTURE_TEST_CASE(SpecificAllowedAETitle, TestDataSpecificAllowedAETitle)
     BOOST_CHECK_EQUAL(confpacs.peer_in_aetitle(""), false);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: testing peerForAETitle
  */
@@ -225,6 +242,30 @@ BOOST_FIXTURE_TEST_CASE(GetAddressForAETitle, TestDataConfiguration)
     address = "value";
     BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("", address), false);
     BOOST_CHECK_EQUAL(address, "");
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: testing get_database_configuration
+ */
+BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)
+{
+    dopamine::ConfigurationPACS& confpacs =
+            dopamine::ConfigurationPACS::get_instance();
+    confpacs.parse(filename);
+
+    std::string db_name = "";
+    std::string bulk_db = "";
+    std::string hostname = "";
+    int port = -1;
+    std::vector<std::string> indexes = {};
+    confpacs.get_database_configuration(db_name, bulk_db, hostname, port, indexes);
+
+    BOOST_CHECK_EQUAL(db_name, "dopamine_test");
+    BOOST_CHECK_EQUAL(bulk_db, "pacs_bulk");
+    BOOST_CHECK_EQUAL(hostname, "localhost");
+    BOOST_CHECK_EQUAL(port, 27017);
+    BOOST_CHECK_EQUAL(indexes.size(), 7);
 }
 
 /******************************* TEST Error ************************************/

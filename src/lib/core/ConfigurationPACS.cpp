@@ -79,15 +79,15 @@ ConfigurationPACS
     boost::split(this->_aetitles, value, boost::is_any_of(","));
     
     // read list of addresses and ports
-    this->_addressPortList.clear();
-    std::vector<std::string> templist;
-    value = this->get_value("listAddressPort.allowed");
-    boost::split(templist, value, boost::is_any_of(","));
-    for (auto aetitle : templist)
+    this->_peers.clear();
+
+    auto const peers_it = this->_configuration_node.find("peers");
+    if(peers_it != this->_configuration_node.not_found())
     {
-        std::string addressport = this->get_value("listAddressPort", aetitle);
-        this->_addressPortList.insert(
-                    std::pair<std::string, std::string>(aetitle, addressport));
+        for(auto const & peer: peers_it->second)
+        {
+            this->_peers.insert({peer.first, peer.second.data()});
+        }
     }
 }
 
@@ -146,15 +146,40 @@ ConfigurationPACS
 ::peer_for_aetitle(std::string const & aetitle,
                    std::string & address_and_port) const
 {
-    auto item = this->_addressPortList.find(aetitle);
+    auto item = this->_peers.find(aetitle);
     
-    if (item != this->_addressPortList.end())
+    if (item != this->_peers.end())
     {
         address_and_port = item->second;
         return true;
     }
     address_and_port = "";
     return false;
+}
+
+void
+ConfigurationPACS
+::get_database_configuration(std::string & db_name,
+                             std::string & bulk_db,
+                             std::string & hostname,
+                             int & port,
+                             std::vector<std::string> & indexes)
+{
+    db_name = this->get_value("database.dbname");
+    bulk_db = this->get_value("database.bulk_data");
+    hostname = this->get_value("database.hostname");
+    port = atoi(this->get_value("database.port").c_str());
+
+    if(bulk_db.empty())
+    {
+        bulk_db = db_name;
+    }
+
+    // Get all indexes
+    std::string const indexlist = this->get_value("database.indexlist");
+    std::vector<std::string> indexeslist;
+    boost::split(indexeslist, indexlist, boost::is_any_of(";"));
+    indexes = indexeslist;
 }
 
 } // namespace dopamine

@@ -91,10 +91,7 @@ class TestGetSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            #self.assertRegexpMatches(err, "\(0000,0901\) AT \(0008,0052\)")
-            #self.assertRegexpMatches(err, "\(0000,0902\) LO \[Tag not found\]")
-            # Error return is not "Tag not found" but "Identifier does not match SOP class"
-            self.assertRegexpMatches(err, "Out of Resouces")
+            self.assertRegexpMatches(err, "0x0120")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
@@ -121,9 +118,7 @@ class TestGetSCP(TestBase):
             
             # Check results
             self.assertEqual(out, "")
-            self.assertRegexpMatches(err, "Out of Resouces - Unable to calculate number of matches")
-            #self.assertRegexpMatches(err, "\(0000,0901\) AT \(ffff,ffff\)")
-            #self.assertRegexpMatches(err, "\(0000,0902\) LO \[User not allowed to perform GET\]")
+            self.assertRegexpMatches(err, "0x0124")
             
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)

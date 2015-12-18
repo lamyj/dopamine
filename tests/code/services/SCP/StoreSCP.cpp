@@ -9,25 +9,42 @@
 #define BOOST_TEST_MODULE ModuleStoreSCP
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DcmtkAssociation.h>
+#include <dcmtkpp/message/CStoreResponse.h>
+#include <dcmtkpp/Network.h>
+
 #include "services/SCP/StoreSCP.h"
+#include "services/StoreGenerator.h"
 
-/**
- * Pre-conditions:
- *
- */
-
-/*************************** TEST OK 01 *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::StoreSCP * storescp =
-            new dopamine::services::StoreSCP(NULL,
-                                             T_ASC_PresentationContextID(),
-                                             NULL);
+    dopamine::services::StoreSCP * storescp = new dopamine::services::StoreSCP();
+    BOOST_REQUIRE(storescp != NULL);
+    delete storescp; storescp = NULL;
 
-    BOOST_REQUIRE_EQUAL(storescp != NULL, true);
+    dcmtkpp::Network network;
+    dcmtkpp::DcmtkAssociation association;
 
+    storescp = new dopamine::services::StoreSCP(&network, &association);
+    BOOST_REQUIRE(storescp != NULL);
     delete storescp;
 }
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Accessors
+ */
+BOOST_AUTO_TEST_CASE(Accessors)
+{
+    dopamine::services::StoreSCP storescp(NULL, NULL);
+
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(storescp.get_generator() == NULL);
+    storescp.set_generator(dopamine::services::StoreGenerator::New());
+    BOOST_REQUIRE(storescp.get_generator() != NULL);
+}
+

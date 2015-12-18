@@ -9,25 +9,42 @@
 #define BOOST_TEST_MODULE ModuleFindSCP
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DcmtkAssociation.h>
+#include <dcmtkpp/message/CFindResponse.h>
+#include <dcmtkpp/Network.h>
+
+#include "services/FindGenerator.h"
 #include "services/SCP/FindSCP.h"
 
-/**
- * Pre-conditions:
- *
- */
-
-/*************************** TEST OK 01 *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor/Destructor
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::FindSCP * findscp =
-            new dopamine::services::FindSCP(NULL,
-                                            T_ASC_PresentationContextID(),
-                                            NULL);
+    dopamine::services::FindSCP * findscp = new dopamine::services::FindSCP();
+    BOOST_REQUIRE(findscp != NULL);
+    delete findscp; findscp = NULL;
 
-    BOOST_REQUIRE_EQUAL(findscp != NULL, true);
+    dcmtkpp::Network network;
+    dcmtkpp::DcmtkAssociation association;
 
+    findscp = new dopamine::services::FindSCP(&network, &association);
+    BOOST_REQUIRE(findscp != NULL);
     delete findscp;
 }
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Accessors
+ */
+BOOST_AUTO_TEST_CASE(Accessors)
+{
+    dopamine::services::FindSCP findscp(NULL, NULL);
+
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(findscp.get_generator() == NULL);
+    findscp.set_generator(dopamine::services::FindGenerator::New());
+    BOOST_REQUIRE(findscp.get_generator() != NULL);
+}
+

@@ -16,9 +16,8 @@ namespace services
 
 Wado
 ::Wado(std::string const & pathinfo,
-       std::string const & querystring,
-       std::string const & username):
-    Webservices(pathinfo, querystring, username)
+       std::string const & querystring):
+    Webservices(pathinfo, querystring)
 {
     // Nothing to do
 }

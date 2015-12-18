@@ -93,6 +93,12 @@ public:
     bool peer_for_aetitle(std::string const & aetitle,
                           std::string & address_and_port) const;
 
+    void get_database_configuration(std::string & db_name,
+                                    std::string & bulk_db,
+                                    std::string & hostname,
+                                    int & port,
+                                    std::vector<std::string> & indexes);
+
 protected:
 
 private:
@@ -108,8 +114,8 @@ private:
     /// Allowed AE Titles
     std::vector<std::string> _aetitles;
     
-    /// List of known network (AETitle <=> address)
-    std::map<std::string, std::string> _addressPortList;
+    /// List of known peers (AETitle <=> address)
+    std::map<std::string, std::string> _peers;
 
     // Purposely not implemented
     ConfigurationPACS(ConfigurationPACS const & other);

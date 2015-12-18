@@ -9,6 +9,8 @@
 #ifndef _c3674b2f_3f18_4264_89db_24dd4aaec99a
 #define _c3674b2f_3f18_4264_89db_24dd4aaec99a
 
+#include <dcmtkpp/message/CFindRequest.h>
+
 #include "services/SCP/SCP.h"
 
 namespace dopamine
@@ -20,33 +22,22 @@ namespace services
 /**
  * @brief \class SCP for C-FIND services
  */
-class FindSCP : public services::SCP
+class FindSCP : public SCP
 {
 public:
-    /**
-     * Create a default FindSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-FIND request
-     */
-    FindSCP(T_ASC_Association * association,
-            T_ASC_PresentationContextID presentation_context_id,
-            T_DIMSE_C_FindRQ * request);
-    
-    /// Destroy the SCP
-    virtual ~FindSCP();
-    
-    /**
-     * Send the C-FIND response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
+    /// @brief Default constructor.
+    FindSCP();
 
-protected:
+    /// @brief Constructor.
+    FindSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
+
+    /// @brief Destructor.
+    virtual ~FindSCP();
+
+    /// @brief Process a C-Find request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-FIND request
-    T_DIMSE_C_FindRQ * _request;
 
 };
 

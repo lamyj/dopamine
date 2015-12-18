@@ -9,16 +9,17 @@
 #ifndef _99520904_5868_4a39_92fd_be0af81852ad
 #define _99520904_5868_4a39_92fd_be0af81852ad
 
-#include "log4cpp/Appender.hh"
-#include "log4cpp/BasicLayout.hh"
-#include "log4cpp/Category.hh"
-#include "log4cpp/OstreamAppender.hh"
-#include "log4cpp/Priority.hh"
+#include <string>
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/Priority.hh>
 
 namespace dopamine
 {
 
-void initialize_logger(std::string const & priority);
+void initialize_logger(
+    std::string const & priority, std::string const & destination,
+    std::string const & path);
 
 log4cpp::CategoryStream get_logger(
         log4cpp::Priority::PriorityLevel const & level);

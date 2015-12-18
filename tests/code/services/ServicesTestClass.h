@@ -19,13 +19,11 @@
 #include <dcmtkpp/Reader.h>
 #include <dcmtkpp/Writer.h>
 
-#include <mongo/client/dbclient.h>
-
 #include "ConverterBSON/bson_converter.h"
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
 #include "core/ConfigurationPACS.h"
-#include "services/ServicesTools.h"
+#include "dbconnection/MongoDBConnection.h"
 
 std::string const STUDY_INSTANCE_UID_01_01 =
         "2.16.756.5.5.100.3611280983.19057.1364461809.7789";
@@ -75,17 +73,30 @@ class ServicesTestClass
 {
 public:
 
-    mongo::DBClientConnection connection;
-    std::string db_name;
+    dopamine::MongoDBConnection * connection;
 
-    ServicesTestClass()
+    ServicesTestClass() : connection(NULL)
     {
         // Load configuration
         dopamine::ConfigurationPACS::
-                get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
+            get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
+        // Get configuration for Database connection
+        dopamine::MongoDBConnection::DataBaseInformation db_information;
+        std::string db_host = "";
+        int db_port = -1;
+        std::vector<std::string> indexeslist;
+        dopamine::ConfigurationPACS::get_instance().get_database_configuration(
+                    db_information.db_name, db_information.bulk_data, db_host,
+                    db_port, indexeslist);
         // Create DataBase Connection
-        dopamine::services::create_db_connection(connection, db_name);
+        connection = new dopamine::MongoDBConnection(db_information, db_host,
+                                                     db_port, indexeslist);
+
+        if (!connection->connect())
+        {
+            BOOST_FAIL("Unable to connect to database.");
+        }
 
         // Add data into DataBase
         this->_insert_data();
@@ -101,9 +112,24 @@ public:
 
         this->_reset_authorization();
 
+        if (this->connection != NULL)
+        {
+            delete this->connection;
+        }
+
         // Delete configuration
         dopamine::ConfigurationPACS::delete_instance();
         sleep(1);
+    }
+
+    static std::string _get_env_variable(std::string const & name)
+    {
+        char* value = getenv(name.c_str());
+        if(value == NULL)
+        {
+            BOOST_FAIL(name + " is not defined");
+        }
+        return value;
     }
 
 protected:
@@ -114,9 +140,12 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.update(this->db_name + ".authorization",
-                                BSON("service" << service), value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().update(
+                    this->connection->get_db_name() + ".authorization",
+                    BSON("service" << service), value);
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -133,8 +162,11 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.insert(this->db_name + ".authorization", value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(
+                    this->connection->get_db_name() + ".authorization", value);
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -143,21 +175,75 @@ protected:
         this->_constraints.push_back(value);
     }
 
+    void insert_dataset(dcmtkpp::DataSet const & dataset)
+    {
+        // Convert Dataset into mongo object
+        dopamine::Filters filters = {};
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::IsPrivateTag::New(),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OB),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OF),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OW),
+            dopamine::FilterAction::EXCLUDE));
+        filters.push_back(std::make_pair(
+            dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::UN),
+            dopamine::FilterAction::EXCLUDE));
+
+        mongo::BSONObj object =
+                dopamine::as_bson(dataset, dopamine::FilterAction::INCLUDE,
+                                  filters);
+        if (!object.isValid() || object.isEmpty())
+        {
+            BOOST_FAIL("Could not convert Dataset to BSON");
+        }
+
+        // Get the SOPInstanceUID for delete
+        this->_sop_instance_uids.push_back(
+                    object["00080018"].Obj()["Value"].Array()[0].String());
+
+        std::stringstream stream_dataset;
+        dcmtkpp::Writer::write_file(dataset, stream_dataset);
+
+        // Create a memory buffer with the proper size
+        std::string const buffer = stream_dataset.str();
+
+        // Create BSON to insert into DataBase
+        mongo::BSONObjBuilder builder;
+        builder.appendElements(object);
+        builder.appendBinData("Content", buffer.size(),
+                              mongo::BinDataGeneral, buffer.c_str());
+
+        // insert into DataBase
+        std::stringstream streamTable;
+        streamTable << this->connection->get_db_name() << ".datasets";
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  builder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
+        if (result != "") // empty string if no error
+        {
+            BOOST_FAIL(result);
+        }
+    }
+
 private:
     std::vector<mongo::BSONObj> _constraints;
     std::vector<std::string> _services;
     std::vector<std::string> _sop_instance_uids;
     std::vector<std::string> _sop_instance_uids_gridfs;
 
-    std::string _get_env_variable(std::string const & name) const
-    {
-        char* value = getenv(name.c_str());
-        if(value == NULL)
-        {
-            BOOST_FAIL(name + " is not defined");
-        }
-        return value;
-    }
+    /// Private undefined copy constructor.
+    ServicesTestClass(const ServicesTestClass& other);
+
+    /// Private undefined assignment operator.
+    ServicesTestClass& operator=(const ServicesTestClass& other);
 
     void _insert_data()
     {
@@ -175,11 +261,11 @@ private:
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_03);
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->connection->get_db_name() << ".datasets";
         for (std::string testfile : testfiles)
         {
             // Get file name
-            std::string const filename = this->_get_env_variable(testfile);
+            std::string const filename = _get_env_variable(testfile);
 
             std::ifstream stream(filename, std::ios::in | std::ios::binary);
 
@@ -197,55 +283,7 @@ private:
 
             auto const & data_set = file.second;
 
-            // Convert Dataset into BSON object
-            dopamine::Filters filters = {};
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::IsPrivateTag::New(),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OB),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OF),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::OW),
-                dopamine::FilterAction::EXCLUDE));
-            filters.push_back(std::make_pair(
-                dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::UN),
-                dopamine::FilterAction::EXCLUDE));
-
-            mongo::BSONObj object =
-                    dopamine::as_bson(data_set, dopamine::FilterAction::INCLUDE,
-                                      filters);
-            if (!object.isValid() || object.isEmpty())
-            {
-                BOOST_FAIL("Could not convert Dataset to BSON");
-            }
-
-            // Get the SOPInstanceUID for delete
-            this->_sop_instance_uids.push_back(
-                        object["00080018"].Obj()["Value"].Array()[0].String());
-
-            std::stringstream stream_dataset;
-            dcmtkpp::Writer::write_file(data_set, stream_dataset);
-
-            // Create a memory buffer with the proper size
-            std::string const buffer = stream_dataset.str();
-
-            // Create BSON to insert into DataBase
-            mongo::BSONObjBuilder builder;
-            builder.appendElements(object);
-            builder.appendBinData("Content", buffer.size(),
-                                  mongo::BinDataGeneral, buffer.c_str());
-
-            // insert into DataBase
-            this->connection.insert(streamTable.str(), builder.obj());
-            std::string result = this->connection.getLastError(this->db_name);
-            if (result != "") // empty string if no error
-            {
-                BOOST_FAIL(result);
-            }
+            this->insert_dataset(data_set);
         }
 
         // insert entry with bad Content
@@ -263,8 +301,11 @@ private:
 
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BAD);
 
-        this->connection.insert(streamTable.str(), badbuilder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  badbuilder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -276,18 +317,29 @@ private:
         // Create the dataset
         dcmtkpp::DataSet dataset;
 
-        dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_BIG_01}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
-        dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
-        dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-        dataset.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+        dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                    dcmtkpp::Element({SOP_INSTANCE_UID_BIG_01},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                    dcmtkpp::Element({STUDY_INSTANCE_UID_BIG}, dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                    dcmtkpp::Element({SERIES_INSTANCE_UID_BIG},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientName,
+                    dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
+        dataset.add(dcmtkpp::registry::Modality,
+                    dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+        dataset.add(dcmtkpp::registry::SOPClassUID,
+                    dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                     dcmtkpp::VR::UI));
+        dataset.add(dcmtkpp::registry::PatientID,
+                    dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
 
         // Binary
         size_t vectorsize = 4096*4096;
         dcmtkpp::Value::Binary value(vectorsize, 0);
-        dataset.add(dcmtkpp::registry::PixelData, dcmtkpp::Element(value, dcmtkpp::VR::OW));
+        dataset.add(dcmtkpp::registry::PixelData,
+                    dcmtkpp::Element(value, dcmtkpp::VR::OW));
 
         // Convert Dataset into BSON object
         dopamine::Filters filters = {};
@@ -327,7 +379,8 @@ private:
         std::string const buffer = stream_dataset.str();
 
         // insert into GridSF
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(connection->get_connection(),
+                             this->connection->get_bulk_data_db());
         mongo::BSONObj objret =
                 gridfs.storeFile(buffer.c_str(),
                                  buffer.size(),
@@ -344,10 +397,13 @@ private:
         builder << "Content" << objret.getField("_id").OID().toString();
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->connection->get_db_name() << ".datasets";
         // insert into DataBase
-        this->connection.insert(streamTable.str(), builder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->connection->get_connection().insert(streamTable.str(),
+                                                  builder.obj());
+        std::string result =
+                this->connection->get_connection().getLastError(
+                    this->connection->get_db_name());
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -359,12 +415,17 @@ private:
         // Delete all data
         for (std::string const SOPInstanceUID : this->_sop_instance_uids)
         {
-            this->connection.remove(this->db_name + ".datasets",
-                                    BSON("00080018.Value" << SOPInstanceUID));
+            this->connection->get_connection().remove(
+                this->connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOPInstanceUID));
+            this->connection->get_connection().remove(
+                this->connection->get_bulk_data_db() + ".datasets",
+                BSON("SOPInstanceUID" << SOPInstanceUID));
         }
 
         // Delete data from GridFS
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(connection->get_connection(),
+                             connection->get_bulk_data_db());
         for (std::string const SOPInstanceUIDgridfs :
              this->_sop_instance_uids_gridfs)
         {
@@ -376,8 +437,9 @@ private:
     {
         for (auto const constraint : this->_constraints)
         {
-            this->connection.remove(this->db_name + ".authorization",
-                                    constraint);
+            this->connection->get_connection().remove(
+                        this->connection->get_db_name() + ".authorization",
+                        constraint);
         }
     }
 
@@ -389,9 +451,12 @@ private:
                                         "principal_type" << "" <<
                                         "service" << service <<
                                         "dataset" << mongo::BSONObj());
-            this->connection.update(this->db_name + ".authorization",
-                                    BSON("service" << service), value);
-            std::string result = this->connection.getLastError(this->db_name);
+            this->connection->get_connection().update(
+                        this->connection->get_db_name() + ".authorization",
+                        BSON("service" << service), value);
+            std::string result =
+                    this->connection->get_connection().getLastError(
+                        this->connection->get_db_name());
             if (result != "") // empty string if no error
             {
                 BOOST_FAIL(result);

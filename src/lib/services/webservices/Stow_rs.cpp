@@ -13,17 +13,16 @@
 
 #include <dcmtkpp/DataSet.h>
 #include <dcmtkpp/Reader.h>
-#include <dcmtkpp/message/Response.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 #include <dcmtkpp/registry.h>
 
 #include <mimetic/mimeentity.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
-#include "services/ServicesTools.h"
 #include "services/StoreGenerator.h"
+#include "services/webservices/WebServiceException.h"
 #include "Stow_rs.h"
-#include "WebServiceException.h"
 
 namespace dopamine
 {
@@ -36,7 +35,7 @@ Stow_rs
           std::string const & querystring,
           std::string const & postdata,
           std::string const & remoteuser):
-    Webservices(pathinfo, querystring, remoteuser),
+    Webservices(pathinfo, querystring),
     _content_type(""), _status(200), _code("OK")
 {
     // Decode entries
@@ -186,8 +185,10 @@ Stow_rs
     try
     {
         responseDataset.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
-        responseDataset.add(dcmtkpp::registry::FailedSOPSequence, dcmtkpp::VR::SQ);
-        responseDataset.add(dcmtkpp::registry::ReferencedSOPSequence, dcmtkpp::VR::SQ);
+        responseDataset.add(dcmtkpp::registry::FailedSOPSequence,
+                            dcmtkpp::VR::SQ);
+        responseDataset.add(dcmtkpp::registry::ReferencedSOPSequence,
+                            dcmtkpp::VR::SQ);
 
         mimetic::MimeEntityList& parts = entity.body().parts();
         // cycle on sub entities list and print info of every item
@@ -202,10 +203,18 @@ Stow_rs
             {
                 // ERROR: add an item into failedsopsequence
                 dcmtkpp::DataSet failedsopsequence;
-                failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({0x0110}, dcmtkpp::VR::US));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
-                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
+                failedsopsequence.add(dcmtkpp::registry::FailureReason,
+                                      dcmtkpp::Element({0x0110},
+                                                       dcmtkpp::VR::US));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID,
+                                      dcmtkpp::Element({"Unknown"},
+                                                       dcmtkpp::VR::UI));
+                failedsopsequence.add(
+                            dcmtkpp::registry::ReferencedSOPInstanceUID,
+                            dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(
+                            dcmtkpp::registry::FailedSOPSequence).push_back(
+                                    failedsopsequence);
                 continue;
             }
 
@@ -236,10 +245,18 @@ Stow_rs
                 {
                     // ERROR: add an item into failedsopsequence
                     dcmtkpp::DataSet failedsopsequence;
-                    failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({0xa700}, dcmtkpp::VR::US));
-                    failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
-                    failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
-                    responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
+                    failedsopsequence.add(dcmtkpp::registry::FailureReason,
+                                          dcmtkpp::Element({0xa700},
+                                                           dcmtkpp::VR::US));
+                    failedsopsequence.add(
+                                dcmtkpp::registry::ReferencedSOPClassUID,
+                                dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                    failedsopsequence.add(
+                                dcmtkpp::registry::ReferencedSOPInstanceUID,
+                                dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                    responseDataset.as_data_set(
+                                dcmtkpp::registry::FailedSOPSequence).push_back(
+                                        failedsopsequence);
                     continue;
                 }
             }
@@ -252,8 +269,10 @@ Stow_rs
                                           streamerror.str());
             }
 
-            std::string sopclassuid = dataset.as_string(dcmtkpp::registry::SOPClassUID)[0];
-            std::string sopinstanceuid = dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
+            auto const sopclassuid =
+                    dataset.as_string(dcmtkpp::registry::SOPClassUID)[0];
+            auto const sopinstanceuid =
+                    dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
 
             // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
@@ -261,8 +280,10 @@ Stow_rs
             // Check StudyInstanceUID
             if (!studyinstanceuid.isEmpty())
             {
-                std::string studyuid = dataset.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                mongo::BSONObj const studyobj = studyinstanceuid["0020000d"].Obj();
+                auto const studyuid = dataset.as_string(
+                            dcmtkpp::registry::StudyInstanceUID)[0];
+                mongo::BSONObj const studyobj =
+                        studyinstanceuid["0020000d"].Obj();
                 if (studyobj["Value"].Array()[0].String() !=
                     std::string(studyuid.c_str()))
                 {
@@ -273,44 +294,64 @@ Stow_rs
             if (result == dcmtkpp::message::Response::Pending)
             {
                 // Insert dataset into DataBase
-                StoreGenerator generator(this->_username);
-                result = generator.process_dataset(dataset, true);
+                StoreGenerator::Pointer generator = StoreGenerator::New();
+                result = generator->initialize(dataset);
 
-                if ( ! generator.is_allow())
+                if (result ==
+                    dcmtkpp::message::CStoreResponse::RefusedNotAuthorized)
                 {
                     throw WebServiceException(401, "Unauthorized",
                                               authentication_string);
                 }
             }
 
-            if (result != dcmtkpp::message::Response::Pending)
+            if (result != dcmtkpp::message::Response::Success)
             {
                 // ERROR: add an item into failedsopsequence
                 dcmtkpp::DataSet failedsopsequence;
-                failedsopsequence.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({result}, dcmtkpp::VR::US));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
-                responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).push_back(failedsopsequence);
+                failedsopsequence.add(dcmtkpp::registry::FailureReason,
+                                      dcmtkpp::Element({result},
+                                                       dcmtkpp::VR::US));
+                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID,
+                                      dcmtkpp::Element({sopclassuid},
+                                                       dcmtkpp::VR::UI));
+                failedsopsequence.add(
+                            dcmtkpp::registry::ReferencedSOPInstanceUID,
+                            dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(
+                            dcmtkpp::registry::FailedSOPSequence).push_back(
+                                    failedsopsequence);
             }
             else
             {
                 // Everything is OK
                 dcmtkpp::DataSet referencedsopsequence;
-                referencedsopsequence.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
-                referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID, dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
-                referencedsopsequence.add(dcmtkpp::registry::ReferencedSOPInstanceUID, dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
-                responseDataset.as_data_set(dcmtkpp::registry::ReferencedSOPSequence).push_back(referencedsopsequence);
+                referencedsopsequence.add(dcmtkpp::registry::RetrieveURL,
+                                          dcmtkpp::VR::UT);
+                referencedsopsequence.add(
+                            dcmtkpp::registry::ReferencedSOPClassUID,
+                            dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
+                referencedsopsequence.add(
+                            dcmtkpp::registry::ReferencedSOPInstanceUID,
+                            dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                responseDataset.as_data_set(
+                            dcmtkpp::registry::ReferencedSOPSequence).push_back(
+                                    referencedsopsequence);
             }
         }
 
-        bool containsbad = responseDataset.as_data_set(dcmtkpp::registry::FailedSOPSequence).size() != 0;
+        bool containsbad =
+                responseDataset.as_data_set(
+                    dcmtkpp::registry::FailedSOPSequence).size() != 0;
         // Check sequences
         if (!containsbad)
         {
             // empty sequence => remove
             responseDataset.remove(dcmtkpp::registry::FailedSOPSequence);
         }
-        bool containsgood = responseDataset.as_data_set(dcmtkpp::registry::ReferencedSOPSequence).size() != 0;
+        bool containsgood =
+                responseDataset.as_data_set(
+                    dcmtkpp::registry::ReferencedSOPSequence).size() != 0;
         if (!containsgood)
         {
             // empty sequence => remove

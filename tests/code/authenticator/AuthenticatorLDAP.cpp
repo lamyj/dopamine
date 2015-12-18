@@ -11,7 +11,7 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorLDAP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 
 #include "authenticator/AuthenticatorLDAP.h"
 #include "core/ExceptionPACS.h"
@@ -65,7 +65,7 @@ struct TestDataLDAP
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => true
- */
+ *
 BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
 {
     dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => false (bad Identity type)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
 {
     dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
@@ -99,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
 /******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Get authorization => false (request failed)
- */
+ *
 BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
 {
     ldap_filter = "(uid=UnkownValue)";
@@ -115,7 +115,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad Server address
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
 {
     ldap_server = "bad_value";
@@ -133,7 +133,7 @@ BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad Credential
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
 {
     dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
@@ -149,7 +149,7 @@ BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
 /******************************* TEST Error ************************************/
 /**
  * Error test case: Authentication failed: Bad filter
- */
+ *
 BOOST_FIXTURE_TEST_CASE(BadFilter, TestDataLDAP)
 {
     ldap_filter = "(cbad=%user";
@@ -162,3 +162,4 @@ BOOST_FIXTURE_TEST_CASE(BadFilter, TestDataLDAP)
     BOOST_REQUIRE_THROW(authenticatorldap(association),
                         dopamine::ExceptionPACS);
 }
+*/

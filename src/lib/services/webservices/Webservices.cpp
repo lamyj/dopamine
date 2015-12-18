@@ -21,11 +21,9 @@ namespace services
 
 Webservices
 ::Webservices(std::string const & pathinfo,
-              std::string const & querystring,
-              std::string const & username):
+              std::string const & querystring):
     _pathinfo(pathinfo), _querystring(querystring),
-    _username(username), _response(""), _boundary(""),
-    _maximum_results(0), _skipped_results(0), _fuzzy_matching(false)
+    _response(""), _boundary(""), _query_retrieve_level("")
 {
     // Nothing to do
 }

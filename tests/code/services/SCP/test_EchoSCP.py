@@ -12,7 +12,7 @@ class TestEchoSCP(TestBase):
     def test_run_echoscu(self):
         try:
             # Send ECHO request
-            subprocess.check_output(["echoscu", "localhost", self._dopamine_port])
+            subprocess.check_call(["echoscu", "localhost", self._dopamine_port])
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
             
@@ -28,7 +28,7 @@ class TestEchoSCP(TestBase):
         
         try:
             # Send ECHO request
-            subprocess.check_output(["echoscu", "localhost", self._dopamine_port])
+            subprocess.check_call(["echoscu", "localhost", self._dopamine_port])
         except subprocess.CalledProcessError as error:
             self.assertEqual(error.returncode, 0)
             

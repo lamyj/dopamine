@@ -6,12 +6,10 @@
  * for details.
  ************************************************************************/
 
-#ifndef _137519da_5031_4188_b52f_b1a3616696c5
-#define _137519da_5031_4188_b52f_b1a3616696c5
+#ifndef _3c13b299_aaa6_45f4_9386_482e29bc6dc1
+#define _3c13b299_aaa6_45f4_9386_482e29bc6dc1
 
-#include <string>
-
-#include "services/Generator.h"
+#include "services/GeneratorPACS.h"
 
 namespace dopamine
 {
@@ -20,49 +18,40 @@ namespace services
 {
 
 /**
- * @brief \class The StoreGenerator class
+ * @brief \class Response Generator for C-STORE services.
  */
-class StoreGenerator : public Generator
+class StoreGenerator : public GeneratorPACS
 {
 public:
-    /**
-     * @brief Create an instance of StoreGenerator
-     * @param username
-     */
-    StoreGenerator(std::string const & username);
+    typedef StoreGenerator Self;
+    typedef boost::shared_ptr<Self> Pointer;
+
+    /// Create pointer to new instance of StoreGenerator
+    static Pointer New();
 
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
-    /**
-     * @brief do the store operation
-     * @return Status of the operation
-     */
-    virtual Uint16 process();
+    virtual dcmtkpp::Value::Integer initialize(
+            dcmtkpp::DcmtkAssociation const & association,
+            dcmtkpp::message::Message const & message);
 
-    /**
-     * @brief Set the attribute _calling_aptitle
-     * @param callingaptitle: new value
-     */
-    void set_calling_aptitle(std::string const & callingaptitle);
+    virtual dcmtkpp::Value::Integer next();
 
-    /**
-     * @brief Get value of attribute _calling_aptitle
-     * @return _calling_aptitle
-     */
-    std::string get_calling_aptitle() const;
+    dcmtkpp::Value::Integer initialize(dcmtkpp::DataSet const & dataset);
+
+    std::string get_peer_ae_title() const;
+
+protected:
+    /// Create a default store response generator
+    StoreGenerator();
 
 private:
-    ///
-    std::string _destination_path;
-
-    ///
-    std::string _calling_aptitle;
-
+    std::string _peer_ae_title;
 };
 
 } // namespace services
 
 } // namespace dopamine
 
-#endif // _137519da_5031_4188_b52f_b1a3616696c5
+#endif // _3c13b299_aaa6_45f4_9386_482e29bc6dc1

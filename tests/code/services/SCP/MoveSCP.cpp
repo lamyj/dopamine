@@ -9,25 +9,41 @@
 #define BOOST_TEST_MODULE ModuleMoveSCP
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DcmtkAssociation.h>
+#include <dcmtkpp/message/CMoveResponse.h>
+#include <dcmtkpp/Network.h>
+
+#include "services/MoveGenerator.h"
 #include "services/SCP/MoveSCP.h"
 
-/**
- * Pre-conditions:
- *
- */
-
-/*************************** TEST OK 01 *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor
  */
-BOOST_AUTO_TEST_CASE(TEST_OK_01)
+BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::MoveSCP * movescp =
-            new dopamine::services::MoveSCP(NULL,
-                                            T_ASC_PresentationContextID(),
-                                            NULL);
+    dopamine::services::MoveSCP * movescp = new dopamine::services::MoveSCP();
+    BOOST_REQUIRE(movescp != NULL);
+    delete movescp; movescp = NULL;
 
-    BOOST_REQUIRE_EQUAL(movescp != NULL, true);
+    dcmtkpp::Network network;
+    dcmtkpp::DcmtkAssociation association;
 
+    movescp = new dopamine::services::MoveSCP(&network, &association);
+    BOOST_REQUIRE(movescp != NULL);
     delete movescp;
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Accessors
+ */
+BOOST_AUTO_TEST_CASE(Accessors)
+{
+    dopamine::services::MoveSCP movescp(NULL, NULL);
+
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(movescp.get_generator() == NULL);
+    movescp.set_generator(dopamine::services::MoveGenerator::New());
+    BOOST_REQUIRE(movescp.get_generator() != NULL);
 }

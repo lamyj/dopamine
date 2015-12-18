@@ -9,7 +9,8 @@
 #ifndef _7e2166a1_25b3_48eb_8226_abe9d64ba064
 #define _7e2166a1_25b3_48eb_8226_abe9d64ba064
 
-#include "services/RetrieveGenerator.h"
+#include <dcmtkpp/message/CMoveRequest.h>
+
 #include "services/SCP/SCP.h"
 
 namespace dopamine
@@ -21,37 +22,24 @@ namespace services
 /**
  * @brief \class SCP for C-MOVE services
  */
-class MoveSCP : public services::SCP
+class MoveSCP : public SCP
 {
 public:
-    /**
-     * Create a default MoveSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-STORE request
-     */
-    MoveSCP(T_ASC_Association * association,
-            T_ASC_PresentationContextID presentation_context_id,
-            T_DIMSE_C_MoveRQ * request);
-    
-    /// Destroy the SCP
+    /// @brief Default constructor.
+    MoveSCP();
+
+    /// @brief Constructor.
+    MoveSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
+
+    /// @brief Destructor.
     virtual ~MoveSCP();
-    
-    /**
-     * Send the C-MOVE response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
 
-    void set_network(T_ASC_Network *network);
-
-protected:
+    /// @brief Process a C-Move request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-MOVE request
-    T_DIMSE_C_MoveRQ * _request;
-
-    T_ASC_Network * _network;
+    std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
+        _get_all_storage_prensentation_contexts() const;
     
 };
 

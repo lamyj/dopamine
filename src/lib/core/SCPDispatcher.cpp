@@ -6,17 +6,15 @@
  * for details.
  ************************************************************************/
 
-#include "SCPDispatcher.h"
-
 #include <map>
 #include <memory>
 
 #include <dcmtkpp/Exception.h>
-#include <dcmtkpp/SCP.h>
 #include <dcmtkpp/ServiceRole.h>
 #include <dcmtkpp/Value.h>
 
 #include "LoggerPACS.h"
+#include "SCPDispatcher.h"
 
 namespace dopamine
 {
@@ -29,7 +27,7 @@ SCPDispatcher
 }
 
 SCPDispatcher
-::SCPDispatcher(dcmtkpp::Network * network, dcmtkpp::Association * association)
+::SCPDispatcher(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association)
 : dcmtkpp::ServiceRole(network, association)
 {
     // Nothing else.
@@ -49,19 +47,7 @@ SCPDispatcher
     return (it != this->_providers.end());
 }
 
-dcmtkpp::SCP const &
-SCPDispatcher
-::get_scp(dcmtkpp::Value::Integer command) const
-{
-    auto const it = this->_providers.find(command);
-    if(it == this->_providers.end())
-    {
-        throw dcmtkpp::Exception("No such provider");
-    }
-    return *(it->second);
-}
-
-dcmtkpp::SCP &
+services::SCP &
 SCPDispatcher
 ::get_scp(dcmtkpp::Value::Integer command)
 {
@@ -79,8 +65,9 @@ SCPDispatcher
 {
     bool receive_shutdown = false;
     // check if we have negotiated the private "shutdown" SOP Class
-    if (0 != ASC_findAcceptedPresentationContextID(this->_association->get_association(),
-                                                   UID_PrivateShutdownSOPClass))
+    if (0 != ASC_findAcceptedPresentationContextID(
+                this->_association->get_association(),
+                UID_PrivateShutdownSOPClass))
     {
         dopamine::logger_info()
                 << "Shutting down server ... "
@@ -89,14 +76,16 @@ SCPDispatcher
     }
     else
     {
-        auto const message = this->_receive();
-
-        logger_info() << "Received message " << std::hex << message.get_command_field();
-        logger_info() << message.get_command_set().as_string(dcmtkpp::registry::AffectedSOPClassUID)[0];
-        logger_info() << "Message " << (message.has_data_set()?(message.get_data_set().empty()?"has an empty ":"has a "):"has no ") << "data set";
-
         try
         {
+            auto const message = this->_association->receive();
+
+            logger_info() << "Received message "
+                          << std::hex << message.get_command_field();
+            logger_info() << message.get_command_set().as_string(dcmtkpp::registry::AffectedSOPClassUID)[0];
+            logger_info() << "Message "
+                          << (message.has_data_set()?(message.get_data_set().empty()?"has an empty ":"has a "):"has no ") << "data set";
+
             auto & scp = this->get_scp(message.get_command_field());
             scp.set_network(this->get_network());
             scp.set_association(this->get_association());
@@ -106,13 +95,23 @@ SCPDispatcher
         }
         catch(dcmtkpp::Exception const & e)
         {
-            logger_error() << e.what();
+            if(e.get_condition() == DUL_PEERREQUESTEDRELEASE)
+            {
+                logger_debug() << "Association release";
+                this->_association->drop();
+                this->set_association(NULL);
+                return !receive_shutdown;
+            }
+            else
+            {
+                logger_error() << e.what();
+            }
         }
     }
 
     try
     {
-        this->_receive();
+        this->_association->receive();
         // If we get here, the SCP did not finish processing.
         throw dcmtkpp::Exception("SCP did not finish processing");
     }

@@ -9,6 +9,8 @@
 #ifndef _57ab17de_94cf_44f4_8311_2a22f7360f34
 #define _57ab17de_94cf_44f4_8311_2a22f7360f34
 
+#include <dcmtkpp/message/CStoreRequest.h>
+
 #include "services/SCP/SCP.h"
 
 namespace dopamine
@@ -23,30 +25,19 @@ namespace services
 class StoreSCP : public SCP
 {
 public:
-    /**
-     * Create a default StoreSCP
-     * @param assoc: linked association
-     * @param presID: linked presentation context
-     * @param req: C-STORE request
-     */
-    StoreSCP(T_ASC_Association * association,
-             T_ASC_PresentationContextID presentation_context_id,
-             T_DIMSE_C_StoreRQ * request);
-    
-    /// Destroy the SCP
-    virtual ~StoreSCP();
-    
-    /**
-     * Send the C-STORE response
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    virtual OFCondition process();
+    /// @brief Default constructor.
+    StoreSCP();
 
-protected:
+    /// @brief Constructor with default callback.
+    StoreSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association);
+
+    /// @brief Destructor.
+    virtual ~StoreSCP();
+
+    /// @brief Process a C-Store request.
+    virtual void operator()(dcmtkpp::message::Message const & message);
 
 private:
-    /// Associated C-STORE request
-    T_DIMSE_C_StoreRQ * _request;
     
 };
 

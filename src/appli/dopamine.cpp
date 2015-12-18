@@ -6,6 +6,8 @@
  * for details.
  ************************************************************************/
 
+#include <iostream>
+
 #include <boost/filesystem.hpp>
 
 #include "core/ConfigurationPACS.h"
@@ -14,34 +16,34 @@
 
 int main(int argc, char** argv)
 {
-    char* conffile = getenv("DOPAMINE_TEST_CONFIG");
-    std::string NetworkConfFILE;
-    if (conffile != NULL)
+    std::string const syntax = "dopamine -f CONFIG_FILE";
+    if(argc != 3 || std::string(argv[1]) != std::string("-f"))
     {
-        NetworkConfFILE = std::string(conffile);
+        std::cerr << "Syntax: " << syntax << "\n";
+        return 1;
     }
+
     // Read configuration file
     dopamine::ConfigurationPACS& configuration =
             dopamine::ConfigurationPACS::get_instance();
-    std::string const localconf = "../../../configuration/dopamine_conf.ini";
-    if (NetworkConfFILE != "")
+    std::string const config_file(argv[2]);
+    if(!boost::filesystem::exists(config_file))
     {
-        configuration.parse(NetworkConfFILE);
+        std::cerr << "No such file: '" << config_file << "'\n";
+        std::cerr << "Syntax: " << syntax << "\n";
+        return 1;
     }
-    else if (boost::filesystem::exists(boost::filesystem::path(localconf)))
-    {
-        configuration.parse(localconf);
-    }
-    else
-    {
-        configuration.parse("/etc/dopamine/dopamine_conf.ini");
-    }
+    configuration.parse(config_file);
 
     // Create and Initialize Logger
-    dopamine::initialize_logger
-    (
-        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority")
-    );
+    auto const priority =
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority");
+    auto const destination =
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.destination");
+    auto const path =
+        (destination=="file")?
+        dopamine::ConfigurationPACS::get_instance().get_value("logger.path"):"";
+    dopamine::initialize_logger(priority, destination, path);
 
     // Create and run Network listener
     dopamine::NetworkPACS::get_instance().run();

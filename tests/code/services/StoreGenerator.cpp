@@ -6,16 +6,14 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleQueryRetrieveGenerator
+#define BOOST_TEST_MODULE ModuleStoreGenerator
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/message/Response.h>
+#include <dcmtkpp/message/CStoreRequest.h>
+#include <dcmtkpp/message/CStoreResponse.h>
 
-#include "core/ExceptionPACS.h"
 #include "ServicesTestClass.h"
 #include "services/StoreGenerator.h"
-#include "services/ServicesTools.h"
 
 class TestDataGenerator_constraint : public ServicesTestClass
 {
@@ -24,49 +22,10 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder << "00080060" << "MR";
-        this->add_constraint(dopamine::services::Service_Store,
-                             "root", builder.obj());
+        this->add_constraint("Store", "root", builder.obj());
     }
 
     virtual ~TestDataGenerator_constraint()
-    {
-        // Nothing to do
-    }
-};
-
-class TestDataGenerator_badconnection
-{
-public:
-    TestDataGenerator_badconnection()
-    {
-        std::string NetworkConfFILE(getenv("DOPAMINE_TEST_BADCONFIG"));
-        dopamine::ConfigurationPACS::get_instance().parse(NetworkConfFILE);
-    }
-
-    ~TestDataGenerator_badconnection()
-    {
-        dopamine::ConfigurationPACS::delete_instance();
-        sleep(1);
-    }
-};
-
-class TestDataGenerator_notallow : public ServicesTestClass
-{
-public:
-    TestDataGenerator_notallow() : ServicesTestClass()
-    {
-        mongo::BSONObjBuilder builder;
-        builder.appendRegex("00080018", "Unknown");
-        this->set_authorization(dopamine::services::Service_Store,
-                                "root", builder.obj());
-
-        mongo::BSONObjBuilder builder2;
-        builder2 << "00080060" << "NotMR";
-        this->add_constraint(dopamine::services::Service_Store,
-                             "not_me", builder2.obj());
-    }
-
-    virtual ~TestDataGenerator_notallow()
     {
         // Nothing to do
     }
@@ -76,72 +35,124 @@ public:
 /**
  * Nominal test case: Constructor / Destructor
  */
-BOOST_FIXTURE_TEST_CASE(Constructor, ServicesTestClass)
+BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::services::StoreGenerator * storegenerator =
-            new dopamine::services::StoreGenerator("");
-
-    BOOST_CHECK_EQUAL(storegenerator != NULL, true);
-
-    delete storegenerator;
+    auto storegenerator = dopamine::services::StoreGenerator::New();
+    BOOST_REQUIRE(storegenerator != NULL);
 }
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case: Getter and Setter
+ * Nominal test case: Accessors
  */
-BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
+BOOST_AUTO_TEST_CASE(Accessors)
 {
-    dopamine::services::StoreGenerator generator("");
+    auto storegenerator = dopamine::services::StoreGenerator::New();
 
-    // Default initialization
-    BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "");
-    BOOST_CHECK(generator.get_dataset().empty());
-    BOOST_CHECK_EQUAL(generator.is_allow(), false);
+    // Check default values for username
+    BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
+    // Set username
+    storegenerator->set_username("my_user");
+    BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "my_user");
 
-    // Setter
-    generator.set_calling_aptitle("LOCAL");
-    BOOST_CHECK_EQUAL(generator.get_calling_aptitle(), "LOCAL");
+    // Check default values for username
+    BOOST_REQUIRE_EQUAL(storegenerator->get_peer_ae_title(), "");
 }
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case: Function Cancel
+ * Nominal test case: Initialize
  */
-BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
+BOOST_FIXTURE_TEST_CASE(Initialize, ServicesTestClass)
 {
-    dopamine::services::StoreGenerator generator("");
+    auto storegenerator = dopamine::services::StoreGenerator::New();
 
-    // Not yet implemented
-    generator.cancel();
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"},
+                dcmtkpp::VR::CS);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_CHECK_EQUAL(storegenerator->get_peer_ae_title(), "PEER");
+    BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CStoreResponse::Pending);
 }
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case: Empty request
+ * Nominal test case: Next
  */
-BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
+BOOST_FIXTURE_TEST_CASE(Next, ServicesTestClass)
+{
+    auto storegenerator = dopamine::services::StoreGenerator::New();
+
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"},
+                dcmtkpp::VR::CS);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CStoreResponse::Pending);
+
+    // unused function Next
+    BOOST_REQUIRE(storegenerator->done());
+    BOOST_REQUIRE_EQUAL(storegenerator->next(),
+                        dcmtkpp::message::CStoreResponse::Success);
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Insert Dataset
+ */
+BOOST_FIXTURE_TEST_CASE(InsertDataset, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" <<
-                                  SOP_INSTANCE_UID_03_01_01_01));
+        connection->get_connection().query(
+            connection->get_db_name() + ".datasets",
+            BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dopamine::services::StoreGenerator generator("");
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
+
+    auto storegenerator = dopamine::services::StoreGenerator::New();
 
     dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPClassUID,
+                dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                dcmtkpp::Element({STUDY_INSTANCE_UID_03_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01},
+                                 dcmtkpp::VR::UI));
 
-    Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CStoreResponse::Success);
+    BOOST_REQUIRE(storegenerator->done());
 
-    cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = connection->get_connection().query(
+                connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -156,58 +167,97 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 /**
  * Nominal test case: Insert all attribute VR
  */
-BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
+BOOST_FIXTURE_TEST_CASE(InsertCompleteDataset, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" <<
-                                  SOP_INSTANCE_UID_03_01_01_01));
+            connection->get_connection().query(
+                connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dopamine::services::StoreGenerator generator("");
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
+
+    auto storegenerator = dopamine::services::StoreGenerator::New();
 
     dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::InstanceCreationDate, dcmtkpp::Element({"20150101"}, dcmtkpp::VR::DA));
-    dataset.add(dcmtkpp::registry::InstanceCreationTime, dcmtkpp::Element({"101010"}, dcmtkpp::VR::TM));
-    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::AcquisitionDateTime, dcmtkpp::Element({"20150101101010.203"}, dcmtkpp::VR::DT));
-    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, dcmtkpp::Element({"STUDY"}, dcmtkpp::VR::CS));
-    dataset.add(dcmtkpp::registry::RetrieveAETitle, dcmtkpp::Element({"LOCAL"}, dcmtkpp::VR::AE));
-    dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
-    dataset.add(dcmtkpp::registry::Manufacturer, dcmtkpp::Element({"Manufacturer"}, dcmtkpp::VR::LO));
-    dataset.add(dcmtkpp::registry::InstitutionAddress, dcmtkpp::Element({"value"}, dcmtkpp::VR::ST));
-    dataset.add(dcmtkpp::registry::SimpleFrameList, dcmtkpp::Element({22}, dcmtkpp::VR::UL));
-    dataset.add(dcmtkpp::registry::FailureReason, dcmtkpp::Element({42}, dcmtkpp::VR::US));
-    dataset.add(dcmtkpp::registry::StageNumber, dcmtkpp::Element({12}, dcmtkpp::VR::IS));
-    dataset.add(dcmtkpp::registry::RecommendedDisplayFrameRateInFloat, dcmtkpp::Element({42.5}, dcmtkpp::VR::FL));
-    dataset.add(dcmtkpp::registry::PatientName, dcmtkpp::Element({"Name^Surname^Middle"}, dcmtkpp::VR::PN));
+    dataset.add(dcmtkpp::registry::InstanceCreationDate,
+                dcmtkpp::Element({"20150101"}, dcmtkpp::VR::DA));
+    dataset.add(dcmtkpp::registry::InstanceCreationTime,
+                dcmtkpp::Element({"101010"}, dcmtkpp::VR::TM));
+    dataset.add(dcmtkpp::registry::SOPClassUID,
+                dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::AcquisitionDateTime,
+                dcmtkpp::Element({"20150101101010.203"}, dcmtkpp::VR::DT));
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel,
+                dcmtkpp::Element({"STUDY"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::RetrieveAETitle,
+                dcmtkpp::Element({"LOCAL"}, dcmtkpp::VR::AE));
+    dataset.add(dcmtkpp::registry::Modality,
+                dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::Manufacturer,
+                dcmtkpp::Element({"Manufacturer"}, dcmtkpp::VR::LO));
+    dataset.add(dcmtkpp::registry::InstitutionAddress,
+                dcmtkpp::Element({"value"}, dcmtkpp::VR::ST));
+    dataset.add(dcmtkpp::registry::SimpleFrameList,
+                dcmtkpp::Element({22}, dcmtkpp::VR::UL));
+    dataset.add(dcmtkpp::registry::FailureReason,
+                dcmtkpp::Element({42}, dcmtkpp::VR::US));
+    dataset.add(dcmtkpp::registry::StageNumber,
+                dcmtkpp::Element({12}, dcmtkpp::VR::IS));
+    dataset.add(dcmtkpp::registry::RecommendedDisplayFrameRateInFloat,
+                dcmtkpp::Element({42.5}, dcmtkpp::VR::FL));
+    dataset.add(dcmtkpp::registry::PatientName,
+                dcmtkpp::Element({"Name^Surname^Middle"}, dcmtkpp::VR::PN));
 
     dcmtkpp::DataSet sequence;
-    sequence.add(dcmtkpp::registry::PatientID, dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
-    dataset.add(dcmtkpp::registry::OtherPatientIDsSequence, dcmtkpp::Element({sequence}, dcmtkpp::VR::SQ));
+    sequence.add(dcmtkpp::registry::PatientID,
+                 dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+    dataset.add(dcmtkpp::registry::OtherPatientIDsSequence,
+                dcmtkpp::Element({sequence}, dcmtkpp::VR::SQ));
 
-    dataset.add(dcmtkpp::registry::PatientAge, dcmtkpp::Element({"25Y"}, dcmtkpp::VR::AS));
-    dataset.add(dcmtkpp::registry::PatientWeight, dcmtkpp::Element({11.11}, dcmtkpp::VR::DS));
-    dataset.add(dcmtkpp::registry::EthnicGroup, dcmtkpp::Element({"value"}, dcmtkpp::VR::SH));
-    dataset.add(dcmtkpp::registry::AdditionalPatientHistory, dcmtkpp::Element({"value"}, dcmtkpp::VR::LT));
-    dataset.add(dcmtkpp::registry::ReferencePixelX0, dcmtkpp::Element({32}, dcmtkpp::VR::SL));
-    dataset.add(dcmtkpp::registry::TagAngleSecondAxis, dcmtkpp::Element({32}, dcmtkpp::VR::SS));
-    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::PixelDataProviderURL, dcmtkpp::Element({"value"}, dcmtkpp::VR::UR));
-    dataset.add(dcmtkpp::registry::PupilSize, dcmtkpp::Element({42.5}, dcmtkpp::VR::FD));
+    dataset.add(dcmtkpp::registry::PatientAge,
+                dcmtkpp::Element({"25Y"}, dcmtkpp::VR::AS));
+    dataset.add(dcmtkpp::registry::PatientWeight,
+                dcmtkpp::Element({11.11}, dcmtkpp::VR::DS));
+    dataset.add(dcmtkpp::registry::EthnicGroup,
+                dcmtkpp::Element({"value"}, dcmtkpp::VR::SH));
+    dataset.add(dcmtkpp::registry::AdditionalPatientHistory,
+                dcmtkpp::Element({"value"}, dcmtkpp::VR::LT));
+    dataset.add(dcmtkpp::registry::ReferencePixelX0,
+                dcmtkpp::Element({32}, dcmtkpp::VR::SL));
+    dataset.add(dcmtkpp::registry::TagAngleSecondAxis,
+                dcmtkpp::Element({32}, dcmtkpp::VR::SS));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PixelDataProviderURL,
+                dcmtkpp::Element({"value"}, dcmtkpp::VR::UR));
+    dataset.add(dcmtkpp::registry::PupilSize,
+                dcmtkpp::Element({42.5}, dcmtkpp::VR::FD));
 
     // Binary
     dcmtkpp::Value::Binary value = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
-    dataset.add(dcmtkpp::registry::ICCProfile, dcmtkpp::Element(value, dcmtkpp::VR::OB));
+    dataset.add(dcmtkpp::registry::ICCProfile,
+                dcmtkpp::Element(value, dcmtkpp::VR::OB));
 
-    Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CStoreResponse::Success);
+    BOOST_REQUIRE(storegenerator->done());
 
-    cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = connection->get_connection().query(
+                connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -252,26 +302,43 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+            this->connection->get_connection().query(
+                this->connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
-    dopamine::services::StoreGenerator generator("root");
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("root");
+    association.set_peer_ae_title("PEER");
+
+    auto storegenerator = dopamine::services::StoreGenerator::New();
 
     dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::Modality, dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
-    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPClassUID,
+                dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::Modality,
+                dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                dcmtkpp::Element({STUDY_INSTANCE_UID_03_01},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01},
+                                 dcmtkpp::VR::UI));
 
-    Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, dcmtkpp::message::Response::Pending);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status, dcmtkpp::message::CStoreResponse::Success);
+    BOOST_REQUIRE(storegenerator->done());
 
-    cursor = this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = this->connection->get_connection().query(
+                this->connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -286,53 +353,75 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 
 /******************************* TEST Error ************************************/
 /**
- * Error test case: Connection with database is failed
+ * Error test case: User is not allow to perform Find
+ *                  Status: RefusedNotAuthorized
  */
-BOOST_FIXTURE_TEST_CASE(No_Database_Connection, TestDataGenerator_badconnection)
+BOOST_FIXTURE_TEST_CASE(RefusedNotAuthorized, ServicesTestClass)
 {
-    dopamine::services::StoreGenerator generator("");
-    Uint16 result = generator.process_dataset(dcmtkpp::DataSet(), true);
-    BOOST_CHECK_EQUAL(result, 0xa700);
+    auto storegenerator = dopamine::services::StoreGenerator::New();
+    BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
+
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("bad_user");
+    association.set_peer_ae_title("PEER");
+    dcmtkpp::DataSet dataset;
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"},
+                dcmtkpp::VR::CS);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status,
+                        dcmtkpp::message::CStoreResponse::RefusedNotAuthorized);
 }
 
 /******************************* TEST Error ************************************/
 /**
- * Error test case: User is not allow to perform query
+ * Error test case: Bad connection
+ *                  Status: ProcessingFailure
  */
-BOOST_FIXTURE_TEST_CASE(No_Authorization, TestDataGenerator_notallow)
+BOOST_AUTO_TEST_CASE(ProcessingFailure)
 {
+    auto storegenerator = dopamine::services::StoreGenerator::New();
+    BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
+
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::Element({SOP_INSTANCE_UID_03_01_01_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
-
-    dopamine::services::StoreGenerator generator("");
-    Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, 0xa700);
-
-    dopamine::services::StoreGenerator generator_root("root");
-    result = generator_root.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, 0xa700);
-
-    dopamine::services::StoreGenerator generator_notme("not_me");
-    result = generator_notme.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, 0xa700);
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                {SOP_INSTANCE_UID_01_01_01_01}, dcmtkpp::VR::UI);
+    dataset.add(dcmtkpp::registry::QueryRetrieveLevel, {"IMAGE"},
+                dcmtkpp::VR::CS);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status,
+                        dcmtkpp::message::CStoreResponse::ProcessingFailure);
 }
 
 /******************************* TEST Error ************************************/
 /**
- * Error test case: Missing mandatory field SOPInstanceUID
+ * Error test case: Missing mandatory attribute SOPInstanceUID
+ *                  Status: InvalidObjectInstance
  */
-BOOST_FIXTURE_TEST_CASE(No_SOPInstanceUID, ServicesTestClass)
+BOOST_FIXTURE_TEST_CASE(InvalidObjectInstance, ServicesTestClass)
 {
-    dopamine::services::StoreGenerator generator("");
+    auto storegenerator = dopamine::services::StoreGenerator::New();
+    BOOST_REQUIRE_EQUAL(storegenerator->get_username(), "");
 
+    dcmtkpp::DcmtkAssociation association;
+    association.set_user_identity_primary_field("");
+    association.set_peer_ae_title("PEER");
     dcmtkpp::DataSet dataset;
-    dataset.add(dcmtkpp::registry::SOPClassUID, dcmtkpp::Element({dcmtkpp::registry::MRImageStorage}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::Element({STUDY_INSTANCE_UID_03_01}, dcmtkpp::VR::UI));
-    dataset.add(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::Element({SERIES_INSTANCE_UID_03_01_01}, dcmtkpp::VR::UI));
-
-    Uint16 result = generator.process_dataset(dataset, true);
-    BOOST_CHECK_EQUAL(result, 0xa700);
+    dataset.add(dcmtkpp::registry::PatientName, {"John"}, dcmtkpp::VR::PN);
+    dcmtkpp::message::CStoreRequest request(
+            1, dcmtkpp::registry::MRImageStorage, SOP_INSTANCE_UID_01_01_01_01,
+            dcmtkpp::message::Message::Priority::MEDIUM, dataset);
+    auto status = storegenerator->initialize(association, request);
+    BOOST_REQUIRE_EQUAL(status,
+                        dcmtkpp::message::CStoreResponse::InvalidObjectInstance);
 }

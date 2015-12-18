@@ -9,7 +9,7 @@
 #ifndef _23d72937_8451_4cd1_a64d_77b774672145
 #define _23d72937_8451_4cd1_a64d_77b774672145
 
-#include "Wado.h"
+#include "services/webservices/Wado.h"
 
 namespace dopamine
 {
@@ -32,7 +32,7 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Wado_rs
-    ~Wado_rs();
+    virtual ~Wado_rs();
 
 protected:
 

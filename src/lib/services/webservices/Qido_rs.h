@@ -9,6 +9,10 @@
 #ifndef _bfc0e3cc_01f0_402b_9e96_a8c825466940
 #define _bfc0e3cc_01f0_402b_9e96_a8c825466940
 
+#include <dcmtkpp/registry.h>
+#include <dcmtkpp/Tag.h>
+#include <dcmtkpp/VR.h>
+
 #include "Webservices.h"
 
 namespace dopamine
@@ -23,60 +27,60 @@ namespace services
 struct Attribute
 {
 public:
-    Attribute(std::string const & tag, std::string const & vr):
+    Attribute(dcmtkpp::Tag const & tag, dcmtkpp::VR const & vr):
         _tag(tag), _vr(vr) {}
 
-    std::string get_tag() const
+    dcmtkpp::Tag get_tag() const
         { return this->_tag; }
 
-    std::string get_vr() const
+    dcmtkpp::VR get_vr() const
         { return this->_vr; }
 
 private:
-    std::string _tag;
-    std::string _vr;
+    dcmtkpp::Tag _tag;
+    dcmtkpp::VR _vr;
 
 };
 
 // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
 std::vector<Attribute> const mandatory_study_attributes =
 {
-    Attribute("00080020", "DA"), // Study Date
-    Attribute("00080030", "TM"), // Study Time
-    Attribute("00080050", "SH"), // Accession Number
-    Attribute("00080056", "CS"), // Instance Availability
-    Attribute("00080061", "CS"), // Modalities in Study
-    Attribute("00080090", "PN"), // Referring Physician's Name
-    Attribute("00100010", "PN"), // Patient's Name
-    Attribute("00100020", "LO"), // Patient ID
-    Attribute("00100030", "DA"), // Patient's Birth Date
-    Attribute("00100040", "CS"), // Patient's Sex
-    Attribute("0020000d", "UI"), // Study Instance UID
-    Attribute("00200010", "SH"), // Study ID
-    Attribute("00201206", "IS"), // Number of Study Related Series
-    Attribute("00201208", "IS")  // Number of Study Related Instances
+    Attribute(dcmtkpp::registry::StudyDate, dcmtkpp::VR::DA), // Study Date
+    Attribute(dcmtkpp::registry::StudyTime, dcmtkpp::VR::TM), // Study Time
+    Attribute(dcmtkpp::registry::AccessionNumber, dcmtkpp::VR::SH), // Accession Number
+    Attribute(dcmtkpp::registry::InstanceAvailability, dcmtkpp::VR::CS), // Instance Availability
+    Attribute(dcmtkpp::registry::ModalitiesInStudy, dcmtkpp::VR::CS), // Modalities in Study
+    Attribute(dcmtkpp::registry::ReferringPhysicianName, dcmtkpp::VR::PN), // Referring Physician's Name
+    Attribute(dcmtkpp::registry::PatientName, dcmtkpp::VR::PN), // Patient's Name
+    Attribute(dcmtkpp::registry::PatientID, dcmtkpp::VR::LO), // Patient ID
+    Attribute(dcmtkpp::registry::PatientBirthDate, dcmtkpp::VR::DA), // Patient's Birth Date
+    Attribute(dcmtkpp::registry::PatientSex, dcmtkpp::VR::CS), // Patient's Sex
+    Attribute(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::VR::UI), // Study Instance UID
+    Attribute(dcmtkpp::registry::StudyID, dcmtkpp::VR::SH), // Study ID
+    Attribute(dcmtkpp::registry::NumberOfStudyRelatedSeries, dcmtkpp::VR::IS), // Number of Study Related Series
+    Attribute(dcmtkpp::registry::NumberOfStudyRelatedInstances, dcmtkpp::VR::IS)  // Number of Study Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
 std::vector<Attribute> const mandatory_series_attributes =
 {
-    Attribute("00080060", "CS"), // Modality
-    Attribute("0008103e", "LO"), // Series Description
-    Attribute("0020000e", "UI"), // Series Instance UID
-    Attribute("00200011", "IS"), // Series Number
-    Attribute("00201209", "IS")  // Number of Series Related Instances
+    Attribute(dcmtkpp::registry::Modality, dcmtkpp::VR::CS), // Modality
+    Attribute(dcmtkpp::registry::SeriesDescription, dcmtkpp::VR::LO), // Series Description
+    Attribute(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::VR::UI), // Series Instance UID
+    Attribute(dcmtkpp::registry::SeriesNumber, dcmtkpp::VR::IS), // Series Number
+    Attribute(dcmtkpp::registry::NumberOfSeriesRelatedInstances, dcmtkpp::VR::IS)  // Number of Series Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
 std::vector<Attribute> const mandatory_instance_attributes =
 {
-    Attribute("00080016", "UI"), // SOP Class UID
-    Attribute("00080018", "UI"), // SOP Instance UID
-    Attribute("00080056", "CS"), // Instance Availability
-    Attribute("00200013", "IS"), // Instance Number
-    Attribute("00280010", "US"), // Rows
-    Attribute("00280011", "US"), // Columns
-    Attribute("00280100", "US")  // Bits Allocated
+    Attribute(dcmtkpp::registry::SOPClassUID, dcmtkpp::VR::UI), // SOP Class UID
+    Attribute(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::VR::UI), // SOP Instance UID
+    Attribute(dcmtkpp::registry::InstanceAvailability, dcmtkpp::VR::CS), // Instance Availability
+    Attribute(dcmtkpp::registry::InstanceNumber, dcmtkpp::VR::IS), // Instance Number
+    Attribute(dcmtkpp::registry::Rows, dcmtkpp::VR::US), // Rows
+    Attribute(dcmtkpp::registry::Columns, dcmtkpp::VR::US), // Columns
+    Attribute(dcmtkpp::registry::BitsAllocated, dcmtkpp::VR::US)  // Bits Allocated
 };
 
 /**
@@ -98,15 +102,11 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Qido_rs
-    ~Qido_rs();
+    virtual ~Qido_rs();
 
     std::string get_contenttype() const;
 
 protected:
-    std::string _query_retrieve_level;
-
-    std::vector<std::string> _includefields;
-
     std::string _contenttype;
 
     bool _study_instance_uid_present;
@@ -114,6 +114,17 @@ protected:
     bool _series_instance_uid_present;
 
 private:
+    /// Fields to retrieve
+    std::vector<std::string> _include_fields;
+
+    /// Maximum number of dataset to retrieve
+    int _maximum_results;
+
+    /// Number of response to ignore
+    int _skipped_results;
+
+    bool _fuzzy_matching;
+
     virtual mongo::BSONObj _parse_string();
 
     void _add_to_builder(mongo::BSONObjBuilder & builder,

@@ -9,18 +9,41 @@
 #define BOOST_TEST_MODULE ModuleEchoSCP
 #include <boost/test/unit_test.hpp>
 
+#include <dcmtkpp/DcmtkAssociation.h>
+#include <dcmtkpp/message/CEchoResponse.h>
+#include <dcmtkpp/Network.h>
+
+#include "services/EchoGenerator.h"
 #include "services/SCP/EchoSCP.h"
 
-/**
- * Pre-conditions:
- *
- */
-
-/*************************** TEST OK 01 *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Constructor/Destructor
  */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    // TODO RLA
+    dopamine::services::EchoSCP * echoscp = new dopamine::services::EchoSCP();
+    BOOST_REQUIRE(echoscp != NULL);
+    delete echoscp; echoscp = NULL;
+
+    dcmtkpp::Network network;
+    dcmtkpp::DcmtkAssociation association;
+
+    echoscp = new dopamine::services::EchoSCP(&network, &association);
+    BOOST_REQUIRE(echoscp != NULL);
+    delete echoscp;
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: Accessors
+ */
+BOOST_AUTO_TEST_CASE(Accessors)
+{
+    dopamine::services::EchoSCP echoscp(NULL, NULL);
+
+    // Check accessors of SCP base class
+    BOOST_REQUIRE(echoscp.get_generator() == NULL);
+    echoscp.set_generator(dopamine::services::EchoGenerator::New());
+    BOOST_REQUIRE(echoscp.get_generator() != NULL);
 }

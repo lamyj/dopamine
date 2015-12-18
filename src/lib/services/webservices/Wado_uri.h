@@ -11,7 +11,7 @@
 
 #include <map>
 
-#include "Wado.h"
+#include "services/webservices/Wado.h"
 
 namespace dopamine
 {
@@ -83,7 +83,7 @@ public:
              std::string const & remoteuser = "");
 
     /// Destroy the instance of Wado_uri
-    ~Wado_uri();
+    virtual ~Wado_uri();
 
     std::string get_filename() const;
 

@@ -9,7 +9,7 @@
 #define BOOST_TEST_MODULE ModuleAuthenticatorCSV
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Association.h>
+#include <dcmtkpp/DcmtkAssociation.h>
 
 #include "authenticator/AuthenticatorCSV.h"
 #include "core/ExceptionPACS.h"
@@ -58,7 +58,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_to_username_and_password("user2", "password2");
     
     BOOST_CHECK_EQUAL(authenticatorcsv(association), true);
@@ -72,7 +72,7 @@ BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
 
     BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
 }
@@ -85,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_to_username_and_password("baduser",
                                                            "password2");
 
@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_to_username_and_password("user2",
                                                            "badpassword");
 
@@ -115,7 +115,7 @@ BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
 {
     dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
 
-    dcmtkpp::Association association;
+    dcmtkpp::DcmtkAssociation association;
     association.set_user_identity_to_kerberos("user2");
 
     BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
