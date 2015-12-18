@@ -262,7 +262,7 @@ BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)
     confpacs.get_database_configuration(db_name, bulk_db, hostname, port, indexes);
 
     BOOST_CHECK_EQUAL(db_name, "dopamine_test");
-    BOOST_CHECK_EQUAL(bulk_db, "dopamine_test");
+    BOOST_CHECK_EQUAL(bulk_db, "pacs_bulk");
     BOOST_CHECK_EQUAL(hostname, "localhost");
     BOOST_CHECK_EQUAL(port, 27017);
     BOOST_CHECK_EQUAL(indexes.size(), 7);
