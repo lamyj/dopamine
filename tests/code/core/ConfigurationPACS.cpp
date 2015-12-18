@@ -68,6 +68,7 @@ struct TestDataSpecificAllowedAETitle : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";
@@ -97,6 +98,7 @@ struct TestDataMissingField : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";

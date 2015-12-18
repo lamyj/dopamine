@@ -11,6 +11,7 @@ port=${DOPAMINE_TEST_LISTENINGPORT}
 hostname=localhost
 port=1
 dbname=${DOPAMINE_TEST_DATABASE}
+bulk_data=pacs_bulk
 indexlist=SOPInstanceUID;PatientName;PatientID;SeriesInstanceUID;SeriesDescription;StudyInstanceUID;StudyDescription
 
 [authenticator]
