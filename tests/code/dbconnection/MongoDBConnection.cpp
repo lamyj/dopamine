@@ -17,7 +17,7 @@
 
 struct MongoDBConnectionTest
 {
-    std::string db_name = "";
+    dopamine::MongoDBConnection::DataBaseInformation db_info;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
@@ -31,8 +31,8 @@ struct MongoDBConnectionTest
 
         // Get configuration for Database connection
         dopamine::ConfigurationPACS::get_instance().
-                get_database_configuration(db_name, db_host,
-                                           db_port, indexeslist);
+                get_database_configuration(db_info.db_name, db_info.bulk_data,
+                                           db_host, db_port, indexeslist);
     }
 
     ~MongoDBConnectionTest()
@@ -72,8 +72,9 @@ BOOST_AUTO_TEST_CASE(Constructor)
     BOOST_REQUIRE(connection != NULL);
     delete connection; connection = NULL;
 
-    connection = new dopamine::MongoDBConnection("db_name", "localhost",
-                                                 104, {});
+    connection = new dopamine::MongoDBConnection(
+                dopamine::MongoDBConnection::DataBaseInformation(), "localhost",
+                104, {});
     BOOST_REQUIRE(connection != NULL);
     delete connection;
 }
@@ -113,7 +114,7 @@ BOOST_AUTO_TEST_CASE(Accessors)
 BOOST_FIXTURE_TEST_CASE(Connection, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -121,7 +122,7 @@ BOOST_FIXTURE_TEST_CASE(Connection, MongoDBConnectionTest)
     dopamine::MongoDBConnection badconnection;
     BOOST_REQUIRE(!badconnection.connect());
 
-    dopamine::MongoDBConnection badconnection2(db_name, db_host,
+    dopamine::MongoDBConnection badconnection2(db_info, db_host,
                                         db_port+1, indexeslist);
     BOOST_REQUIRE(!badconnection2.connect());
 }
@@ -202,7 +203,7 @@ BOOST_AUTO_TEST_CASE(ElementAsString)
 BOOST_FIXTURE_TEST_CASE(IsAuthorized, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -224,7 +225,7 @@ BOOST_FIXTURE_TEST_CASE(IsAuthorized, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(GetConstraints, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -275,7 +276,7 @@ BOOST_FIXTURE_TEST_CASE(GetConstraints, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(GetDatasetsCursor, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -291,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE(GetDatasetsCursor, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(RunCommand, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -314,7 +315,7 @@ BOOST_FIXTURE_TEST_CASE(RunCommand, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(InsertDataset, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -370,7 +371,7 @@ BOOST_FIXTURE_TEST_CASE(InsertDataset, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(InsertBigDataset, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -408,7 +409,7 @@ BOOST_FIXTURE_TEST_CASE(InsertBigDataset, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(GetDataset, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 
@@ -471,7 +472,7 @@ BOOST_FIXTURE_TEST_CASE(GetDataset, MongoDBConnectionTest)
 BOOST_FIXTURE_TEST_CASE(GetBigDataset, MongoDBConnectionTest)
 {
     // Create connection with Database
-    dopamine::MongoDBConnection connection(db_name, db_host,
+    dopamine::MongoDBConnection connection(db_info, db_host,
                                            db_port, indexeslist);
     BOOST_REQUIRE(connection.connect());
 

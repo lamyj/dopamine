@@ -60,17 +60,18 @@ NetworkPACS
     this->_create_authenticator();
 
     // Get configuration for Database connection
-    std::string db_name = "";
+    MongoDBConnection::DataBaseInformation db_information;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_name,
+    ConfigurationPACS::get_instance().get_database_configuration(db_information.db_name,
+                                                                 db_information.bulk_data,
                                                                  db_host,
                                                                  db_port,
                                                                  indexeslist);
 
     // Create connection with Database
-    MongoDBConnection connection(db_name, db_host, db_port, indexeslist);
+    MongoDBConnection connection(db_information, db_host, db_port, indexeslist);
 
     // Try to connect
     if (!connection.connect())

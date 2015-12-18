@@ -315,17 +315,18 @@ GeneratorPACS
 ::initialize(mongo::BSONObj const & request)
 {
     // Get configuration for Database connection
-    std::string db_name = "";
+    MongoDBConnection::DataBaseInformation db_information;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_name,
+    ConfigurationPACS::get_instance().get_database_configuration(db_information.db_name,
+                                                                 db_information.bulk_data,
                                                                  db_host,
                                                                  db_port,
                                                                  indexeslist);
 
     // Create connection with Database
-    this->_connection = new MongoDBConnection(db_name, db_host, db_port,
+    this->_connection = new MongoDBConnection(db_information, db_host, db_port,
                                               indexeslist);
 
     // Try to connect

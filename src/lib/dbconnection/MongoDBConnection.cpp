@@ -30,11 +30,12 @@ namespace dopamine
 {
 
 MongoDBConnection
-::MongoDBConnection(std::string const & db_name,
+::MongoDBConnection(DataBaseInformation const & db_information,
                     std::string const & host_name,
                     int port,
                     std::vector<std::string> const & indexes)
-    : _db_name(db_name), _host_name(host_name), _port(port), _indexes(indexes)
+    : _database_information(db_information), _host_name(host_name),
+      _port(port), _indexes(indexes)
 {
     // Nothing else.
 }
@@ -45,26 +46,40 @@ MongoDBConnection
     // Nothing to do.
 }
 
+mongo::DBClientConnection const &
+dopamine
+::MongoDBConnection::get_connection() const
+{
+    return this->_database_information.connection;
+}
+
 mongo::DBClientConnection &
 MongoDBConnection
 ::get_connection()
 {
-    return this->_connection;
+    return this->_database_information.connection;
 }
 
 
-std::string
+std::string const &
 MongoDBConnection
 ::get_db_name() const
 {
-    return this->_db_name;
+    return this->_database_information.db_name;
 }
 
 void
 MongoDBConnection
 ::set_db_name(std::string const & db_name)
 {
-    this->_db_name = db_name;
+    this->_database_information.db_name = db_name;
+}
+
+std::string const &
+MongoDBConnection
+::get_bulk_data_db() const
+{
+    return this->_database_information.bulk_data;
 }
 
 std::string
@@ -124,9 +139,9 @@ MongoDBConnection
     // Try to connect database
     // Disconnect is automatic when it calls the destructors
     std::string errormsg = "";
-    if ( ! this->_connection.connect(mongo::HostAndPort(this->get_host_name(),
-                                                        this->get_port()),
-                                     errormsg) )
+    if ( ! this->_database_information.connection.connect(
+             mongo::HostAndPort(this->get_host_name(), this->get_port()),
+                                errormsg) )
     {
         logger_error() << errormsg;
         return false;
@@ -144,7 +159,7 @@ MongoDBConnection
             std::stringstream stream;
             stream << "\"" << std::string(currenttag) << "\"";
 
-            this->_connection.ensureIndex
+            this->_database_information.connection.ensureIndex
                 (
                     datasets_table,
                     BSON(stream.str() << 1),
@@ -157,6 +172,13 @@ MongoDBConnection
             logger_warning() << "Ignore index '" << currentIndex
                              << "', reason: " << exc.what();
         }
+    }
+
+    if(this->get_db_name() != this->get_bulk_data_db())
+    {
+        this->_database_information.connection.ensureIndex(
+                    this->get_bulk_data_db()+".datasets",
+                    BSON("SOPInstanceUID" << 1));
     }
 
     return true;
@@ -185,7 +207,7 @@ MongoDBConnection
                                               "query" << fields_builder.obj());
 
     mongo::BSONObj info;
-    this->_connection.runCommand(this->get_db_name(), group_command, info, 0);
+    this->_database_information.connection.runCommand(this->get_db_name(), group_command, info, 0);
 
     // If the command correctly executed and database entries match
     if (info["ok"].Double() == 1 && info["n"].Double() > 0)
@@ -226,7 +248,7 @@ MongoDBConnection
     ));
 
     mongo::BSONObj result;
-    this->_connection.runCommand(this->get_db_name(), group_command, result, 0);
+    this->_database_information.connection.runCommand(this->get_db_name(), group_command, result, 0);
 
     if (result["ok"].Double() != 1 || result["count"].Double() == 0)
     {
@@ -290,13 +312,13 @@ MongoDBConnection
 ::get_datasets_cursor(mongo::Query const & query, int nToReturn,
                       int nToSkip, mongo::BSONObj const * fieldsToReturn)
 {
-    return this->_connection.query(this->get_db_name() + ".datasets", query,
+    return this->_database_information.connection.query(this->get_db_name() + ".datasets", query,
                                    nToReturn, nToSkip, fieldsToReturn);
 }
 
 bool MongoDBConnection::run_command(mongo::BSONObj const & command, mongo::BSONObj & response)
 {
-    bool ret = this->_connection.runCommand(this->get_db_name(),
+    bool ret = this->_database_information.connection.runCommand(this->get_db_name(),
                                             command, response);
 
     // If an error occurred
@@ -344,8 +366,8 @@ MongoDBConnection
         return dcmtkpp::message::CStoreResponse::RefusedNotAuthorized;
     }
 
-    mongo::BSONObjBuilder builder;
-    builder.appendElements(object);
+    mongo::BSONObjBuilder meta_data_builder;
+    meta_data_builder.appendElements(object);
 
     dcmtkpp::DataSet meta_information;
     meta_information.add(dcmtkpp::registry::SourceApplicationEntityTitle,
@@ -365,48 +387,81 @@ MongoDBConnection
             object["00080018"].Obj().getField("Value").Array()[0].String();
 
     // check size
-    int const totalsize = builder.len() + buffer.size();
+    auto const use_gridfs = (meta_data_builder.len()+buffer.size()>16777000);
 
-    if (totalsize > 16777000) // 16 MB = 16777216
+    if (use_gridfs)
     {
         // insert into GridSF
-        mongo::GridFS gridfs(this->_connection, this->get_db_name());
-        mongo::BSONObj objret =
+        mongo::GridFS gridfs(this->_database_information.connection, this->get_bulk_data_db());
+        mongo::BSONObj gridfs_object =
                 gridfs.storeFile(buffer.c_str(),
                                  buffer.size(),
                                  sopinstanceuid);
 
-        if (!objret.isValid() || objret.isEmpty())
+        if(!gridfs_object.isValid() || gridfs_object.isEmpty())
         {
             // Return an error
             return dcmtkpp::message::CStoreResponse::ProcessingFailure;
         }
 
-        // Prepare for insertion into database
-        builder << "Content" << objret.getField("_id").OID().toString();
+        // Update the meta-data builder with the reference to GridFS
+        meta_data_builder << "Content"
+                          << gridfs_object.getField("_id").OID().toString();
     }
     else
     {
-        // Prepare for insertion into database
-        builder.appendBinData("Content", buffer.size(),
-                                         mongo::BinDataGeneral, buffer.c_str());
+        if(this->get_db_name() == this->get_bulk_data_db())
+        {
+            meta_data_builder.appendBinData(
+                "Content", buffer.size(), mongo::BinDataGeneral,
+                buffer.c_str());
+        }
+        else
+        {
+            mongo::BSONObjBuilder bulk_data_builder;
+            bulk_data_builder.genOID();
+            bulk_data_builder << "SOPInstanceUID" << sopinstanceuid;
+            bulk_data_builder.appendBinData(
+                "Content", buffer.size(), mongo::BinDataGeneral, buffer.c_str());
+            auto bulk_data_object = bulk_data_builder.obj();
+
+            this->_database_information.connection.insert(
+                this->get_bulk_data_db()+".datasets", bulk_data_object);
+
+            auto const result = this->_database_information.connection.getLastError(
+                this->get_bulk_data_db());
+            if(result != "")
+            {
+                return dcmtkpp::message::CStoreResponse::ProcessingFailure;
+            }
+
+            // Update the meta-data builder with the reference to bulk-data
+            meta_data_builder << "Content"
+                << bulk_data_object.getField("_id").OID().toString();
+        }
     }
 
-    // insert into db
-    std::stringstream stream;
-    stream << this->get_db_name() << ".datasets";
-    this->_connection.insert(stream.str(), builder.obj());
-    std::string result = this->_connection.getLastError(this->get_db_name());
-    if (result != "") // empty string if no error
+    this->_database_information.connection.insert(
+            this->get_db_name()+".datasets", meta_data_builder.obj());
+    auto const result = this->_database_information.connection.getLastError(
+            this->get_db_name());
+    if(!result.empty())
     {
-        // Rollback for GridFS
-        if (totalsize > 16777000)
+        if(use_gridfs)
         {
-            mongo::GridFS gridfs(this->_connection, this->get_db_name());
+            mongo::GridFS gridfs(this->_database_information.connection,
+                                 this->get_bulk_data_db());
             gridfs.removeFile(sopinstanceuid);
         }
+        else if(this->get_db_name() != this->get_bulk_data_db())
+        {
+            this->_database_information.connection.remove(
+                this->get_bulk_data_db()+".datasets",
+                BSON("SOPInstanceUID" << sopinstanceuid));
+        }
+        // Else this->get_db_name() == this->get_bulk_data_db():
+        // nothing to roll back
 
-        // Return an error
         return dcmtkpp::message::CStoreResponse::ProcessingFailure;
     }
 
@@ -477,45 +532,47 @@ std::string MongoDBConnection::as_string(mongo::BSONElement const & bsonelement)
 
 std::string MongoDBConnection::dataset_as_string(mongo::BSONObj const & object)
 {
-    mongo::BSONElement const element = object.getField("Content");
-    if (element.type() == mongo::BSONType::String)
+    mongo::BSONElement const content = object.getField("Content");
+    if (content.type() == mongo::BSONType::String)
     {
-        std::string const filesid = element.String();
+        auto const sop_instance_uid =
+            object["00080018"].Obj().getField("Value").Array()[0].String();
 
-        // Retrieve Filename
-        mongo::BSONObjBuilder builder;
-        mongo::OID oid(filesid);
-        builder.appendOID(std::string("_id"), &oid);
-        mongo::Query const query = builder.obj();
-        mongo::BSONObj const fields = BSON("filename" << 1);
-        mongo::BSONObj const sopinstanceuidobj =
-                this->_connection.findOne(this->get_db_name() + ".fs.files",
-                                          query, &fields);
-        std::string const sopinstanceuid =
-                sopinstanceuidobj.getField("filename").String();
-
-        // Create GridFS interface
-        mongo::GridFS gridfs(this->_connection, this->get_db_name());
-
-        // Get the GridFile corresponding to the filename
-        mongo::GridFile const file = gridfs.findFile(sopinstanceuid);
-
-        // Get the binary content
-        std::stringstream stream;
-        auto size = file.write(stream);
-        return stream.str();
+        mongo::GridFS gridfs(
+            this->_database_information.connection, this->get_bulk_data_db());
+        auto const file = gridfs.findFile(sop_instance_uid);
+        if(file.exists())
+        {
+            std::stringstream stream;
+            file.write(stream);
+            return stream.str();
+        }
+        else
+        {
+            auto const bulk_data = this->_database_information.connection.findOne(
+                this->get_bulk_data_db()+".datasets",
+                BSON("SOPInstanceUID" << sop_instance_uid));
+            if(bulk_data.isEmpty())
+            {
+                throw ExceptionPACS("No bulk data");
+            }
+            auto const bulk_data_content = bulk_data.getField("Content");
+            int size=0;
+            char const * begin = bulk_data_content.binDataClean(size);
+            return std::string(begin, size);
+        }
     }
-    else if (element.type() == mongo::BSONType::BinData)
+    else if (content.type() == mongo::BSONType::BinData)
     {
         int size=0;
-        char const * begin = element.binDataClean(size);
+        char const * begin = content.binDataClean(size);
 
         return std::string(begin, size);
     }
     else
     {
         std::stringstream streamerror;
-        streamerror << "Unknown type '" << element.type()
+        streamerror << "Unknown type '" << content.type()
                     << "' for Content attribute";
         throw ExceptionPACS(streamerror.str());
     }

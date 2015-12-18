@@ -94,6 +94,7 @@ public:
                           std::string & address_and_port) const;
 
     void get_database_configuration(std::string & db_name,
+                                    std::string & bulk_db,
                                     std::string & hostname,
                                     int & port,
                                     std::vector<std::string> & indexes);

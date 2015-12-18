@@ -159,14 +159,21 @@ ConfigurationPACS
 
 void
 ConfigurationPACS
-::get_database_configuration(std::string &db_name,
-                             std::string &hostname,
-                             int &port,
-                             std::vector<std::string> &indexes)
+::get_database_configuration(std::string & db_name,
+                             std::string & bulk_db,
+                             std::string & hostname,
+                             int & port,
+                             std::vector<std::string> & indexes)
 {
     db_name = this->get_value("database.dbname");
+    bulk_db = this->get_value("database.bulk_data");
     hostname = this->get_value("database.hostname");
     port = atoi(this->get_value("database.port").c_str());
+
+    if(bulk_db.empty())
+    {
+        bulk_db = db_name;
+    }
 
     // Get all indexes
     std::string const indexlist = this->get_value("database.indexlist");

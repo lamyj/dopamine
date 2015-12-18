@@ -255,12 +255,14 @@ BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)
     confpacs.parse(filename);
 
     std::string db_name = "";
+    std::string bulk_db = "";
     std::string hostname = "";
     int port = -1;
     std::vector<std::string> indexes = {};
-    confpacs.get_database_configuration(db_name, hostname, port, indexes);
+    confpacs.get_database_configuration(db_name, bulk_db, hostname, port, indexes);
 
     BOOST_CHECK_EQUAL(db_name, "dopamine_test");
+    BOOST_CHECK_EQUAL(bulk_db, "dopamine_test");
     BOOST_CHECK_EQUAL(hostname, "localhost");
     BOOST_CHECK_EQUAL(port, 27017);
     BOOST_CHECK_EQUAL(indexes.size(), 7);

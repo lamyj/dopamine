@@ -22,18 +22,55 @@ namespace dopamine
 class MongoDBConnection
 {
 public:
-    MongoDBConnection(std::string const & db_name = "",
+    struct DataBaseInformation
+    {
+        mongo::DBClientConnection connection;
+        std::string db_name;
+        std::string bulk_data;
+
+        DataBaseInformation():
+            db_name(""), bulk_data("")
+        {
+            // Nothing else.
+        }
+
+        ~DataBaseInformation()
+        {
+            // Nothing to do.
+        }
+
+        DataBaseInformation(DataBaseInformation const & other)
+        {
+            db_name = other.db_name;
+            bulk_data = other.bulk_data;
+        }
+
+        DataBaseInformation& operator=(DataBaseInformation const & other)
+        {
+            db_name = other.db_name;
+            bulk_data = other.bulk_data;
+        }
+
+    };
+
+    MongoDBConnection(DataBaseInformation const & db_information = DataBaseInformation(),
                       std::string const & host_name = "localhost",
                       int port = -1,
                       std::vector<std::string> const & indexes = {});
 
     virtual ~MongoDBConnection();
 
+    mongo::DBClientConnection const & get_connection() const;
+
     mongo::DBClientConnection & get_connection();
 
-    std::string get_db_name() const;
+    /// @brief Return the name of the database holding the meta-data.
+    std::string const & get_db_name() const;
 
     void set_db_name(std::string const & db_name);
+
+    /// @brief Return the name of the database holding the bulk data.
+    std::string const & get_bulk_data_db() const;
 
     std::string get_host_name() const;
 
@@ -92,11 +129,8 @@ private:
     bool is_dataset_allowed_for_storage(std::string const & username,
                                         mongo::BSONObj const & dataset);
 
-    /// Database connection
-    mongo::DBClientConnection _connection;
-
-    /// Database name
-    std::string _db_name;
+    /// Database information
+    DataBaseInformation _database_information;
 
     /// Database Host name
     std::string _host_name;

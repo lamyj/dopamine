@@ -82,14 +82,15 @@ public:
             get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
         // Get configuration for Database connection
-        std::string db_name = "";
+        dopamine::MongoDBConnection::DataBaseInformation db_information;
         std::string db_host = "";
         int db_port = -1;
         std::vector<std::string> indexeslist;
         dopamine::ConfigurationPACS::get_instance().get_database_configuration(
-                    db_name, db_host, db_port, indexeslist);
+                    db_information.db_name, db_information.bulk_data, db_host,
+                    db_port, indexeslist);
         // Create DataBase Connection
-        connection = new dopamine::MongoDBConnection(db_name, db_host,
+        connection = new dopamine::MongoDBConnection(db_information, db_host,
                                                      db_port, indexeslist);
 
         if (!connection->connect())
@@ -379,7 +380,7 @@ private:
 
         // insert into GridSF
         mongo::GridFS gridfs(connection->get_connection(),
-                             this->connection->get_db_name());
+                             this->connection->get_bulk_data_db());
         mongo::BSONObj objret =
                 gridfs.storeFile(buffer.c_str(),
                                  buffer.size(),
@@ -415,13 +416,16 @@ private:
         for (std::string const SOPInstanceUID : this->_sop_instance_uids)
         {
             this->connection->get_connection().remove(
-                        this->connection->get_db_name() + ".datasets",
-                        BSON("00080018.Value" << SOPInstanceUID));
+                this->connection->get_db_name() + ".datasets",
+                BSON("00080018.Value" << SOPInstanceUID));
+            this->connection->get_connection().remove(
+                this->connection->get_bulk_data_db() + ".datasets",
+                BSON("SOPInstanceUID" << SOPInstanceUID));
         }
 
         // Delete data from GridFS
         mongo::GridFS gridfs(connection->get_connection(),
-                             connection->get_db_name());
+                             connection->get_bulk_data_db());
         for (std::string const SOPInstanceUIDgridfs :
              this->_sop_instance_uids_gridfs)
         {

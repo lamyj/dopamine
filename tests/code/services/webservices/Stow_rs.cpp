@@ -378,13 +378,13 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
     mongo::BSONObj fields_ = BSON("filename" << 1);
     mongo::BSONObj sopinstanceuidobj_ =
             connection->get_connection().findOne(
-                connection->get_db_name() + ".fs.files", query_, &fields_);
+                connection->get_bulk_data_db() + ".fs.files", query_, &fields_);
     std::string const sopinstanceuid =
             sopinstanceuidobj_.getField("filename").String();
 
     // Create GridFS interface
     mongo::GridFS gridfs(this->connection->get_connection(),
-                         this->connection->get_db_name());
+                         this->connection->get_bulk_data_db());
 
     // Get the GridFile corresponding to the filename
     mongo::GridFile file = gridfs.findFile(sopinstanceuid);
