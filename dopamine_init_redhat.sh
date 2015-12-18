@@ -20,6 +20,8 @@ prog=$(basename $dopamine)
 lockfile=/var/lock/subsys/${prog}
 pidfile=/var/run/dopamine/dopamine.pid
 
+dopamine_options=${dopamine_options:-""}
+
 start() {
         echo -n "Starting ${prog}: "
         if [ -s ${pidfile} ]
@@ -28,7 +30,7 @@ start() {
             echo -n "Already running !" && warning
             echo
         else
-            nohup ${dopamine} > /var/log/dopamine.log &
+            nohup ${dopamine} ${dopamine_options} > /var/log/dopamine.log &
             retval=$?
             pid=$!
             [ ${retval} -eq 0 ] && touch ${lockfile} && success || failure
