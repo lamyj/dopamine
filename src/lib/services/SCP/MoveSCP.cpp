@@ -50,7 +50,7 @@ MoveSCP
         // Send Error
         dcmtkpp::message::CMoveResponse response(request.get_message_id(),
                                                  status);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
         return;
     }
 
@@ -63,7 +63,7 @@ MoveSCP
         dcmtkpp::message::CMoveResponse response(
                 request.get_message_id(),
                 dcmtkpp::message::CMoveResponse::RefusedMoveDestinationUnknown);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
         return;
     }
 
@@ -98,7 +98,7 @@ MoveSCP
         dcmtkpp::message::CMoveResponse response(
                     request.get_message_id(),
                     dcmtkpp::message::CMoveResponse::UnableToProcess);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 
     while (status == dcmtkpp::message::CMoveResponse::Pending)
@@ -131,7 +131,7 @@ MoveSCP
 
         dcmtkpp::message::CMoveResponse response(request.get_message_id(),
                                                  status);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 
     association.release();

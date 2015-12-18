@@ -78,7 +78,7 @@ SCPDispatcher
     {
         try
         {
-            auto const message = this->_receive();
+            auto const message = this->_association->receive();
 
             logger_info() << "Received message "
                           << std::hex << message.get_command_field();
@@ -111,7 +111,7 @@ SCPDispatcher
 
     try
     {
-        this->_receive();
+        this->_association->receive();
         // If we get here, the SCP did not finish processing.
         throw dcmtkpp::Exception("SCP did not finish processing");
     }

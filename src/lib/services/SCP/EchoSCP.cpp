@@ -49,7 +49,7 @@ EchoSCP
         dcmtkpp::message::CEchoResponse response(
                     request.get_message_id(), status,
                     request.get_affected_sop_class_uid());
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
     else
     {
@@ -76,7 +76,7 @@ EchoSCP
             request.get_message_id(), status,
             request.get_affected_sop_class_uid());
 
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 }
 

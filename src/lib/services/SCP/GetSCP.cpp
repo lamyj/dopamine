@@ -49,7 +49,7 @@ GetSCP
         // Send Error
         dcmtkpp::message::CGetResponse response(request.get_message_id(),
                                                 status);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 
     dcmtkpp::StoreSCU scu;
@@ -86,7 +86,7 @@ GetSCP
 
         dcmtkpp::message::CGetResponse response(request.get_message_id(),
                                                 status);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 }
 

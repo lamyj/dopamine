@@ -48,7 +48,7 @@ FindSCP
         // Send Error
         dcmtkpp::message::CFindResponse response(request.get_message_id(),
                                                  status);
-        this->_send(response, request.get_affected_sop_class_uid());
+        this->_association->send(response, request.get_affected_sop_class_uid());
     }
 
     while (status == dcmtkpp::message::CFindResponse::Pending)
@@ -77,13 +77,13 @@ FindSCP
             dcmtkpp::message::CFindResponse response(
                         request.get_message_id(), status,
                         this->_generator->get().second);
-            this->_send(response, request.get_affected_sop_class_uid());
+            this->_association->send(response, request.get_affected_sop_class_uid());
         }
         else
         {
             dcmtkpp::message::CFindResponse response(request.get_message_id(),
                                                      status);
-            this->_send(response, request.get_affected_sop_class_uid());
+            this->_association->send(response, request.get_affected_sop_class_uid());
         }
     }
 }
