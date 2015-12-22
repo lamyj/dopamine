@@ -53,11 +53,6 @@ ConfigurationPACS
     // nothing to do
 }
 
-std::vector<std::string> ConfigurationPACS::get_aetitles() const
-{
-    return this->_aetitles;
-}
-
 void
 ConfigurationPACS
 ::parse(std::string const & file)
@@ -68,15 +63,6 @@ ConfigurationPACS
     }
     
     boost::property_tree::ini_parser::read_ini(file, this->_configuration_node);
-    
-    // read allowed AETitle
-    this->_aetitles.clear();
-    if (!this->has_value("dicom.allowed_peers"))
-    {
-        throw ExceptionPACS("Missing mandatory node: dicom.allowed_peers");
-    }
-    std::string value = this->get_value("dicom.allowed_peers");
-    boost::split(this->_aetitles, value, boost::is_any_of(","));
     
     // read list of addresses and ports
     this->_peers.clear();
@@ -122,23 +108,6 @@ ConfigurationPACS
 ::has_value(std::string const & section, std::string const & key) const
 {
     return this->has_value(section + "." + key);
-}
-
-bool
-ConfigurationPACS
-::peer_in_aetitle(std::string const & peer)
-{
-    // '*' => everybody allowed
-    if (std::find(this->_aetitles.begin(), this->_aetitles.end(), "*")
-            != this->_aetitles.end())
-    {
-        return true;
-    }
-        
-    // search for specific AETitle
-    return (std::find(this->_aetitles.begin(),
-                      this->_aetitles.end(),
-                      peer.c_str()) != this->_aetitles.end());
 }
 
 bool

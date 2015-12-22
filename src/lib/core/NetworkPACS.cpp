@@ -174,7 +174,7 @@ void NetworkPACS::run()
             try
             {
                 auto authenticator_ = [this](dcmtkpp::DcmtkAssociation const & assoc)->bool { return (*this->_authenticator)(assoc); };
-                association.receive(this->_network, authenticator_, ConfigurationPACS::get_instance().get_aetitles(), true);
+                association.receive(this->_network, authenticator_, {"*"}, true);
             }
             catch (dcmtkpp::Exception const & exception)
             {
