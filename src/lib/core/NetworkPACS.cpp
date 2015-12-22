@@ -155,6 +155,7 @@ void NetworkPACS::run()
 
     services::MoveSCP movescp;
     movescp.set_generator(services::MoveGenerator::New());
+    movescp.set_own_aetitle(ConfigurationPACS::get_instance().get_value("dicom.ae_title"));
     dispatcher.set_scp(dcmtkpp::message::Message::Command::C_MOVE_RQ, movescp);
 
     services::StoreSCP storescp;

@@ -37,9 +37,15 @@ public:
     /// @brief Process a C-Move request.
     virtual void operator()(dcmtkpp::message::Message const & message);
 
+    std::string get_own_aetitle() const;
+
+    void set_own_aetitle(std::string const & own_aetitle);
+
 private:
     std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
         _get_all_storage_prensentation_contexts() const;
+
+    std::string _own_aetitle;
     
 };
 

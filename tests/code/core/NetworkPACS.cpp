@@ -41,6 +41,7 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "[dicom]\n";
     myfile << "storage_path=./temp_dir\n";
     myfile << "port=11114\n";
+    myfile << "ae_title=LOCAL\n";
     myfile << "[database]\n";
     myfile << "hostname=localhost\n";
     myfile << "port=27017\n";
@@ -223,6 +224,7 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "[dicom]\n";
         myfile << "storage_path=./temp_dir\n";
         myfile << "port=11112\n";     // WARNING: this port should be used
+        myfile << "ae_title=LOCAL\n";
         myfile << "[database]\n";
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";

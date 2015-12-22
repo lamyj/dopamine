@@ -20,14 +20,14 @@ namespace services
 
 MoveSCP
 ::MoveSCP() :
-    SCP()
+    SCP(), _own_aetitle("")
 {
     // Nothing else.
 }
 
 MoveSCP
 ::MoveSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
-    SCP(network, association)
+    SCP(network, association), _own_aetitle("")
 {
     // Nothing else.
 }
@@ -135,6 +135,20 @@ MoveSCP
     }
 
     association.release();
+}
+
+std::string
+MoveSCP
+::get_own_aetitle() const
+{
+    return this->_own_aetitle;
+}
+
+void
+MoveSCP
+::set_own_aetitle(std::string const & own_aetitle)
+{
+    this->_own_aetitle = own_aetitle;
 }
 
 std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>
