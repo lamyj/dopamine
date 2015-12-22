@@ -128,20 +128,22 @@ ConfigurationPACS
 
 void
 ConfigurationPACS
-::get_database_configuration(std::string & db_name,
-                             std::string & bulk_db,
+::get_database_configuration(MongoDBInformation & db_info,
                              std::string & hostname,
                              int & port,
                              std::vector<std::string> & indexes)
 {
-    db_name = this->get_value("database.dbname");
-    bulk_db = this->get_value("database.bulk_data");
+    std::string db_name = this->get_value("database.dbname");
+    db_info.set_db_name(db_name);
+    db_info.set_bulk_data(this->get_value("database.bulk_data"));
+    db_info.set_user(this->get_value("database.user"));
+    db_info.set_password(this->get_value("database.password"));
     hostname = this->get_value("database.hostname");
     port = atoi(this->get_value("database.port").c_str());
 
-    if(bulk_db.empty())
+    if(db_info.get_bulk_data().empty())
     {
-        bulk_db = db_name;
+        db_info.set_bulk_data(db_name);
     }
 
     // Get all indexes

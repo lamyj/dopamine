@@ -14,7 +14,7 @@
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
 #include "core/SCPDispatcher.h"
-#include "dbconnection/MongoDBConnection.h"
+#include "dbconnection/MongoDBInformation.h"
 #include "services/EchoGenerator.h"
 #include "services/FindGenerator.h"
 #include "services/GetGenerator.h"
@@ -60,12 +60,11 @@ NetworkPACS
     this->_create_authenticator();
 
     // Get configuration for Database connection
-    MongoDBConnection::DataBaseInformation db_information;
+    MongoDBInformation db_information;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_information.db_name,
-                                                                 db_information.bulk_data,
+    ConfigurationPACS::get_instance().get_database_configuration(db_information,
                                                                  db_host,
                                                                  db_port,
                                                                  indexeslist);

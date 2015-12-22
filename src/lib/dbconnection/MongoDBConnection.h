@@ -14,7 +14,7 @@
 
 #include <dcmtkpp/message/Message.h>
 
-#include <mongo/client/dbclient.h>
+#include "dbconnection/MongoDBInformation.h"
 
 namespace dopamine
 {
@@ -22,38 +22,7 @@ namespace dopamine
 class MongoDBConnection
 {
 public:
-    struct DataBaseInformation
-    {
-        mongo::DBClientConnection connection;
-        std::string db_name;
-        std::string bulk_data;
-
-        DataBaseInformation():
-            db_name(""), bulk_data("")
-        {
-            // Nothing else.
-        }
-
-        ~DataBaseInformation()
-        {
-            // Nothing to do.
-        }
-
-        DataBaseInformation(DataBaseInformation const & other)
-        {
-            db_name = other.db_name;
-            bulk_data = other.bulk_data;
-        }
-
-        DataBaseInformation& operator=(DataBaseInformation const & other)
-        {
-            db_name = other.db_name;
-            bulk_data = other.bulk_data;
-        }
-
-    };
-
-    MongoDBConnection(DataBaseInformation const & db_information = DataBaseInformation(),
+    MongoDBConnection(MongoDBInformation const & db_information = MongoDBInformation(),
                       std::string const & host_name = "localhost",
                       int port = -1,
                       std::vector<std::string> const & indexes = {});
@@ -130,7 +99,7 @@ private:
                                         mongo::BSONObj const & dataset);
 
     /// Database information
-    DataBaseInformation _database_information;
+    MongoDBInformation _database_information;
 
     /// Database Host name
     std::string _host_name;

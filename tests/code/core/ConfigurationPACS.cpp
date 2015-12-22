@@ -148,15 +148,14 @@ BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)
             dopamine::ConfigurationPACS::get_instance();
     confpacs.parse(filename);
 
-    std::string db_name = "";
-    std::string bulk_db = "";
+    dopamine::MongoDBInformation db_info;
     std::string hostname = "";
     int port = -1;
     std::vector<std::string> indexes = {};
-    confpacs.get_database_configuration(db_name, bulk_db, hostname, port, indexes);
+    confpacs.get_database_configuration(db_info, hostname, port, indexes);
 
-    BOOST_CHECK_EQUAL(db_name, "dopamine_test");
-    BOOST_CHECK_EQUAL(bulk_db, "pacs_bulk");
+    BOOST_CHECK_EQUAL(db_info.get_db_name(), "dopamine_test");
+    BOOST_CHECK_EQUAL(db_info.get_bulk_data(), "pacs_bulk");
     BOOST_CHECK_EQUAL(hostname, "localhost");
     BOOST_CHECK_EQUAL(port, 27017);
     BOOST_CHECK_EQUAL(indexes.size(), 7);

@@ -14,6 +14,8 @@
 
 #include <boost/property_tree/ptree.hpp>
 
+#include "dbconnection/MongoDBInformation.h"
+
 namespace dopamine
 {
 
@@ -84,8 +86,7 @@ public:
     bool peer_for_aetitle(std::string const & aetitle,
                           std::string & address_and_port) const;
 
-    void get_database_configuration(std::string & db_name,
-                                    std::string & bulk_db,
+    void get_database_configuration(MongoDBInformation & db_info,
                                     std::string & hostname,
                                     int & port,
                                     std::vector<std::string> & indexes);

@@ -47,6 +47,10 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "port=27017\n";
     myfile << "dbname=pacs\n";
     myfile << "bulk_data=pacs_bulk\n";
+    myfile << "# user\n";
+    myfile << "user=dopamine\n";
+    myfile << "# password\n";
+    myfile << "password=dopamine\n";
     myfile << "[authenticator]\n";
     myfile << "type=" << authenticatortype << "\n";
     myfile << "# path of the authenticator file (only for type = CSV)\n";
@@ -230,6 +234,10 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
         myfile << "bulk_data=pacs_bulk\n";
+        myfile << "# user\n";
+        myfile << "user=dopamine\n";
+        myfile << "# password\n";
+        myfile << "password=dopamine\n";
         myfile << "[authenticator]\n";
         myfile << "type=None\n";
         myfile << "[peers]\n";

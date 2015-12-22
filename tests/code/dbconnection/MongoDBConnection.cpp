@@ -17,7 +17,7 @@
 
 struct MongoDBConnectionTest
 {
-    dopamine::MongoDBConnection::DataBaseInformation db_info;
+    dopamine::MongoDBInformation db_info;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
@@ -31,8 +31,8 @@ struct MongoDBConnectionTest
 
         // Get configuration for Database connection
         dopamine::ConfigurationPACS::get_instance().
-                get_database_configuration(db_info.db_name, db_info.bulk_data,
-                                           db_host, db_port, indexeslist);
+                get_database_configuration(db_info, db_host,
+                                           db_port, indexeslist);
     }
 
     ~MongoDBConnectionTest()
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(Constructor)
     delete connection; connection = NULL;
 
     connection = new dopamine::MongoDBConnection(
-                dopamine::MongoDBConnection::DataBaseInformation(), "localhost",
+                dopamine::MongoDBInformation(), "localhost",
                 104, {});
     BOOST_REQUIRE(connection != NULL);
     delete connection;

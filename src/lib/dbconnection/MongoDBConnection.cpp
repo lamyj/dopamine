@@ -30,7 +30,7 @@ namespace dopamine
 {
 
 MongoDBConnection
-::MongoDBConnection(DataBaseInformation const & db_information,
+::MongoDBConnection(MongoDBInformation const & db_information,
                     std::string const & host_name,
                     int port,
                     std::vector<std::string> const & indexes)
@@ -65,21 +65,21 @@ std::string const &
 MongoDBConnection
 ::get_db_name() const
 {
-    return this->_database_information.db_name;
+    return this->_database_information.get_db_name();
 }
 
 void
 MongoDBConnection
 ::set_db_name(std::string const & db_name)
 {
-    this->_database_information.db_name = db_name;
+    this->_database_information.set_db_name(db_name);
 }
 
 std::string const &
 MongoDBConnection
 ::get_bulk_data_db() const
 {
-    return this->_database_information.bulk_data;
+    return this->_database_information.get_bulk_data();
 }
 
 std::string
@@ -146,6 +146,25 @@ MongoDBConnection
         logger_error() << errormsg;
         return false;
     }
+
+    /*/ Database authentication
+    if (!this->_database_information.connection.auth(
+                this->get_db_name(), this->_database_information.get_user(),
+                this->_database_information.get_password(), errormsg))
+    {
+        logger_error() << errormsg;
+        return false;
+    }
+
+    // Bulk Database authentication
+    if (this->get_db_name() != this->get_bulk_data_db() &&
+        !this->_database_information.connection.auth(
+            this->get_bulk_data_db(), this->_database_information.get_user(),
+            this->_database_information.get_password(), errormsg))
+    {
+        logger_error() << errormsg;
+        return false;
+    }*/
 
     // Create indexes
     std::string const datasets_table = this->get_db_name() + ".datasets";

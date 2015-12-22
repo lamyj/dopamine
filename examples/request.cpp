@@ -50,13 +50,12 @@ int main()
     dopamine::initialize_logger(priority, destination, path);
 
     // Get configuration for Database connection
-    dopamine::MongoDBConnection::DataBaseInformation db_information;
+    dopamine::MongoDBInformation db_information;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
     dopamine::ConfigurationPACS::get_instance().get_database_configuration(
-                db_information.db_name, db_information.bulk_data, db_host,
-                db_port, indexeslist);
+                db_information, db_host, db_port, indexeslist);
 
     // Create connection with Database
     dopamine::MongoDBConnection connection(db_information, db_host, db_port,
