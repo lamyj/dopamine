@@ -117,29 +117,6 @@ BOOST_FIXTURE_TEST_CASE(HasValue, TestDataConfiguration)
 
 /******************************* TEST Nominal **********************************/
 /**
- * Nominal test case: testing peerForAETitle
- */
-BOOST_FIXTURE_TEST_CASE(GetAddressForAETitle, TestDataConfiguration)
-{
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    confpacs.parse(filename);
-    
-    std::string address;
-    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("LOCAL", address), true);
-    BOOST_CHECK_EQUAL(address, "localhost:11113");
-    
-    address = "value";
-    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("ERROR", address), false);
-    BOOST_CHECK_EQUAL(address, "");
-    
-    address = "value";
-    BOOST_CHECK_EQUAL(confpacs.peer_for_aetitle("", address), false);
-    BOOST_CHECK_EQUAL(address, "");
-}
-
-/******************************* TEST Nominal **********************************/
-/**
  * Nominal test case: testing get_database_configuration
  */
 BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)

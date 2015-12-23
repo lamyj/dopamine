@@ -76,15 +76,6 @@ public:
      * @return true if key exist, false otherwise
      */
     bool has_value(std::string const & section, std::string const & key) const;
-    
-    /**
-     * Get network address and port for a given AE Title
-     * @param aetitle: searched AE Title (in)
-     * @param address_and_port: network address ('address:port') (out)
-     * @return true if aetitle is listed in configuration, false otherwise
-     */
-    bool peer_for_aetitle(std::string const & aetitle,
-                          std::string & address_and_port) const;
 
     void get_database_configuration(MongoDBInformation & db_info,
                                     std::string & hostname,
@@ -102,9 +93,6 @@ private:
     
     /// Configuration nodes
     boost::property_tree::ptree _configuration_node;
-    
-    /// List of known peers (AETitle <=> address)
-    std::map<std::string, std::string> _peers;
 
     // Purposely not implemented
     ConfigurationPACS(ConfigurationPACS const & other);

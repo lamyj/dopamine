@@ -60,6 +60,8 @@ public:
 
     virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
 
+    virtual std::pair<std::string, int> get_peer_information(std::string const & ae_title);
+
     void set_username(std::string const & name);
 
     std::string get_username() const;

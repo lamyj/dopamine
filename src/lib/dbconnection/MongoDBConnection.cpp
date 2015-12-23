@@ -721,4 +721,24 @@ MongoDBConnection
     return servicename;
 }
 
+std::pair<std::string, int>
+MongoDBConnection
+::get_peer_information(std::string const & ae_title)
+{
+    std::string host = "";
+    int port = -1;
+
+    mongo::BSONObj const peers_info = this->_database_information.connection.findOne(
+        this->get_db_name()+".application_entities",
+        BSON("ae_title" << ae_title));
+
+    if (!peers_info.isEmpty())
+    {
+        host = peers_info.getField("host").String();
+        port = (int)peers_info.getField("port").Number();
+    }
+
+    return std::make_pair(host, port);
+}
+
 } // namespace dopamine

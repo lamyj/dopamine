@@ -339,6 +339,13 @@ GeneratorPACS
     return dcmtkpp::message::Response::Success;
 }
 
+std::pair<std::string, int>
+GeneratorPACS
+::get_peer_information(std::string const & ae_title)
+{
+    return this->_connection->get_peer_information(ae_title);
+}
+
 void
 GeneratorPACS
 ::set_username(std::string const & name)

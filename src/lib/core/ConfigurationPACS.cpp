@@ -63,18 +63,6 @@ ConfigurationPACS
     }
     
     boost::property_tree::ini_parser::read_ini(file, this->_configuration_node);
-    
-    // read list of addresses and ports
-    this->_peers.clear();
-
-    auto const peers_it = this->_configuration_node.find("peers");
-    if(peers_it != this->_configuration_node.not_found())
-    {
-        for(auto const & peer: peers_it->second)
-        {
-            this->_peers.insert({peer.first, peer.second.data()});
-        }
-    }
 }
 
 std::string
@@ -108,22 +96,6 @@ ConfigurationPACS
 ::has_value(std::string const & section, std::string const & key) const
 {
     return this->has_value(section + "." + key);
-}
-
-bool
-ConfigurationPACS
-::peer_for_aetitle(std::string const & aetitle,
-                   std::string & address_and_port) const
-{
-    auto item = this->_peers.find(aetitle);
-    
-    if (item != this->_peers.end())
-    {
-        address_and_port = item->second;
-        return true;
-    }
-    address_and_port = "";
-    return false;
 }
 
 void

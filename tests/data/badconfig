@@ -16,7 +16,3 @@ indexlist=SOPInstanceUID;PatientName;PatientID;SeriesInstanceUID;SeriesDescripti
 
 [authenticator]
 type=None
-
-[peers]
-LOCAL=localhost:${DOPAMINE_TEST_WRITINGPORT}
-REMOTE=localhost:${DOPAMINE_TEST_LISTENINGPORT}

@@ -64,9 +64,6 @@ void create_configuration_file(std::string const & authenticatortype)
     myfile << "# Request filter (only for type = LDAP)\n";
     myfile << "ldap_filter=(&(uid=%user)"
            << "(memberof=cn=FLI-IAM,ou=Labo,dc=ipbrech,dc=local))\n";
-    myfile << "[peers]\n";
-    myfile << "LANGUEDOC=languedoc:11113\n";
-    myfile << "LOCAL=vexin:11114\n";
     myfile.close();
 }
 
@@ -240,9 +237,6 @@ BOOST_FIXTURE_TEST_CASE(TEST_KO_01, TestDataKO01)
         myfile << "password=dopamine\n";
         myfile << "[authenticator]\n";
         myfile << "type=None\n";
-        myfile << "[peers]\n";
-        myfile << "LANGUEDOC=languedoc:11113\n";
-        myfile << "LOCAL=vexin:11112\n";
         myfile.close();
         
         dopamine::ConfigurationPACS::get_instance().parse(configfile);

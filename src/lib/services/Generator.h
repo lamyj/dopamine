@@ -48,6 +48,8 @@ public:
 
     virtual std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> get() const;
 
+    virtual std::pair<std::string, int> get_peer_information(std::string const & ae_title) = 0;
+
 protected:
     dcmtkpp::DataSet _meta_information;
     dcmtkpp::DataSet _current_dataset;

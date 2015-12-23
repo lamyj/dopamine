@@ -85,6 +85,9 @@ public:
     static std::string as_string(
             dcmtkpp::message::Message::Command::Type command);
 
+    std::pair<std::string, int> get_peer_information(
+            std::string const & ae_title);
+
 private:
     /**
      * @brief Retrieve Dataset from Database
