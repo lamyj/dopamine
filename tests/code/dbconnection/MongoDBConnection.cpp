@@ -90,6 +90,7 @@ BOOST_AUTO_TEST_CASE(Accessors)
     BOOST_REQUIRE(!connection.get_connection().isFailed());
 
     BOOST_REQUIRE_EQUAL(connection.get_db_name(), "");
+    BOOST_REQUIRE_EQUAL(connection.get_bulk_data_db(), "");
     BOOST_REQUIRE_EQUAL(connection.get_host_name(), "localhost");
     BOOST_REQUIRE_EQUAL(connection.get_port(), -1);
     BOOST_REQUIRE_EQUAL(connection.get_indexes().size(), 0);
@@ -105,6 +106,8 @@ BOOST_AUTO_TEST_CASE(Accessors)
 
     connection.set_indexes({"index1", "index2"});
     BOOST_REQUIRE_EQUAL(connection.get_indexes().size(), 2);
+
+    BOOST_REQUIRE(!connection.get_connection().isFailed());
 }
 
 /******************************* TEST Nominal **********************************/
@@ -510,4 +513,26 @@ BOOST_FIXTURE_TEST_CASE(GetBigDataset, MongoDBConnectionTest)
     connection.get_connection().remove(
                 connection.get_db_name() + ".datasets",
                 BSON("00080018.Value" << "1.2.3"));
+}
+
+/******************************* TEST Nominal **********************************/
+/**
+ * Nominal test case: get_peer_information
+ */
+BOOST_FIXTURE_TEST_CASE(GetPeerInformation, MongoDBConnectionTest)
+{
+    // Create connection with Database
+    dopamine::MongoDBConnection connection(db_info, db_host,
+                                           db_port, indexeslist);
+    BOOST_REQUIRE(connection.connect());
+
+    auto const result = connection.get_peer_information("UNKNOWN");
+    BOOST_CHECK_EQUAL(result.first, "");
+    BOOST_CHECK_EQUAL(result.second, -1);
+
+    auto const result2 = connection.get_peer_information("LOCAL");
+    BOOST_CHECK_EQUAL(result2.first, "localhost");
+    BOOST_CHECK_EQUAL(result2.second,
+                      atoi(ServicesTestClass::
+                        _get_env_variable("DOPAMINE_TEST_WRITINGPORT").c_str()));
 }

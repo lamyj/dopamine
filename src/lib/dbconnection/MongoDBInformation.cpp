@@ -13,7 +13,7 @@ namespace dopamine
 
 MongoDBInformation
 ::MongoDBInformation():
-    _db_name(""), _bulk_data(""), _user(""), _password("")
+    connection(), _db_name(""), _bulk_data(""), _user(""), _password("")
 {
     // Nothing else.
 }
@@ -25,22 +25,27 @@ MongoDBInformation
 }
 
 MongoDBInformation
-::MongoDBInformation(const MongoDBInformation &other)
+::MongoDBInformation(MongoDBInformation const & other):
+    connection(), _db_name(other.get_db_name()),
+    _bulk_data(other.get_bulk_data()), _user(other.get_user()),
+    _password(other.get_password())
 {
-    this->_db_name = other.get_db_name();
-    this->_bulk_data = other.get_bulk_data();
-    this->_user = other.get_user();
-    this->_password = other.get_password();
+    // Nothing else.
 }
 
 MongoDBInformation &
 MongoDBInformation
-::operator=(const MongoDBInformation &other)
+::operator=(MongoDBInformation const & other)
 {
-    this->set_db_name(other.get_db_name());
-    this->set_bulk_data(other.get_bulk_data());
-    this->set_user(other.get_user());
-    this->set_password(other.get_password());
+    if(this != &other)
+    {
+        this->set_db_name(other.get_db_name());
+        this->set_bulk_data(other.get_bulk_data());
+        this->set_user(other.get_user());
+        this->set_password(other.get_password());
+    }
+
+    return *this;
 }
 
 std::string const &
