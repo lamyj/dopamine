@@ -9,6 +9,10 @@ target_link_libraries(dopamine libdopamine log4cpp ssl
                                crypt ${DCMTK_LIBRARIES} oflog z )
 set_target_properties(dopamine PROPERTIES COMPILE_DEFINITIONS HAVE_CONFIG_H)
 
+add_executable(dopamine-adm "dopamine-adm.cpp")
+target_link_libraries(dopamine-adm libdopamine)
+set_target_properties(dopamine-adm PROPERTIES COMPILE_DEFINITIONS HAVE_CONFIG_H)
+
 add_executable(wado-rs "wado-rs.cpp")
 target_link_libraries(wado-rs cgicc libdopamine)
 
