@@ -53,11 +53,6 @@ ConfigurationPACS
     // nothing to do
 }
 
-std::vector<std::string> ConfigurationPACS::get_aetitles() const
-{
-    return this->_aetitles;
-}
-
 void
 ConfigurationPACS
 ::parse(std::string const & file)
@@ -68,27 +63,6 @@ ConfigurationPACS
     }
     
     boost::property_tree::ini_parser::read_ini(file, this->_configuration_node);
-    
-    // read allowed AETitle
-    this->_aetitles.clear();
-    if (!this->has_value("dicom.allowed_peers"))
-    {
-        throw ExceptionPACS("Missing mandatory node: dicom.allowed_peers");
-    }
-    std::string value = this->get_value("dicom.allowed_peers");
-    boost::split(this->_aetitles, value, boost::is_any_of(","));
-    
-    // read list of addresses and ports
-    this->_peers.clear();
-
-    auto const peers_it = this->_configuration_node.find("peers");
-    if(peers_it != this->_configuration_node.not_found())
-    {
-        for(auto const & peer: peers_it->second)
-        {
-            this->_peers.insert({peer.first, peer.second.data()});
-        }
-    }
 }
 
 std::string
@@ -124,55 +98,24 @@ ConfigurationPACS
     return this->has_value(section + "." + key);
 }
 
-bool
-ConfigurationPACS
-::peer_in_aetitle(std::string const & peer)
-{
-    // '*' => everybody allowed
-    if (std::find(this->_aetitles.begin(), this->_aetitles.end(), "*")
-            != this->_aetitles.end())
-    {
-        return true;
-    }
-        
-    // search for specific AETitle
-    return (std::find(this->_aetitles.begin(),
-                      this->_aetitles.end(),
-                      peer.c_str()) != this->_aetitles.end());
-}
-
-bool
-ConfigurationPACS
-::peer_for_aetitle(std::string const & aetitle,
-                   std::string & address_and_port) const
-{
-    auto item = this->_peers.find(aetitle);
-    
-    if (item != this->_peers.end())
-    {
-        address_and_port = item->second;
-        return true;
-    }
-    address_and_port = "";
-    return false;
-}
-
 void
 ConfigurationPACS
-::get_database_configuration(std::string & db_name,
-                             std::string & bulk_db,
+::get_database_configuration(MongoDBInformation & db_info,
                              std::string & hostname,
                              int & port,
                              std::vector<std::string> & indexes)
 {
-    db_name = this->get_value("database.dbname");
-    bulk_db = this->get_value("database.bulk_data");
+    std::string db_name = this->get_value("database.dbname");
+    db_info.set_db_name(db_name);
+    db_info.set_bulk_data(this->get_value("database.bulk_data"));
+    db_info.set_user(this->get_value("database.user"));
+    db_info.set_password(this->get_value("database.password"));
     hostname = this->get_value("database.hostname");
     port = atoi(this->get_value("database.port").c_str());
 
-    if(bulk_db.empty())
+    if(db_info.get_bulk_data().empty())
     {
-        bulk_db = db_name;
+        db_info.set_bulk_data(db_name);
     }
 
     // Get all indexes

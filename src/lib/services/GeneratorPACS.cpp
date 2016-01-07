@@ -315,12 +315,11 @@ GeneratorPACS
 ::initialize(mongo::BSONObj const & request)
 {
     // Get configuration for Database connection
-    MongoDBConnection::DataBaseInformation db_information;
+    MongoDBInformation db_information;
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_information.db_name,
-                                                                 db_information.bulk_data,
+    ConfigurationPACS::get_instance().get_database_configuration(db_information,
                                                                  db_host,
                                                                  db_port,
                                                                  indexeslist);
@@ -338,6 +337,13 @@ GeneratorPACS
 
     // Everything ok
     return dcmtkpp::message::Response::Success;
+}
+
+std::pair<std::string, int>
+GeneratorPACS
+::get_peer_information(std::string const & ae_title)
+{
+    return this->_connection->get_peer_information(ae_title);
 }
 
 void

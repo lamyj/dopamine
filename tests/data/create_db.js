@@ -10,3 +10,9 @@ j = { "00080018" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092
       "0020000e" : { "vr" : "UI", "Value" : [ "2.16.756.5.5.100.3611280983.20092.1364462488.1" ] },
       "Content" : "not_find" }
 db.datasets.insert(j)
+
+j = { "ae_title" : "LOCAL", "host" : "localhost", "port" : ${DOPAMINE_TEST_WRITINGPORT}}
+db.application_entities.insert(j)
+
+j = { "ae_title" : "REMOTE", "host" : "localhost", "port" : ${DOPAMINE_TEST_LISTENINGPORT}}
+db.application_entities.insert(j)

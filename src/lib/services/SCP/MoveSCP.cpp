@@ -20,14 +20,14 @@ namespace services
 
 MoveSCP
 ::MoveSCP() :
-    SCP()
+    SCP(), _own_aetitle("")
 {
     // Nothing else.
 }
 
 MoveSCP
 ::MoveSCP(dcmtkpp::Network * network, dcmtkpp::DcmtkAssociation * association) :
-    SCP(network, association)
+    SCP(network, association), _own_aetitle("")
 {
     // Nothing else.
 }
@@ -54,10 +54,11 @@ MoveSCP
         return;
     }
 
-    std::string peer_hostname_port;
-    if (!ConfigurationPACS::
-            get_instance().peer_for_aetitle(request.get_move_destination(),
-                                            peer_hostname_port))
+    auto peer_info =
+        this->_generator->get_peer_information(request.get_move_destination());
+    std::string peer_host_name = peer_info.first;
+    int peer_port = peer_info.second;
+    if (peer_host_name.empty() || peer_port == -1)
     {
         // Send Error
         dcmtkpp::message::CMoveResponse response(
@@ -70,12 +71,8 @@ MoveSCP
     dcmtkpp::DcmtkAssociation association;
 
     association.set_own_ae_title(this->_association->get_own_ae_title());
-    std::string peer_host_name =
-            peer_hostname_port.substr(0, peer_hostname_port.find(':'));
     association.set_peer_host_name(peer_host_name);
-    std::string peer_port =
-            peer_hostname_port.substr(peer_hostname_port.find(':')+1);
-    association.set_peer_port(atoi(peer_port.c_str()));
+    association.set_peer_port(peer_port);
     association.set_peer_ae_title(request.get_move_destination());
 
     // add all negociated presentation contexts
@@ -135,6 +132,20 @@ MoveSCP
     }
 
     association.release();
+}
+
+std::string
+MoveSCP
+::get_own_aetitle() const
+{
+    return this->_own_aetitle;
+}
+
+void
+MoveSCP
+::set_own_aetitle(std::string const & own_aetitle)
+{
+    this->_own_aetitle = own_aetitle;
 }
 
 std::vector<dcmtkpp::DcmtkAssociation::PresentationContext>

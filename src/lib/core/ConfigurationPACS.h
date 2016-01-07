@@ -14,6 +14,8 @@
 
 #include <boost/property_tree/ptree.hpp>
 
+#include "dbconnection/MongoDBInformation.h"
+
 namespace dopamine
 {
 
@@ -37,8 +39,6 @@ public:
     
     /// Destroy the Configuration
     virtual ~ConfigurationPACS();
-
-    std::vector<std::string> get_aetitles() const;
     
     /**
      * Parse a given configuration file
@@ -76,25 +76,8 @@ public:
      * @return true if key exist, false otherwise
      */
     bool has_value(std::string const & section, std::string const & key) const;
-    
-    /**
-     * Check if a given peer is in allowed AE Title
-     * @param peer: searched AE Title
-     * @return true if AE Title is allowed, false otherwise
-     */
-    bool peer_in_aetitle(std::string const & peer);
-    
-    /**
-     * Get network address and port for a given AE Title
-     * @param aetitle: searched AE Title (in)
-     * @param address_and_port: network address ('address:port') (out)
-     * @return true if aetitle is listed in configuration, false otherwise
-     */
-    bool peer_for_aetitle(std::string const & aetitle,
-                          std::string & address_and_port) const;
 
-    void get_database_configuration(std::string & db_name,
-                                    std::string & bulk_db,
+    void get_database_configuration(MongoDBInformation & db_info,
                                     std::string & hostname,
                                     int & port,
                                     std::vector<std::string> & indexes);
@@ -110,12 +93,6 @@ private:
     
     /// Configuration nodes
     boost::property_tree::ptree _configuration_node;
-    
-    /// Allowed AE Titles
-    std::vector<std::string> _aetitles;
-    
-    /// List of known peers (AETitle <=> address)
-    std::map<std::string, std::string> _peers;
 
     // Purposely not implemented
     ConfigurationPACS(ConfigurationPACS const & other);
