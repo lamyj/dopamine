@@ -109,7 +109,7 @@ ConfigurationPACS
 ::has_value(std::string const & key)
 {
     auto child = this->_configuration_node.get_optional<std::string>( key );
-    return child;
+    return bool(child);
 }
 
 bool
