@@ -388,7 +388,13 @@ NetworkPACS
         dopamine::logger_error() << "Cannot retrieve AP Titles";
     }
 
-    const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
+    const char* transferSyntaxes[] = {
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL,
+        NULL,
+    };
 
     /* We prefer explicit transfer syntaxes.
      * If we are running on a Little Endian machine we prefer
@@ -404,8 +410,38 @@ NetworkPACS
       transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
       transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
     }
+
     transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
-    int numTransferSyntaxes = 3;
+    transferSyntaxes[3] = UID_JPEGProcess1TransferSyntax;
+    transferSyntaxes[4] = UID_JPEGProcess2_4TransferSyntax;
+    transferSyntaxes[5] = UID_JPEGProcess3_5TransferSyntax;
+    transferSyntaxes[6] = UID_JPEGProcess6_8TransferSyntax;
+    transferSyntaxes[7] = UID_JPEGProcess7_9TransferSyntax;
+    transferSyntaxes[8] = UID_JPEGProcess10_12TransferSyntax;
+    transferSyntaxes[9] = UID_JPEGProcess11_13TransferSyntax;
+    transferSyntaxes[10] = UID_JPEGProcess14TransferSyntax;
+    transferSyntaxes[11] = UID_JPEGProcess15TransferSyntax;
+    transferSyntaxes[12] = UID_JPEGProcess16_18TransferSyntax;
+    transferSyntaxes[13] = UID_JPEGProcess17_19TransferSyntax;
+    transferSyntaxes[14] = UID_JPEGProcess20_22TransferSyntax;
+    transferSyntaxes[15] = UID_JPEGProcess21_23TransferSyntax;
+    transferSyntaxes[16] = UID_JPEGProcess24_26TransferSyntax;
+    transferSyntaxes[17] = UID_JPEGProcess25_27TransferSyntax;
+    transferSyntaxes[18] = UID_JPEGProcess28TransferSyntax;
+    transferSyntaxes[19] = UID_JPEGProcess29TransferSyntax;
+    transferSyntaxes[20] = UID_JPEGProcess14SV1TransferSyntax;
+    transferSyntaxes[21] = UID_RLELosslessTransferSyntax;
+    transferSyntaxes[22] = UID_JPEGLSLosslessTransferSyntax;
+    transferSyntaxes[23] = UID_JPEGLSLossyTransferSyntax;
+    transferSyntaxes[24] = UID_DeflatedExplicitVRLittleEndianTransferSyntax;
+    transferSyntaxes[25] = UID_JPEG2000LosslessOnlyTransferSyntax;
+    transferSyntaxes[26] = UID_JPEG2000TransferSyntax;
+    transferSyntaxes[27] = UID_MPEG2MainProfileAtMainLevelTransferSyntax;
+    transferSyntaxes[28] = UID_MPEG2MainProfileAtHighLevelTransferSyntax;
+    transferSyntaxes[29] = UID_JPEG2000Part2MulticomponentImageCompressionLosslessOnlyTransferSyntax;
+    transferSyntaxes[30] = UID_JPEG2000Part2MulticomponentImageCompressionTransferSyntax;
+
+    int numTransferSyntaxes = 31;
 
     const char* nonStorageSyntaxes[] =
     {
@@ -457,11 +493,11 @@ NetworkPACS
             T_ASC_SC_ROLE role = pc.proposedRole;
 
             /*
-             * Accept in the order "least wanted" to "most wanted" transfer
+             * Accept in the order "most wanted" to "least wanted" transfer
              * syntax.  Accepting a transfer syntax will override previously
              * accepted transfer syntaxes.
             **/
-            for (int k = numTransferSyntaxes - 1; k >= 0; k--)
+            for (int k = 0; k < numTransferSyntaxes; ++k)
             {
                 for (int j = 0; j < (int)pc.transferSyntaxCount; j++)
                 {
