@@ -485,6 +485,15 @@ insert_dataset(DataBaseInformation & db_information,
         {
             return CONVERSION_ERROR;
         }
+
+        // Add the transfer syntax to the BSON object
+        DcmDataset transfer_syntax_only_dicom;
+        transfer_syntax_only_dicom.putAndInsertString(
+            DCM_TransferSyntaxUID, DcmXfer(xfer).getXferID());
+        object = mongo::BSONObjBuilder()
+            .appendElements(object)
+            .appendElements(dataset_to_bson(&transfer_syntax_only_dicom))
+            .obj();
     }
 
     mongo::BSONObjBuilder meta_data_builder;
