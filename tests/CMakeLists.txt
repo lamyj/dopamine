@@ -32,3 +32,5 @@ foreach(test_file ${tests})
         add_test("${test}_${case}" "${test}" "--run_test=${case}")
     endforeach()
 endforeach()
+
+add_custom_target(Runner ${CMAKE_COMMAND} -E echo "Test runner" SOURCES run_tests.sh)
