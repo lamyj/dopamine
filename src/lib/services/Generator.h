@@ -60,6 +60,9 @@ public:
     /// Destroy the instance of Generator
     virtual ~Generator();
 
+    /// @brief Return the user name
+    std::string const & get_username() const;
+
     /**
      * Cancel response generation
      * NOT IMPLEMENTED YET

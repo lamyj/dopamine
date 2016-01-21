@@ -256,6 +256,13 @@ Generator
     // Nothing to do
 }
 
+std::string const &
+Generator
+::get_username() const
+{
+    return this->_username;
+}
+
 void
 Generator
 ::cancel()
