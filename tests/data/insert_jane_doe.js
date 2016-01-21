@@ -1,5 +1,6 @@
 db = connect("localhost:27017/${DOPAMINE_TEST_DATABASE}");
-j = { "00080008" : { "vr" : "CS", "Value" : [  "ORIGINAL",  "PRIMARY",  "OTHER" ] },
+j = { "00020010" : { "vr" : "UI", "Value" : [  "1.2.840.10008.1.2.1" ] },
+      "00080008" : { "vr" : "CS", "Value" : [  "ORIGINAL",  "PRIMARY",  "OTHER" ] },
       "00080012" : { "vr" : "DA", "Value" : [  "20140827" ] },
       "00080013" : { "vr" : "TM", "Value" : [  "103310" ] },
       "00080016" : { "vr" : "UI", "Value" : [  "1.2.840.10008.5.1.4.1.1.4" ] },

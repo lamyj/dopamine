@@ -33,4 +33,13 @@ foreach(test_file ${tests})
     endforeach()
 endforeach()
 
-add_custom_target(Runner ${CMAKE_COMMAND} -E echo "Test runner" SOURCES run_tests.sh)
+file(GLOB_RECURSE python_tests *.py)
+add_custom_target(
+    PythonTests ${CMAKE_COMMAND} -E echo "Python Tests" SOURCES ${python_tests})
+
+file(GLOB_RECURSE test_data data/*)
+add_custom_target(
+    TestData ${CMAKE_COMMAND} -E echo "Test Data" SOURCES ${test_data})
+
+add_custom_target(
+    Runner ${CMAKE_COMMAND} -E echo "Test runner" SOURCES run_tests.sh)
