@@ -68,16 +68,35 @@ static void move_callback(
         DcmDataset pc_query = *requestIdentifiers;
         pc_query.insertEmptyElement(DCM_TransferSyntaxUID);
         pc_query.insertEmptyElement(DCM_SOPClassUID);
-        status = pc_generator.process_dataset(&pc_query, false);
+        auto const pc_status = pc_generator.process_dataset(&pc_query, false);
 
         std::set<std::pair<std::string, std::string>> syntax_pairs;
-
-        mongo::BSONObj item;
-        while(!(item = pc_generator.next()).isEmpty())
+        if(pc_status == STATUS_Pending)
         {
-            auto const abstract_syntax = item["00080016"]["Value"].Array()[0].String();
-            auto const transfer_syntax = item["00020010"]["Value"].Array()[0].String();
-            syntax_pairs.insert(std::make_pair(abstract_syntax, transfer_syntax));
+            bool done = false;
+            while(!done)
+            {
+                mongo::BSONObj item = pc_generator.next();
+                if(item.isValid() && item.isEmpty())
+                {
+                    done = true;
+                }
+                else
+                {
+                    auto const abstract_syntax = item["00080016"]["Value"].Array()[0].String();
+                    auto const transfer_syntax = item["00020010"]["Value"].Array()[0].String();
+                    syntax_pairs.insert(std::make_pair(abstract_syntax, transfer_syntax));
+                }
+            }
+        }
+
+        if(syntax_pairs.empty())
+        {
+            // We are not going to send anything, add a dummy
+            // presentation context
+            syntax_pairs.insert(std::make_pair(
+                UID_VerificationSOPClass,
+                UID_LittleEndianImplicitTransferSyntax));
         }
 
         std::vector<PresentationContext> presentation_contexts;
