@@ -6,9 +6,15 @@
  * for details.
  ************************************************************************/
 
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "MoveSCP.h"
 #include "services/ServicesTools.h"
+#include "services/SCP/PresentationContext.h"
 
 namespace dopamine
 {
@@ -43,8 +49,9 @@ static void move_callback(
 
     if (responseCount == 1)
     {
-        status = context->get_generator()->process_dataset(requestIdentifiers,
-                                                           false);
+        requestIdentifiers->insertEmptyElement(DCM_TransferSyntaxUID);
+        status = context->get_generator()->process_dataset(
+            requestIdentifiers, false);
 
         if (status != STATUS_Pending)
         {
@@ -54,10 +61,37 @@ static void move_callback(
                     stDetail);
         }
 
+        // Find all presentation contexts from the data sets
+        auto & generator = *context->get_generator();
+        std::remove_reference<decltype(generator)>::type pc_generator(
+            generator.get_username());
+        DcmDataset pc_query = *requestIdentifiers;
+        pc_query.insertEmptyElement(DCM_TransferSyntaxUID);
+        pc_query.insertEmptyElement(DCM_SOPClassUID);
+        status = pc_generator.process_dataset(&pc_query, false);
+
+        std::set<std::pair<std::string, std::string>> syntax_pairs;
+
+        mongo::BSONObj item;
+        while(!(item = pc_generator.next()).isEmpty())
+        {
+            auto const abstract_syntax = item["00080016"]["Value"].Array()[0].String();
+            auto const transfer_syntax = item["00020010"]["Value"].Array()[0].String();
+            syntax_pairs.insert(std::make_pair(abstract_syntax, transfer_syntax));
+        }
+
+        std::vector<PresentationContext> presentation_contexts;
+        for(auto const & syntax_pair: syntax_pairs)
+        {
+            PresentationContext presentation_context({
+                syntax_pair.first, {syntax_pair.second}, ASC_SC_ROLE_SCU});
+            presentation_contexts.push_back(presentation_context);
+        }
+
         // Create Move SubAssociation
         OFCondition condition =
-                context->get_storeprovider()->build_sub_association(
-                                request->MoveDestination);
+            context->get_storeprovider()->build_sub_association(
+                request->MoveDestination, presentation_contexts);
         if (condition.bad())
         {
             dopamine::logger_error() << "Cannot create sub association: "
@@ -88,10 +122,17 @@ static void move_callback(
         }
         else
         {
+            std::string const transfer_syntax =
+                object["00020010"]["Value"].Array()[0].String();
+
+            auto * const data_set =
+                context->get_generator()->retrieve_dataset(object);
+
             OFCondition condition =
                 context->get_storeprovider()->perform_sub_operation(
-                        context->get_generator()->retrieve_dataset(object),
-                        request->Priority);
+                    data_set, transfer_syntax, request->Priority);
+
+            delete data_set;
 
             if (condition.bad())
             {
