@@ -133,6 +133,7 @@ static void find_callback(
             if (status == STATUS_Pending &&
                 context->get_convert_modalities_in_study())
             {
+                /*
                 (*responseIdentifiers)->remove(DCM_Modality);
                 std::vector<mongo::BSONElement> const modalities =
                         object.getField("modalities_in_study").Array();
@@ -161,6 +162,7 @@ static void find_callback(
                                          DCM_ModalitiesInStudy,
                                          OFString(condition.text()), stDetail);
                 }
+                */
             }
         }
     }
