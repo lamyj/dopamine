@@ -10,6 +10,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include "core/ConverterCharactersSet.h"
+#include "core/LoggerPACS.h"
 #include "DataSetToBSON.h"
 
 namespace dopamine
@@ -94,18 +95,20 @@ DataSetToBSON
         if(it->getTag() == DCM_SpecificCharacterSet)
         {
             // Specific Character Set: setup internal iconv converter
-            DcmCodeString * specific_character_set =
-                dynamic_cast<DcmCodeString*>(it);
-            char* value;
-            OFCondition condition = specific_character_set->getString(value);
-            if (condition.bad())
+            auto * specific_character_set = dynamic_cast<DcmCodeString*>(it);
+            if(specific_character_set != nullptr)
             {
-                std::stringstream stream;
-                stream << "Cannot find specific character set: "
-                       << condition.text();
-                throw dopamine::ExceptionPACS(stream.str());
+                char* value;
+                OFCondition condition = specific_character_set->getString(value);
+                if(condition.good() && value != nullptr)
+                {
+                    this->set_specific_character_set(value);
+                }
+                else
+                {
+                    logger_info() << "Cannot find specific character set";
+                }
             }
-            this->set_specific_character_set(value);
         }
 
         if(it->getETag() == 0)
