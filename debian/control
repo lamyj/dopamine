@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Julien Lamy <lamy@unistra.fr>
 Build-Depends: debhelper (>= 8.0.0), 
                cmake,
+               dcmtk,
                libboost-filesystem-dev, 
                libboost-system-dev, 
                libboost-regex-dev, 
@@ -18,8 +19,11 @@ Build-Depends: debhelper (>= 8.0.0),
                libmongo-client-dev, 
                libqt4-dev, 
                libssl-dev, 
+               libwrap0-dev,
                mongodb-dev, 
-               mongodb 
+               mongodb,
+               python-nose,
+               wget
 Standards-Version: 3.9.6
 Homepage: https://github.com/lamyj/dopamine
 Vcs-Browser: https://github.com/lamyj/dopamine
