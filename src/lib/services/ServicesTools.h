@@ -46,11 +46,16 @@ enum database_status
     INSERTION_FAILED
 };
 
-bool create_db_connection(mongo::DBClientConnection & connection,
-                          std::string & db_name);
+struct DataBaseInformation
+{
+    mongo::DBClientConnection connection;
+    std::string db_name;
+    std::string bulk_data;
+};
 
-database_status insert_dataset(mongo::DBClientConnection & connection,
-                               std::string const & db_name,
+bool create_db_connection(DataBaseInformation & db_information);
+
+database_status insert_dataset(DataBaseInformation & db_information,
                                std::string const & username,
                                DcmDataset* dataset,
                                std::string const & callingaet = "");
@@ -60,18 +65,15 @@ void create_status_detail(Uint16 const & errorCode, DcmTagKey const & key,
 
 std::string get_username(UserIdentityNegotiationSubItemRQ *userIdentNeg);
 
-bool is_authorized(mongo::DBClientConnection &connection,
-                   std::string const & db_name,
+bool is_authorized(DataBaseInformation & db_information,
                    std::string const & username,
                    std::string const & servicename);
 
-mongo::BSONObj get_constraint_for_user(mongo::DBClientConnection &connection,
-                                       std::string const & db_name,
+mongo::BSONObj get_constraint_for_user(DataBaseInformation & db_information,
                                        std::string const & username,
                                        std::string const & servicename);
 
-bool is_dataset_allowed_for_storage(mongo::DBClientConnection & connection,
-                                    std::string const & db_name,
+bool is_dataset_allowed_for_storage(DataBaseInformation & db_information,
                                     std::string const & username,
                                     mongo::BSONObj const & dataset);
 
@@ -91,12 +93,10 @@ std::string replace(std::string const & value,
 mongo::BSONObj dataset_to_bson(DcmDataset * const dataset,
                                bool isforstorage = false);
 
-DcmDataset * bson_to_dataset(mongo::DBClientConnection &connection,
-                             std::string const & db_name,
+DcmDataset * bson_to_dataset(DataBaseInformation & db_information,
                              mongo::BSONObj object);
 
-std::string get_dataset_as_string(mongo::DBClientConnection &connection,
-                                  std::string const & db_name,
+std::string get_dataset_as_string(DataBaseInformation & db_information,
                                   mongo::BSONObj object);
 
 } // namespace services

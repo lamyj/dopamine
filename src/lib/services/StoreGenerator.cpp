@@ -44,14 +44,15 @@ StoreGenerator
 ::process()
 {
     // Look for database connection
-    if (this->_connection.isFailed())
+    if (this->_db_information.connection.isFailed())
     {
-        logger_warning() << "Could not connect to database: " << this->_db_name;
+        logger_warning() << "Could not connect to database: "
+            << this->_db_information.db_name;
         return STATUS_STORE_Refused_OutOfResources;
     }
 
     // Look for user authorization
-    this->_allow = is_authorized(this->_connection, this->_db_name,
+    this->_allow = is_authorized(this->_db_information,
                                  this->_username, Service_Store);
     if ( ! this->_allow )
     {
@@ -82,14 +83,14 @@ StoreGenerator
                          BSON_ARRAY(sopinstanceuid.c_str())));
 
     mongo::BSONObj info;
-    bool ret = this->_connection.runCommand(this->_db_name,
-                                            group_command, info, 0);
+    bool ret = this->_db_information.connection.runCommand(
+        this->_db_information.db_name, group_command, info, 0);
 
     // If an error occurred
     if (!ret || info["ok"].Double() != 1)
     {
         logger_warning() << "Could not connect to database: "
-                         << this->_db_name;
+                         << this->_db_information.db_name;
         return STATUS_STORE_Refused_OutOfResources;
     }
 
@@ -101,7 +102,7 @@ StoreGenerator
         return STATUS_Pending; // Nothing to do
     }
 
-    if (insert_dataset(this->_connection, this->_db_name,
+    if (insert_dataset(this->_db_information,
                        this->_username, this->_dataset,
                        this->_calling_aptitle) != NO_ERROR)
     {

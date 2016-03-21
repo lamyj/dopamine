@@ -124,9 +124,9 @@ BOOST_FIXTURE_TEST_CASE(Cancel, ServicesTestClass)
 BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" <<
-                                  SOP_INSTANCE_UID_03_01_01_01));
+        db_information.connection.query(
+            db_information.db_name + ".datasets",
+            BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("");
@@ -149,9 +149,9 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
-    cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = db_information.connection.query(
+        db_information.db_name+ ".datasets",
+        BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -171,9 +171,9 @@ BOOST_FIXTURE_TEST_CASE(Empty_Request, ServicesTestClass)
 BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            connection.query(db_name + ".datasets",
-                             BSON("00080018.Value" <<
-                                  SOP_INSTANCE_UID_03_01_01_01));
+        db_information.connection.query(
+            db_information.db_name+ ".datasets",
+            BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("");
@@ -267,9 +267,9 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
-    cursor = connection.query(db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = db_information.connection.query(
+        db_information.db_name + ".datasets",
+        BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();
@@ -316,9 +316,9 @@ BOOST_FIXTURE_TEST_CASE(Insert_All_VR, ServicesTestClass)
 BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
 {
     mongo::unique_ptr<mongo::DBClientCursor> cursor =
-            this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+        this->db_information.connection.query(
+            this->db_information.db_name + ".datasets",
+            BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), false);
 
     dopamine::services::StoreGenerator generator("root");
@@ -344,9 +344,9 @@ BOOST_FIXTURE_TEST_CASE(Match_Constraint, TestDataGenerator_constraint)
     Uint16 result = generator.process_dataset(dataset, true);
     BOOST_CHECK_EQUAL(result, STATUS_Pending);
 
-    cursor = this->connection.query(this->db_name + ".datasets",
-                              BSON("00080018.Value" <<
-                                   SOP_INSTANCE_UID_03_01_01_01));
+    cursor = this->db_information.connection.query(
+        this->db_information.db_name + ".datasets",
+        BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01));
     BOOST_CHECK_EQUAL(cursor->more(), true);
 
     mongo::BSONObj response = cursor->next();

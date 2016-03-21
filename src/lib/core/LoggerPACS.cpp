@@ -8,28 +8,61 @@
 
 #include "LoggerPACS.h"
 
+#include <iostream>
+#include <string>
+
+#include <log4cpp/Appender.hh>
+#include <log4cpp/BasicLayout.hh>
+#include <log4cpp/Category.hh>
+#include <log4cpp/FileAppender.hh>
+#include <log4cpp/OstreamAppender.hh>
+#include <log4cpp/Priority.hh>
+
+#include "core/ExceptionPACS.h"
+
 namespace dopamine
 {
 
-void
-initialize_logger(std::string const & priority)
+void initialize_logger(
+    std::string const & priority, std::string const & destination,
+    std::string const & path)
 {
-    log4cpp::Appender *appender1 =
-            new log4cpp::OstreamAppender("console", &std::cout);
-    appender1->setLayout(new log4cpp::BasicLayout());
+    log4cpp::Appender * appender;
+    if(destination == "console")
+    {
+        appender = new log4cpp::OstreamAppender("console", &std::cout);
+    }
+    else if(destination == "file")
+    {
+        appender = new log4cpp::FileAppender("TODO", path);
+    }
+    else
+    {
+        throw ExceptionPACS("Unknown log destination");
+    }
+
+    appender->setLayout(new log4cpp::BasicLayout());
 
     log4cpp::Category& root = log4cpp::Category::getRoot();
 
     if (priority == "ERROR")
+    {
         root.setPriority(log4cpp::Priority::ERROR);
+    }
     else if (priority == "WARNING")
+    {
         root.setPriority(log4cpp::Priority::WARN);
+    }
     else if (priority == "INFO")
+    {
         root.setPriority(log4cpp::Priority::INFO);
+    }
     else
+    {
         root.setPriority(log4cpp::Priority::DEBUG);
+    }
 
-    root.addAppender(appender1);
+    root.addAppender(appender);
 }
 
 log4cpp::CategoryStream

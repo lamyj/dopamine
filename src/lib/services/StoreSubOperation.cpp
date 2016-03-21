@@ -6,10 +6,24 @@
  * for details.
  ************************************************************************/
 
+#include "services/StoreSubOperation.h"
+
+#include <algorithm>
+#include <string>
+#include <vector>
+
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dcdatset.h>
+#include <dcmtk/dcmnet/assoc.h>
+#include <dcmtk/dcmnet/dimse.h>
+
+#include "services/SCP/PresentationContext.h"
+
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
-#include "StoreSubOperation.h"
 #include "ServicesTools.h"
+
+#include "services/SCP/PresentationContext.h"
 
 namespace dopamine
 {
@@ -66,7 +80,9 @@ StoreSubOperation
 
 OFCondition
 StoreSubOperation
-::build_sub_association(DIC_AE destination_aetitle)
+::build_sub_association(
+    DIC_AE destination_aetitle,
+    std::vector<PresentationContext> const & presentation_contexts)
 {
     DIC_AE aeTitle;
     aeTitle[0] = '\0';
@@ -107,10 +123,28 @@ StoreSubOperation
         return condition;
     }
 
-    condition = this->_add_all_storage_presentation_context(params);
-    if (condition.bad())
+    condition = EC_Normal;
+    int id = 1;
+    for(auto const & presentation_context: presentation_contexts)
     {
-        return condition;
+        std::vector<char const*> transfer_syntaxes(
+            presentation_context.transfer_syntaxes.size());
+        std::transform(
+            presentation_context.transfer_syntaxes.begin(),
+            presentation_context.transfer_syntaxes.end(),
+            transfer_syntaxes.begin(),
+            [](std::string const & value) { return value.c_str(); }
+        );
+
+        condition = ASC_addPresentationContext(
+            params, id, presentation_context.abstract_syntax.c_str(),
+            &transfer_syntaxes[0], transfer_syntaxes.size(),
+            presentation_context.role);
+        if(condition.bad())
+        {
+            return condition;
+        }
+        id += 2;
     }
 
     // Create Association
@@ -137,6 +171,20 @@ StoreSubOperation
         }
     }
 
+    for(int i=0; i<ASC_countPresentationContexts(params); ++i)
+    {
+        T_ASC_PresentationContext context;
+        ASC_getPresentationContext(params, i, &context);
+        if(context.resultReason != ASC_P_ACCEPTANCE)
+        {
+            dopamine::logger_warning() << "Presentation context "
+                << dcmSOPClassUIDToModality(context.abstractSyntax, "OT")
+                << " / "
+                << dcmFindNameOfUID(context.proposedTransferSyntaxes[0])
+                << " rejected: " << context.resultReason;
+        }
+    }
+
     this->_new_association = true;
 
     return condition;
@@ -144,7 +192,9 @@ StoreSubOperation
 
 OFCondition
 StoreSubOperation
-::perform_sub_operation(DcmDataset *dataset, T_DIMSE_Priority priority)
+::perform_sub_operation(
+    DcmDataset *dataset, std::string const & transfer_syntax,
+    T_DIMSE_Priority priority)
 {
     OFString sopclassuid;
     OFCondition condition = dataset->findAndGetOFString(DCM_SOPClassUID,
@@ -168,13 +218,16 @@ StoreSubOperation
 
     /* which presentation context should be used */
     T_ASC_PresentationContextID presentation_id =
-            ASC_findAcceptedPresentationContextID(this->_response_association,
-                                                  sopclassuid.c_str());
+            ASC_findAcceptedPresentationContextID(
+                this->_response_association,
+                sopclassuid.c_str(), transfer_syntax.c_str());
     if (presentation_id == 0)
     {
-        dopamine::logger_error() << "No presentation context for: "
-                                 << dcmSOPClassUIDToModality(sopclassuid.c_str(),
-                                                             "OT");
+        dopamine::logger_error()
+            << "No presentation context for: "
+            << dcmSOPClassUIDToModality(sopclassuid.c_str(), "OT")
+            << " / "
+            << dcmFindNameOfUID(transfer_syntax.c_str(), transfer_syntax.c_str());
         return DIMSE_NOVALIDPRESENTATIONCONTEXTID;
     }
     else if (!this->_new_association)
@@ -225,41 +278,6 @@ StoreSubOperation
                            &req, NULL, dataset, sub_process_callback,
                            this, DIMSE_BLOCKING, 0, &rsp, &stdetail,
                            &cancelParameters);
-}
-
-OFCondition
-StoreSubOperation
-::_add_all_storage_presentation_context(T_ASC_Parameters *params)
-{
-    const char* transferSyntaxes[] = { NULL, NULL, NULL, NULL };
-    int numTransferSyntaxes = 0;
-    if (gLocalByteOrder == EBO_LittleEndian)  /* defined in dcxfer.h */
-    {
-        transferSyntaxes[0] = UID_LittleEndianExplicitTransferSyntax;
-        transferSyntaxes[1] = UID_BigEndianExplicitTransferSyntax;
-    }
-    else
-    {
-        transferSyntaxes[0] = UID_BigEndianExplicitTransferSyntax;
-        transferSyntaxes[1] = UID_LittleEndianExplicitTransferSyntax;
-    }
-    transferSyntaxes[2] = UID_LittleEndianImplicitTransferSyntax;
-    numTransferSyntaxes = 3;
-
-    OFCondition condition = EC_Normal;
-    int pid = 1;
-    for (int i = 0;
-         i < numberOfDcmLongSCUStorageSOPClassUIDs && condition.good(); i++)
-    {
-        condition =
-                ASC_addPresentationContext(params, pid,
-                                           dcmLongSCUStorageSOPClassUIDs[i],
-                                           transferSyntaxes,
-                                           numTransferSyntaxes);
-        pid += 2;
-    }
-
-    return condition;
 }
 
 } // namespace services

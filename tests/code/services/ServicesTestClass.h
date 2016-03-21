@@ -74,8 +74,7 @@ class ServicesTestClass
 {
 public:
 
-    mongo::DBClientConnection connection;
-    std::string db_name;
+    dopamine::services::DataBaseInformation db_information;
 
     ServicesTestClass()
     {
@@ -84,7 +83,7 @@ public:
                 get_instance().parse(_get_env_variable("DOPAMINE_TEST_CONFIG"));
 
         // Create DataBase Connection
-        dopamine::services::create_db_connection(connection, db_name);
+        dopamine::services::create_db_connection(db_information);
 
         // Add data into DataBase
         this->_insert_data();
@@ -113,9 +112,11 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.update(this->db_name + ".authorization",
-                                BSON("service" << service), value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->db_information.connection.update(
+            this->db_information.db_name + ".authorization",
+            BSON("service" << service), value);
+        std::string result = this->db_information.connection.getLastError(
+            this->db_information.db_name);
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -132,8 +133,10 @@ protected:
                                     "principal_type" << "" <<
                                     "service" << service <<
                                     "dataset" << constraint);
-        this->connection.insert(this->db_name + ".authorization", value);
-        std::string result = this->connection.getLastError(this->db_name);
+        this->db_information.connection.insert(
+            this->db_information.db_name + ".authorization", value);
+        std::string result = this->db_information.connection.getLastError(
+            this->db_information.db_name);
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -174,7 +177,7 @@ private:
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_04_01_01_03);
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->db_information.db_name << ".datasets";
         for (std::string testfile : testfiles)
         {
             // Get file name
@@ -261,8 +264,10 @@ private:
                                   mongo::BinDataGeneral, buffer.c_str());
 
             // insert into DataBase
-            this->connection.insert(streamTable.str(), builder.obj());
-            std::string result = this->connection.getLastError(this->db_name);
+            this->db_information.connection.insert(
+                streamTable.str(), builder.obj());
+            std::string result = this->db_information.connection.getLastError(
+                this->db_information.db_name);
             if (result != "") // empty string if no error
             {
                 BOOST_FAIL(result);
@@ -284,8 +289,10 @@ private:
 
         this->_sop_instance_uids.push_back(SOP_INSTANCE_UID_BAD);
 
-        this->connection.insert(streamTable.str(), badbuilder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->db_information.connection.insert(
+            streamTable.str(), badbuilder.obj());
+        std::string result = this->db_information.connection.getLastError(
+            this->db_information.db_name);
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -396,7 +403,8 @@ private:
         this->_sop_instance_uids_gridfs.push_back(SOP_INSTANCE_UID_BIG_02);
 
         // insert into GridSF
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(
+            db_information.connection, db_information.bulk_data);
         mongo::BSONObj objret =
                 gridfs.storeFile(buffer.c_str(),
                                  buffer.size(),
@@ -413,10 +421,11 @@ private:
         builder << "Content" << objret.getField("_id").OID().toString();
 
         std::stringstream streamTable;
-        streamTable << this->db_name << ".datasets";
+        streamTable << this->db_information.db_name << ".datasets";
         // insert into DataBase
-        this->connection.insert(streamTable.str(), builder.obj());
-        std::string result = this->connection.getLastError(this->db_name);
+        this->db_information.connection.insert(streamTable.str(), builder.obj());
+        std::string result = this->db_information.connection.getLastError(
+            this->db_information.db_name);
         if (result != "") // empty string if no error
         {
             BOOST_FAIL(result);
@@ -430,12 +439,17 @@ private:
         // Delete all data
         for (std::string const SOPInstanceUID : this->_sop_instance_uids)
         {
-            this->connection.remove(this->db_name + ".datasets",
-                                    BSON("00080018.Value" << SOPInstanceUID));
+            this->db_information.connection.remove(
+                this->db_information.db_name + ".datasets",
+                BSON("00080018.Value" << SOPInstanceUID));
+            this->db_information.connection.remove(
+                this->db_information.bulk_data + ".datasets",
+                BSON("SOPInstanceUID" << SOPInstanceUID));
         }
 
         // Delete data from GridFS
-        mongo::GridFS gridfs(connection, db_name);
+        mongo::GridFS gridfs(
+            this->db_information.connection, this->db_information.bulk_data);
         for (std::string const SOPInstanceUIDgridfs :
              this->_sop_instance_uids_gridfs)
         {
@@ -447,8 +461,8 @@ private:
     {
         for (auto const constraint : this->_constraints)
         {
-            this->connection.remove(this->db_name + ".authorization",
-                                    constraint);
+            this->db_information.connection.remove(
+                this->db_information.db_name + ".authorization", constraint);
         }
     }
 
@@ -460,9 +474,11 @@ private:
                                         "principal_type" << "" <<
                                         "service" << service <<
                                         "dataset" << mongo::BSONObj());
-            this->connection.update(this->db_name + ".authorization",
-                                    BSON("service" << service), value);
-            std::string result = this->connection.getLastError(this->db_name);
+            this->db_information.connection.update(
+                this->db_information.db_name + ".authorization",
+                BSON("service" << service), value);
+            std::string result = this->db_information.connection.getLastError(
+                this->db_information.db_name);
             if (result != "") // empty string if no error
             {
                 BOOST_FAIL(result);

@@ -75,10 +75,17 @@ static void get_callback(
         }
         else
         {
+            std::string const transfer_syntax =
+                object["00020010"]["Value"].Array()[0].String();
+
+            auto * const data_set =
+                context->get_generator()->retrieve_dataset(object);
+
             OFCondition condition =
                 context->get_storeprovider()->perform_sub_operation(
-                        context->get_generator()->retrieve_dataset(object),
-                        request->Priority);
+                    data_set, transfer_syntax, request->Priority);
+
+            delete data_set;
 
             if (condition.bad())
             {

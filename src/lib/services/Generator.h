@@ -18,6 +18,8 @@
 
 #include <mongo/client/dbclient.h>
 
+#include "services/ServicesTools.h"
+
 namespace dopamine
 {
 
@@ -58,6 +60,9 @@ public:
     /// Destroy the instance of Generator
     virtual ~Generator();
 
+    /// @brief Return the user name
+    std::string const & get_username() const;
+
     /**
      * Cancel response generation
      * NOT IMPLEMENTED YET
@@ -80,9 +85,7 @@ public:
 
 protected:
 
-    mongo::DBClientConnection _connection;
-
-    std::string _db_name;
+    services::DataBaseInformation _db_information;
 
     bool _isconnected;
 

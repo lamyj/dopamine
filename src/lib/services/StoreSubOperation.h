@@ -9,12 +9,14 @@
 #ifndef _783b07e2_38f1_4021_a423_6fe8d0934681
 #define _783b07e2_38f1_4021_a423_6fe8d0934681
 
-/* make sure OS specific configuration is included first */
+#include <vector>
+
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcdeftag.h>
 #include <dcmtk/dcmnet/assoc.h>
 #include <dcmtk/dcmnet/dimse.h>
+
+#include "services/SCP/PresentationContext.h"
 
 namespace dopamine
 {
@@ -41,10 +43,13 @@ public:
     /// Destroy the instance of StoreSubOperation
     virtual ~StoreSubOperation();
 
-    OFCondition build_sub_association(DIC_AE destination_aetitle);
+    OFCondition build_sub_association(
+        DIC_AE destination_aetitle,
+        std::vector<PresentationContext> const & presentation_contexts);
 
-    OFCondition perform_sub_operation(DcmDataset* dataset,
-                                      T_DIMSE_Priority priority);
+    OFCondition perform_sub_operation(
+        DcmDataset* dataset, std::string const & transfer_syntax,
+        T_DIMSE_Priority priority);
 
 protected:
 
@@ -64,14 +69,6 @@ private:
     DIC_US _original_message_id;
 
     bool _new_association;
-
-    /**
-     * Add the presentation context
-     * @param params: association parameters
-     * @return EC_Normal if successful, an error code otherwise
-     */
-    OFCondition _add_all_storage_presentation_context(T_ASC_Parameters* params);
-
 };
 
 } // namespace services

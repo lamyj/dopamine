@@ -24,27 +24,24 @@ int main(int argc, char** argv)
 {
     try
     {
-        char* conffile = getenv("DOPAMINE_TEST_CONFIG");
-        std::string NetworkConfFILE;
-        if (conffile != NULL)
+        std::string const syntax = "stow-rs -f CONFIG_FILE";
+        if(argc != 3 || std::string(argv[1]) != std::string("-f"))
         {
-            NetworkConfFILE = std::string(conffile);
+            std::cerr << "Syntax: " << syntax << "\n";
+            return 1;
         }
+
         // Read configuration file
-        std::string const localconf = "../../../configuration/dopamine_conf.ini";
-        if (NetworkConfFILE != "")
+        dopamine::ConfigurationPACS& configuration =
+                dopamine::ConfigurationPACS::get_instance();
+        std::string const config_file(argv[2]);
+        if(!boost::filesystem::exists(config_file))
         {
-            dopamine::ConfigurationPACS::get_instance().parse(NetworkConfFILE);
+            std::cerr << "No such file: '" << config_file << "'\n";
+            std::cerr << "Syntax: " << syntax << "\n";
+            return 1;
         }
-        else if (boost::filesystem::exists(boost::filesystem::path(localconf)))
-        {
-            dopamine::ConfigurationPACS::get_instance().parse(localconf);
-        }
-        else
-        {
-            dopamine::ConfigurationPACS::
-                    get_instance().parse("/etc/dopamine/dopamine_conf.ini");
-        }
+        configuration.parse(config_file);
 
         cgicc::Cgicc cgi;
 

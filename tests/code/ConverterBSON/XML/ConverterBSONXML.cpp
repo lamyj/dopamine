@@ -556,7 +556,11 @@ BOOST_FIXTURE_TEST_CASE(ConversionXMLBSON, TestDataConversionXMLBSON)
 
     std::stringstream stream_original;
     std::stringstream stream_final;
+#if BOOST_VERSION >= 105600
+    boost::property_tree::xml_writer_settings<std::string> settings(' ', 4);
+#else
     boost::property_tree::xml_writer_settings<char> settings(' ', 4);
+#endif
     boost::property_tree::write_xml(stream_original, tree, settings);
     boost::property_tree::write_xml(stream_final, tree, settings);
 

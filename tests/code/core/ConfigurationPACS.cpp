@@ -65,11 +65,11 @@ struct TestDataSpecificAllowedAETitle : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();
@@ -94,11 +94,11 @@ struct TestDataMissingField : public TestDataConfigurationBase
         myfile << "hostname=localhost\n";
         myfile << "port=27017\n";
         myfile << "dbname=pacs\n";
+        myfile << "bulk_data=pacs_bulk\n";
         myfile << "[authenticator]\n";
         myfile << "type=CSV\n";
         myfile << "filepath=./authentest.csv\n";
-        myfile << "[listAddressPort]\n";
-        myfile << "allowed=LANGUEDOC,LOCAL\n";
+        myfile << "[peers]\n";
         myfile << "LANGUEDOC=languedoc:11113\n";
         myfile << "LOCAL=vexin:11112\n";
         myfile.close();

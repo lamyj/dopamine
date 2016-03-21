@@ -39,9 +39,8 @@ EchoSCP
     logger_info() << "Received Echo SCP RQ: MsgID "
                  << this->_request->MessageID;
 
-    mongo::DBClientConnection connection;
-    std::string db_name;
-    bool const connection_state = create_db_connection(connection, db_name);
+    DataBaseInformation db_information;
+    bool const connection_state = create_db_connection(db_information);
 
     // Default response is SUCCESS
     DIC_US status = STATUS_Success;
@@ -53,7 +52,7 @@ EchoSCP
                     this->_association->params->DULparams.reqUserIdentNeg);
 
         // Look for user authorization
-        if ( ! is_authorized(connection, db_name, username, Service_Echo) )
+        if ( ! is_authorized(db_information, username, Service_Echo) )
         {
             // no echo status defined, used STATUS_STORE_Refused_OutOfResources
             status = 0xa700;
@@ -68,7 +67,8 @@ EchoSCP
     {
         // no echo status defined, used STATUS_STORE_Refused_OutOfResources
         status = 0xa700;
-        logger_warning() << "Could not connect to database: " << db_name;
+        logger_warning() << "Could not connect to database: "
+            << db_information.db_name;
 
         create_status_detail(0xa700, DCM_UndefinedTagKey,
                              OFString("Could not connect to database"),

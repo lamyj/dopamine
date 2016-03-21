@@ -3,7 +3,7 @@ add_subdirectory(tools)
 
 find_package(DCMTK REQUIRED)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-find_package(Qt4 REQUIRED QtGui)
+find_package(Qt4 REQUIRED QtCore QtGui)
 include(${QT_USE_FILE})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/lib
@@ -32,3 +32,14 @@ foreach(test_file ${tests})
         add_test("${test}_${case}" "${test}" "--run_test=${case}")
     endforeach()
 endforeach()
+
+file(GLOB_RECURSE python_tests *.py)
+add_custom_target(
+    PythonTests ${CMAKE_COMMAND} -E echo "Python Tests" SOURCES ${python_tests})
+
+file(GLOB_RECURSE test_data data/*)
+add_custom_target(
+    TestData ${CMAKE_COMMAND} -E echo "Test Data" SOURCES ${test_data})
+
+add_custom_target(
+    Runner ${CMAKE_COMMAND} -E echo "Test runner" SOURCES run_tests.sh)

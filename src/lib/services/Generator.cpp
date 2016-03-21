@@ -247,13 +247,20 @@ Generator
     _dataset(NULL)
 {
     // Create DataBase Connection
-    this->_isconnected = create_db_connection(this->_connection, this->_db_name);
+    this->_isconnected = create_db_connection(this->_db_information);
 }
 
 Generator
 ::~Generator()
 {
     // Nothing to do
+}
+
+std::string const &
+Generator
+::get_username() const
+{
+    return this->_username;
 }
 
 void

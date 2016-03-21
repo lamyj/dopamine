@@ -11,6 +11,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/version.hpp>
 
 #include <dcmtk/dcmdata/dctag.h>
 
@@ -62,7 +63,11 @@ BSONToXML
     boost::property_tree::ptree const ptree = this->to_ptree(bson);
 
     std::stringstream xmldataset;
+#if BOOST_VERSION >= 105600
+    boost::property_tree::xml_writer_settings<std::string> settings(' ', 4);
+#else
     boost::property_tree::xml_writer_settings<char> settings(' ', 4);
+#endif
     boost::property_tree::write_xml(xmldataset, ptree, settings);
 
     return xmldataset.str();
