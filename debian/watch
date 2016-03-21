@@ -1,0 +1,7 @@
+version=3
+
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/dopamine-$1\.tar\.gz/,\
+pgpsigurlmangle=s/archive/releases\/download/;\
+s/([^\/]+)\.tar\.gz/$1\/$1\.tar\.gz/;\
+s/$/.asc/ \
+  https://github.com/lamyj/dopamine/tags .*/v?(\d\S*)\.tar\.gz
