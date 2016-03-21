@@ -3,6 +3,7 @@ Section: science
 Priority: optional
 Maintainer: Julien Lamy <lamy@unistra.fr>
 Build-Depends: debhelper (>= 8.0.0), 
+               cmake,
                libboost-filesystem-dev, 
                libboost-system-dev, 
                libboost-regex-dev, 
