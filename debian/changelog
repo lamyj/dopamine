@@ -1,3 +1,9 @@
+dopamine (0.4.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Julien Lamy <lamy@unistra.fr>  Mon, 21 Mar 2016 12:04:56 +0100
+
 dopamine (0.3.0-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
