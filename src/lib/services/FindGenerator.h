@@ -32,13 +32,13 @@ public:
     /// Destroy the find response generator
     virtual ~FindGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message);
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message);
 
-    virtual dcmtkpp::Value::Integer next();
+    virtual odil::Value::Integer next();
 
-    virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
+    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
 
     bool get_convert_modalities_in_study() const;
 

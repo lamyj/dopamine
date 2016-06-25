@@ -11,8 +11,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <dcmtkpp/message/CGetResponse.h>
-#include <dcmtkpp/Writer.h>
+#include <odil/message/CGetResponse.h>
+#include <odil/Writer.h>
 
 #include "services/GetGenerator.h"
 #include "services/webservices/WebServiceException.h"
@@ -35,9 +35,9 @@ Wado_uri
     mongo::BSONObj const object = this->_parse_string();
 
     auto status = generator->initialize(object);
-    if (status != dcmtkpp::message::CGetResponse::Pending)
+    if (status != odil::message::CGetResponse::Pending)
     {
-        if (status == dcmtkpp::message::CGetResponse::RefusedNotAuthorized)
+        if (status == odil::message::CGetResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -57,10 +57,10 @@ Wado_uri
         generator->next();
         std::stringstream stream_dataset;
         auto datasets = generator->get();
-        dcmtkpp::Writer::write_file(
+        odil::Writer::write_file(
                     datasets.second, stream_dataset, datasets.first,
-                    dcmtkpp::registry::ExplicitVRLittleEndian,
-                    dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+                    odil::registry::ExplicitVRLittleEndian,
+                    odil::Writer::ItemEncoding::ExplicitLength);
 
         this->_response = stream_dataset.str();
     }

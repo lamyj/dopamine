@@ -9,9 +9,9 @@
 #ifndef _bfc0e3cc_01f0_402b_9e96_a8c825466940
 #define _bfc0e3cc_01f0_402b_9e96_a8c825466940
 
-#include <dcmtkpp/registry.h>
-#include <dcmtkpp/Tag.h>
-#include <dcmtkpp/VR.h>
+#include <odil/registry.h>
+#include <odil/Tag.h>
+#include <odil/VR.h>
 
 #include "Webservices.h"
 
@@ -27,60 +27,60 @@ namespace services
 struct Attribute
 {
 public:
-    Attribute(dcmtkpp::Tag const & tag, dcmtkpp::VR const & vr):
+    Attribute(odil::Tag const & tag, odil::VR const & vr):
         _tag(tag), _vr(vr) {}
 
-    dcmtkpp::Tag get_tag() const
+    odil::Tag get_tag() const
         { return this->_tag; }
 
-    dcmtkpp::VR get_vr() const
+    odil::VR get_vr() const
         { return this->_vr; }
 
 private:
-    dcmtkpp::Tag _tag;
-    dcmtkpp::VR _vr;
+    odil::Tag _tag;
+    odil::VR _vr;
 
 };
 
 // See PS3.18 - 6.7.1.2.2.1 Study Result Attributes
 std::vector<Attribute> const mandatory_study_attributes =
 {
-    Attribute(dcmtkpp::registry::StudyDate, dcmtkpp::VR::DA), // Study Date
-    Attribute(dcmtkpp::registry::StudyTime, dcmtkpp::VR::TM), // Study Time
-    Attribute(dcmtkpp::registry::AccessionNumber, dcmtkpp::VR::SH), // Accession Number
-    Attribute(dcmtkpp::registry::InstanceAvailability, dcmtkpp::VR::CS), // Instance Availability
-    Attribute(dcmtkpp::registry::ModalitiesInStudy, dcmtkpp::VR::CS), // Modalities in Study
-    Attribute(dcmtkpp::registry::ReferringPhysicianName, dcmtkpp::VR::PN), // Referring Physician's Name
-    Attribute(dcmtkpp::registry::PatientName, dcmtkpp::VR::PN), // Patient's Name
-    Attribute(dcmtkpp::registry::PatientID, dcmtkpp::VR::LO), // Patient ID
-    Attribute(dcmtkpp::registry::PatientBirthDate, dcmtkpp::VR::DA), // Patient's Birth Date
-    Attribute(dcmtkpp::registry::PatientSex, dcmtkpp::VR::CS), // Patient's Sex
-    Attribute(dcmtkpp::registry::StudyInstanceUID, dcmtkpp::VR::UI), // Study Instance UID
-    Attribute(dcmtkpp::registry::StudyID, dcmtkpp::VR::SH), // Study ID
-    Attribute(dcmtkpp::registry::NumberOfStudyRelatedSeries, dcmtkpp::VR::IS), // Number of Study Related Series
-    Attribute(dcmtkpp::registry::NumberOfStudyRelatedInstances, dcmtkpp::VR::IS)  // Number of Study Related Instances
+    Attribute(odil::registry::StudyDate, odil::VR::DA), // Study Date
+    Attribute(odil::registry::StudyTime, odil::VR::TM), // Study Time
+    Attribute(odil::registry::AccessionNumber, odil::VR::SH), // Accession Number
+    Attribute(odil::registry::InstanceAvailability, odil::VR::CS), // Instance Availability
+    Attribute(odil::registry::ModalitiesInStudy, odil::VR::CS), // Modalities in Study
+    Attribute(odil::registry::ReferringPhysicianName, odil::VR::PN), // Referring Physician's Name
+    Attribute(odil::registry::PatientName, odil::VR::PN), // Patient's Name
+    Attribute(odil::registry::PatientID, odil::VR::LO), // Patient ID
+    Attribute(odil::registry::PatientBirthDate, odil::VR::DA), // Patient's Birth Date
+    Attribute(odil::registry::PatientSex, odil::VR::CS), // Patient's Sex
+    Attribute(odil::registry::StudyInstanceUID, odil::VR::UI), // Study Instance UID
+    Attribute(odil::registry::StudyID, odil::VR::SH), // Study ID
+    Attribute(odil::registry::NumberOfStudyRelatedSeries, odil::VR::IS), // Number of Study Related Series
+    Attribute(odil::registry::NumberOfStudyRelatedInstances, odil::VR::IS)  // Number of Study Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.2 Series Result Attributes
 std::vector<Attribute> const mandatory_series_attributes =
 {
-    Attribute(dcmtkpp::registry::Modality, dcmtkpp::VR::CS), // Modality
-    Attribute(dcmtkpp::registry::SeriesDescription, dcmtkpp::VR::LO), // Series Description
-    Attribute(dcmtkpp::registry::SeriesInstanceUID, dcmtkpp::VR::UI), // Series Instance UID
-    Attribute(dcmtkpp::registry::SeriesNumber, dcmtkpp::VR::IS), // Series Number
-    Attribute(dcmtkpp::registry::NumberOfSeriesRelatedInstances, dcmtkpp::VR::IS)  // Number of Series Related Instances
+    Attribute(odil::registry::Modality, odil::VR::CS), // Modality
+    Attribute(odil::registry::SeriesDescription, odil::VR::LO), // Series Description
+    Attribute(odil::registry::SeriesInstanceUID, odil::VR::UI), // Series Instance UID
+    Attribute(odil::registry::SeriesNumber, odil::VR::IS), // Series Number
+    Attribute(odil::registry::NumberOfSeriesRelatedInstances, odil::VR::IS)  // Number of Series Related Instances
 };
 
 // See PS3.18 - 6.7.1.2.2.3 Instance Result Attributes
 std::vector<Attribute> const mandatory_instance_attributes =
 {
-    Attribute(dcmtkpp::registry::SOPClassUID, dcmtkpp::VR::UI), // SOP Class UID
-    Attribute(dcmtkpp::registry::SOPInstanceUID, dcmtkpp::VR::UI), // SOP Instance UID
-    Attribute(dcmtkpp::registry::InstanceAvailability, dcmtkpp::VR::CS), // Instance Availability
-    Attribute(dcmtkpp::registry::InstanceNumber, dcmtkpp::VR::IS), // Instance Number
-    Attribute(dcmtkpp::registry::Rows, dcmtkpp::VR::US), // Rows
-    Attribute(dcmtkpp::registry::Columns, dcmtkpp::VR::US), // Columns
-    Attribute(dcmtkpp::registry::BitsAllocated, dcmtkpp::VR::US)  // Bits Allocated
+    Attribute(odil::registry::SOPClassUID, odil::VR::UI), // SOP Class UID
+    Attribute(odil::registry::SOPInstanceUID, odil::VR::UI), // SOP Instance UID
+    Attribute(odil::registry::InstanceAvailability, odil::VR::CS), // Instance Availability
+    Attribute(odil::registry::InstanceNumber, odil::VR::IS), // Instance Number
+    Attribute(odil::registry::Rows, odil::VR::US), // Rows
+    Attribute(odil::registry::Columns, odil::VR::US), // Columns
+    Attribute(odil::registry::BitsAllocated, odil::VR::US)  // Bits Allocated
 };
 
 /**

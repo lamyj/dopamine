@@ -32,13 +32,13 @@ public:
     /// Destroy the echo response generator
     virtual ~EchoGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message);
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message);
 
-    virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
+    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
 
-    virtual dcmtkpp::Value::Integer next();
+    virtual odil::Value::Integer next();
 
 protected:
     /// Create a default echo response generator

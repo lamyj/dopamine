@@ -32,13 +32,13 @@ public:
     /// Destroy the get response generator
     virtual ~GetGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message);
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message);
 
-    virtual dcmtkpp::Value::Integer next();
+    virtual odil::Value::Integer next();
 
-    virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
+    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
 
 protected:
     /// Create a default get response generator

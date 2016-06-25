@@ -11,10 +11,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/Reader.h>
-#include <dcmtkpp/message/CStoreResponse.h>
-#include <dcmtkpp/registry.h>
+#include <odil/DataSet.h>
+#include <odil/Reader.h>
+#include <odil/message/CStoreResponse.h>
+#include <odil/registry.h>
 
 #include <mimetic/mimeentity.h>
 
@@ -181,14 +181,14 @@ Stow_rs
     }
     this->_content_type = this->_find_content_type(h.contentType().str());
 
-    dcmtkpp::DataSet responseDataset;
+    odil::DataSet responseDataset;
     try
     {
-        responseDataset.add(dcmtkpp::registry::RetrieveURL, dcmtkpp::VR::UT);
-        responseDataset.add(dcmtkpp::registry::FailedSOPSequence,
-                            dcmtkpp::VR::SQ);
-        responseDataset.add(dcmtkpp::registry::ReferencedSOPSequence,
-                            dcmtkpp::VR::SQ);
+        responseDataset.add(odil::registry::RetrieveURL, odil::VR::UT);
+        responseDataset.add(odil::registry::FailedSOPSequence,
+                            odil::VR::SQ);
+        responseDataset.add(odil::registry::ReferencedSOPSequence,
+                            odil::VR::SQ);
 
         mimetic::MimeEntityList& parts = entity.body().parts();
         // cycle on sub entities list and print info of every item
@@ -202,25 +202,25 @@ Stow_rs
             if (this->_content_type != contenttypestream.str())
             {
                 // ERROR: add an item into failedsopsequence
-                dcmtkpp::DataSet failedsopsequence;
-                failedsopsequence.add(dcmtkpp::registry::FailureReason,
-                                      dcmtkpp::Element({0x0110},
-                                                       dcmtkpp::VR::US));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID,
-                                      dcmtkpp::Element({"Unknown"},
-                                                       dcmtkpp::VR::UI));
+                odil::DataSet failedsopsequence;
+                failedsopsequence.add(odil::registry::FailureReason,
+                                      odil::Element({0x0110},
+                                                       odil::VR::US));
+                failedsopsequence.add(odil::registry::ReferencedSOPClassUID,
+                                      odil::Element({"Unknown"},
+                                                       odil::VR::UI));
                 failedsopsequence.add(
-                            dcmtkpp::registry::ReferencedSOPInstanceUID,
-                            dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                            odil::registry::ReferencedSOPInstanceUID,
+                            odil::Element({"Unknown"}, odil::VR::UI));
                 responseDataset.as_data_set(
-                            dcmtkpp::registry::FailedSOPSequence).push_back(
+                            odil::registry::FailedSOPSequence).push_back(
                                     failedsopsequence);
                 continue;
             }
 
             mimetic::Body& body = (*mbit)->body();
 
-            dcmtkpp::DataSet dataset;
+            odil::DataSet dataset;
 
             // see PS3.18 6.6.1.1.1 DICOM Request Message Body
             if (this->_content_type == MIME_TYPE_APPLICATION_DICOM)
@@ -238,24 +238,24 @@ Stow_rs
                 try
                 {
                     std::stringstream stream; stream << temp;
-                    auto file = dcmtkpp::Reader::read_file(stream);
+                    auto file = odil::Reader::read_file(stream);
                     dataset = file.second;
                 }
                 catch (std::exception const & exc)
                 {
                     // ERROR: add an item into failedsopsequence
-                    dcmtkpp::DataSet failedsopsequence;
-                    failedsopsequence.add(dcmtkpp::registry::FailureReason,
-                                          dcmtkpp::Element({0xa700},
-                                                           dcmtkpp::VR::US));
+                    odil::DataSet failedsopsequence;
+                    failedsopsequence.add(odil::registry::FailureReason,
+                                          odil::Element({0xa700},
+                                                           odil::VR::US));
                     failedsopsequence.add(
-                                dcmtkpp::registry::ReferencedSOPClassUID,
-                                dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                                odil::registry::ReferencedSOPClassUID,
+                                odil::Element({"Unknown"}, odil::VR::UI));
                     failedsopsequence.add(
-                                dcmtkpp::registry::ReferencedSOPInstanceUID,
-                                dcmtkpp::Element({"Unknown"}, dcmtkpp::VR::UI));
+                                odil::registry::ReferencedSOPInstanceUID,
+                                odil::Element({"Unknown"}, odil::VR::UI));
                     responseDataset.as_data_set(
-                                dcmtkpp::registry::FailedSOPSequence).push_back(
+                                odil::registry::FailedSOPSequence).push_back(
                                         failedsopsequence);
                     continue;
                 }
@@ -270,18 +270,18 @@ Stow_rs
             }
 
             auto const sopclassuid =
-                    dataset.as_string(dcmtkpp::registry::SOPClassUID)[0];
+                    dataset.as_string(odil::registry::SOPClassUID)[0];
             auto const sopinstanceuid =
-                    dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0];
+                    dataset.as_string(odil::registry::SOPInstanceUID)[0];
 
             // Modify dataset here (see PS3.18 6.6.1.2 Action)
 
-            Uint16 result = dcmtkpp::message::Response::Pending;
+            uint16_t result = odil::message::Response::Pending;
             // Check StudyInstanceUID
             if (!studyinstanceuid.isEmpty())
             {
                 auto const studyuid = dataset.as_string(
-                            dcmtkpp::registry::StudyInstanceUID)[0];
+                            odil::registry::StudyInstanceUID)[0];
                 mongo::BSONObj const studyobj =
                         studyinstanceuid["0020000d"].Obj();
                 if (studyobj["Value"].Array()[0].String() !=
@@ -291,71 +291,71 @@ Stow_rs
                 }
             }
 
-            if (result == dcmtkpp::message::Response::Pending)
+            if (result == odil::message::Response::Pending)
             {
                 // Insert dataset into DataBase
                 StoreGenerator::Pointer generator = StoreGenerator::New();
                 result = generator->initialize(dataset);
 
                 if (result ==
-                    dcmtkpp::message::CStoreResponse::RefusedNotAuthorized)
+                    odil::message::CStoreResponse::RefusedNotAuthorized)
                 {
                     throw WebServiceException(401, "Unauthorized",
                                               authentication_string);
                 }
             }
 
-            if (result != dcmtkpp::message::Response::Success)
+            if (result != odil::message::Response::Success)
             {
                 // ERROR: add an item into failedsopsequence
-                dcmtkpp::DataSet failedsopsequence;
-                failedsopsequence.add(dcmtkpp::registry::FailureReason,
-                                      dcmtkpp::Element({result},
-                                                       dcmtkpp::VR::US));
-                failedsopsequence.add(dcmtkpp::registry::ReferencedSOPClassUID,
-                                      dcmtkpp::Element({sopclassuid},
-                                                       dcmtkpp::VR::UI));
+                odil::DataSet failedsopsequence;
+                failedsopsequence.add(odil::registry::FailureReason,
+                                      odil::Element({result},
+                                                       odil::VR::US));
+                failedsopsequence.add(odil::registry::ReferencedSOPClassUID,
+                                      odil::Element({sopclassuid},
+                                                       odil::VR::UI));
                 failedsopsequence.add(
-                            dcmtkpp::registry::ReferencedSOPInstanceUID,
-                            dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                            odil::registry::ReferencedSOPInstanceUID,
+                            odil::Element({sopinstanceuid}, odil::VR::UI));
                 responseDataset.as_data_set(
-                            dcmtkpp::registry::FailedSOPSequence).push_back(
+                            odil::registry::FailedSOPSequence).push_back(
                                     failedsopsequence);
             }
             else
             {
                 // Everything is OK
-                dcmtkpp::DataSet referencedsopsequence;
-                referencedsopsequence.add(dcmtkpp::registry::RetrieveURL,
-                                          dcmtkpp::VR::UT);
+                odil::DataSet referencedsopsequence;
+                referencedsopsequence.add(odil::registry::RetrieveURL,
+                                          odil::VR::UT);
                 referencedsopsequence.add(
-                            dcmtkpp::registry::ReferencedSOPClassUID,
-                            dcmtkpp::Element({sopclassuid}, dcmtkpp::VR::UI));
+                            odil::registry::ReferencedSOPClassUID,
+                            odil::Element({sopclassuid}, odil::VR::UI));
                 referencedsopsequence.add(
-                            dcmtkpp::registry::ReferencedSOPInstanceUID,
-                            dcmtkpp::Element({sopinstanceuid}, dcmtkpp::VR::UI));
+                            odil::registry::ReferencedSOPInstanceUID,
+                            odil::Element({sopinstanceuid}, odil::VR::UI));
                 responseDataset.as_data_set(
-                            dcmtkpp::registry::ReferencedSOPSequence).push_back(
+                            odil::registry::ReferencedSOPSequence).push_back(
                                     referencedsopsequence);
             }
         }
 
         bool containsbad =
                 responseDataset.as_data_set(
-                    dcmtkpp::registry::FailedSOPSequence).size() != 0;
+                    odil::registry::FailedSOPSequence).size() != 0;
         // Check sequences
         if (!containsbad)
         {
             // empty sequence => remove
-            responseDataset.remove(dcmtkpp::registry::FailedSOPSequence);
+            responseDataset.remove(odil::registry::FailedSOPSequence);
         }
         bool containsgood =
                 responseDataset.as_data_set(
-                    dcmtkpp::registry::ReferencedSOPSequence).size() != 0;
+                    odil::registry::ReferencedSOPSequence).size() != 0;
         if (!containsgood)
         {
             // empty sequence => remove
-            responseDataset.remove(dcmtkpp::registry::ReferencedSOPSequence);
+            responseDataset.remove(odil::registry::ReferencedSOPSequence);
         }
 
         // See PS3.18 Table 6.6.1-1. HTTP/1.1 Standard Response Code
@@ -378,7 +378,7 @@ Stow_rs
         // Transfert DcmDataset into XML
         this->_response = dataset_to_xml_string(responseDataset);
     }
-    catch (dcmtkpp::Exception const & dcmtkppexc)
+    catch (odil::Exception const & dcmtkppexc)
     {
         throw WebServiceException(503, "Busy", std::string(dcmtkppexc.what()));
     }

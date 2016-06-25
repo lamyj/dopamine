@@ -32,13 +32,13 @@ public:
     /// Destroy the store response generator
     virtual ~StoreGenerator();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message);
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message);
 
-    virtual dcmtkpp::Value::Integer next();
+    virtual odil::Value::Integer next();
 
-    dcmtkpp::Value::Integer initialize(dcmtkpp::DataSet const & dataset);
+    odil::Value::Integer initialize(odil::DataSet const & dataset);
 
     std::string get_peer_ae_title() const;
 

@@ -11,10 +11,10 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <dcmtkpp/DcmtkAssociation.h>
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/message/Message.h>
-#include <dcmtkpp/Value.h>
+#include <odil/Association.h>
+#include <odil/DataSet.h>
+#include <odil/message/Message.h>
+#include <odil/Value.h>
 
 namespace dopamine
 {
@@ -38,21 +38,21 @@ public:
     /// @brief Destructor.
     virtual ~Generator();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message) = 0;
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message) = 0;
 
     virtual bool done() const = 0;
 
-    virtual dcmtkpp::Value::Integer next() = 0;
+    virtual odil::Value::Integer next() = 0;
 
-    virtual std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> get() const;
+    virtual std::pair<odil::DataSet, odil::DataSet> get() const;
 
     virtual std::pair<std::string, int> get_peer_information(std::string const & ae_title) = 0;
 
 protected:
-    dcmtkpp::DataSet _meta_information;
-    dcmtkpp::DataSet _current_dataset;
+    odil::DataSet _meta_information;
+    odil::DataSet _current_dataset;
 
 };
 

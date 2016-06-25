@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/Response.h>
+#include <odil/message/Response.h>
 
 #include "core/ConfigurationPACS.h"
 #include "core/LoggerPACS.h"
@@ -21,23 +21,23 @@ namespace services
 template<>
 void
 GeneratorPACS
-::_add_value_to_builder<Sint32>(mongo::BSONObjBuilder &builder,
+::_add_value_to_builder<int32_t>(mongo::BSONObjBuilder &builder,
                                 std::string const & field,
                                 std::string const & value) const
 {
     // Fix compilation error for i386
-    builder.appendIntOrLL(field, boost::lexical_cast<Sint32>(value));
+    builder.appendIntOrLL(field, boost::lexical_cast<int32_t>(value));
 }
 
 template<>
 void
 GeneratorPACS
-::_add_value_to_builder<Uint32>(mongo::BSONObjBuilder &builder,
+::_add_value_to_builder<uint32_t>(mongo::BSONObjBuilder &builder,
                                 std::string const & field,
                                 std::string const & value) const
 {
     // Fix compilation error for i386
-    builder.appendIntOrLL(field, boost::lexical_cast<Uint32>(value));
+    builder.appendIntOrLL(field, boost::lexical_cast<uint32_t>(value));
 }
 
 template<typename TType>
@@ -91,42 +91,42 @@ GeneratorPACS
 
     if      (vr == "DS")
     {
-        this->_add_value_to_builder<Float64>(
+        this->_add_value_to_builder<double>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "FD")
     {
-        this->_add_value_to_builder<Float64>(
+        this->_add_value_to_builder<double>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "FL")
     {
-        this->_add_value_to_builder<Float32>(
+        this->_add_value_to_builder<float>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "IS")
     {
-        this->_add_value_to_builder<Sint32>(
+        this->_add_value_to_builder<int32_t>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "SL")
     {
-        this->_add_value_to_builder<Sint32>(
+        this->_add_value_to_builder<int32_t>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "SS")
     {
-        this->_add_value_to_builder<Sint16>(
+        this->_add_value_to_builder<int16_t>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "UL")
     {
-        this->_add_value_to_builder<Uint32>(
+        this->_add_value_to_builder<uint32_t>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else if (vr == "US")
     {
-        this->_add_value_to_builder<Uint16>(
+        this->_add_value_to_builder<uint16_t>(
                     builder, field, MongoDBConnection::as_string(value));
     }
     else
@@ -286,16 +286,17 @@ GeneratorPACS
     }
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GeneratorPACS
-::initialize(dcmtkpp::DcmtkAssociation const & association,
-             dcmtkpp::message::Message const & message)
+::initialize(odil::Association const & association,
+             odil::message::Message const & message)
 {
     // Get user identity
-    this->_username = association.get_user_identity_primary_field();
+    this->_username =
+        association.get_parameters().get_user_identity().primary_field;
 
     // Everything ok
-    return dcmtkpp::message::Response::Success;
+    return odil::message::Response::Success;
 }
 
 bool
@@ -310,7 +311,7 @@ GeneratorPACS
     return !this->_cursor->more();
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GeneratorPACS
 ::initialize(mongo::BSONObj const & request)
 {
@@ -332,11 +333,11 @@ GeneratorPACS
     this->_isconnected = this->_connection->connect();
     if (this->_isconnected == false)
     {
-        return dcmtkpp::message::Response::ProcessingFailure;
+        return odil::message::Response::ProcessingFailure;
     }
 
     // Everything ok
-    return dcmtkpp::message::Response::Success;
+    return odil::message::Response::Success;
 }
 
 std::pair<std::string, int>
@@ -577,7 +578,7 @@ GeneratorPACS
     return true;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GeneratorPACS
 ::_get_count(std::string const & relatedElement,
              std::string const & ofElement,
@@ -597,16 +598,16 @@ GeneratorPACS
     return info["values"].Array().size();
 }
 
-dcmtkpp::Element
+odil::Element
 GeneratorPACS
-::compute_attribute(dcmtkpp::Tag const & tag, dcmtkpp::VR const & vr,
+::compute_attribute(odil::Tag const & tag, odil::VR const & vr,
                     std::string const & value)
 {
-    if (tag == dcmtkpp::registry::InstanceAvailability) // Instance Availability
+    if (tag == odil::registry::InstanceAvailability) // Instance Availability
     {
-        return dcmtkpp::Element({"ONLINE"}, vr);
+        return odil::Element({"ONLINE"}, vr);
     }
-    else if (tag == dcmtkpp::registry::ModalitiesInStudy) // Modalities in Study
+    else if (tag == odil::registry::ModalitiesInStudy) // Modalities in Study
     {
         mongo::BSONObj const object = BSON("distinct" << "datasets" <<
                                            "key" << "00080060.Value" <<
@@ -620,46 +621,46 @@ GeneratorPACS
             // error
         }
 
-        dcmtkpp::Value::Strings values;
+        odil::Value::Strings values;
         for (auto const item : info.getField("values").Array())
         {
             values.push_back(item.String());
         }
 
-        return dcmtkpp::Element(values, vr);
+        return odil::Element(values, vr);
     }
     else if (tag == "00201200") // Number of Patient Related Study
     {
         auto size = this->_get_count("0020000d", "00100020.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
     else if (tag == "00201202") // Number of Patient Related Series
     {
         auto size = this->_get_count("0020000e", "00100020.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
     else if (tag == "00201204") // Number of Patient Related Instances
     {
         auto size = this->_get_count("00080018", "00100020.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
     else if (tag == "00201206") // Number of Study Related Series
     {
         auto size = this->_get_count("0020000e", "0020000d.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
     else if (tag == "00201208") // Number of Study Related Instances
     {
         auto size = this->_get_count("00080018", "0020000d.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
     else if (tag == "00201209") // Number of Series Related Instances
     {
         auto size = this->_get_count("00080018", "0020000e.Value", value);
-        return dcmtkpp::Element({size}, vr);
+        return odil::Element({size}, vr);
     }
 
-    return dcmtkpp::Element();
+    return odil::Element();
 }
 
 std::string

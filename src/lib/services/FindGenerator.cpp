@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/CFindRequest.h>
-#include <dcmtkpp/message/CFindResponse.h>
+#include <odil/message/CFindRequest.h>
+#include <odil/message/CFindResponse.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/LoggerPACS.h"
@@ -40,25 +40,25 @@ FindGenerator
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 FindGenerator
-::initialize(dcmtkpp::DcmtkAssociation const & association,
-             dcmtkpp::message::Message const & message)
+::initialize(odil::Association const & association,
+             odil::message::Message const & message)
 {
     auto status = GeneratorPACS::initialize(association, message);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
-    dcmtkpp::message::CFindRequest findrequest(message);
+    odil::message::CFindRequest findrequest(message);
     mongo::BSONObj const object = as_bson(findrequest.get_data_set(),
                                           FilterAction::INCLUDE);
 
     return this->initialize(object);
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 FindGenerator
 ::next()
 {
@@ -67,13 +67,13 @@ FindGenerator
     if (current_bson.isValid() && current_bson.isEmpty())
     {
         // We're done.
-        return dcmtkpp::message::CFindResponse::Success;
+        return odil::message::CFindResponse::Success;
     }
     else if (current_bson.hasField("$err"))
     {
         logger_warning() << "An error occured while processing Find operation: "
                          << current_bson.getField("$err").String();
-        return dcmtkpp::message::CFindResponse::ProcessingFailure;
+        return odil::message::CFindResponse::ProcessingFailure;
     }
     else
     {
@@ -86,58 +86,58 @@ FindGenerator
         }
         auto data_set = this->_connection->get_dataset(current_bson);
 
-        data_set.second.add(dcmtkpp::registry::QueryRetrieveLevel,
-                            dcmtkpp::Element({this->_query_retrieve_level},
-                                             dcmtkpp::VR::CS));
+        data_set.second.add(odil::registry::QueryRetrieveLevel,
+                            odil::Element({this->_query_retrieve_level},
+                                             odil::VR::CS));
 
         if (this->_convert_modalities_in_study)
         {
-            data_set.second.remove(dcmtkpp::registry::Modality);
+            data_set.second.remove(odil::registry::Modality);
             std::vector<mongo::BSONElement> const modalities =
             current_bson.getField("modalities_in_study").Array();
-            dcmtkpp::Value::Strings values;
+            odil::Value::Strings values;
             for(unsigned int i=0; i<modalities.size(); ++i)
             {
                 values.push_back(modalities[i].String());
             }
-            data_set.second.add(dcmtkpp::registry::ModalitiesInStudy,
-                                dcmtkpp::Element(values, dcmtkpp::VR::CS));
+            data_set.second.add(odil::registry::ModalitiesInStudy,
+                                odil::Element(values, odil::VR::CS));
         }
 
         this->_meta_information = data_set.first;
         this->_current_dataset = data_set.second;
     }
 
-    return dcmtkpp::message::CFindResponse::Pending;
+    return odil::message::CFindResponse::Pending;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 FindGenerator
 ::initialize(mongo::BSONObj const & request)
 {
     auto status = GeneratorPACS::initialize(request);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
     if (!this->_connection->is_authorized(
-                this->_username, dcmtkpp::message::Message::Command::C_FIND_RQ))
+                this->_username, odil::message::Message::Command::C_FIND_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Find Operation";
-        return dcmtkpp::message::CFindResponse::RefusedNotAuthorized;
+        return odil::message::CFindResponse::RefusedNotAuthorized;
     }
 
     mongo::BSONObj const constraint = this->_connection->get_constraints(
-                this->_username, dcmtkpp::message::Message::Command::C_FIND_RQ);
+                this->_username, odil::message::Message::Command::C_FIND_RQ);
 
     mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
     if (!this->extract_query_retrieve_level(query_object))
     {
-        return dcmtkpp::message::CFindResponse::MissingAttribute;
+        return odil::message::CFindResponse::MissingAttribute;
     }
 
     // Remove unused elements
@@ -250,7 +250,7 @@ FindGenerator
     this->_cursor = this->_connection->get_datasets_cursor(
                 query, this->_maximum_results, this->_skipped_results, &fields);
 
-    return dcmtkpp::message::CFindResponse::Pending;
+    return odil::message::CFindResponse::Pending;
 }
 
 bool

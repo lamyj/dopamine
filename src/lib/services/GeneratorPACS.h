@@ -52,13 +52,13 @@ public:
     /// Destroy the instance of GeneratorPACS
     virtual ~GeneratorPACS();
 
-    virtual dcmtkpp::Value::Integer initialize(
-            dcmtkpp::DcmtkAssociation const & association,
-            dcmtkpp::message::Message const & message);
+    virtual odil::Value::Integer initialize(
+            odil::Association const & association,
+            odil::message::Message const & message);
 
     virtual bool done() const;
 
-    virtual dcmtkpp::Value::Integer initialize(mongo::BSONObj const & request);
+    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
 
     virtual std::pair<std::string, int> get_peer_information(std::string const & ae_title);
 
@@ -86,8 +86,8 @@ public:
 
     int get_skipped_results() const;
 
-    dcmtkpp::Element compute_attribute(dcmtkpp::Tag const & tag,
-                                       dcmtkpp::VR const & vr,
+    odil::Element compute_attribute(odil::Tag const & tag,
+                                       odil::VR const & vr,
                                        std::string const & value);
 
     /**
@@ -174,7 +174,7 @@ private:
                                      mongo::BSONElement const & value,
                                      mongo::BSONObjBuilder & builder) const;
 
-    dcmtkpp::Value::Integer _get_count(std::string const & relatedElement,
+    odil::Value::Integer _get_count(std::string const & relatedElement,
                                        std::string const & ofElement,
                                        std::string const & value);
 

@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/CEchoResponse.h>
+#include <odil/message/CEchoResponse.h>
 
 #include "core/LoggerPACS.h"
 #include "EchoGenerator.h"
@@ -37,13 +37,13 @@ EchoGenerator
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 EchoGenerator
-::initialize(dcmtkpp::DcmtkAssociation const & association,
-             dcmtkpp::message::Message const & message)
+::initialize(odil::Association const & association,
+             odil::message::Message const & message)
 {
     auto const status = GeneratorPACS::initialize(association, message);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
@@ -52,34 +52,34 @@ EchoGenerator
     return this->initialize(query_object);
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 EchoGenerator
 ::initialize(mongo::BSONObj const & request)
 {
     auto const status = GeneratorPACS::initialize(request);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
     // Look for user authorization
     if ( ! this->_connection->is_authorized(
-             this->_username, dcmtkpp::message::Message::Command::C_ECHO_RQ) )
+             this->_username, odil::message::Message::Command::C_ECHO_RQ) )
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Echo Operation";
-        return dcmtkpp::message::CEchoResponse::RefusedNotAuthorized;
+        return odil::message::CEchoResponse::RefusedNotAuthorized;
     }
 
-    return dcmtkpp::message::CEchoResponse::Pending;
+    return odil::message::CEchoResponse::Pending;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 EchoGenerator
 ::next()
 {
     // Nothing to do.
-    return dcmtkpp::message::CEchoResponse::Success;
+    return odil::message::CEchoResponse::Success;
 }
 
 } // namespace services

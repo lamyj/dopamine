@@ -16,7 +16,7 @@ namespace services
 
 Generator
 ::Generator():
-    _meta_information(dcmtkpp::DataSet()), _current_dataset(dcmtkpp::DataSet())
+    _meta_information(odil::DataSet()), _current_dataset(odil::DataSet())
 {
     // Nothing to do.
 }
@@ -27,7 +27,7 @@ Generator
     // Nothing to do.
 }
 
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+std::pair<odil::DataSet, odil::DataSet>
 Generator
 ::get() const
 {

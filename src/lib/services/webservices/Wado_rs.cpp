@@ -11,8 +11,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <dcmtkpp/message/CGetResponse.h>
-#include <dcmtkpp/Writer.h>
+#include <odil/message/CGetResponse.h>
+#include <odil/Writer.h>
 
 #include "services/GetGenerator.h"
 #include "services/webservices/WebServiceException.h"
@@ -34,9 +34,9 @@ Wado_rs
     mongo::BSONObj const object = this->_parse_string();
 
     auto status = generator->initialize(object);
-    if (status != dcmtkpp::message::CGetResponse::Pending)
+    if (status != odil::message::CGetResponse::Pending)
     {
-        if (status == dcmtkpp::message::CGetResponse::RefusedNotAuthorized)
+        if (status == odil::message::CGetResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -64,13 +64,13 @@ Wado_rs
             generator->next();
 
             auto datasets = generator->get();
-            dcmtkpp::Writer::write_file(
+            odil::Writer::write_file(
                         datasets.second, stream_dataset, datasets.first,
-                        dcmtkpp::registry::ExplicitVRLittleEndian,
-                        dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+                        odil::registry::ExplicitVRLittleEndian,
+                        odil::Writer::ItemEncoding::ExplicitLength);
 
             filename = datasets.second.as_string(
-                        dcmtkpp::registry::SOPInstanceUID)[0];
+                        odil::registry::SOPInstanceUID)[0];
         }
         catch (ExceptionPACS const & exc)
         {

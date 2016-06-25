@@ -12,7 +12,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 
-#include <dcmtkpp/message/CFindResponse.h>
+#include <odil/message/CFindResponse.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/dataset_tools.h"
@@ -27,17 +27,17 @@ namespace services
 {
 
 void
-check_mandatory_field_in_response(dcmtkpp::DataSet & response,
+check_mandatory_field_in_response(odil::DataSet & response,
                                   FindGenerator::Pointer generator,
                                   std::vector<Attribute> attributes)
 {
     // Add Query retrieve level
-    response.add(dcmtkpp::registry::QueryRetrieveLevel,
-                 {generator->get_query_retrieve_level()}, dcmtkpp::VR::CS);
+    response.add(odil::registry::QueryRetrieveLevel,
+                 {generator->get_query_retrieve_level()}, odil::VR::CS);
 
     for (Attribute attribute : attributes)
     {
-        if (attribute.get_tag() == dcmtkpp::registry::QueryRetrieveLevel)
+        if (attribute.get_tag() == odil::registry::QueryRetrieveLevel)
         {
             continue;
         }
@@ -45,52 +45,52 @@ check_mandatory_field_in_response(dcmtkpp::DataSet & response,
         if (!response.has(attribute.get_tag()))
         {
             // Instance Availability
-            if (attribute.get_tag() == dcmtkpp::registry::InstanceAvailability)
+            if (attribute.get_tag() == odil::registry::InstanceAvailability)
             {
-                response.add(dcmtkpp::registry::InstanceAvailability,
+                response.add(odil::registry::InstanceAvailability,
                              generator->compute_attribute(attribute.get_tag(),
                                                           attribute.get_vr(),
                                                           ""));
             }
             // Modalities in Study
-            else if (attribute.get_tag() == dcmtkpp::registry::ModalitiesInStudy)
+            else if (attribute.get_tag() == odil::registry::ModalitiesInStudy)
             {
                 std::string const value =
-                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::ModalitiesInStudy,
+                    response.as_string(odil::registry::StudyInstanceUID)[0];
+                response.add(odil::registry::ModalitiesInStudy,
                              generator->compute_attribute(attribute.get_tag(),
                                                           attribute.get_vr(),
                                                           value));
             }
             // Number of Study Related Series
             else if (attribute.get_tag() ==
-                     dcmtkpp::registry::NumberOfStudyRelatedSeries)
+                     odil::registry::NumberOfStudyRelatedSeries)
             {
                 std::string const value =
-                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfStudyRelatedSeries,
+                    response.as_string(odil::registry::StudyInstanceUID)[0];
+                response.add(odil::registry::NumberOfStudyRelatedSeries,
                              generator->compute_attribute(attribute.get_tag(),
                                                           attribute.get_vr(),
                                                           value));
             }
             // Number of Study Related Instances
             else if (attribute.get_tag() ==
-                     dcmtkpp::registry::NumberOfStudyRelatedInstances)
+                     odil::registry::NumberOfStudyRelatedInstances)
             {
                 std::string const value =
-                    response.as_string(dcmtkpp::registry::StudyInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfStudyRelatedInstances,
+                    response.as_string(odil::registry::StudyInstanceUID)[0];
+                response.add(odil::registry::NumberOfStudyRelatedInstances,
                              generator->compute_attribute(attribute.get_tag(),
                                                           attribute.get_vr(),
                                                           value));
             }
             // Number of Series Related Instances
             else if (attribute.get_tag() ==
-                     dcmtkpp::registry::NumberOfSeriesRelatedInstances)
+                     odil::registry::NumberOfSeriesRelatedInstances)
             {
                 std::string const value =
-                    response.as_string(dcmtkpp::registry::SeriesInstanceUID)[0];
-                response.add(dcmtkpp::registry::NumberOfSeriesRelatedInstances,
+                    response.as_string(odil::registry::SeriesInstanceUID)[0];
+                response.add(odil::registry::NumberOfSeriesRelatedInstances,
                              generator->compute_attribute(attribute.get_tag(),
                                                           attribute.get_vr(),
                                                           value));
@@ -126,9 +126,9 @@ Qido_rs
     generator->set_fuzzy_matching(this->_fuzzy_matching);
 
     auto status = generator->initialize(object);
-    if (status != dcmtkpp::message::CFindResponse::Pending)
+    if (status != odil::message::CFindResponse::Pending)
     {
-        if (status == dcmtkpp::message::CFindResponse::RefusedNotAuthorized)
+        if (status == odil::message::CFindResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -167,7 +167,7 @@ Qido_rs
         {
             generator->next();
 
-            dcmtkpp::DataSet dataset = generator->get().second;
+            odil::DataSet dataset = generator->get().second;
 
             check_mandatory_field_in_response(dataset, generator,
                                               this->_get_mandatory_fields());
@@ -464,7 +464,7 @@ Qido_rs
 
     try
     {
-        dcmtkpp::Tag dcmtkpptag(tag);
+        odil::Tag dcmtkpptag(tag);
         std::stringstream groupelement;
 
         std::stringstream streamgroup;
@@ -485,29 +485,29 @@ Qido_rs
 
         groupelement << group << element;
 
-        auto const vr = dcmtkpp::as_vr(dcmtkpptag);
+        auto const vr = odil::as_vr(dcmtkpptag);
 
-        if (vr == dcmtkpp::VR::PN)
+        if (vr == odil::VR::PN)
         {
             builder << groupelement.str()
-                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                    << BSON("vr" << odil::as_string(vr) <<
                             "Value" << BSON_ARRAY(BSON("Alphabetic" << value)));
         }
-        else if (vr == dcmtkpp::VR::OB || vr == dcmtkpp::VR::OF ||
-                 vr == dcmtkpp::VR::OW || vr == dcmtkpp::VR::UN)
+        else if (vr == odil::VR::OB || vr == odil::VR::OF ||
+                 vr == odil::VR::OW || vr == odil::VR::UN)
         {
             builder << groupelement.str()
-                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                    << BSON("vr" << odil::as_string(vr) <<
                             "InlineBinary" << value);
         }
         else
         {
             builder << groupelement.str()
-                    << BSON("vr" << dcmtkpp::as_string(vr) <<
+                    << BSON("vr" << odil::as_string(vr) <<
                             "Value" << BSON_ARRAY(value));
         }
     }
-    catch (dcmtkpp::Exception const & exc)
+    catch (odil::Exception const & exc)
     {
         std::stringstream stream;
         stream << "Unknown DICOM Tag: " << tag;

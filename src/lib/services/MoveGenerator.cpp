@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/CMoveRequest.h>
-#include <dcmtkpp/message/CMoveResponse.h>
+#include <odil/message/CMoveRequest.h>
+#include <odil/message/CMoveResponse.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/LoggerPACS.h"
@@ -39,25 +39,25 @@ MoveGenerator
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 MoveGenerator
-::initialize(dcmtkpp::DcmtkAssociation const & association,
-             dcmtkpp::message::Message const & message)
+::initialize(odil::Association const & association,
+             odil::message::Message const & message)
 {
     auto const status = GeneratorPACS::initialize(association, message);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
-    dcmtkpp::message::CMoveRequest moverequest(message);
+    odil::message::CMoveRequest moverequest(message);
     mongo::BSONObj const object = as_bson(moverequest.get_data_set(),
                                           FilterAction::INCLUDE);
 
     return this->initialize(object);
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 MoveGenerator
 ::next()
 {
@@ -66,13 +66,13 @@ MoveGenerator
     if (current_bson.isValid() && current_bson.isEmpty())
     {
         // We're done.
-        return dcmtkpp::message::CMoveResponse::Success;
+        return odil::message::CMoveResponse::Success;
     }
     else if (current_bson.hasField("$err"))
     {
         logger_warning() << "An error occured while processing Move operation: "
                          << current_bson.getField("$err").String();
-        return dcmtkpp::message::CMoveResponse::ProcessingFailure;
+        return odil::message::CMoveResponse::ProcessingFailure;
     }
     else
     {
@@ -88,36 +88,36 @@ MoveGenerator
         this->_current_dataset = data_set.second;
     }
 
-    return dcmtkpp::message::CMoveResponse::Pending;
+    return odil::message::CMoveResponse::Pending;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 MoveGenerator
 ::initialize(mongo::BSONObj const & request)
 {
     auto const status = GeneratorPACS::initialize(request);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
     if (!this->_connection->is_authorized(
-                this->_username, dcmtkpp::message::Message::Command::C_MOVE_RQ))
+                this->_username, odil::message::Message::Command::C_MOVE_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Move Operation";
-        return dcmtkpp::message::CMoveResponse::RefusedNotAuthorized;
+        return odil::message::CMoveResponse::RefusedNotAuthorized;
     }
 
     mongo::BSONObj const constraint = this->_connection->get_constraints(
-                this->_username, dcmtkpp::message::Message::Command::C_MOVE_RQ);
+                this->_username, odil::message::Message::Command::C_MOVE_RQ);
 
     mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
     if (!this->extract_query_retrieve_level(query_object))
     {
-        return dcmtkpp::message::CMoveResponse::MissingAttribute;
+        return odil::message::CMoveResponse::MissingAttribute;
     }
 
     // Remove unused elements
@@ -229,7 +229,7 @@ MoveGenerator
     this->_cursor = this->_connection->get_datasets_cursor(
                 query, this->_maximum_results, this->_skipped_results, &fields);
 
-    return dcmtkpp::message::CMoveResponse::Pending;
+    return odil::message::CMoveResponse::Pending;
 }
 
 } // namespace services

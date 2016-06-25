@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#include <dcmtkpp/message/CGetRequest.h>
-#include <dcmtkpp/message/CGetResponse.h>
+#include <odil/message/CGetRequest.h>
+#include <odil/message/CGetResponse.h>
 
 #include "ConverterBSON/bson_converter.h"
 #include "core/LoggerPACS.h"
@@ -39,25 +39,25 @@ GetGenerator
     // Nothing to do.
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GetGenerator
-::initialize(dcmtkpp::DcmtkAssociation const & association,
-             dcmtkpp::message::Message const & message)
+::initialize(odil::Association const & association,
+             odil::message::Message const & message)
 {
     auto const status = GeneratorPACS::initialize(association, message);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
-    dcmtkpp::message::CGetRequest getrequest(message);
+    odil::message::CGetRequest getrequest(message);
     mongo::BSONObj const object = as_bson(getrequest.get_data_set(),
                                           FilterAction::INCLUDE);
 
     return this->initialize(object);
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GetGenerator
 ::next()
 {
@@ -66,13 +66,13 @@ GetGenerator
     if (current_bson.isValid() && current_bson.isEmpty())
     {
         // We're done.
-        return dcmtkpp::message::CGetResponse::Success;
+        return odil::message::CGetResponse::Success;
     }
     else if (current_bson.hasField("$err"))
     {
         logger_warning() << "An error occured while processing Get operation: "
                          << current_bson.getField("$err").String();
-        return dcmtkpp::message::CGetResponse::ProcessingFailure;
+        return odil::message::CGetResponse::ProcessingFailure;
     }
     else
     {
@@ -88,37 +88,37 @@ GetGenerator
         this->_current_dataset = data_set.second;
     }
 
-    return dcmtkpp::message::CGetResponse::Pending;
+    return odil::message::CGetResponse::Pending;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 GetGenerator
 ::initialize(mongo::BSONObj const & request)
 {
     auto const status = GeneratorPACS::initialize(request);
-    if (status != dcmtkpp::message::Response::Success)
+    if (status != odil::message::Response::Success)
     {
         return status;
     }
 
     if (!this->_connection->is_authorized(
-                this->_username, dcmtkpp::message::Message::Command::C_GET_RQ))
+                this->_username, odil::message::Message::Command::C_GET_RQ))
     {
         logger_warning() << "User '" << this->_username
                          << "' not allowed to perform Get Operation";
-        return dcmtkpp::message::CGetResponse::RefusedNotAuthorized;
+        return odil::message::CGetResponse::RefusedNotAuthorized;
     }
 
     mongo::BSONObj const constraint = this->_connection->get_constraints(
                 this->_username,
-                dcmtkpp::message::Message::Command::C_GET_RQ);
+                odil::message::Message::Command::C_GET_RQ);
 
     mongo::BSONObj query_object = request;
 
     // Always include the keys for the query level and its higher levels
     if (!this->extract_query_retrieve_level(query_object))
     {
-        return dcmtkpp::message::CGetResponse::MissingAttribute;
+        return odil::message::CGetResponse::MissingAttribute;
     }
 
     // Remove unused elements
@@ -230,7 +230,7 @@ GetGenerator
     this->_cursor = this->_connection->get_datasets_cursor(
                 query, this->_maximum_results, this->_skipped_results, &fields);
 
-    return dcmtkpp::message::CGetResponse::Pending;
+    return odil::message::CGetResponse::Pending;
 }
 
 } // namespace services
