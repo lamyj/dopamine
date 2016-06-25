@@ -1,4 +1,4 @@
-find_package(DCMTK REQUIRED)
+find_package(Odil REQUIRED)
 find_package(MongoDB REQUIRED)
 find_package(Boost COMPONENTS filesystem system regex random REQUIRED)
 
@@ -6,7 +6,7 @@ find_package(Boost COMPONENTS filesystem system regex random REQUIRED)
 SET(ICU_LIBRARIES icuuc icuio)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${DCMTK_INCLUDE_DIRS}
+                    ${Odil_INCLUDE_DIR}
                     ${MONGO_DB_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${ICU_INCLUDE_DIRS})
@@ -18,9 +18,8 @@ file(GLOB_RECURSE files "*.cpp")
 add_library(libdopamine SHARED ${files})
 
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
-target_link_libraries(libdopamine dcmtkpp
-                                  ${MONGO_DB_LIBRARIES}
-                                  ${DCMTK_LIBRARIES}
+target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
+                                  ${Odil_LIBRARY}
                                   ${Boost_LIBRARIES}
                                   ${ICU_LIBRARIES}
                                   mimetic
