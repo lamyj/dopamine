@@ -59,17 +59,18 @@ AuthenticatorCSV
 
 bool
 AuthenticatorCSV
-::operator ()(dcmtkpp::DcmtkAssociation const & association) const
+::operator ()(odil::Association const & association) const
 {
     bool authorized = false;
 
     // Only available for Identity type: User / Password
-    if (association.get_user_identity_type() ==
-            dcmtkpp::UserIdentityType::UsernameAndPassword)
+    if (association.get_parameters().get_user_identity().type ==
+            odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
     {
         std::string const username =
-                association.get_user_identity_primary_field();
-        std::string const pwd = association.get_user_identity_secondary_field();
+                association.get_parameters().get_user_identity().primary_field;
+        std::string const pwd =
+            association.get_parameters().get_user_identity().secondary_field;
 
         // Search in map
         std::map<std::string, std::string>::const_iterator const it =

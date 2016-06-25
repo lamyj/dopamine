@@ -9,7 +9,7 @@
 #ifndef _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 #define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
-#include <dcmtkpp/DcmtkAssociation.h>
+#include <odil/Association.h>
 
 namespace dopamine
 {
@@ -37,7 +37,7 @@ public:
      * @return true if authentication success, false otherwise
      */
     virtual bool operator()(
-            dcmtkpp::DcmtkAssociation const & association) const = 0;
+            odil::Association const & association) const = 0;
 };
 
 } // namespace authenticator

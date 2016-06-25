@@ -42,13 +42,13 @@ AuthenticatorLDAP
 
 bool
 AuthenticatorLDAP
-::operator()(dcmtkpp::DcmtkAssociation const & association) const
+::operator()(odil::Association const & association) const
 {
     bool return_ = false;
 
     // Only available for Identity type: User / Password
-    if (association.get_user_identity_type() ==
-            dcmtkpp::UserIdentityType::UsernameAndPassword)
+    if (association.get_parameters().get_user_identity().type ==
+            odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
     {
         LDAP *ld;
 
@@ -61,8 +61,10 @@ AuthenticatorLDAP
             throw ExceptionPACS(stream.str());
         }
 
-        std::string const username = association.get_user_identity_primary_field();
-        std::string const pwd = association.get_user_identity_secondary_field();
+        std::string const username =
+            association.get_parameters().get_user_identity().primary_field;
+        std::string const pwd =
+            association.get_parameters().get_user_identity().secondary_field;
 
         std::string bind_dn = this->_ldap_bind_user;
         boost::replace_all(bind_dn, "%user", username.c_str());

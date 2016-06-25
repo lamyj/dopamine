@@ -29,11 +29,11 @@ AuthenticatorNone
 
 bool
 AuthenticatorNone
-::operator()(dcmtkpp::DcmtkAssociation const & association) const
+::operator()(odil::Association const & association) const
 {
     // Only available for Identity type: None
-    return association.get_user_identity_type() ==
-           dcmtkpp::UserIdentityType::None;
+    return association.get_parameters().get_user_identity().type ==
+           odil::AssociationParameters::UserIdentity::Type::None;
 }
 
 } // namespace authenticator
