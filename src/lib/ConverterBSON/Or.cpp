@@ -36,8 +36,8 @@ Or
 
 bool
 Or
-::operator()(dcmtkpp::Tag const & tag,
-             dcmtkpp::Element const & element) const
+::operator()(odil::Tag const & tag,
+             odil::Element const & element) const
     throw(dopamine::ExceptionPACS)
 {
     bool value=false;

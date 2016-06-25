@@ -16,13 +16,13 @@ namespace converterBSON
 
 VRMatch::Pointer
 VRMatch
-::New(dcmtkpp::VR vr)
+::New(odil::VR vr)
 {
     return Pointer(new VRMatch(vr));
 }
 
 VRMatch
-::VRMatch(dcmtkpp::VR vr):
+::VRMatch(odil::VR vr):
     Condition(), _vr(vr)
 {
     // Nothing else.
@@ -36,8 +36,8 @@ VRMatch
 
 bool
 VRMatch
-::operator()(dcmtkpp::Tag const & tag,
-             dcmtkpp::Element const & element) const
+::operator()(odil::Tag const & tag,
+             odil::Element const & element) const
     throw(dopamine::ExceptionPACS)
 {
     return (element.vr == this->_vr);

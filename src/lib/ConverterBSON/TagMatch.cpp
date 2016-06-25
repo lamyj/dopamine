@@ -16,13 +16,13 @@ namespace converterBSON
 
 TagMatch::Pointer
 TagMatch
-::New(dcmtkpp::Tag tag)
+::New(odil::Tag tag)
 {
     return Pointer(new TagMatch(tag));
 }
 
 TagMatch
-::TagMatch(dcmtkpp::Tag tag):
+::TagMatch(odil::Tag tag):
     Condition(), _tag(tag)
 {
     // Nothing else.
@@ -36,8 +36,8 @@ TagMatch
 
 bool
 TagMatch
-::operator()(dcmtkpp::Tag const & tag,
-             dcmtkpp::Element const & element) const
+::operator()(odil::Tag const & tag,
+             odil::Element const & element) const
     throw(dopamine::ExceptionPACS)
 {
     return (tag == this->_tag);

@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-#include <dcmtkpp/registry.h>
+#include <odil/registry.h>
 
 #include "bson_converter.h"
 #include "core/ConverterCharactersSet.h"
@@ -23,7 +23,7 @@ public:
     typedef mongo::BSONObj result_type;
 
     ToBSONVisitor(FilterAction::Type default_filter, Filters const & filters,
-                  dcmtkpp::Value::Strings const & specific_char_set):
+                  odil::Value::Strings const & specific_char_set):
         _default_filter(default_filter), _filters(filters),
         _specific_character_sets(specific_char_set)
     {
@@ -40,24 +40,24 @@ public:
         }
     }
 
-    result_type operator()(dcmtkpp::VR const vr) const
+    result_type operator()(odil::VR const vr) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
         result = builder.obj();
 
         return result;
     }
 
     template<typename T>
-    result_type operator()(dcmtkpp::VR const vr, T const & value) const
+    result_type operator()(odil::VR const vr, T const & value) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
 
         mongo::BSONArrayBuilder array;
         for(auto const & item: value)
@@ -70,13 +70,13 @@ public:
         return result;
     }
 
-    result_type operator()(dcmtkpp::VR const vr,
-                           dcmtkpp::Value::Integers const & value) const
+    result_type operator()(odil::VR const vr,
+                           odil::Value::Integers const & value) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
 
         mongo::BSONArrayBuilder array;
         for(auto const & item: value)
@@ -89,15 +89,15 @@ public:
         return result;
     }
 
-    result_type operator()(dcmtkpp::VR const vr,
-                           dcmtkpp::Value::Strings const & value) const
+    result_type operator()(odil::VR const vr,
+                           odil::Value::Strings const & value) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
 
-        if(vr == dcmtkpp::VR::PN)
+        if(vr == odil::VR::PN)
         {
             auto const fields = { "Alphabetic", "Ideographic", "Phonetic" };
 
@@ -162,13 +162,13 @@ public:
         return result;
     }
 
-    result_type operator()(dcmtkpp::VR const vr,
-                           dcmtkpp::Value::DataSets const & value) const
+    result_type operator()(odil::VR const vr,
+                           odil::Value::DataSets const & value) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
 
         mongo::BSONArrayBuilder array;
         for(auto const & item: value)
@@ -182,13 +182,13 @@ public:
         return result;
     }
 
-    result_type operator()(dcmtkpp::VR const vr,
-                           dcmtkpp::Value::Binary const & value) const
+    result_type operator()(odil::VR const vr,
+                           odil::Value::Binary const & value) const
     {
         result_type result;
 
         mongo::BSONObjBuilder builder;
-        builder << "vr" << dcmtkpp::as_string(vr);
+        builder << "vr" << odil::as_string(vr);
 
         mongo::BSONObjBuilder binary_data_builder;
         binary_data_builder.appendBinData("data", value.size(),
@@ -204,14 +204,14 @@ private:
     Filters _filters;
 
     /// Character Set
-    dcmtkpp::Value::Strings _specific_character_sets;
+    odil::Value::Strings _specific_character_sets;
 
-    std::string _convert_string(dcmtkpp::VR const vr, std::string const & value,
+    std::string _convert_string(odil::VR const vr, std::string const & value,
                                 unsigned int converter = 0) const
     {
-        if (vr != dcmtkpp::VR::LO && vr != dcmtkpp::VR::LT &&
-            vr != dcmtkpp::VR::PN && vr != dcmtkpp::VR::SH &&
-            vr != dcmtkpp::VR::ST && vr != dcmtkpp::VR::UT)
+        if (vr != odil::VR::LO && vr != odil::VR::LT &&
+            vr != odil::VR::PN && vr != odil::VR::SH &&
+            vr != odil::VR::ST && vr != odil::VR::UT)
         {
             // Nothing to do
             return value;
@@ -224,14 +224,14 @@ private:
 
 };
 
-mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
+mongo::BSONObj as_bson(odil::DataSet const & data_set,
                        FilterAction::Type default_filter,
                        Filters const & filters,
-                       dcmtkpp::Value::Strings const & specific_character_set)
+                       odil::Value::Strings const & specific_character_set)
 {
     mongo::BSONObjBuilder object_builder;
 
-    dcmtkpp::Value::Strings current_specific_char_set = specific_character_set;
+    odil::Value::Strings current_specific_char_set = specific_character_set;
     for(auto const & it: data_set)
     {
         auto const & tag = it.first;
@@ -261,7 +261,7 @@ mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
         }
 
         // Specific character set
-        if(tag == dcmtkpp::registry::SpecificCharacterSet)
+        if(tag == odil::registry::SpecificCharacterSet)
         {
             current_specific_char_set = element.as_string();
         }
@@ -275,7 +275,7 @@ mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
         // Convert
         std::string const key(tag);
         auto const value =
-                dcmtkpp::apply_visitor(ToBSONVisitor(default_filter, filters,
+                odil::apply_visitor(ToBSONVisitor(default_filter, filters,
                                                      current_specific_char_set),
                                        element);
         object_builder << key << value;
@@ -284,9 +284,9 @@ mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
     return object_builder.obj();
 }
 
-dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
+odil::DataSet as_dataset(mongo::BSONObj const & bson)
 {
-    dcmtkpp::DataSet data_set;
+    odil::DataSet data_set;
 
     for(mongo::BSONObj::iterator it = bson.begin(); it.more();)
     {
@@ -320,25 +320,25 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
         {
             continue;
         }
-        dcmtkpp::Tag const tag(field_name);
+        odil::Tag const tag(field_name);
 
         // Value holding the VR and the data
         mongo::BSONObj const object = element_bson.Obj();
 
         // Get the VR : first item of value
-        dcmtkpp::VR const vr = dcmtkpp::as_vr(object.getField("vr").String());
+        odil::VR const vr = odil::as_vr(object.getField("vr").String());
 
-        dcmtkpp::Element element;
+        odil::Element element;
 
-        if(vr == dcmtkpp::VR::AE || vr == dcmtkpp::VR::AS ||
-           vr == dcmtkpp::VR::AT || vr == dcmtkpp::VR::CS ||
-           vr == dcmtkpp::VR::DA || vr == dcmtkpp::VR::DT ||
-           vr == dcmtkpp::VR::LO || vr == dcmtkpp::VR::LT ||
-           vr == dcmtkpp::VR::SH || vr == dcmtkpp::VR::ST ||
-           vr == dcmtkpp::VR::TM || vr == dcmtkpp::VR::UI ||
-           vr == dcmtkpp::VR::UT)
+        if(vr == odil::VR::AE || vr == odil::VR::AS ||
+           vr == odil::VR::AT || vr == odil::VR::CS ||
+           vr == odil::VR::DA || vr == odil::VR::DT ||
+           vr == odil::VR::LO || vr == odil::VR::LT ||
+           vr == odil::VR::SH || vr == odil::VR::ST ||
+           vr == odil::VR::TM || vr == odil::VR::UI ||
+           vr == odil::VR::UT)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::Strings(), vr);
+            element = odil::Element(odil::Value::Strings(), vr);
 
             if (object.hasField("Value") && !object.getField("Value").isNull())
             {
@@ -349,16 +349,16 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
                 }
             }
         }
-        else if(vr == dcmtkpp::VR::PN)
+        else if(vr == odil::VR::PN)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::Strings(), vr);
+            element = odil::Element(odil::Value::Strings(), vr);
 
             if (object.hasField("Value") && !object.getField("Value").isNull())
             {
                 auto const values = object.getField("Value").Array();
                 for(auto const & bson_item: values)
                 {
-                    dcmtkpp::Value::Strings::value_type dicom_item;
+                    odil::Value::Strings::value_type dicom_item;
                     auto const fields = { "Alphabetic", "Ideographic", "Phonetic" };
                     for(auto const & field: fields)
                     {
@@ -378,10 +378,10 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
                 }
             }
         }
-        else if(vr == dcmtkpp::VR::DS || vr == dcmtkpp::VR::FD ||
-                vr == dcmtkpp::VR::FL)
+        else if(vr == odil::VR::DS || vr == odil::VR::FD ||
+                vr == odil::VR::FL)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::Reals(), vr);
+            element = odil::Element(odil::Value::Reals(), vr);
 
             if (object.hasField("Value") && !object.getField("Value").isNull())
             {
@@ -392,11 +392,11 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
                 }
             }
         }
-        else if(vr == dcmtkpp::VR::IS || vr == dcmtkpp::VR::SL ||
-                vr == dcmtkpp::VR::SS || vr == dcmtkpp::VR::UL ||
-                vr == dcmtkpp::VR::US)
+        else if(vr == odil::VR::IS || vr == odil::VR::SL ||
+                vr == odil::VR::SS || vr == odil::VR::UL ||
+                vr == odil::VR::US)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::Integers(), vr);
+            element = odil::Element(odil::Value::Integers(), vr);
 
             if (object.hasField("Value") && !object.getField("Value").isNull())
             {
@@ -406,27 +406,27 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
                     if (bson_item.type() == mongo::BSONType::NumberLong)
                     {
                         element.as_int().push_back(
-                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                            static_cast<odil::Value::Integers::value_type>(
                                         bson_item.Long()));
                     }
                     else if (bson_item.type() == mongo::BSONType::NumberDouble)
                     {
                         element.as_int().push_back(
-                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                            static_cast<odil::Value::Integers::value_type>(
                                         bson_item.Double()));
                     }
                     else
                     {
                         element.as_int().push_back(
-                            static_cast<dcmtkpp::Value::Integers::value_type>(
+                            static_cast<odil::Value::Integers::value_type>(
                                         bson_item.Int()));
                     }
                 }
             }
         }
-        else if(vr == dcmtkpp::VR::SQ)
+        else if(vr == odil::VR::SQ)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::DataSets(), vr);
+            element = odil::Element(odil::Value::DataSets(), vr);
 
             if (object.hasField("Value") && !object.getField("Value").isNull())
             {
@@ -438,20 +438,20 @@ dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson)
                 }
             }
         }
-        else if(vr == dcmtkpp::VR::OB || vr == dcmtkpp::VR::OF ||
-                vr == dcmtkpp::VR::OW || vr == dcmtkpp::VR::UN)
+        else if(vr == odil::VR::OB || vr == odil::VR::OF ||
+                vr == odil::VR::OW || vr == odil::VR::UN)
         {
-            element = dcmtkpp::Element(dcmtkpp::Value::Binary(), vr);
+            element = odil::Element(odil::Value::Binary({}), vr);
 
             int size = 0;
             auto const values = object.getField("InlineBinary").binDataClean(size);
 
-            element.as_binary().resize(size);
-            std::copy(values, values+size, element.as_binary().begin());
+            element.as_binary()[0].resize(size);
+            std::copy(values, values+size, element.as_binary()[0].begin());
         }
         else
         {
-            throw ExceptionPACS("Unknown VR: "+dcmtkpp::as_string(vr));
+            throw ExceptionPACS("Unknown VR: "+odil::as_string(vr));
         }
 
         data_set.add(tag, element);

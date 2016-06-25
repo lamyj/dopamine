@@ -9,7 +9,7 @@
 #ifndef _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
 #define _01db2e6d_df7c_4b7a_ae0e_e04d2896413b
 
-#include <dcmtkpp/VR.h>
+#include <odil/VR.h>
 
 #include "Condition.h"
 
@@ -28,7 +28,7 @@ public:
     typedef boost::shared_ptr<VRMatch> Pointer;
     
     /// Create pointer to new instance of VRMatch
-    static Pointer New(dcmtkpp::VR vr);
+    static Pointer New(odil::VR vr);
     
     /// Destroy the instance of VRMatch
     virtual ~VRMatch();
@@ -39,18 +39,18 @@ public:
      * @return true if element's VR match with Searched VR, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(dcmtkpp::Tag const & tag,
-                            dcmtkpp::Element const & element)
+    virtual bool operator()(odil::Tag const & tag,
+                            odil::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
 protected:
 
 private:
     /// Create an instance of VRMatch
-    VRMatch(dcmtkpp::VR vr);
+    VRMatch(odil::VR vr);
     
     /// Compared VR
-    dcmtkpp::VR _vr;
+    odil::VR _vr;
 
 };
 

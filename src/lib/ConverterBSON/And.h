@@ -39,8 +39,8 @@ public:
      * @return true if all condition are true, false otherwise
      * @throw ExceptionPACS if element is null
      */
-    virtual bool operator()(dcmtkpp::Tag const & tag,
-                            dcmtkpp::Element const & element)
+    virtual bool operator()(odil::Tag const & tag,
+                            odil::Element const & element)
             const throw(dopamine::ExceptionPACS);
     
     /**

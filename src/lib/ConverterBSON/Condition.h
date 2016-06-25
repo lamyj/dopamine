@@ -11,9 +11,8 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <dcmtkpp/DataSet.h>
-#include <dcmtkpp/Element.h>
-#include <dcmtkpp/Tag.h>
+#include <odil/Element.h>
+#include <odil/Tag.h>
 
 #include "core/ExceptionPACS.h"
 
@@ -37,8 +36,8 @@ public:
      * @param element
      * @return
      */
-    virtual bool operator()(dcmtkpp::Tag const & tag,
-                            dcmtkpp::Element const & element)
+    virtual bool operator()(odil::Tag const & tag,
+                            odil::Element const & element)
             const throw(dopamine::ExceptionPACS) = 0;
 
 protected:

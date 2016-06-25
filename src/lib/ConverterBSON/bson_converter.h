@@ -9,7 +9,7 @@
 #ifndef _8e0d86d9_dc96_475a_9ca8_42140db07a64
 #define _8e0d86d9_dc96_475a_9ca8_42140db07a64
 
-#include <dcmtkpp/DataSet.h>
+#include <odil/DataSet.h>
 
 #include <mongo/bson/bson.h>
 
@@ -33,13 +33,13 @@ typedef std::vector<Filter> Filters;
 
 
 /// @brief Convert a data set to its BSON representation.
-mongo::BSONObj as_bson(dcmtkpp::DataSet const & data_set,
+mongo::BSONObj as_bson(odil::DataSet const & data_set,
                        FilterAction::Type default_filter = FilterAction::UNKNOWN,
                        Filters const & filters = {},
-                       dcmtkpp::Value::Strings const & specific_character_set = {});
+                       odil::Value::Strings const & specific_character_set = {});
 
 /// @brief Create a data set from its BSON representation.
-dcmtkpp::DataSet as_dataset(mongo::BSONObj const & bson);
+odil::DataSet as_dataset(mongo::BSONObj const & bson);
 
 } // namespace dopamine
 
