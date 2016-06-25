@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <dcmtkpp/message/Message.h>
+#include <odil/message/Message.h>
 
 #include "dbconnection/MongoDBInformation.h"
 
@@ -56,11 +56,11 @@ public:
     bool connect();
 
     bool is_authorized(std::string const & user,
-                       dcmtkpp::message::Message::Command::Type command);
+                       odil::message::Message::Command::Type command);
 
     mongo::BSONObj get_constraints(
             std::string const & user,
-            dcmtkpp::message::Message::Command::Type command);
+            odil::message::Message::Command::Type command);
 
     mongo::unique_ptr<mongo::DBClientCursor> get_datasets_cursor(
             mongo::Query const & query = mongo::Query(), int nToReturn = 0,
@@ -68,11 +68,11 @@ public:
 
     bool run_command(mongo::BSONObj const & command, mongo::BSONObj & response);
 
-    dcmtkpp::Value::Integer insert_dataset(std::string const & username,
-                                           dcmtkpp::DataSet const & dataset,
+    odil::Value::Integer insert_dataset(std::string const & username,
+                                           odil::DataSet const & dataset,
                                            std::string const & callingaet);
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> get_dataset(
+    std::pair<odil::DataSet, odil::DataSet> get_dataset(
             mongo::BSONObj const & object);
 
     /**
@@ -83,7 +83,7 @@ public:
     static std::string as_string(mongo::BSONElement const & bsonelement);
 
     static std::string as_string(
-            dcmtkpp::message::Message::Command::Type command);
+            odil::message::Message::Command::Type command);
 
     std::pair<std::string, int> get_peer_information(
             std::string const & ae_title);

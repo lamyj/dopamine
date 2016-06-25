@@ -10,11 +10,11 @@
 
 #include <boost/regex.hpp>
 
-#include <dcmtkpp/message/CStoreResponse.h>
-#include <dcmtkpp/Exception.h>
-#include <dcmtkpp/Reader.h>
-#include <dcmtkpp/Tag.h>
-#include <dcmtkpp/Writer.h>
+#include <odil/message/CStoreResponse.h>
+#include <odil/Exception.h>
+#include <odil/Reader.h>
+#include <odil/Tag.h>
+#include <odil/Writer.h>
 
 // Insert dbclient before gridfs
 #include <mongo/client/dbclient.h>
@@ -173,7 +173,7 @@ MongoDBConnection
     {
         try
         {
-            dcmtkpp::Tag currenttag(currentIndex);
+            odil::Tag currenttag(currentIndex);
 
             std::stringstream stream;
             stream << "\"" << std::string(currenttag) << "\"";
@@ -186,7 +186,7 @@ MongoDBConnection
                     currenttag.get_name()
                 );
         }
-        catch (dcmtkpp::Exception const & exc)
+        catch (odil::Exception const & exc)
         {
             logger_warning() << "Ignore index '" << currentIndex
                              << "', reason: " << exc.what();
@@ -206,7 +206,7 @@ MongoDBConnection
 bool
 MongoDBConnection
 ::is_authorized(std::string const & user,
-                dcmtkpp::message::Message::Command::Type command)
+                odil::message::Message::Command::Type command)
 {
     mongo::BSONArrayBuilder builder;
     if (user != "")
@@ -241,7 +241,7 @@ MongoDBConnection
 mongo::BSONObj
 MongoDBConnection
 ::get_constraints(std::string const & user,
-                  dcmtkpp::message::Message::Command::Type command)
+                  odil::message::Message::Command::Type command)
 {
     mongo::BSONArrayBuilder builder;
     if (user != "")
@@ -349,10 +349,10 @@ bool MongoDBConnection::run_command(mongo::BSONObj const & command, mongo::BSONO
     return true;
 }
 
-dcmtkpp::Value::Integer
+odil::Value::Integer
 MongoDBConnection
 ::insert_dataset(std::string const & username,
-                 dcmtkpp::DataSet const & dataset,
+                 odil::DataSet const & dataset,
                  std::string const & callingaet)
 {
     Filters filters = {};
@@ -360,42 +360,42 @@ MongoDBConnection
                           converterBSON::IsPrivateTag::New(),
                           FilterAction::EXCLUDE));
     filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(dcmtkpp::VR::OB),
+                          converterBSON::VRMatch::New(odil::VR::OB),
                           FilterAction::EXCLUDE));
     filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(dcmtkpp::VR::OF),
+                          converterBSON::VRMatch::New(odil::VR::OF),
                           FilterAction::EXCLUDE));
     filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(dcmtkpp::VR::OW),
+                          converterBSON::VRMatch::New(odil::VR::OW),
                           FilterAction::EXCLUDE));
     filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(dcmtkpp::VR::UN),
+                          converterBSON::VRMatch::New(odil::VR::UN),
                           FilterAction::EXCLUDE));
 
     // Convert Dataset into BSON object
     mongo::BSONObj object = as_bson(dataset, FilterAction::INCLUDE, filters);
     if (!object.isValid() || object.isEmpty())
     {
-        return dcmtkpp::message::CStoreResponse::ErrorCannotUnderstand;
+        return odil::message::CStoreResponse::ErrorCannotUnderstand;
     }
 
     // Check user's constraints (user's Rights)
     if (!this->is_dataset_allowed_for_storage(username, object))
     {
-        return dcmtkpp::message::CStoreResponse::RefusedNotAuthorized;
+        return odil::message::CStoreResponse::RefusedNotAuthorized;
     }
 
     mongo::BSONObjBuilder meta_data_builder;
     meta_data_builder.appendElements(object);
 
-    dcmtkpp::DataSet meta_information;
-    meta_information.add(dcmtkpp::registry::SourceApplicationEntityTitle,
-                         dcmtkpp::Element({callingaet}, dcmtkpp::VR::AE));
+    odil::DataSet meta_information;
+    meta_information.add(odil::registry::SourceApplicationEntityTitle,
+                         odil::Element({callingaet}, odil::VR::AE));
 
     std::stringstream stream_dataset;
-    dcmtkpp::Writer::write_file(dataset, stream_dataset, meta_information,
-                                dcmtkpp::registry::ExplicitVRLittleEndian,
-                                dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+    odil::Writer::write_file(dataset, stream_dataset, meta_information,
+                                odil::registry::ExplicitVRLittleEndian,
+                                odil::Writer::ItemEncoding::ExplicitLength);
 
 
 
@@ -420,7 +420,7 @@ MongoDBConnection
         if(!gridfs_object.isValid() || gridfs_object.isEmpty())
         {
             // Return an error
-            return dcmtkpp::message::CStoreResponse::ProcessingFailure;
+            return odil::message::CStoreResponse::ProcessingFailure;
         }
 
         // Update the meta-data builder with the reference to GridFS
@@ -451,7 +451,7 @@ MongoDBConnection
                 this->get_bulk_data_db());
             if(result != "")
             {
-                return dcmtkpp::message::CStoreResponse::ProcessingFailure;
+                return odil::message::CStoreResponse::ProcessingFailure;
             }
 
             // Update the meta-data builder with the reference to bulk-data
@@ -481,28 +481,28 @@ MongoDBConnection
         // Else this->get_db_name() == this->get_bulk_data_db():
         // nothing to roll back
 
-        return dcmtkpp::message::CStoreResponse::ProcessingFailure;
+        return odil::message::CStoreResponse::ProcessingFailure;
     }
 
-    return dcmtkpp::message::CStoreResponse::Success;
+    return odil::message::CStoreResponse::Success;
 }
 
-std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet>
+std::pair<odil::DataSet, odil::DataSet>
 MongoDBConnection
 ::get_dataset(mongo::BSONObj const & object)
 {
     if ( ! object.hasField("Content"))
     {
-        return std::make_pair(dcmtkpp::DataSet(), as_dataset(object));
+        return std::make_pair(odil::DataSet(), as_dataset(object));
     }
 
     std::stringstream value;
     value << dataset_as_string(object);
 
-    std::pair<dcmtkpp::DataSet, dcmtkpp::DataSet> file;
+    std::pair<odil::DataSet, odil::DataSet> file;
     try
     {
-        file = dcmtkpp::Reader::read_file(value);
+        file = odil::Reader::read_file(value);
     }
     catch(std::exception & e)
     {
@@ -606,7 +606,7 @@ MongoDBConnection
 {
     // Retrieve user's Rights
     mongo::BSONObj const constraint = this->get_constraints(
-                username, dcmtkpp::message::Message::Command::C_STORE_RQ);
+                username, odil::message::Message::Command::C_STORE_RQ);
 
     if (constraint.isEmpty())
     {
@@ -689,29 +689,29 @@ MongoDBConnection
 
 std::string
 MongoDBConnection
-::as_string(dcmtkpp::message::Message::Command::Type command)
+::as_string(odil::message::Message::Command::Type command)
 {
     std::string servicename = "";
     switch (command)
     {
-    case dcmtkpp::message::Message::Command::C_ECHO_RQ:
-    case dcmtkpp::message::Message::Command::C_ECHO_RSP:
+    case odil::message::Message::Command::C_ECHO_RQ:
+    case odil::message::Message::Command::C_ECHO_RSP:
         servicename = "Echo";
         break;
-    case dcmtkpp::message::Message::Command::C_FIND_RQ:
-    case dcmtkpp::message::Message::Command::C_FIND_RSP:
+    case odil::message::Message::Command::C_FIND_RQ:
+    case odil::message::Message::Command::C_FIND_RSP:
         servicename = "Query";
         break;
-    case dcmtkpp::message::Message::Command::C_GET_RQ:
-    case dcmtkpp::message::Message::Command::C_GET_RSP:
+    case odil::message::Message::Command::C_GET_RQ:
+    case odil::message::Message::Command::C_GET_RSP:
         servicename = "Retrieve";
         break;
-    case dcmtkpp::message::Message::Command::C_MOVE_RQ:
-    case dcmtkpp::message::Message::Command::C_MOVE_RSP:
+    case odil::message::Message::Command::C_MOVE_RQ:
+    case odil::message::Message::Command::C_MOVE_RSP:
         servicename = "Retrieve";
         break;
-    case dcmtkpp::message::Message::Command::C_STORE_RQ:
-    case dcmtkpp::message::Message::Command::C_STORE_RSP:
+    case odil::message::Message::Command::C_STORE_RQ:
+    case odil::message::Message::Command::C_STORE_RSP:
         servicename = "Store";
         break;
     default:
