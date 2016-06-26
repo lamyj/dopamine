@@ -9,22 +9,29 @@
 #include "dataset_tools.h"
 
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/version.hpp>
 
-#include <dcmtkpp/json_converter.h>
-#include <dcmtkpp/xml_converter.h>
+#include <odil/json_converter.h>
+#include <odil/xml_converter.h>
 
-std::string dopamine::dataset_to_json_string(dcmtkpp::DataSet const & data_set)
+std::string dopamine::dataset_to_json_string(odil::DataSet const & data_set)
 {
-    return dcmtkpp::as_json(data_set).toStyledString();
+    return odil::as_json(data_set).toStyledString();
 }
 
 
-std::string dopamine::dataset_to_xml_string(dcmtkpp::DataSet const & data_set)
+std::string dopamine::dataset_to_xml_string(odil::DataSet const & data_set)
 {
-    auto const xml = dcmtkpp::as_xml(data_set);
+    auto const xml = odil::as_xml(data_set);
 
     std::stringstream xmldataset;
-    boost::property_tree::xml_writer_settings<char> settings(' ', 4);
+
+#if BOOST_VERSION >= 105600
+    typedef boost::property_tree::xml_writer_settings<std::string> SettingsType;
+#else
+    typedef boost::property_tree::xml_writer_settings<char> SettingsType;
+#endif
+    SettingsType settings(' ', 4);
     boost::property_tree::write_xml(xmldataset, xml, settings);
 
     return xmldataset.str();

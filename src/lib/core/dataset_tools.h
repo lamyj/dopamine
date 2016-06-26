@@ -11,14 +11,14 @@
 
 #include <string>
 
-#include <dcmtkpp/DataSet.h>
+#include <odil/DataSet.h>
 
 namespace dopamine
 {
 
-std::string dataset_to_json_string(dcmtkpp::DataSet const & data_set);
+std::string dataset_to_json_string(odil::DataSet const & data_set);
 
-std::string dataset_to_xml_string(dcmtkpp::DataSet const & data_set);
+std::string dataset_to_xml_string(odil::DataSet const & data_set);
 
 } // namespace dopamine
 
