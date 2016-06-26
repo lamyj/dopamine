@@ -9,9 +9,8 @@
 #ifndef _95305138_fbe7_4b3a_99d8_9f73013477fd
 #define _95305138_fbe7_4b3a_99d8_9f73013477fd
 
-#include <dcmtkpp/Network.h>
-
 #include "authenticator/AuthenticatorBase.h"
+#include "dbconnection/MongoDBConnection.h"
 
 namespace dopamine
 {
@@ -49,11 +48,11 @@ private:
     /// Unique Instance
     static NetworkPACS * _instance;
 
-    /// Network for listening/sending Requests and Responses
-    dcmtkpp::Network _network;
-
     /// Authenticator manager
     authenticator::AuthenticatorBase * _authenticator;
+
+    /// @brief Connection to database.
+    MongoDBConnection _db_connection;
 
     /// flag indicating Network is running
     bool _is_running;

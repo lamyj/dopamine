@@ -6,6 +6,13 @@
  * for details.
  ************************************************************************/
 
+//#include <odil/EchoSCP.h>
+#include <odil/FindSCP.h>
+//#include <odil/GetSCP.h>
+//#include <odil/MoveSCP.h>
+//#include <odil/StoreSCP.h>
+#include <odil/SCPDispatcher.h>
+
 #include "authenticator/AuthenticatorCSV.h"
 #include "authenticator/AuthenticatorLDAP.h"
 #include "authenticator/AuthenticatorNone.h"
@@ -13,18 +20,12 @@
 #include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "core/NetworkPACS.h"
-#include "core/SCPDispatcher.h"
 #include "dbconnection/MongoDBInformation.h"
-#include "services/EchoGenerator.h"
+//#include "services/EchoGenerator.h"
 #include "services/FindGenerator.h"
-#include "services/GetGenerator.h"
-#include "services/MoveGenerator.h"
-#include "services/StoreGenerator.h"
-#include "services/SCP/EchoSCP.h"
-#include "services/SCP/FindSCP.h"
-#include "services/SCP/GetSCP.h"
-#include "services/SCP/MoveSCP.h"
-#include "services/SCP/StoreSCP.h"
+//#include "services/GetGenerator.h"
+//#include "services/MoveGenerator.h"
+//#include "services/StoreGenerator.h"
 
 namespace dopamine
 {
@@ -54,8 +55,8 @@ NetworkPACS
 }
 
 NetworkPACS
-::NetworkPACS():
-    _authenticator(NULL), _is_running(false)
+::NetworkPACS()
+: _authenticator(NULL), _is_running(false)
 {
     this->_create_authenticator();
 
@@ -64,37 +65,23 @@ NetworkPACS
     std::string db_host = "";
     int db_port = -1;
     std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_information,
-                                                                 db_host,
-                                                                 db_port,
-                                                                 indexeslist);
+    ConfigurationPACS::get_instance().get_database_configuration(
+        db_information, db_host, db_port, indexeslist);
 
     // Create connection with Database
-    MongoDBConnection connection(db_information, db_host, db_port, indexeslist);
+    this->_db_connection = MongoDBConnection(
+        db_information, db_host, db_port, indexeslist);
 
     // Try to connect
-    if (!connection.connect())
+    if(!this->_db_connection.connect())
     {
         throw ExceptionPACS("cannot connect to database");
-    }
-
-    int port = std::atoi(ConfigurationPACS::
-                         get_instance().get_value("dicom.port").c_str());
-
-    this->_network = dcmtkpp::Network(NET_ACCEPTORREQUESTOR, port, 30);
-    this->_network.initialize();
-
-    if (!this->_network.is_initialized())
-    {
-        throw ExceptionPACS("cannot initialize network");
     }
 }
 
 NetworkPACS
 ::~NetworkPACS()
 {
-    this->_network.drop();
-
     if (this->_authenticator != NULL)
     {
         delete this->_authenticator;
@@ -136,64 +123,71 @@ void NetworkPACS::run()
 {
     this->_is_running = true;
 
-    SCPDispatcher dispatcher;
-    dispatcher.set_network(&this->_network);
-
-    // SCP
-    services::EchoSCP echoscp;
-    echoscp.set_generator(services::EchoGenerator::New());
-    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_ECHO_RQ, echoscp);
-
-    services::FindSCP findscp;
-    findscp.set_generator(services::FindGenerator::New());
-    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_FIND_RQ, findscp);
-
-    services::GetSCP getscp;
-    getscp.set_generator(services::GetGenerator::New());
-    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_GET_RQ, getscp);
-
-    services::MoveSCP movescp;
-    movescp.set_generator(services::MoveGenerator::New());
-    movescp.set_own_aetitle(ConfigurationPACS::get_instance().get_value("dicom.ae_title"));
-    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_MOVE_RQ, movescp);
-
-    services::StoreSCP storescp;
-    storescp.set_generator(services::StoreGenerator::New());
-    dispatcher.set_scp(dcmtkpp::message::Message::Command::C_STORE_RQ, storescp);
-
     // Loop Processing
     while(this->_is_running)
     {
-        logger_debug() << "Network is waiting for association";
+        logger_debug() << "Waiting for incoming association";
 
-        // Waiting for association
-        if (this->_network.is_association_waiting(TIMEOUT))
+        auto const port = std::stoul(
+            ConfigurationPACS::get_instance().get_value("dicom.port"));
+        odil::Association association;
+        try
         {
-            dcmtkpp::DcmtkAssociation association;
-            dispatcher.set_association(&association);
+            association.receive_association(
+                boost::asio::ip::tcp::v4(), port,
+                [this](odil::AssociationParameters const & parameters)
+                {
+                    if(!(*this->_authenticator)(parameters))
+                    {
+                        throw odil::AssociationRejected(1, 2, 1);
+                    }
+                    return odil::default_association_acceptor(parameters);
+                }
+            );
+        }
+        catch(odil::Exception const & exception)
+        {
+            logger_error() << "Failed to receive association: "
+                           << exception.what();
+            continue;
+        }
+
+        logger_debug() << "Association received";
+
+
+        //auto echo_scp = std::make_shared<odil::EchoSCP>(association, echo);
+        auto find_scp = std::make_shared<odil::FindSCP>(
+            association,
+            std::make_shared<services::FindGenerator>(
+                association.get_parameters(), this->_db_connection));
+        //auto store_scp = std::make_shared<odil::StoreSCP>(association, store);
+
+        odil::SCPDispatcher dispatcher(association);
+        //dispatcher.set_scp(odil::message::Message::Command::C_ECHO_RQ, echo_scp);
+        dispatcher.set_scp(odil::message::Message::Command::C_FIND_RQ, find_scp);
+        //dispatcher.set_scp(
+        //    odil::message::Message::Command::C_STORE_RQ, store_scp);
+
+        bool done = false;
+        while(!done)
+        {
             try
             {
-                auto authenticator_ = [this](dcmtkpp::DcmtkAssociation const & assoc)->bool { return (*this->_authenticator)(assoc); };
-                association.receive(this->_network, authenticator_, {"*"}, true);
+                dispatcher.dispatch();
             }
-            catch (dcmtkpp::Exception const & exception)
+            catch(odil::AssociationReleased const &)
             {
-                logger_error() << "Failed to receive association: "
-                               << exception.what();
-                continue;
+                logger_debug() << "Peer released association";
+                done = true;
             }
-
-            time_t t = time(NULL);
-            logger_info() << "Association Received ("
-                          << association.get_peer_host_name()
-                          << ":" << association.get_peer_ae_title()
-                          << " -> "
-                          << association.get_own_ae_title() << ") "
-                          << ctime(&t);
-
-            this->_is_running = dispatcher.dispatch();
-
-            dispatcher.set_association(NULL);
+            catch(odil::AssociationAborted const & e)
+            {
+                logger_debug()
+                    << "Peer aborted association, "
+                    << "source: " << int(e.source) << ", "
+                    << "reason: " << int(e.reason);
+                done = true;
+            }
         }
     }
 }
