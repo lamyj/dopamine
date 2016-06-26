@@ -30,21 +30,6 @@ public:
     typedef GeneratorPACS Self;
     typedef boost::shared_ptr<Self> Pointer;
 
-    /// @brief DICOM match type, see PS 3.4-2011, C.2.2.2
-    struct Match
-    {
-        enum Type
-        {
-            SingleValue,
-            ListOfUID,
-            Universal,
-            WildCard,
-            Range,
-            Sequence,
-            MultipleValues,
-            Unknown
-        };
-    };
 
     /// @brief Default Constructor for GeneratorPACS
     GeneratorPACS();
@@ -90,37 +75,7 @@ public:
                                        odil::VR const & vr,
                                        std::string const & value);
 
-    /**
-     * Replace all given pattern by another
-     * @param value: given input string
-     * @param old: search pattern to be replaced
-     * @param new_: new pattern
-     * @return string
-     */
-    static std::string replace(std::string const & value,
-                               std::string const & old,
-                               std::string const & new_);
-
 protected:
-    /// @brief Return the DICOM Match Type of an element in BSON form.
-    Match::Type _get_match_type(std::string const & vr,
-                                mongo::BSONElement const & element) const;
-
-
-    /// @brief Type of DICOM query -> MongoDB query conversion functions.
-    typedef void (Self::*DicomQueryToMongoQuery)(
-                        std::string const & field,
-                        std::string const & vr,
-                        mongo::BSONElement const & value,
-                        mongo::BSONObjBuilder & builder) const;
-
-    /**
-     * @brief Return the DICOM query -> MongoDB query conversion function
-     *        corresponding to the specified match type.
-     */
-    DicomQueryToMongoQuery _get_query_conversion(
-                        Match::Type const & match_type) const;
-
     bool extract_query_retrieve_level(mongo::BSONObj const & mongo_object);
 
     /// Connection to the Database
@@ -151,29 +106,6 @@ protected:
     int _skipped_results;
 
 private:
-    /**
-     * @brief _add_value_to_builder
-     * @param builder
-     * @param field
-     * @param value
-     */
-    template<typename TType>
-    void _add_value_to_builder(mongo::BSONObjBuilder &builder,
-                               std::string const & field,
-                               std::string const & value) const;
-
-    /**
-     * @brief Convert a BSON element from the DICOM query language to the
-     *        MongoDB query language.
-     *
-     * This function must be specialized for each value of Self::Match.
-     */
-    template<Match::Type VType>
-    void _dicom_query_to_mongo_query(std::string const & field,
-                                     std::string const & vr,
-                                     mongo::BSONElement const & value,
-                                     mongo::BSONObjBuilder & builder) const;
-
     odil::Value::Integer _get_count(std::string const & relatedElement,
                                        std::string const & ofElement,
                                        std::string const & value);
