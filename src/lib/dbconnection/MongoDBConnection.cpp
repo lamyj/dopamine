@@ -329,10 +329,10 @@ MongoDBConnection
 mongo::unique_ptr<mongo::DBClientCursor>
 MongoDBConnection
 ::get_datasets_cursor(mongo::Query const & query, int nToReturn,
-                      int nToSkip, mongo::BSONObj const * fieldsToReturn)
+                      int nToSkip, mongo::BSONObj const & fieldsToReturn)
 {
     return this->_database_information.connection.query(this->get_db_name() + ".datasets", query,
-                                   nToReturn, nToSkip, fieldsToReturn);
+                                   nToReturn, nToSkip, &fieldsToReturn);
 }
 
 bool MongoDBConnection::run_command(mongo::BSONObj const & command, mongo::BSONObj & response)

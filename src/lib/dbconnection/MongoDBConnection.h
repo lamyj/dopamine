@@ -63,8 +63,8 @@ public:
             odil::message::Message::Command::Type command);
 
     mongo::unique_ptr<mongo::DBClientCursor> get_datasets_cursor(
-            mongo::Query const & query = mongo::Query(), int nToReturn = 0,
-            int nToSkip = 0, mongo::BSONObj const * fieldsToReturn = NULL);
+            mongo::Query const & query, int nToReturn,
+            int nToSkip, mongo::BSONObj const & fieldsToReturn);
 
     bool run_command(mongo::BSONObj const & command, mongo::BSONObj & response);
 
