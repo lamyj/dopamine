@@ -9,7 +9,11 @@
 #ifndef _ee9915a2_a504_4b21_8d43_7938c66c526e
 #define _ee9915a2_a504_4b21_8d43_7938c66c526e
 
-#include "services/GeneratorPACS.h"
+#include <odil/AssociationParameters.h>
+#include <odil/DataSet.h>
+#include <odil/message/Request.h>
+
+#include "services/QueryRetrieveGenerator.h"
 
 namespace dopamine
 {
@@ -20,43 +24,24 @@ namespace services
 /**
  * @brief \class Response Generator for C-FIND services.
  */
-class FindGenerator : public GeneratorPACS
+class FindGenerator : public QueryRetrieveGenerator
 {
 public:
-    typedef FindGenerator Self;
-    typedef boost::shared_ptr<Self> Pointer;
-
-    /// Create pointer to new instance of FindGenerator
-    static Pointer New();
+    /// @brief Constructor.
+    FindGenerator(
+        odil::AssociationParameters const & parameters,
+        MongoDBConnection & db_connection);
     
-    /// Destroy the find response generator
+    /// @brief Destructor.
     virtual ~FindGenerator();
 
-    virtual odil::Value::Integer initialize(
-            odil::Association const & association,
-            odil::message::Message const & message);
-
-    virtual odil::Value::Integer next();
-
-    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
-
-    bool get_convert_modalities_in_study() const;
-
-    void set_fuzzy_matching(bool fuzzy_matching);
-
-    bool get_fuzzy_matching() const;
-
-protected:
-    /// Create a default find response generator
-    FindGenerator();
+    virtual void initialize(odil::message::Request const & request);
+    virtual void next();
 
 private:
-
-    /// flag indicating if modalities should be convert
-    bool _convert_modalities_in_study;
-
-    bool _fuzzy_matching;
-
+    std::string _query_retrieve_level;
+    /// @brief Flag indicating whether modalities in each study are required.
+    bool _compute_modalities_in_study;
 };
 
 } // namespace services
