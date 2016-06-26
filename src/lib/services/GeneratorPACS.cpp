@@ -6,11 +6,21 @@
  * for details.
  ************************************************************************/
 
-#include <odil/message/Response.h>
+#include "QueryRetrieveGenerator.h"
 
-#include "core/ConfigurationPACS.h"
+#include <string>
+
+#include <mongo/client/dbclient.h>
+#include <odil/AssociationParameters.h>
+#include <odil/message/Request.h>
+#include <odil/SCP.h>
+
+#include "ConverterBSON/bson_converter.h"
+#include "ConverterBSON/TagMatch.h"
+#include "core/ExceptionPACS.h"
+#include "dbconnection/MongoDBConnection.h"
 #include "core/LoggerPACS.h"
-#include "GeneratorPACS.h"
+#include "services/query_converter.h"
 
 namespace dopamine
 {
@@ -18,291 +28,147 @@ namespace dopamine
 namespace services
 {
 
-GeneratorPACS
-{
-    {
-    }
-}
-
-GeneratorPACS
-{
-}
-
-void
-GeneratorPACS
-{
-    {
-    }
-    else
-    {
-
-GeneratorPACS
-::GeneratorPACS():
-    Generator(), _connection(NULL), _isconnected(false), _username(""),
-    _query_retrieve_level(""), _instance_count_tags({}), _include_fields({}),
-    _maximum_results(0), _skipped_results(0)
-{
-    // Nothing else.
-}
-
-GeneratorPACS
-::~GeneratorPACS()
-{
-    if (this->_connection != NULL)
-    {
-        this->_cursor.release();
-        delete this->_connection;
-    }
-}
-
-odil::Value::Integer
-GeneratorPACS
-::initialize(odil::Association const & association,
-             odil::message::Message const & message)
+QueryRetrieveGenerator
+::QueryRetrieveGenerator(
+    odil::AssociationParameters const & parameters,
+    MongoDBConnection & db_connection)
+: _db_connection(db_connection), _cursor(), _username("")
 {
     // Get user identity
-    this->_username =
-        association.get_parameters().get_user_identity().primary_field;
+    auto const identity = parameters.get_user_identity();
+    if(identity.type == odil::AssociationParameters::UserIdentity::Type::Kerberos ||
+        identity.type == odil::AssociationParameters::UserIdentity::Type::SAML)
+    {
+        throw ExceptionPACS("Cannot get user name from identity");
+    }
+    this->_username = parameters.get_user_identity().primary_field;
+}
 
-    // Everything ok
-    return odil::message::Response::Success;
+QueryRetrieveGenerator
+::~QueryRetrieveGenerator()
+{
+    if(!this->_cursor)
+    {
+        this->_cursor.release();
+    }
 }
 
 bool
-GeneratorPACS
+QueryRetrieveGenerator
 ::done() const
 {
-    if (this->_cursor == NULL)
-    {
-        return true;
-    }
-
-    return !this->_cursor->more();
+    return (this->_cursor == NULL) || !this->_cursor->more();
 }
 
-odil::Value::Integer
-GeneratorPACS
-::initialize(mongo::BSONObj const & request)
+odil::DataSet
+QueryRetrieveGenerator
+::get() const
 {
-    // Get configuration for Database connection
-    MongoDBInformation db_information;
-    std::string db_host = "";
-    int db_port = -1;
-    std::vector<std::string> indexeslist;
-    ConfigurationPACS::get_instance().get_database_configuration(db_information,
-                                                                 db_host,
-                                                                 db_port,
-                                                                 indexeslist);
-
-    // Create connection with Database
-    this->_connection = new MongoDBConnection(db_information, db_host, db_port,
-                                              indexeslist);
-
-    // Try to connect
-    this->_isconnected = this->_connection->connect();
-    if (this->_isconnected == false)
-    {
-        return odil::message::Response::ProcessingFailure;
-    }
-
-    // Everything ok
-    return odil::message::Response::Success;
-}
-
-std::pair<std::string, int>
-GeneratorPACS
-::get_peer_information(std::string const & ae_title)
-{
-    return this->_connection->get_peer_information(ae_title);
-}
-
-void
-GeneratorPACS
-::set_username(std::string const & name)
-{
-    this->_username = name;
-}
-
-std::string
-GeneratorPACS
-::get_username() const
-{
-    return this->_username;
+    return this->_data_set;
 }
 
 bool
-GeneratorPACS
-::is_connected() const
+QueryRetrieveGenerator
+::_get_query_and_fields(
+    odil::message::Request const & request,
+    mongo::BSONArrayBuilder & query_builder,
+    mongo::BSONObjBuilder & fields_builder) const
 {
-    return this->_isconnected;
-}
-
-void
-GeneratorPACS
-::set_query_retrieve_level(std::string const & query_retrieve_level)
-{
-    this->_query_retrieve_level = query_retrieve_level;
-}
-
-std::string
-GeneratorPACS
-::get_query_retrieve_level() const
-{
-    return this->_query_retrieve_level;
-}
-
-std::vector<std::string>
-GeneratorPACS
-::get_instance_count_tags() const
-{
-    return this->_instance_count_tags;
-}
-
-void
-GeneratorPACS
-::set_include_fields(std::vector<std::string> const & include_fields)
-{
-    this->_include_fields = include_fields;
-}
-
-std::vector<std::string> &
-GeneratorPACS
-::get_include_fields()
-{
-    return this->_include_fields;
-}
-
-void
-GeneratorPACS
-::set_maximum_results(int maximum_results)
-{
-    this->_maximum_results = maximum_results;
-}
-
-int
-GeneratorPACS
-::get_maximum_results() const
-{
-    return this->_maximum_results;
-}
-
-void
-GeneratorPACS
-::set_skipped_results(int skipped_results)
-{
-    this->_skipped_results = skipped_results;
-}
-
-int
-GeneratorPACS
-::get_skipped_results() const
-{
-    return this->_skipped_results;
-}
-
-bool
-GeneratorPACS
-::extract_query_retrieve_level(mongo::BSONObj const & mongo_object)
-{
-    // Query retrieve level should be present
-    if (!mongo_object.hasField("00080052"))
+    bool const is_authorized = this->_db_connection.is_authorized(
+        this->_username,
+        odil::message::Message::Command::Type(request.get_command_field()));
+    if(is_authorized)
     {
-        logger_warning() << "Cannot find field QueryRetrieveLevel";
+        logger_warning()
+            << "User '" << this->_username
+            << "' is not allowed to perform operation";
         return false;
     }
 
-    // Read the Query Retrieve Level
-    mongo::BSONObj const field_00080052 =
-            mongo_object.getField("00080052").Obj();
-    this->_query_retrieve_level =
-            field_00080052.getField("Value").Array()[0].String();
+    auto const & data_set = request.get_data_set();
+
+    if(!data_set.has(odil::registry::QueryRetrieveLevel))
+    {
+        throw odil::Exception("message::CFindResponse::MissingAttribute");
+    }
+    auto const query_retrieve_level = data_set.as_string(
+        odil::registry::QueryRetrieveLevel, 0);
+
+    // Query with DICOM syntax matches
+    auto const dicom_query = as_bson(
+        request.get_data_set(), FilterAction::INCLUDE,
+        {
+            {
+                converterBSON::TagMatch::New(odil::registry::SpecificCharacterSet),
+                FilterAction::EXCLUDE
+            },
+            {
+                converterBSON::TagMatch::New(odil::registry::QueryRetrieveLevel),
+                FilterAction::EXCLUDE
+            }
+        });
+
+    // Build the MongoDB query and query fields from the DICOM query
+    for(mongo::BSONObj::iterator it = dicom_query.begin(); it.more();)
+    {
+        auto const element = it.next();
+        auto const object = element.Obj();
+
+        auto const vr = object.getField("vr").String();
+        std::string value_field = "Value";
+        if(vr == "OB" || vr == "OD" || vr == "OF" || vr == "OL" || vr == "OW" ||
+            vr == "UN")
+        {
+            value_field = "InlineBinary";
+        }
+
+        std::string field = std::string(element.fieldName()) + "." + value_field;
+        if (vr == "PN")
+        {
+            field += ".Alphabetic";
+        }
+
+        auto const value = object.getField(value_field);
+        auto const converter = get_query_converter(get_match_type(vr, value));
+
+        // Convert the DICOM query term to MongoDB syntax
+        mongo::BSONObjBuilder term;
+        converter(field, vr, value, term);
+        query_builder << term.obj();
+
+        // Always include the query fields in the results
+        fields_builder << element.fieldName() << 1;
+    }
+
+    // Make sure all mandatory fields are included
+    std::vector<std::string> mandatory_fields = {
+        odil::registry::SpecificCharacterSet,
+        odil::registry::PatientID,
+    };
+
+    if(query_retrieve_level=="STUDY" || query_retrieve_level=="SERIES" ||
+        query_retrieve_level=="IMAGE")
+    {
+        mandatory_fields.push_back(odil::registry::StudyInstanceUID);
+    }
+    if(query_retrieve_level=="SERIES" || query_retrieve_level=="IMAGE")
+    {
+        mandatory_fields.push_back(odil::registry::SeriesInstanceUID);
+    }
+    if(query_retrieve_level=="IMAGE")
+    {
+        mandatory_fields.push_back(odil::registry::SOPInstanceUID);
+    }
+
+    for(auto const & field: mandatory_fields)
+    {
+        if(!fields_builder.hasField(field))
+        {
+            fields_builder << field << 1;
+        }
+    }
 
     return true;
-}
-
-odil::Value::Integer
-GeneratorPACS
-::_get_count(std::string const & relatedElement,
-             std::string const & ofElement,
-             std::string const & value)
-{
-    mongo::BSONObj const object = BSON("distinct" << "datasets" <<
-                                       "key" << relatedElement <<
-                                       "query" << BSON(ofElement << value));
-
-    mongo::BSONObj info;
-    bool ret = this->_connection->run_command(object, info);
-    if (!ret)
-    {
-        // error
-    }
-
-    return info["values"].Array().size();
-}
-
-odil::Element
-GeneratorPACS
-::compute_attribute(odil::Tag const & tag, odil::VR const & vr,
-                    std::string const & value)
-{
-    if (tag == odil::registry::InstanceAvailability) // Instance Availability
-    {
-        return odil::Element({"ONLINE"}, vr);
-    }
-    else if (tag == odil::registry::ModalitiesInStudy) // Modalities in Study
-    {
-        mongo::BSONObj const object = BSON("distinct" << "datasets" <<
-                                           "key" << "00080060.Value" <<
-                                           "query" << BSON("0020000d.Value" <<
-                                                           value));
-
-        mongo::BSONObj info;
-        bool ret = this->_connection->run_command(object, info);
-        if (!ret)
-        {
-            // error
-        }
-
-        odil::Value::Strings values;
-        for (auto const item : info.getField("values").Array())
-        {
-            values.push_back(item.String());
-        }
-
-        return odil::Element(values, vr);
-    }
-    else if (tag == "00201200") // Number of Patient Related Study
-    {
-        auto size = this->_get_count("0020000d", "00100020.Value", value);
-        return odil::Element({size}, vr);
-    }
-    else if (tag == "00201202") // Number of Patient Related Series
-    {
-        auto size = this->_get_count("0020000e", "00100020.Value", value);
-        return odil::Element({size}, vr);
-    }
-    else if (tag == "00201204") // Number of Patient Related Instances
-    {
-        auto size = this->_get_count("00080018", "00100020.Value", value);
-        return odil::Element({size}, vr);
-    }
-    else if (tag == "00201206") // Number of Study Related Series
-    {
-        auto size = this->_get_count("0020000e", "0020000d.Value", value);
-        return odil::Element({size}, vr);
-    }
-    else if (tag == "00201208") // Number of Study Related Instances
-    {
-        auto size = this->_get_count("00080018", "0020000d.Value", value);
-        return odil::Element({size}, vr);
-    }
-    else if (tag == "00201209") // Number of Series Related Instances
-    {
-        auto size = this->_get_count("00080018", "0020000e.Value", value);
-        return odil::Element({size}, vr);
-    }
-
-    return odil::Element();
 }
 
 } // namespace services
