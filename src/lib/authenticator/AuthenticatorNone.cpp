@@ -29,10 +29,10 @@ AuthenticatorNone
 
 bool
 AuthenticatorNone
-::operator()(odil::Association const & association) const
+::operator()(odil::AssociationParameters const & parameters) const
 {
     // Only available for Identity type: None
-    return association.get_parameters().get_user_identity().type ==
+    return parameters.get_user_identity().type ==
            odil::AssociationParameters::UserIdentity::Type::None;
 }
 

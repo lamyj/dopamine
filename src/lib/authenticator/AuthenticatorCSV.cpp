@@ -59,18 +59,16 @@ AuthenticatorCSV
 
 bool
 AuthenticatorCSV
-::operator ()(odil::Association const & association) const
+::operator ()(odil::AssociationParameters const & parameters) const
 {
     bool authorized = false;
 
     // Only available for Identity type: User / Password
-    if (association.get_parameters().get_user_identity().type ==
+    if (parameters.get_user_identity().type ==
             odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
     {
-        std::string const username =
-                association.get_parameters().get_user_identity().primary_field;
-        std::string const pwd =
-            association.get_parameters().get_user_identity().secondary_field;
+        auto const username = parameters.get_user_identity().primary_field;
+        auto const pwd = parameters.get_user_identity().secondary_field;
 
         // Search in map
         std::map<std::string, std::string>::const_iterator const it =
