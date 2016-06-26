@@ -15,7 +15,9 @@ add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
 add_definitions(-DHAVE_CONFIG_H)
 
 file(GLOB_RECURSE files "*.cpp")
-add_library(libdopamine SHARED ${files})
+file(GLOB_RECURSE headers "*.h")
+file(GLOB_RECURSE templates "*.txx")
+add_library(libdopamine SHARED ${files} ${headers} ${templates})
 
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
 target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
