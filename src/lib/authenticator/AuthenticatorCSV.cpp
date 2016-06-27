@@ -6,6 +6,7 @@
  * for details.
  ************************************************************************/
 
+#include <fstream>
 #include <sstream>
 
 #include <boost/filesystem.hpp>

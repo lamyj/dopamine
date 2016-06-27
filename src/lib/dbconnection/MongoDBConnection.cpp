@@ -23,6 +23,7 @@
 #include "ConverterBSON/bson_converter.h"
 #include "ConverterBSON/IsPrivateTag.h"
 #include "ConverterBSON/VRMatch.h"
+#include "core/ExceptionPACS.h"
 #include "core/LoggerPACS.h"
 #include "MongoDBConnection.h"
 
