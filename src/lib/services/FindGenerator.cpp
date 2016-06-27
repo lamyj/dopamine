@@ -17,6 +17,7 @@
 #include <odil/Value.h>
 
 #include "core/LoggerPACS.h"
+#include "dbconnection/MongoDBConnection.h"
 #include "services/QueryRetrieveGenerator.h"
 
 namespace dopamine
@@ -95,7 +96,7 @@ FindGenerator
         {
             data_set.remove(odil::registry::Modality);
             std::vector<mongo::BSONElement> const modalities =
-            current_bson.getField("modalities_in_study").Array();
+                current_bson.getField("modalities_in_study").Array();
             odil::Value::Strings values;
             for(unsigned int i=0; i<modalities.size(); ++i)
             {

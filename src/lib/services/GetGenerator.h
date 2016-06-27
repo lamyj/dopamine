@@ -9,7 +9,11 @@
 #ifndef _abef9025_9f25_4a3f_bc82_695c873ee02a
 #define _abef9025_9f25_4a3f_bc82_695c873ee02a
 
-#include "services/GeneratorPACS.h"
+#include <odil/AssociationParameters.h>
+#include <odil/message/Request.h>
+
+#include "dbconnection/MongoDBConnection.h"
+#include "services/QueryRetrieveGenerator.h"
 
 namespace dopamine
 {
@@ -20,32 +24,19 @@ namespace services
 /**
  * @brief \class Response Generator for C-GET services.
  */
-class GetGenerator : public GeneratorPACS
+class GetGenerator : public QueryRetrieveGenerator
 {
 public:
-    typedef GetGenerator Self;
-    typedef boost::shared_ptr<Self> Pointer;
+    /// @brief Constructor.
+    GetGenerator(
+        odil::AssociationParameters const & parameters,
+        MongoDBConnection & db_connection);
 
-    /// Create pointer to new instance of GetGenerator
-    static Pointer New();
-
-    /// Destroy the get response generator
+    /// @brief Destructor.
     virtual ~GetGenerator();
 
-    virtual odil::Value::Integer initialize(
-            odil::Association const & association,
-            odil::message::Message const & message);
-
-    virtual odil::Value::Integer next();
-
-    virtual odil::Value::Integer initialize(mongo::BSONObj const & request);
-
-protected:
-    /// Create a default get response generator
-    GetGenerator();
-
-private:
-
+    virtual void initialize(odil::message::Request const & request);
+    virtual void next();
 };
 
 } // namespace services

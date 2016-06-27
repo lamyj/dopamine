@@ -13,6 +13,7 @@
 #include <odil/DataSet.h>
 #include <odil/message/Request.h>
 
+#include "dbconnection/MongoDBConnection.h"
 #include "services/QueryRetrieveGenerator.h"
 
 namespace dopamine

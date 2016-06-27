@@ -589,8 +589,6 @@ std::string MongoDBConnection::dataset_as_string(mongo::BSONObj const & object)
                     << "' for Content attribute";
         throw ExceptionPACS(streamerror.str());
     }
-
-    return "";
 }
 
 bool

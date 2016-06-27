@@ -13,8 +13,10 @@
 
 #include <mongo/client/dbclient.h>
 #include <odil/AssociationParameters.h>
+#include <odil/DataSet.h>
 #include <odil/message/Request.h>
 #include <odil/message/Response.h>
+#include <odil/registry.h>
 #include <odil/SCP.h>
 
 #include "ConverterBSON/bson_converter.h"
