@@ -14,6 +14,7 @@
 #include <mongo/client/dbclient.h>
 #include <odil/AssociationParameters.h>
 #include <odil/message/Request.h>
+#include <odil/message/Response.h>
 #include <odil/SCP.h>
 
 #include "ConverterBSON/bson_converter.h"
@@ -68,7 +69,7 @@ QueryRetrieveGenerator
     return this->_data_set;
 }
 
-bool
+void
 QueryRetrieveGenerator
 ::_get_query_and_fields(
     odil::message::Request const & request,
@@ -78,20 +79,32 @@ QueryRetrieveGenerator
     bool const is_authorized = this->_db_connection.is_authorized(
         this->_username,
         odil::message::Message::Command::Type(request.get_command_field()));
-    if(is_authorized)
+    if(!is_authorized)
     {
         logger_warning()
             << "User '" << this->_username
             << "' is not allowed to perform operation";
-        return false;
+        odil::DataSet status_fields;
+        status_fields.add(
+            odil::registry::ErrorComment,
+            { "User -"+this->_username+"' is not allowed to perform operation"});
+        throw odil::SCP::Exception(
+            "", odil::message::Response::RefusedNotAuthorized, status_fields);
     }
 
     auto const & data_set = request.get_data_set();
 
-    if(!data_set.has(odil::registry::QueryRetrieveLevel))
+    if(!data_set.has(odil::registry::QueryRetrieveLevel) ||
+        data_set.empty(odil::registry::QueryRetrieveLevel))
     {
-        throw odil::Exception("message::CFindResponse::MissingAttribute");
+        odil::DataSet status_fields;
+        status_fields.add(
+            odil::registry::AttributeIdentifierList,
+            { odil::registry::QueryRetrieveLevel });
+        throw odil::SCP::Exception(
+            "", odil::message::Response::MissingAttribute, status_fields);
     }
+
     auto const query_retrieve_level = data_set.as_string(
         odil::registry::QueryRetrieveLevel, 0);
 
@@ -170,8 +183,6 @@ QueryRetrieveGenerator
             fields_builder << field << 1;
         }
     }
-
-    return true;
 }
 
 } // namespace services

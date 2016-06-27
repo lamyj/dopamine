@@ -11,7 +11,9 @@
 #include <odil/AssociationParameters.h>
 #include <odil/Exception.h>
 #include <odil/message/Message.h>
+#include <odil/message/Response.h>
 #include <odil/registry.h>
+#include <odil/SCP.h>
 #include <odil/Value.h>
 
 #include "core/LoggerPACS.h"
@@ -79,7 +81,8 @@ FindGenerator
     {
         logger_warning() << "An error occured while processing Find operation: "
                          << current_bson.getField("$err").String();
-        return;
+        throw odil::SCP::Exception(
+            "", odil::message::Response::ProcessingFailure);
     }
     else
     {

@@ -47,10 +47,10 @@ protected:
     odil::DataSet _data_set;
 
     /**
-     * @brief Fill the query terms and fields builders. Return false if the
-     * user is not authorized to perform the operation, return true otherwise.
+     * @brief Fill the query terms and fields builders. Throw an
+     * odil::SCP::Exception on errors.
      */
-    bool
+    void
     _get_query_and_fields(
         odil::message::Request const & request,
         mongo::BSONArrayBuilder & query_builder,
