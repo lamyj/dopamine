@@ -19,37 +19,21 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class VRMatch Condition
- */
+/// @brief Condition matching a specific VR.
 class VRMatch : public Condition
 {
 public:
-    typedef boost::shared_ptr<VRMatch> Pointer;
-    
-    /// Create pointer to new instance of VRMatch
-    static Pointer New(odil::VR vr);
-    
-    /// Destroy the instance of VRMatch
+    /// @brief Constructor.
+    VRMatch(odil::VR vr);
+
+    /// @brief Destructor.
     virtual ~VRMatch();
 
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return true if element's VR match with Searched VR, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-protected:
+    /// @brief Test whether the element has the stored VR.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 
 private:
-    /// Create an instance of VRMatch
-    VRMatch(odil::VR vr);
-    
-    /// Compared VR
     odil::VR _vr;
 
 };

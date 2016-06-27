@@ -9,6 +9,7 @@
 #ifndef _542f8cac_93b1_458b_a6a5_6671301a7196
 #define _542f8cac_93b1_458b_a6a5_6671301a7196
 
+#include <memory>
 #include "Condition.h"
 
 namespace dopamine
@@ -17,45 +18,22 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class Not Condition
- */
+/// @brief Negate a Condition
 class Not : public Condition
 {
 public:
-    typedef boost::shared_ptr<Not> Pointer;
-    
-    /**
-     * Create pointer to new instance of Not
-     * @param condition: tested condition
-     * @return this pointer
-     */
-    static Pointer New(Condition::Pointer const & condition);
-    
-    /// Destroy the instance of Not
+    /// @brief Constructor.
+    Not(std::shared_ptr<Condition> const & condition);
+
+    /// @brief Destructor.
     virtual ~Not();
 
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return true if condition is false, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-protected:
+    /// @brief Return the opposite of stored condition
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 
 private:
-    /**
-     * Create an instance of Not
-     * @param condition: tested condition
-     */
-    Not(Condition::Pointer const & condition);
-    
-    /// Tested condition
-    Condition::Pointer _condition;
+    std::shared_ptr<Condition> _condition;
 
 };
 

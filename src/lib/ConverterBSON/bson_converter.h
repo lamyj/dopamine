@@ -9,6 +9,8 @@
 #ifndef _8e0d86d9_dc96_475a_9ca8_42140db07a64
 #define _8e0d86d9_dc96_475a_9ca8_42140db07a64
 
+#include <memory>
+
 #include <odil/DataSet.h>
 
 #include <mongo/bson/bson.h>
@@ -28,7 +30,7 @@ struct FilterAction
     };
 };
 
-typedef std::pair<Condition::Pointer, FilterAction::Type> Filter;
+typedef std::pair<std::shared_ptr<Condition>, FilterAction::Type> Filter;
 typedef std::vector<Filter> Filters;
 
 

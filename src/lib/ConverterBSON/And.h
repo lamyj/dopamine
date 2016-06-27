@@ -9,6 +9,7 @@
 #ifndef _8a4c809c_65e2_494d_8c80_8186a778dd92
 #define _8a4c809c_65e2_494d_8c80_8186a778dd92
 
+#include <memory>
 #include <vector>
 
 #include "Condition.h"
@@ -19,45 +20,29 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class And condition
- */
+/// @brief Conjunction of several conditions.
 class And : public Condition
 {
 public:
-    typedef boost::shared_ptr<And> Pointer;
-    
-    /// Create pointer to new instance of And
-    static Pointer New();
-    
-    /// Destroy the instance of And
+    /// @brief Constructor.
+    And();
+
+    /// @brief Destructor.
     virtual ~And();
-    
-    /**
-     * Operator (), test if all conditions are true
-     * @param element: tested element
-     * @return true if all condition are true, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-    /**
-     * Add a new condition
-     * @param condition: condition to insert
-     */
-    void insert_condition(Condition::Pointer condition);
-    
-protected:
+
+    /// @brief Test whether all of the stored condition are true.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
+
+    /// @brief Return the terms of the conjunction (read-only).
+    std::vector<std::shared_ptr<Condition>> const & get_terms() const;
+
+    /// @brief Return the terms of the conjunction (read-write).
+    std::vector<std::shared_ptr<Condition>> & get_terms();
 
 private:
-    /// Create an instance of And
-    And();
-    
     /// List of conditions
-    std::vector<Condition::Pointer> _conditions;
-
+    std::vector<std::shared_ptr<Condition>> _conditions;
 };
 
 } // namespace converterBSON

@@ -14,16 +14,9 @@ namespace dopamine
 namespace converterBSON
 {
 
-AlwaysTrue::Pointer
 AlwaysTrue
-::New()
-{
-    return Pointer(new AlwaysTrue());
-}
-
-AlwaysTrue
-::AlwaysTrue():
-    Condition()
+::AlwaysTrue()
+: Condition()
 {
     // Nothing to do
 }
@@ -36,9 +29,8 @@ AlwaysTrue
 
 bool
 AlwaysTrue
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(
+    odil::Tag const &, odil::Element const &) const
 {
     return true;
 }

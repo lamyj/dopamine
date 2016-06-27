@@ -14,13 +14,6 @@ namespace dopamine
 namespace converterBSON
 {
 
-IsPrivateTag::Pointer
-IsPrivateTag
-::New()
-{
-    return Pointer(new IsPrivateTag());
-}
-
 IsPrivateTag
 ::IsPrivateTag():
     Condition()
@@ -36,9 +29,7 @@ IsPrivateTag
 
 bool
 IsPrivateTag
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(odil::Tag const & tag, odil::Element const &) const
 {
     return tag.is_private();
 }

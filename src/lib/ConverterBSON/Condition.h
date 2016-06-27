@@ -9,43 +9,26 @@
 #ifndef _22e89421_2015_4250_9fe5_63d84409adf7
 #define _22e89421_2015_4250_9fe5_63d84409adf7
 
-#include <boost/shared_ptr.hpp>
-
+#include <odil/DataSet.h>
 #include <odil/Element.h>
 #include <odil/Tag.h>
-
-#include "core/ExceptionPACS.h"
 
 namespace dopamine
 {
 
-/**
- * @brief \class Base class condition
- */
+///@brief Base class for all conversion conditions.
 class Condition
 {
 public:
-    typedef boost::shared_ptr<Condition> Pointer;
+    /// @brief Constructor.
+    Condition();
 
-    /// Destroy the instance of Condition
-    virtual ~Condition() {}
+    /// @brief Destructor.
+    virtual ~Condition();
 
-    /**
-     * @brief operator (): function should be implement in derived classes
-     * @param tag
-     * @param element
-     * @return
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS) = 0;
-
-protected:
-    /// Create an instance of Condition
-    Condition() {}
-
-private:
-
+    /// @brief Test whether the tag and element fulfill the condition
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const =0;
 };
 
 } // namespace dopamine

@@ -14,16 +14,9 @@ namespace dopamine
 namespace converterBSON
 {
 
-TagMatch::Pointer
 TagMatch
-::New(odil::Tag tag)
-{
-    return Pointer(new TagMatch(tag));
-}
-
-TagMatch
-::TagMatch(odil::Tag tag):
-    Condition(), _tag(tag)
+::TagMatch(odil::Tag tag)
+: Condition(), _tag(tag)
 {
     // Nothing else.
 }
@@ -36,9 +29,7 @@ TagMatch
 
 bool
 TagMatch
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(odil::Tag const & tag, odil::Element const &) const
 {
     return (tag == this->_tag);
 }

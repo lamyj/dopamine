@@ -19,37 +19,21 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class TagMatch Condition
- */
+/// @brief Condition matching a specific tag.
 class TagMatch : public Condition
 {
 public:
-    typedef boost::shared_ptr<TagMatch> Pointer;
-    
-    /// Create pointer to new instance of TagMatch
-    static Pointer New(odil::Tag tag);
-    
-    /// Destroy the instance of TagMatch
+    /// @brief Creator.
+    TagMatch(odil::Tag tag);
+
+    /// @brief Destructor.
     virtual ~TagMatch();
 
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return true if element's tag match with Searched Tag, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
+    /// @brief Return true if tag matches stored tag.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 
-protected:
-    
 private:
-    /// Create an instance of TagMatch
-    TagMatch(odil::Tag tag);
-    
-    /// Searched Tag
     odil::Tag _tag;
 
 };

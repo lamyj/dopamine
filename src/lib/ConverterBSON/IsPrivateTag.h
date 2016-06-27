@@ -17,36 +17,19 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class IsPrivateTag Condition
- */
+/// @brief Condition matching private tags.
 class IsPrivateTag : public Condition
 {
 public:
-    typedef boost::shared_ptr<IsPrivateTag> Pointer;
-    
-    /// Create pointer to new instance of IsPrivateTag
-    static Pointer New();
-
-    /// Destroy the instance of IsPrivateTag
-    virtual ~IsPrivateTag();
-
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return true if element is Private, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-protected:
-
-private:
-    /// Create an instance of IsPrivateTag
+    /// @brief Constructor.
     IsPrivateTag();
 
+    /// @brief Destructor.
+    virtual ~IsPrivateTag();
+
+    /// @brief Test whether tag is private.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 };
 
 } // namespace converterBSON

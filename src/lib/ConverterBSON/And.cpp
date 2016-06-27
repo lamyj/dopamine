@@ -8,18 +8,13 @@
 
 #include "And.h"
 
+#include <algorithm>
+
 namespace dopamine
 {
 
 namespace converterBSON
 {
-
-And::Pointer
-And
-::New()
-{
-    return Pointer(new And());
-}
 
 And
 ::And():
@@ -36,28 +31,29 @@ And
 
 bool
 And
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(odil::Tag const & tag, odil::Element const & element) const
 {
-    bool value=true;
-    for(auto it = this->_conditions.begin(); it != this->_conditions.end(); ++it)
-    {
-        value = value && (**it)(tag, element);
-        if(!value)
+    return std::all_of(
+        this->_conditions.begin(), this->_conditions.end(),
+        [&tag,&element](std::shared_ptr<Condition> const & condition)
         {
-            break;
+            return (*condition)(tag, element);
         }
-    }
-
-    return value;
+    );
 }
 
-void
+std::vector<std::shared_ptr<Condition>> const &
 And
-::insert_condition(Condition::Pointer condition)
+::get_terms() const
 {
-    this->_conditions.push_back(condition);
+    return this->_conditions;
+}
+
+std::vector<std::shared_ptr<Condition>> &
+And
+::get_terms()
+{
+    return this->_conditions;
 }
 
 } // namespace converterBSON

@@ -14,16 +14,10 @@ namespace dopamine
 namespace converterBSON
 {
 
-Not::Pointer
-Not
-::New(Condition::Pointer const & condition)
-{
-    return Pointer(new Not(condition));
-}
 
 Not
-::Not(Condition::Pointer const & condition):
-    Condition(), _condition(condition)
+::Not(std::shared_ptr<Condition> const & condition)
+: Condition(), _condition(condition)
 {
     // Nothing else
 }
@@ -36,9 +30,7 @@ Not
 
 bool
 Not
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(odil::Tag const & tag, odil::Element const & element) const
 {
     return !(*this->_condition)(tag, element);
 }

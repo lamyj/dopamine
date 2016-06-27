@@ -8,6 +8,7 @@
 
 #include "QueryRetrieveGenerator.h"
 
+#include <memory>
 #include <string>
 
 #include <mongo/client/dbclient.h>
@@ -99,11 +100,13 @@ QueryRetrieveGenerator
         request.get_data_set(), FilterAction::INCLUDE,
         {
             {
-                converterBSON::TagMatch::New(odil::registry::SpecificCharacterSet),
+                std::make_shared<converterBSON::TagMatch>(
+                    odil::registry::SpecificCharacterSet),
                 FilterAction::EXCLUDE
             },
             {
-                converterBSON::TagMatch::New(odil::registry::QueryRetrieveLevel),
+                std::make_shared<converterBSON::TagMatch>(
+                    odil::registry::QueryRetrieveLevel),
                 FilterAction::EXCLUDE
             }
         });

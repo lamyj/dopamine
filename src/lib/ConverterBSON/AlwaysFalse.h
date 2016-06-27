@@ -17,35 +17,19 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class Always False Condition
- */
+/// @brief Always False Condition
 class AlwaysFalse : public Condition
 {
 public:
-    typedef boost::shared_ptr<AlwaysFalse> Pointer;
-    
-    /// Create pointer to new instance of AlwaysFalse
-    static Pointer New();
-    
-    /// Destroy the instance of AlwaysFalse
-    virtual ~AlwaysFalse();
-
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return false
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-protected:
-
-private:
-    /// Create an instance of AlwaysFalse
+    /// @brief Constructor.
     AlwaysFalse();
 
+    /// @brief Destructor.
+    virtual ~AlwaysFalse();
+
+    /// @brief Always return false.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 };
 
 } // namespace converterBSON

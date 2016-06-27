@@ -11,43 +11,25 @@
 
 #include "Condition.h"
 
-class DcmElement;
-
 namespace dopamine
 {
 
 namespace converterBSON
 {
 
-/**
- * @brief \class Always True Condition
- */
+/// @brief Always True Condition
 class AlwaysTrue : public Condition
 {
 public:
-    typedef boost::shared_ptr<AlwaysTrue> Pointer;
-    
-    /// Create pointer to new instance of AlwaysTrue
-    static Pointer New();
-    
-    /// Destroy the instance of AlwaysTrue
-    virtual ~AlwaysTrue();
-
-    /**
-     * Operator ()
-     * @param element: tested element
-     * @return true
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-protected:
-
-private:
-    /// Create an instance of AlwaysTrue
+    /// @brief Constructor.
     AlwaysTrue();
 
+    /// @brief Destructor.
+    virtual ~AlwaysTrue();
+
+    /// @brief Always return true.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
 };
 
 } // namespace converterBSON

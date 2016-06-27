@@ -6,34 +6,26 @@
  * for details.
  ************************************************************************/
 
-#include "VRMatch.h"
+#include "Condition.h"
+
+#include <odil/DataSet.h>
+#include <odil/Element.h>
+#include <odil/Tag.h>
 
 namespace dopamine
 {
 
-namespace converterBSON
+Condition
+::Condition()
 {
-
-VRMatch
-::VRMatch(odil::VR vr)
-: Condition(), _vr(vr)
-{
-    // Nothing else.
+    // Nothing to do.
 }
 
-VRMatch
-::~VRMatch()
+Condition
+::~Condition()
 {
-    // Nothing to do
+    // Nothing to do.
 }
 
-bool
-VRMatch
-::operator()(odil::Tag const &, odil::Element const & element) const
-{
-    return (element.vr == this->_vr);
-}
-
-} // namespace converterBSON
 
 } // namespace dopamine

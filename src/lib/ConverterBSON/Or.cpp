@@ -8,18 +8,13 @@
 
 #include "Or.h"
 
+#include <algorithm>
+
 namespace dopamine
 {
 
 namespace converterBSON
 {
-
-Or::Pointer
-Or
-::New()
-{
-    return Pointer(new Or());
-}
 
 Or
 ::Or():
@@ -36,29 +31,29 @@ Or
 
 bool
 Or
-::operator()(odil::Tag const & tag,
-             odil::Element const & element) const
-    throw(dopamine::ExceptionPACS)
+::operator()(odil::Tag const & tag, odil::Element const & element) const
 {
-    bool value=false;
-    for(auto it = this->_conditions.begin();
-        it != this->_conditions.end(); ++it)
-    {
-        value = value || (**it)(tag, element);
-        if(value)
+    return std::any_of(
+        this->_conditions.begin(), this->_conditions.end(),
+        [&tag,&element](std::shared_ptr<Condition> const & condition)
         {
-            break;
+            return (*condition)(tag, element);
         }
-    }
-
-    return value;
+    );
 }
 
-void
+std::vector<std::shared_ptr<Condition>> const &
 Or
-::insert_condition(Condition::Pointer condition)
+::get_terms() const
 {
-    this->_conditions.push_back(condition);
+    return this->_conditions;
+}
+
+std::vector<std::shared_ptr<Condition>> &
+Or
+::get_terms()
+{
+    return this->_conditions;
 }
 
 } // namespace converterBSON

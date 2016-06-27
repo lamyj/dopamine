@@ -355,22 +355,15 @@ MongoDBConnection
                  odil::DataSet const & dataset,
                  std::string const & callingaet)
 {
-    Filters filters = {};
-    filters.push_back(std::make_pair(
-                          converterBSON::IsPrivateTag::New(),
-                          FilterAction::EXCLUDE));
-    filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(odil::VR::OB),
-                          FilterAction::EXCLUDE));
-    filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(odil::VR::OF),
-                          FilterAction::EXCLUDE));
-    filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(odil::VR::OW),
-                          FilterAction::EXCLUDE));
-    filters.push_back(std::make_pair(
-                          converterBSON::VRMatch::New(odil::VR::UN),
-                          FilterAction::EXCLUDE));
+    Filters filters = {
+        {std::make_shared<converterBSON::IsPrivateTag>(), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::OB), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::OD), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::OF), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::OL), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::OW), FilterAction::EXCLUDE},
+        {std::make_shared<converterBSON::VRMatch>(odil::VR::UN), FilterAction::EXCLUDE},
+    };
 
     // Convert Dataset into BSON object
     mongo::BSONObj object = as_bson(dataset, FilterAction::INCLUDE, filters);

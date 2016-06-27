@@ -9,6 +9,7 @@
 #ifndef _ff8d1604_1410_498f_945e_941630fdd05e
 #define _ff8d1604_1410_498f_945e_941630fdd05e
 
+#include <memory>
 #include <vector>
 
 #include "Condition.h"
@@ -19,45 +20,29 @@ namespace dopamine
 namespace converterBSON
 {
 
-/**
- * @brief \class Or condition
- */
+/// @brief Disjunction of several conditions.
 class Or : public Condition
 {
 public:
-    typedef boost::shared_ptr<Or> Pointer;
-    
-    /// Create pointer to new instance of Or
-    static Pointer New();
-    
-    /// Destroy the instance of Or
-    virtual ~Or();
-
-    /**
-     * Operator (), test if one condition is true
-     * @param element: tested element
-     * @return true if one condition is true, false otherwise
-     * @throw ExceptionPACS if element is null
-     */
-    virtual bool operator()(odil::Tag const & tag,
-                            odil::Element const & element)
-            const throw(dopamine::ExceptionPACS);
-    
-    /**
-     * Add a new condition
-     * @param condition: condition to insert
-     */
-    void insert_condition(Condition::Pointer condition);
-    
-protected:
-
-private:
-    /// Create an instance of Or
+    /// @brief Constructor.
     Or();
 
-    /// List of conditions
-    std::vector<Condition::Pointer> _conditions;
+    /// @brief Destructor.
+    virtual ~Or();
 
+    /// @brief Test whether any of the stored condition is true.
+    virtual bool operator()(
+        odil::Tag const & tag, odil::Element const & element) const;
+    
+    /// @brief Return the terms of the disjunction (read-only).
+    std::vector<std::shared_ptr<Condition>> const & get_terms() const;
+
+    /// @brief Return the terms of the disjunction (read-write).
+    std::vector<std::shared_ptr<Condition>> & get_terms();
+    
+private:
+    /// List of conditions
+    std::vector<std::shared_ptr<Condition>> _conditions;
 };
 
 } // namespace converterBSON
