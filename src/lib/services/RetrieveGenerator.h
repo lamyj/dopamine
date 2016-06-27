@@ -24,16 +24,16 @@ namespace services
 /**
  * @brief \class Response Generator for C-GET services.
  */
-class GetGenerator : public QueryRetrieveGenerator
+class RetrieveGenerator : public QueryRetrieveGenerator
 {
 public:
     /// @brief Constructor.
-    GetGenerator(
+    RetrieveGenerator(
         odil::AssociationParameters const & parameters,
         MongoDBConnection & db_connection);
 
     /// @brief Destructor.
-    virtual ~GetGenerator();
+    virtual ~RetrieveGenerator();
 
     virtual void initialize(odil::message::Request const & request);
     virtual void next();

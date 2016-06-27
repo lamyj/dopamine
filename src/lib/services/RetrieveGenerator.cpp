@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include "GetGenerator.h"
+#include "RetrieveGenerator.h"
 
 #include <odil/AssociationParameters.h>
 #include <odil/message/Request.h>
@@ -23,8 +23,8 @@ namespace dopamine
 namespace services
 {
 
-GetGenerator
-::GetGenerator(
+RetrieveGenerator
+::RetrieveGenerator(
     odil::AssociationParameters const & parameters,
     MongoDBConnection & db_connection)
 : QueryRetrieveGenerator(parameters, db_connection)
@@ -32,14 +32,14 @@ GetGenerator
     // Nothing else.
 }
 
-GetGenerator
-::~GetGenerator()
+RetrieveGenerator
+::~RetrieveGenerator()
 {
     // Nothing to do.
 }
 
 void
-GetGenerator
+RetrieveGenerator
 ::initialize(odil::message::Request const & request)
 {
     // Build the MongoDB query and query fields from the DICOM query
@@ -59,7 +59,7 @@ GetGenerator
 }
 
 void
-GetGenerator
+RetrieveGenerator
 ::next()
 {
     mongo::BSONObj current_bson = this->_cursor->next();
@@ -71,7 +71,7 @@ GetGenerator
     }
     else if(current_bson.hasField("$err"))
     {
-        logger_warning() << "An error occured while processing Get operation: "
+        logger_warning() << "An error occured while processing retrieve operation: "
                          << current_bson.getField("$err").String();
         throw odil::SCP::Exception(
             "", odil::message::Response::ProcessingFailure);
