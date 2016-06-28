@@ -6,10 +6,10 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleBson_converter
+#define BOOST_TEST_MODULE Bson_converter
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/json_converter.h>
+#include <odil/json_converter.h>
 
 #include "ConverterBSON/bson_converter.h"
 
@@ -46,42 +46,36 @@ void check_bson_string(mongo::BSONElement const & object,
 }
 
 void check_bson_binary(mongo::BSONElement const & object,
-                       dcmtkpp::Value::Binary const & expected_value)
+                       odil::Value::Binary const & expected_value)
 {
+
     BOOST_REQUIRE(!object.isSimpleType());
-    BOOST_REQUIRE(!object.isABSONObj());
+    BOOST_REQUIRE(object.isABSONObj());
+    BOOST_REQUIRE_EQUAL(object.Array().size(), expected_value.size());
+    auto const array = object.Array();
+    for(unsigned int i=0; i<array.size(); ++i)
+    {
+        auto const & bson_item = array[i];
+        auto const & expected_item = expected_value[i];
 
-    int size=0;
-    char const * begin = object.binDataClean(size);
-    BOOST_REQUIRE_EQUAL(size, expected_value.size());
-
-    dcmtkpp::Value::Binary result;
-    result.resize(size);
-    std::copy(begin, begin+size, result.begin());
-
-    BOOST_REQUIRE(result == expected_value);
+        int size=0;
+        char const * const begin = bson_item.binDataClean(size);
+        odil::Value::Binary::value_type const item(begin, begin+size);
+        BOOST_REQUIRE(item==expected_item);
+    }
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Empty Dataset
- */
 BOOST_AUTO_TEST_CASE(AsBSONEmpty)
 {
-    dcmtkpp::DataSet data_set;
+    odil::DataSet data_set;
     auto const bson = dopamine::as_bson(data_set);
     BOOST_REQUIRE(bson.isEmpty());
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Empty Field
- */
 BOOST_AUTO_TEST_CASE(AsBSONEmptyField)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(dcmtkpp::Value::Strings({}), dcmtkpp::VR::CS));
+    odil::DataSet data_set;
+    data_set.add(0xdeadbeef, odil::Value::Strings({}), odil::VR::CS);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -92,15 +86,10 @@ BOOST_AUTO_TEST_CASE(AsBSONEmptyField)
     check_bson_string(element.Obj().getField("vr"), "CS");
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Integers
- */
 BOOST_AUTO_TEST_CASE(AsBSONIntegers)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(dcmtkpp::Value::Integers({1, 2}), dcmtkpp::VR::SS));
+    odil::DataSet data_set;
+    data_set.add(0xdeadbeef, odil::Value::Integers({1, 2}), odil::VR::SS);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -114,15 +103,10 @@ BOOST_AUTO_TEST_CASE(AsBSONIntegers)
                      data_set.as_int(0xdeadbeef));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Reals
- */
 BOOST_AUTO_TEST_CASE(AsBSONReals)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(dcmtkpp::Value::Reals({1.2, 3.4}), dcmtkpp::VR::FL));
+    odil::DataSet data_set;
+    data_set.add(0xdeadbeef, odil::Value::Reals({1.2, 3.4}), odil::VR::FL);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -136,17 +120,10 @@ BOOST_AUTO_TEST_CASE(AsBSONReals)
                      data_set.as_real(0xdeadbeef));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Strings
- */
 BOOST_AUTO_TEST_CASE(AsBSONStrings)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(
-            dcmtkpp::Value::Strings({"FOO", "BAR"}),
-            dcmtkpp::VR::CS));
+    odil::DataSet data_set;
+    data_set.add(0xdeadbeef, odil::Value::Strings({"FOO", "BAR"}), odil::VR::CS);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -160,17 +137,13 @@ BOOST_AUTO_TEST_CASE(AsBSONStrings)
                      data_set.as_string(0xdeadbeef));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Strings PN
- */
 BOOST_AUTO_TEST_CASE(AsBSONPersonName)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(
-            dcmtkpp::Value::Strings({"Alpha^Betic=Ideo^Graphic=Pho^Netic"}),
-            dcmtkpp::VR::PN));
+    odil::DataSet data_set;
+    data_set.add(
+        0xdeadbeef,
+        odil::Value::Strings({"Alpha^Betic=Ideo^Graphic=Pho^Netic"}),
+        odil::VR::PN);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -190,20 +163,12 @@ BOOST_AUTO_TEST_CASE(AsBSONPersonName)
     check_bson_string(array[0].Obj().getField("Phonetic"), {"Pho^Netic"});
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Sequence
- */
 BOOST_AUTO_TEST_CASE(AsBSONDataSets)
 {
-    dcmtkpp::DataSet item;
-    item.add(0xbeeff00d,
-        dcmtkpp::Element(dcmtkpp::Value::Integers({1,2}), dcmtkpp::VR::SS));
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(
-            dcmtkpp::Value::DataSets({item}),
-            dcmtkpp::VR::SQ));
+    odil::DataSet item;
+    item.add(0xbeeff00d, odil::Value::Integers({1,2}), odil::VR::SS);
+    odil::DataSet data_set;
+    data_set.add(0xdeadbeef, odil::Value::DataSets({item}), odil::VR::SQ);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -228,17 +193,12 @@ BOOST_AUTO_TEST_CASE(AsBSONDataSets)
                      item.as_int(0xbeeff00d));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion BSON Binary
- */
 BOOST_AUTO_TEST_CASE(AsBSONBinary)
 {
-    dcmtkpp::DataSet data_set;
-    data_set.add(0xdeadbeef,
-        dcmtkpp::Element(
-            dcmtkpp::Value::Binary({0x1, 0x2, 0x3, 0x4, 0x5}),
-            dcmtkpp::VR::OB));
+    odil::DataSet data_set;
+    data_set.add(
+        0xdeadbeef,
+        odil::Value::Binary({{0x1, 0x2, 0x3}, {0x4, 0x5}}), odil::VR::OB);
     auto const bson = dopamine::as_bson(data_set);
 
     check_bson_object(bson, {"deadbeef"});
@@ -251,22 +211,14 @@ BOOST_AUTO_TEST_CASE(AsBSONBinary)
                       data_set.as_binary(0xdeadbeef));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Empty
- */
 BOOST_AUTO_TEST_CASE(AsDataSetEmpty)
 {
     mongo::BSONObj bson;
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(data_set.empty());
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Integers
- */
 BOOST_AUTO_TEST_CASE(AsDataSetIntegers)
 {
     mongo::BSONObj const bson = BSON("deadbeef" <<
@@ -274,63 +226,51 @@ BOOST_AUTO_TEST_CASE(AsDataSetIntegers)
                                     "Value" << BSON_ARRAY(1 << (long long)2 <<
                                                           (double)5 )));
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(!data_set.empty());
 
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::SS);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::SS);
     BOOST_REQUIRE(data_set.is_int("deadbeef"));
     BOOST_REQUIRE(data_set.as_int("deadbeef") ==
-                  dcmtkpp::Value::Integers({1, 2, 5}));
+                  odil::Value::Integers({1, 2, 5}));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Reals
- */
 BOOST_AUTO_TEST_CASE(AsDataSetReals)
 {
     mongo::BSONObj const bson = BSON("deadbeef" <<
                                BSON("vr" << "FL" <<
                                     "Value" << BSON_ARRAY(12.34 << 56.78)));
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(!data_set.empty());
 
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::FL);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::FL);
     BOOST_REQUIRE(data_set.is_real("deadbeef"));
     BOOST_REQUIRE(data_set.as_real("deadbeef") ==
-                  dcmtkpp::Value::Reals({12.34, 56.78}));
+                  odil::Value::Reals({12.34, 56.78}));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Strings
- */
 BOOST_AUTO_TEST_CASE(AsDataSetStrings)
 {
     mongo::BSONObj const bson = BSON("deadbeef" << BSON("vr" << "CS" <<
                                                   "Value" << BSON_ARRAY("FOO" <<
                                                                         "BAR")));
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(!data_set.empty());
 
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::CS);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::CS);
     BOOST_REQUIRE(data_set.is_string("deadbeef"));
     BOOST_REQUIRE(data_set.as_string("deadbeef") ==
-                  dcmtkpp::Value::Strings({"FOO", "BAR"}));
+                  odil::Value::Strings({"FOO", "BAR"}));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Strings PN
- */
 BOOST_AUTO_TEST_CASE(AsDataSetPersonName)
 {
     mongo::BSONObj const bson =
@@ -340,21 +280,17 @@ BOOST_AUTO_TEST_CASE(AsDataSetPersonName)
                                              "Ideographic" << "Ideo^Graphic" <<
                                              "Phonetic" << "Pho^Netic"))));
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(!data_set.empty());
 
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::PN);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::PN);
     BOOST_REQUIRE(data_set.is_string("deadbeef"));
-    BOOST_REQUIRE(data_set.as_string("deadbeef") == dcmtkpp::Value::Strings(
+    BOOST_REQUIRE(data_set.as_string("deadbeef") == odil::Value::Strings(
         {"Alpha^Betic=Ideo^Graphic=Pho^Netic"}));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Sequences
- */
 BOOST_AUTO_TEST_CASE(AsDataSetDataSets)
 {
     mongo::BSONObj const bson =
@@ -363,43 +299,52 @@ BOOST_AUTO_TEST_CASE(AsDataSetDataSets)
             BSON("beeff00d" << BSON("vr" << "SS" <<
                                     "Value" << BSON_ARRAY(1))))));
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE(!data_set.empty());
 
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::SQ);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::SQ);
     BOOST_REQUIRE(data_set.is_data_set("deadbeef"));
 
-    dcmtkpp::DataSet item;
+    odil::DataSet item;
     item.add(0xbeeff00d,
-        dcmtkpp::Element(dcmtkpp::Value::Integers({1}), dcmtkpp::VR::SS));
+        odil::Element(odil::Value::Integers({1}), odil::VR::SS));
     BOOST_REQUIRE(data_set.as_data_set("deadbeef") ==
-                  dcmtkpp::Value::DataSets({item}));
+                  odil::Value::DataSets({item}));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Conversion Dataset Binary
- */
 BOOST_AUTO_TEST_CASE(AsDataSetBinary)
 {
     // Create BSON with OW tag
-    std::vector<uint8_t> value = { 0x1, 0x2, 0x3, 0x4, 0x5 };
-    mongo::BSONObjBuilder binary_data_builder;
-    binary_data_builder.appendBinData("data", value.size(),
-                                      mongo::BinDataGeneral,
-                                      (void*)(&value[0]));
-    mongo::BSONObj const bson =
-            BSON("deadbeef" << BSON("vr" << "OW" <<
-                                    "InlineBinary" <<
-                            binary_data_builder.obj().getField("data")));
+    mongo::BSONArrayBuilder array_builder;
 
-    dcmtkpp::DataSet const data_set = dopamine::as_dataset(bson);
+    {
+        std::vector<uint8_t> item = { 0x1, 0x2, 0x3};
+        mongo::BSONObjBuilder item_builder;
+        item_builder.appendBinData(
+            "data", item.size(), mongo::BinDataGeneral, &item[0]);
+        array_builder.append(item_builder.obj()["data"]);
+    }
+    {
+        std::vector<uint8_t> item = { 0x4, 0x5};
+        mongo::BSONObjBuilder item_builder;
+        item_builder.appendBinData(
+            "data", item.size(), mongo::BinDataGeneral, &item[0]);
+        array_builder.append(item_builder.obj()["data"]);
+    }
+
+    mongo::BSONObj const bson = BSON(
+        "deadbeef" << BSON(
+            "vr" << "OW" <<
+            "InlineBinary" << array_builder.arr()));
+
+    odil::DataSet const data_set = dopamine::as_dataset(bson);
     BOOST_REQUIRE_EQUAL(data_set.size(), 1);
     BOOST_REQUIRE(data_set.has("deadbeef"));
-    BOOST_REQUIRE(data_set.get_vr("deadbeef") == dcmtkpp::VR::OW);
+    BOOST_REQUIRE(data_set.get_vr("deadbeef") == odil::VR::OW);
     BOOST_REQUIRE(data_set.is_binary("deadbeef"));
-    BOOST_REQUIRE(data_set.as_binary("deadbeef") == dcmtkpp::Value::Binary(
-        {0x1, 0x2, 0x3, 0x4, 0x5}));
+    BOOST_REQUIRE(
+        data_set.as_binary("deadbeef") ==
+        odil::Value::Binary({{0x1, 0x2, 0x3}, {0x4, 0x5}}));
 }

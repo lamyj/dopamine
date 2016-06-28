@@ -6,7 +6,7 @@ find_package(Odil REQUIRED)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${Boost_INCLUDE_DIRS} ${ICU_INCLUDE_DIRS} ${JsonCpp_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS} ${ICU_INCLUDE_DIRS} ${JsonCpp_INCLUDE_DIR}
     ${MONGO_DB_INCLUDE_DIRS} ${Odil_INCLUDE_DIR})
 
 add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
@@ -22,7 +22,7 @@ target_link_libraries(
     libdopamine
     ${Boost_LIBRARIES} boost_random boost_regex ${ICU_LIBRARIES}
     ${JsonCpp_LIBRARY} ${MONGO_DB_LIBRARIES} ${Odil_LIBRARY}
-    mimetic log4cpp ldap)
+    mimetic log4cpp ldap ssl)
 
 # deploy the library
 install(TARGETS libdopamine

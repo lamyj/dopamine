@@ -190,10 +190,16 @@ public:
         mongo::BSONObjBuilder builder;
         builder << "vr" << odil::as_string(vr);
 
-        mongo::BSONObjBuilder binary_data_builder;
-        binary_data_builder.appendBinData("data", value.size(),
-                                          mongo::BinDataGeneral, &value[0]);
-        builder << "InlineBinary" << binary_data_builder.obj().getField("data");
+        mongo::BSONArrayBuilder binary_data_builder;
+        for(auto const & item: value)
+        {
+            mongo::BSONObjBuilder item_builder;
+            item_builder.appendBinData(
+                "data", item.size(), mongo::BinDataGeneral, &item[0]);
+            binary_data_builder.append(item_builder.obj()["data"]);
+        }
+
+        builder << "InlineBinary" << binary_data_builder.arr();
         result = builder.obj();
 
         return result;
@@ -438,16 +444,19 @@ odil::DataSet as_dataset(mongo::BSONObj const & bson)
                 }
             }
         }
-        else if(vr == odil::VR::OB || vr == odil::VR::OF ||
-                vr == odil::VR::OW || vr == odil::VR::UN)
+        else if(vr == odil::VR::OB || vr == odil::VR::OD || vr == odil::VR::OF ||
+            vr == odil::VR::OL || vr == odil::VR::OW || vr == odil::VR::UN)
         {
-            element = odil::Element(odil::Value::Binary({}), vr);
+            odil::Value::Binary dicom_value;
+            auto const bson_value = object.getField("InlineBinary").Array();
+            for(auto const & bson_item: bson_value)
+            {
+                int size=0;
+                char const * const begin = bson_item.binDataClean(size);
+                dicom_value.emplace_back(begin, begin+size);
+            }
 
-            int size = 0;
-            auto const values = object.getField("InlineBinary").binDataClean(size);
-
-            element.as_binary()[0].resize(size);
-            std::copy(values, values+size, element.as_binary()[0].begin());
+            element = odil::Element(dicom_value, vr);
         }
         else
         {
