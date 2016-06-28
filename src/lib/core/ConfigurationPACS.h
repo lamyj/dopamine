@@ -10,6 +10,7 @@
 #define _c086ddd9_5204_4bea_bb03_c4fbec6b16ea
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include <boost/property_tree/ptree.hpp>
@@ -31,11 +32,6 @@ public:
      * @return unique instance of ConfigurationPACS
      */
     static ConfigurationPACS & get_instance();
-    
-    /**
-     * Remove the unique instance of ConfigurationPACS
-     */
-    static void delete_instance();
     
     /// Destroy the Configuration
     virtual ~ConfigurationPACS();
@@ -89,7 +85,7 @@ private:
     ConfigurationPACS();
     
     /// Unique Instance
-    static ConfigurationPACS * _instance;
+    static std::shared_ptr<ConfigurationPACS> _instance;
     
     /// Configuration nodes
     boost::property_tree::ptree _configuration_node;

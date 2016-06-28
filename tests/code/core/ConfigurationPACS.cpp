@@ -8,7 +8,7 @@
 
 #include <fstream>
 
-#define BOOST_TEST_MODULE ModuleConfigurationPACS
+#define BOOST_TEST_MODULE ConfigurationPACS
 #include <boost/test/unit_test.hpp>
 
 #include "core/ConfigurationPACS.h"
@@ -30,123 +30,69 @@ struct TestDataConfiguration
             filename = std::string(conffile);
         }
     }
-
-    ~TestDataConfiguration()
-    {
-        dopamine::ConfigurationPACS::delete_instance();
-    }
 };
 
-struct TestDataConfigurationBase
-{
-    std::string filename;
-
-    TestDataConfigurationBase():
-        filename("./tmp_test_moduleConfigurationPACS.ini")
-    {
-        // Nothing to do
-    }
-
-    virtual ~TestDataConfigurationBase()
-    {
-        remove(filename.c_str());
-        dopamine::ConfigurationPACS::delete_instance();
-    }
-};
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Constructor / Destructor
- */
 BOOST_AUTO_TEST_CASE(Constructor)
 {
-    dopamine::ConfigurationPACS& configuration =
-            dopamine::ConfigurationPACS::get_instance();
-
-    BOOST_CHECK(configuration.has_value("No_value") == false);
-
-    dopamine::ConfigurationPACS::delete_instance();
+    auto const & configuration = dopamine::ConfigurationPACS::get_instance();
+    BOOST_CHECK(!configuration.has_value("No_value"));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Parsing configuration file
- */
 BOOST_FIXTURE_TEST_CASE(ParsingConfigurationFile, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    confpacs.parse(filename);
-    
-    BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
+    auto & configuration = dopamine::ConfigurationPACS::get_instance();
+    configuration.parse(filename);
+    BOOST_CHECK_EQUAL(configuration.get_value("dicom.port"), "11112");
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Retrieve value
- */
 BOOST_FIXTURE_TEST_CASE(GetValue, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    confpacs.parse(filename);
+    auto & configuration = dopamine::ConfigurationPACS::get_instance();
+    configuration.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.get_value("dicom.port"), "11112");
-    BOOST_CHECK_EQUAL(confpacs.get_value("database", "port"), "27017");
+    BOOST_CHECK_EQUAL(configuration.get_value("dicom.port"), "11112");
+    BOOST_CHECK_EQUAL(configuration.get_value("database", "port"), "27017");
 
     // Unknown key
-    BOOST_CHECK_EQUAL(confpacs.get_value("not_know", "port"), "");
+    BOOST_CHECK_EQUAL(configuration.get_value("not_know", "port"), "");
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Contains value
- */
 BOOST_FIXTURE_TEST_CASE(HasValue, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    confpacs.parse(filename);
+    auto & configuration = dopamine::ConfigurationPACS::get_instance();
+    configuration.parse(filename);
     
-    BOOST_CHECK_EQUAL(confpacs.has_value("dicom.port"), true);
-    BOOST_CHECK_EQUAL(confpacs.has_value("database", "port"), true);
+    BOOST_CHECK(configuration.has_value("dicom.port"));
+    BOOST_CHECK(configuration.has_value("database", "port"));
     
-    BOOST_CHECK_EQUAL(confpacs.has_value("badsection.port"), false);
-    BOOST_CHECK_EQUAL(confpacs.has_value("database", "badfield"), false);
+    BOOST_CHECK(!configuration.has_value("badsection.port"));
+    BOOST_CHECK(!configuration.has_value("database", "badfield"));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: testing get_database_configuration
- */
 BOOST_FIXTURE_TEST_CASE(GetDatabaseConfig, TestDataConfiguration)
 {
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    confpacs.parse(filename);
+    auto & configuration = dopamine::ConfigurationPACS::get_instance();
+    configuration.parse(filename);
 
     dopamine::MongoDBInformation db_info;
     std::string hostname = "";
     int port = -1;
     std::vector<std::string> indexes = {};
-    confpacs.get_database_configuration(db_info, hostname, port, indexes);
+    configuration.get_database_configuration(db_info, hostname, port, indexes);
 
     BOOST_CHECK_EQUAL(db_info.get_db_name(), "dopamine_test");
     BOOST_CHECK_EQUAL(db_info.get_bulk_data(), "pacs_bulk");
     BOOST_CHECK_EQUAL(hostname, "localhost");
     BOOST_CHECK_EQUAL(port, 27017);
-    BOOST_CHECK_EQUAL(indexes.size(), 7);
+    BOOST_CHECK(indexes == std::vector<std::string>({
+        "SOPInstanceUID", "PatientName", "PatientID",
+        "SeriesInstanceUID", "SeriesDescription", "StudyInstanceUID",
+        "StudyDescription"}));
 }
 
-/******************************* TEST Error ************************************/
-/**
- * Error test case: Parsing failure => Unknown file
- */
 BOOST_AUTO_TEST_CASE(BadFilename)
 {
-    dopamine::ConfigurationPACS& confpacs =
-            dopamine::ConfigurationPACS::get_instance();
-    BOOST_REQUIRE_THROW(confpacs.parse("badfilename"),
-                        dopamine::ExceptionPACS);
-    dopamine::ConfigurationPACS::delete_instance();
+    auto & configuration = dopamine::ConfigurationPACS::get_instance();
+    BOOST_REQUIRE_THROW(
+        configuration.parse("badfilename"), dopamine::ExceptionPACS);
 }

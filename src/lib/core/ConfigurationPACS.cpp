@@ -17,7 +17,9 @@
 namespace dopamine
 {
     
-ConfigurationPACS * ConfigurationPACS::_instance = NULL;
+std::shared_ptr<ConfigurationPACS>
+ConfigurationPACS
+::_instance = nullptr;
 
 ConfigurationPACS &
 ConfigurationPACS
@@ -25,20 +27,10 @@ ConfigurationPACS
 {
     if(ConfigurationPACS::_instance == NULL)
     {
-        ConfigurationPACS::_instance = new ConfigurationPACS();
+        ConfigurationPACS::_instance =
+            std::shared_ptr<ConfigurationPACS>(new ConfigurationPACS());
     }
     return *ConfigurationPACS::_instance;
-}
-
-void
-ConfigurationPACS
-::delete_instance()
-{
-    if(ConfigurationPACS::_instance != NULL)
-    {
-        delete ConfigurationPACS::_instance;
-    }
-    ConfigurationPACS::_instance = NULL;
 }
 
 ConfigurationPACS
