@@ -1,10 +1,8 @@
 find_package(Boost COMPONENTS filesystem system regex random REQUIRED)
+find_package(ICU REQUIRED)
 find_package(JsonCpp REQUIRED)
 find_package(MongoDB REQUIRED)
 find_package(Odil REQUIRED)
-
-# libraries ICU for character set management
-SET(ICU_LIBRARIES icuuc icuio)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -22,8 +20,8 @@ add_library(libdopamine SHARED ${files} ${headers} ${templates})
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
 target_link_libraries(
     libdopamine
-    ${Boost_LIBRARIES} ${ICU_LIBRARIES} ${JsonCpp_LIBRARY}
-    ${MONGO_DB_LIBRARIES} ${Odil_LIBRARY}
+    ${Boost_LIBRARIES} boost_random boost_regex ${ICU_LIBRARIES}
+    ${JsonCpp_LIBRARY} ${MONGO_DB_LIBRARIES} ${Odil_LIBRARY}
     mimetic log4cpp ldap)
 
 # deploy the library
