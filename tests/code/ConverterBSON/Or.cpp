@@ -6,64 +6,44 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleOr
+#define BOOST_TEST_MODULE Or
 #include <boost/test/unit_test.hpp>
 
 #include "ConditionDataTest.h"
 #include "ConverterBSON/Or.h"
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: True Or True => True
- */
 BOOST_FIXTURE_TEST_CASE(TrueOrTrue, ConditionDataTest)
 {
-    auto or_ = dopamine::converterBSON::Or::New();
-    or_->insert_condition(alwaystrue);
-    or_->insert_condition(alwaystrue);
-    
-    BOOST_CHECK_EQUAL((*or_)(dcmtkpp::Tag("deadbeef"),
-                             dcmtkpp::Element()), true);
+    dopamine::converterBSON::Or or_;
+    or_.get_terms().push_back(alwaystrue);
+    or_.get_terms().push_back(alwaystrue);
+
+    BOOST_CHECK(or_(odil::Tag("deadbeef"), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: True Or False => True
- */
 BOOST_FIXTURE_TEST_CASE(TrueOrFalse, ConditionDataTest)
 {
-    auto or_ = dopamine::converterBSON::Or::New();
-    or_->insert_condition(alwaystrue);
-    or_->insert_condition(alwaysfalse);
-    
-    BOOST_CHECK_EQUAL((*or_)(dcmtkpp::Tag("deadbeef"),
-                             dcmtkpp::Element()), true);
+    dopamine::converterBSON::Or or_;
+    or_.get_terms().push_back(alwaystrue);
+    or_.get_terms().push_back(alwaysfalse);
+
+    BOOST_CHECK(or_(odil::Tag("deadbeef"), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: False Or True => True
- */
 BOOST_FIXTURE_TEST_CASE(FalseOrTrue, ConditionDataTest)
 {
-    auto or_ = dopamine::converterBSON::Or::New();
-    or_->insert_condition(alwaysfalse);
-    or_->insert_condition(alwaystrue);
-    
-    BOOST_CHECK_EQUAL((*or_)(dcmtkpp::Tag("deadbeef"),
-                             dcmtkpp::Element()), true);
+    dopamine::converterBSON::Or or_;
+    or_.get_terms().push_back(alwaysfalse);
+    or_.get_terms().push_back(alwaystrue);
+
+    BOOST_CHECK(or_(odil::Tag("deadbeef"), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: False Or False => False
- */
 BOOST_FIXTURE_TEST_CASE(FalseOrFalse, ConditionDataTest)
 {
-    auto or_ = dopamine::converterBSON::Or::New();
-    or_->insert_condition(alwaysfalse);
-    or_->insert_condition(alwaysfalse);
-    
-    BOOST_CHECK_EQUAL((*or_)(dcmtkpp::Tag("deadbeef"),
-                             dcmtkpp::Element()), false);
+    dopamine::converterBSON::Or or_;
+    or_.get_terms().push_back(alwaysfalse);
+    or_.get_terms().push_back(alwaysfalse);
+
+    BOOST_CHECK(!or_(odil::Tag("deadbeef"), odil::Element()));
 }

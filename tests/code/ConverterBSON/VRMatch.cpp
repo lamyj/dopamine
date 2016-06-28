@@ -6,37 +6,31 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleVRMatch
+#define BOOST_TEST_MODULE VRMatch
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Element.h>
-#include <dcmtkpp/Tag.h>
-#include <dcmtkpp/VR.h>
+#include <odil/Element.h>
+#include <odil/Tag.h>
+#include <odil/VR.h>
 
 #include "ConverterBSON/VRMatch.h"
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: VR Match
- */
 BOOST_AUTO_TEST_CASE(Matching)
 {
-    auto vrmatch = dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::PN);
+    dopamine::converterBSON::VRMatch vrmatch(odil::VR::PN);
 
-    BOOST_CHECK_EQUAL((*vrmatch)(dcmtkpp::Tag(0x0010, 0x0010),
-                                 dcmtkpp::Element(dcmtkpp::Value::Strings(),
-                                                  dcmtkpp::VR::PN)), true);
+    BOOST_CHECK(
+        vrmatch(
+            odil::Tag(0x0010, 0x0010),
+            odil::Element(odil::Value::Strings(),  odil::VR::PN)));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: VR not Match
- */
 BOOST_AUTO_TEST_CASE(NotMatching)
 {
-    auto vrmatch = dopamine::converterBSON::VRMatch::New(dcmtkpp::VR::PN);
+    dopamine::converterBSON::VRMatch vrmatch(odil::VR::PN);
 
-    BOOST_CHECK_EQUAL((*vrmatch)(dcmtkpp::Tag(0x0010, 0x0020),
-                                 dcmtkpp::Element(dcmtkpp::Value::Strings(),
-                                                  dcmtkpp::VR::LO)), false);
+    BOOST_CHECK(
+        !vrmatch(
+            odil::Tag(0x0010, 0x0020),
+            odil::Element(odil::Value::Strings(), odil::VR::LO)));
 }

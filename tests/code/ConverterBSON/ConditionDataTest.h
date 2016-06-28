@@ -9,25 +9,21 @@
 #ifndef _a09d7b94_c9dd_4fcf_ab11_03b8622f37b3
 #define _a09d7b94_c9dd_4fcf_ab11_03b8622f37b3
 
+#include <memory>
+
 #include "ConverterBSON/AlwaysFalse.h"
 #include "ConverterBSON/AlwaysTrue.h"
 
 struct ConditionDataTest
 {
-    dopamine::converterBSON::AlwaysTrue::Pointer  alwaystrue;
-    dopamine::converterBSON::AlwaysFalse::Pointer alwaysfalse;
+    std::shared_ptr<dopamine::converterBSON::AlwaysTrue> alwaystrue;
+    std::shared_ptr<dopamine::converterBSON::AlwaysFalse> alwaysfalse;
 
     ConditionDataTest()
     {
-        // we suppose AlwaysTrue correctly run
-        alwaystrue  = dopamine::converterBSON::AlwaysTrue::New();
-        // we suppose AlwaysFalse correctly run
-        alwaysfalse = dopamine::converterBSON::AlwaysFalse::New();
-    }
-
-    ~ConditionDataTest()
-    {
-        // Nothing to do
+        // we suppose AlwaysTrue and AlwaysFalse correctly run
+        alwaystrue = std::make_shared<dopamine::converterBSON::AlwaysTrue>();
+        alwaysfalse = std::make_shared<dopamine::converterBSON::AlwaysFalse>();
     }
 };
 

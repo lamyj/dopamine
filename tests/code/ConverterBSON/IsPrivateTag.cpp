@@ -6,31 +6,21 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleIsPrivateTag
+#define BOOST_TEST_MODULE IsPrivateTag
 #include <boost/test/unit_test.hpp>
 
 #include "ConverterBSON/IsPrivateTag.h"
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Private Tag
- */
 BOOST_AUTO_TEST_CASE(PrivateTag)
 {
-    auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
+    dopamine::converterBSON::IsPrivateTag isprivatetag;
 
-    BOOST_CHECK_EQUAL((*isprivatetag)(dcmtkpp::Tag("00231001"),
-                                      dcmtkpp::Element()), true);
+    BOOST_CHECK(isprivatetag(odil::Tag("00231001"), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Public Tag
- */
 BOOST_AUTO_TEST_CASE(PublicTag)
 {
-    auto isprivatetag = dopamine::converterBSON::IsPrivateTag::New();
+    dopamine::converterBSON::IsPrivateTag isprivatetag;
 
-    BOOST_CHECK_EQUAL((*isprivatetag)(dcmtkpp::Tag("00100010"),
-                                      dcmtkpp::Element()), false);
+    BOOST_CHECK(!isprivatetag(odil::Tag("00100010"), odil::Element()));
 }

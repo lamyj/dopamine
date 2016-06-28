@@ -6,48 +6,30 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleTagMatch
+#define BOOST_TEST_MODULE TagMatch
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/Tag.h>
+#include <odil/Tag.h>
 
 #include "ConverterBSON/TagMatch.h"
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Tag Match
- */
 BOOST_AUTO_TEST_CASE(Matching)
 {
-    auto tagmatch = dopamine::converterBSON::
-            TagMatch::New(dcmtkpp::Tag(0x0010, 0x0010));
+    dopamine::converterBSON::TagMatch tagmatch(odil::Tag(0x0010, 0x0010));
 
-    BOOST_CHECK_EQUAL((*tagmatch)(dcmtkpp::Tag(0x0010, 0x0010),
-                                  dcmtkpp::Element()), true);
+    BOOST_CHECK(tagmatch(odil::Tag(0x0010, 0x0010), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Tag not Match => different Group
- */
 BOOST_AUTO_TEST_CASE(DifferentGroup)
 {
-    auto tagmatch = dopamine::converterBSON::
-            TagMatch::New(dcmtkpp::Tag(0x0008, 0x0010));
+    dopamine::converterBSON::TagMatch tagmatch(odil::Tag(0x0008, 0x0010));
 
-    BOOST_CHECK_EQUAL((*tagmatch)(dcmtkpp::Tag(0x0010, 0x0010),
-                                  dcmtkpp::Element()), false);
+    BOOST_CHECK(!tagmatch(odil::Tag(0x0010, 0x0010), odil::Element()));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Tag not Match => different Element
- */
 BOOST_AUTO_TEST_CASE(DifferentElement)
 {
-    auto tagmatch = dopamine::converterBSON::
-            TagMatch::New(dcmtkpp::Tag(0x0010, 0x0020));
+    dopamine::converterBSON::TagMatch tagmatch(odil::Tag(0x0010, 0x0020));
 
-    BOOST_CHECK_EQUAL((*tagmatch)(dcmtkpp::Tag(0x0010, 0x0010),
-                                  dcmtkpp::Element()), false);
+    BOOST_CHECK(!tagmatch(odil::Tag(0x0010, 0x0010), odil::Element()));
 }
