@@ -1,5 +1,3 @@
-add_subdirectory(tools)
-
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 find_package(JsonCpp REQUIRED)
 find_package(Odil REQUIRED)
