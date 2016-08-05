@@ -153,6 +153,20 @@ BOOST_FIXTURE_TEST_CASE(AuthenticatedOtherService, Fixture)
     BOOST_REQUIRE(!acl.is_allowed("principal", "Echo"));
 }
 
+BOOST_FIXTURE_TEST_CASE(UnAuthenticatedServiceWildcard, Fixture)
+{
+    dopamine::AccessControlList acl(this->connection, this->database);
+    acl.set_entries({{ "", "*", mongo::BSONObj() } });
+    BOOST_REQUIRE(acl.is_allowed("", "Echo"));
+}
+
+BOOST_FIXTURE_TEST_CASE(AuthenticatedServiceWildcard, Fixture)
+{
+    dopamine::AccessControlList acl(this->connection, this->database);
+    acl.set_entries({{ "principal", "*", mongo::BSONObj() } });
+    BOOST_REQUIRE(acl.is_allowed("principal", "Echo"));
+}
+
 BOOST_FIXTURE_TEST_CASE(Constraints, Fixture)
 {
     dopamine::AccessControlList acl(this->connection, this->database);

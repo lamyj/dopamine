@@ -15,7 +15,6 @@
 #include <mongo/client/dbclient.h>
 #include <odil/DataSet.h>
 
-//#include "ConverterBSON/bson_converter.h"
 #include "dopamine/Exception.h"
 
 namespace dopamine
@@ -184,7 +183,7 @@ AccessControlList
         query << "principal_name" << "";
     }
 
-    query << "service" << service;
+    query << "service" << BSON("$in" << BSON_ARRAY(service << "*"));
 
     return query.obj();
 }
