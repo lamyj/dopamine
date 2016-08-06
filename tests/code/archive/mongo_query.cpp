@@ -167,7 +167,6 @@ BOOST_AUTO_TEST_CASE(QueryPatient)
             << std::string(odil::registry::PatientBirthDate) << 1
             << std::string(odil::registry::PatientSex) << 1
             << std::string(odil::registry::PatientMotherBirthName) << 1
-            << std::string(odil::registry::SpecificCharacterSet) << 1
             << std::string(odil::registry::PatientID) << 1
     ));
 }
@@ -192,7 +191,6 @@ BOOST_AUTO_TEST_CASE(QueryStudy)
         fields.obj(), BSON(
             std::string(odil::registry::StudyDescription) << 1
             << std::string(odil::registry::PatientID) << 1
-            << std::string(odil::registry::SpecificCharacterSet) << 1
             << std::string(odil::registry::StudyInstanceUID) << 1
     ));
 }
@@ -222,7 +220,6 @@ BOOST_AUTO_TEST_CASE(QuerySeries)
             std::string(odil::registry::SeriesDescription) << 1
             << std::string(odil::registry::PatientID) << 1
             << std::string(odil::registry::StudyInstanceUID) << 1
-            << std::string(odil::registry::SpecificCharacterSet) << 1
             << std::string(odil::registry::SeriesInstanceUID) << 1
     ));
 }
@@ -257,7 +254,6 @@ BOOST_AUTO_TEST_CASE(QueryImage)
             << std::string(odil::registry::StudyInstanceUID) << 1
             << std::string(odil::registry::SeriesInstanceUID) << 1
             << std::string(odil::registry::ImageComments) << 1
-            << std::string(odil::registry::SpecificCharacterSet) << 1
             << std::string(odil::registry::SOPInstanceUID) << 1
     ));
 }

@@ -116,13 +116,12 @@ void as_mongo_query(
             query_terms << term.obj();
         }
 
-        // Always include the query fields in the results
+        // Include the query fields in the results.
         query_fields << element.fieldName() << 1;
     }
 
     // Always include mandatory fields
     std::vector<odil::Tag> mandatory_fields = {
-        odil::registry::SpecificCharacterSet,
         odil::registry::PatientID,
     };
 
