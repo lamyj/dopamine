@@ -178,8 +178,8 @@ BOOST_FIXTURE_TEST_CASE(Constraints, Fixture)
     auto const constraints = acl.get_constraints("principal", "Store");
     BOOST_REQUIRE(
         constraints == BSON("$or" << BSON_ARRAY(
-            BSON("$and" << BSON_ARRAY(BSON("foo.Value" << "bar"))) <<
-            BSON("$and" << BSON_ARRAY(BSON("plip.Value" << "plop")))
+            BSON("$and" << BSON_ARRAY(BSON("foo" << "bar"))) <<
+            BSON("$and" << BSON_ARRAY(BSON("plip" << "plop")))
     )));
 }
 

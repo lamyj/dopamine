@@ -144,12 +144,11 @@ AccessControlList
                 if(element.type() == mongo::BSONType::RegEx)
                 {
                     term.appendRegex(
-                        std::string(element.fieldName())+".Value",
-                        element.regex());
+                        std::string(element.fieldName()), element.regex());
                 }
                 else
                 {
-                    term << std::string(element.fieldName())+".Value" << element;
+                    term << std::string(element.fieldName()) << element;
                 }
 
                 constraint.append(term.obj());
