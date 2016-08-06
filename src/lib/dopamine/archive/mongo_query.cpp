@@ -72,7 +72,7 @@ void as_mongo_query(
             odil::message::Response::MissingAttribute, status_fields);
     }
 
-    auto const query_retrieve_level = data_set.as_string(
+    auto const & query_retrieve_level = data_set.as_string(
         odil::registry::QueryRetrieveLevel, 0);
 
     // Query with DICOM syntax matches
@@ -267,13 +267,14 @@ as_mongo_query<MatchType::WildCard>(
     regex = "^"+regex+"$";
 
     // Use case-insensitive match for PN
-    builder.appendRegex(field, regex, (vr=="PN")?"i":"");
+    builder.appendRegex(
+        field+(vr=="PN"?".Alphabetic":""), regex, (vr=="PN")?"i":"");
 }
 
 template<>
 void
 as_mongo_query<MatchType::Range>(
-    std::string const & field, std::string const &,
+    std::string const & field, std::string const & /* unused */,
     mongo::BSONElement const & value, mongo::BSONObjBuilder & builder)
 {
     auto const range = value.String();
@@ -438,6 +439,6 @@ QueryConverter get_query_converter(MatchType match_type)
     return converter;
 }
 
-}
+} // namespace archive
 
-}
+} // namespace dopamine

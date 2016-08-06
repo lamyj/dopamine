@@ -97,6 +97,18 @@ BOOST_AUTO_TEST_CASE(WildCardEscape)
     BOOST_REQUIRE_EQUAL(builder.obj()["Field"].regex(), "^A\\^B\\.C$");
 }
 
+BOOST_AUTO_TEST_CASE(WildCardPersonName)
+{
+    mongo::BSONElement const element(
+        BSON("name" << BSON(
+            "Alphabetic" << "*" << "Ideographic" << "?"))["name"]);
+    mongo::BSONObjBuilder builder;
+    dopamine::archive::as_mongo_query<
+        dopamine::archive::MatchType::WildCard>(
+            "Field", "PN", element, builder);
+    BOOST_REQUIRE_EQUAL(builder.obj()["Field.Alphabetic"].regex(), "^.*$");
+}
+
 BOOST_AUTO_TEST_CASE(Range)
 {
     mongo::BSONElement const element(
