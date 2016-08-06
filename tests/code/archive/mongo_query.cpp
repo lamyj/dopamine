@@ -67,8 +67,7 @@ BOOST_AUTO_TEST_CASE(ListOfUID)
             "Field", "UI", element, builder);
     BOOST_REQUIRE_EQUAL(
         builder.obj(), BSON(
-            "$or" << BSON_ARRAY(
-                BSON("Field" << "1.2.3") << BSON("Field" << "4.5.6"))));
+            "Field" << BSON("$in" << BSON_ARRAY("1.2.3" << "4.5.6"))));
 }
 
 BOOST_AUTO_TEST_CASE(WildCardOne)

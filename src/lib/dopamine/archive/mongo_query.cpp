@@ -204,22 +204,18 @@ as_mongo_query<MatchType::SingleValue>(
 template<>
 void
 as_mongo_query<MatchType::ListOfUID>(
-    std::string const & field, std::string const &,
+    std::string const & field, std::string const & /* unused */,
     mongo::BSONElement const & value, mongo::BSONObjBuilder & builder)
 {
-    mongo::BSONArrayBuilder or_builder;
-    for(auto const & item: value.Array())
-    {
-        or_builder << BSON(field << item);
-    }
-    builder << "$or" << or_builder.arr();
+    builder << field << BSON("$in" << value);
 }
 
 template<>
 void
 as_mongo_query<MatchType::Universal>(
-    std::string const &, std::string const &,
-    mongo::BSONElement const &, mongo::BSONObjBuilder &)
+    std::string const & /* unused */, std::string const & /* unused */,
+    mongo::BSONElement const & /* unused */,
+    mongo::BSONObjBuilder & /* unused */)
 {
     // Universal is not part of the MongoDB query : do nothing
 }
