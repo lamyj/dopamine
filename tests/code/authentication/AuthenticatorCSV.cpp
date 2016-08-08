@@ -6,20 +6,24 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleAuthenticatorCSV
+#define BOOST_TEST_MODULE AuthenticatorCSV
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/DcmtkAssociation.h>
+#include <cstdio>
+#include <fstream>
+#include <string>
 
-#include "authenticator/AuthenticatorCSV.h"
-#include "core/ExceptionPACS.h"
+#include <odil/AssociationParameters.h>
 
-struct TestDataCSV
+#include "dopamine/authentication/AuthenticatorCSV.h"
+#include "dopamine/Exception.h"
+
+struct Fixture
 {
     std::string filename;
 
-    TestDataCSV():
-        filename("./tmp_test_moduleAuthenticatorCSV.csv")
+    Fixture()
+    : filename("./tmp_test_moduleAuthenticatorCSV.csv")
     {
         std::ofstream myfile;
         myfile.open(filename);
@@ -28,106 +32,78 @@ struct TestDataCSV
         myfile.close();
     }
 
-    ~TestDataCSV()
+    ~Fixture()
     {
-        remove(filename.c_str());
+        std::remove(filename.c_str());
     }
 };
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Constructor / Destructor
- */
-BOOST_FIXTURE_TEST_CASE(Constructor, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV* authenticatorcsv =
-            new dopamine::authenticator::AuthenticatorCSV(filename);
-
-    BOOST_REQUIRE(authenticatorcsv != NULL);
-    
-    BOOST_CHECK_EQUAL(authenticatorcsv->get_table_count(), 2);
-    
-    delete authenticatorcsv;
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Get authorization => true
- */
-BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
-
-    dcmtkpp::DcmtkAssociation association;
-    association.set_user_identity_to_username_and_password("user2", "password2");
-    
-    BOOST_CHECK_EQUAL(authenticatorcsv(association), true);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Empty identity => false
- */
-BOOST_FIXTURE_TEST_CASE(NoIdentity, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
-
-    dcmtkpp::DcmtkAssociation association;
-
-    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Request with Bad user => false
- */
-BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
-
-    dcmtkpp::DcmtkAssociation association;
-    association.set_user_identity_to_username_and_password("baduser",
-                                                           "password2");
-
-    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Request with Bad password => false
- */
-BOOST_FIXTURE_TEST_CASE(BadPassword, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
-
-    dcmtkpp::DcmtkAssociation association;
-    association.set_user_identity_to_username_and_password("user2",
-                                                           "badpassword");
-
-    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
-}
-
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Request with Bad identity type => false
- */
-BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataCSV)
-{
-    dopamine::authenticator::AuthenticatorCSV authenticatorcsv(filename);
-
-    dcmtkpp::DcmtkAssociation association;
-    association.set_user_identity_to_kerberos("user2");
-
-    BOOST_CHECK_EQUAL(authenticatorcsv(association), false);
-}
-
-/******************************* TEST Error ************************************/
-/**
- * Error test case: Construction failure => Unknown file
- */
-BOOST_AUTO_TEST_CASE(BadFilename)
+BOOST_FIXTURE_TEST_CASE(BadFilename, Fixture)
 {
     BOOST_REQUIRE_THROW(
-                dopamine::authenticator::AuthenticatorCSV("badfilename"),
-                dopamine::ExceptionPACS);
+        dopamine::authentication::AuthenticatorCSV const authenticator(filename+"foo"),
+        dopamine::Exception);
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_none();
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username("foo");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password("user2", "password2");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password("foo", "password2");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password("user2", "password");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_kerberos("foo");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentitySAML, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_saml("foo");
+
+    dopamine::authentication::AuthenticatorCSV const authenticator(filename);
+    BOOST_REQUIRE(!authenticator(parameters));
 }

@@ -6,160 +6,151 @@
  * for details.
  ************************************************************************/
 
-#include <cstdlib>
-
-#define BOOST_TEST_MODULE ModuleAuthenticatorLDAP
+#define BOOST_TEST_MODULE AuthenticatorLDAP
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/DcmtkAssociation.h>
+#include <cstdlib>
+#include <stdexcept>
 
-#include "authenticator/AuthenticatorLDAP.h"
-#include "core/ExceptionPACS.h"
+#include <odil/AssociationParameters.h>
+
+#include "dopamine/authentication/AuthenticatorLDAP.h"
+#include "dopamine/Exception.h"
 
 /**
- * Pre-conditions:
- *     - Following Environment variables should be defined
- *          * TEST_LDAP_SERVER
- *          * TEST_LDAP_BASE
- *          * TEST_LDAP_BIND
- *          * TEST_LDAP_USER
- *          * TEST_LDAP_PASSWORD
+ * The following environment variables must be defined
+ * * URI
+ * * BIND_DN_TEMPLATE
+ * * USERNAME
+ * * PASSWORD
  */
 
-struct TestDataLDAP
+struct Fixture
 {
-    dcmtkpp::Association association;
-    std::string ldap_server;
-    std::string ldap_bind_user;
-    std::string ldap_base;
-    std::string ldap_filter;
+    std::string uri;
+    std::string bind_dn_template;
+    std::string username;
+    std::string password;
 
-    TestDataLDAP()
+    Fixture()
     {
-        std::string ldapserver(getenv("TEST_LDAP_SERVER"));
-        std::string ldapbase(getenv("TEST_LDAP_BASE"));
-        std::string bind(getenv("TEST_LDAP_BIND"));
-        std::string user(getenv("TEST_LDAP_USER"));
-        std::string password(getenv("TEST_LDAP_PASSWORD"));
-
-        if (ldapserver == "" || ldapbase == "" || bind == "" ||
-            user == "" || password == "")
-        {
-            throw dopamine::ExceptionPACS("Missing Environment Variables");
-        }
-
-        this->ldap_server     = ldapserver;
-        this->ldap_base       = ldapbase;
-        this->ldap_bind_user  = bind;
-        this->ldap_filter     = "samaccountname=%user";
-
-        association.set_user_identity_to_username_and_password(user, password);
+        this->uri = Fixture::get_environment_variable("URI");
+        this->bind_dn_template = Fixture::get_environment_variable("BIND_DN_TEMPLATE");
+        this->username = Fixture::get_environment_variable("USERNAME");
+        this->password = Fixture::get_environment_variable("PASSWORD");
     }
 
-    ~TestDataLDAP()
+    ~Fixture()
     {
         // Nothing to do
     }
+
+    static std::string get_environment_variable(std::string const & name)
+    {
+        char const * const value = getenv(name.c_str());
+
+        std::string result;
+        if(value == nullptr)
+        {
+            throw std::runtime_error("Missing environment variable: "+name);
+        }
+        else
+        {
+            result = std::string(value);
+        }
+
+        return result;
+    }
 };
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Get authorization => true
- *
-BOOST_FIXTURE_TEST_CASE(AuthorizationTrue, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
 {
-    dopamine::authenticator::AuthenticatorLDAP* authenticatorldap =
-            new dopamine::authenticator::AuthenticatorLDAP(ldap_server,
-                                                           ldap_bind_user,
-                                                           ldap_base,
-                                                           ldap_filter);
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_none();
 
-    BOOST_REQUIRE(authenticatorldap != NULL);
-
-    BOOST_CHECK_EQUAL((*authenticatorldap)(association), true);
-
-    delete authenticatorldap;
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Get authorization => false (bad Identity type)
- *
-BOOST_FIXTURE_TEST_CASE(BadIdentityType, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
 {
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username("foo");
 
-    association.set_user_identity_type(dcmtkpp::UserIdentityType::None);
-    BOOST_CHECK_EQUAL(authenticatorldap(association), false);
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Get authorization => false (request failed)
- *
-BOOST_FIXTURE_TEST_CASE(AuthorizationFalse, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
 {
-    ldap_filter = "(uid=UnkownValue)";
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password(username, password);
 
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
-
-    BOOST_CHECK_EQUAL(authenticatorldap(association), false);
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(authenticator(parameters));
 }
 
-/******************************* TEST Error ************************************/
-/**
- * Error test case: Authentication failed: Bad Server address
- *
-BOOST_FIXTURE_TEST_CASE(BadServerAddress, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
 {
-    ldap_server = "bad_value";
-    ldap_filter = "(cn=%user)";
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password(
+        username+"INVALID", password);
 
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
-
-    BOOST_REQUIRE_THROW(authenticatorldap(association),
-                        dopamine::ExceptionPACS);
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
 }
 
-/******************************* TEST Error ************************************/
-/**
- * Error test case: Authentication failed: Bad Credential
- *
-BOOST_FIXTURE_TEST_CASE(BadCredential, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
 {
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password(
+        username, password+"INVALID");
 
-    association.set_user_identity_primary_field("bad_user");
-    BOOST_REQUIRE_THROW(authenticatorldap(association),
-                        dopamine::ExceptionPACS);
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
 }
 
-/******************************* TEST Error ************************************/
-/**
- * Error test case: Authentication failed: Bad filter
- *
-BOOST_FIXTURE_TEST_CASE(BadFilter, TestDataLDAP)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadURI, Fixture)
 {
-    ldap_filter = "(cbad=%user";
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password(username, password);
 
-    dopamine::authenticator::AuthenticatorLDAP authenticatorldap(ldap_server,
-                                                                 ldap_bind_user,
-                                                                 ldap_base,
-                                                                 ldap_filter);
-
-    BOOST_REQUIRE_THROW(authenticatorldap(association),
-                        dopamine::ExceptionPACS);
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri+"INVALID", bind_dn_template);
+    BOOST_REQUIRE_THROW(authenticator(parameters), dopamine::Exception);
 }
-*/
+
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadTemplate, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password(username, password);
+
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template+"INVALID");
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_kerberos("foo");
+
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
+}
+
+BOOST_FIXTURE_TEST_CASE(IdentitySAML, Fixture)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_saml("foo");
+
+    dopamine::authentication::AuthenticatorLDAP const authenticator(
+        uri, bind_dn_template);
+    BOOST_REQUIRE(!authenticator(parameters));
+}

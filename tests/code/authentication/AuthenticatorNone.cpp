@@ -6,64 +6,54 @@
  * for details.
  ************************************************************************/
 
-#define BOOST_TEST_MODULE ModuleAuthenticatorNone
+#define BOOST_TEST_MODULE AuthenticatorNone
 #include <boost/test/unit_test.hpp>
 
-#include <dcmtkpp/DcmtkAssociation.h>
+#include <odil/AssociationParameters.h>
 
-#include "authenticator/AuthenticatorNone.h"
+#include "dopamine/authentication/AuthenticatorNone.h"
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Constructor / Destructor
- */
-BOOST_AUTO_TEST_CASE(Constructor)
+BOOST_AUTO_TEST_CASE(IdentityNone)
 {
-    dopamine::authenticator::AuthenticatorNone* authenticatorNone =
-            new dopamine::authenticator::AuthenticatorNone();
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_none();
 
-    BOOST_CHECK(authenticatorNone != NULL);
-
-    delete authenticatorNone;
+    dopamine::authentication::AuthenticatorNone const authenticator;
+    BOOST_REQUIRE(authenticator(parameters));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Execute with identity = NONE (true)
- */
-BOOST_AUTO_TEST_CASE(NONEIdentity)
+BOOST_AUTO_TEST_CASE(IdentityUsername)
 {
-    dopamine::authenticator::AuthenticatorNone authenticatorNone;
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username("foo");
 
-    dcmtkpp::DcmtkAssociation association;
-    association.set_user_identity_to_none();
-
-    BOOST_CHECK_EQUAL(authenticatorNone(association), true);
+    dopamine::authentication::AuthenticatorNone const authenticator;
+    BOOST_REQUIRE(!authenticator(parameters));
 }
 
-/******************************* TEST Nominal **********************************/
-/**
- * Nominal test case: Execute with identity != NONE (false)
- */
-BOOST_AUTO_TEST_CASE(BadIdentity)
+BOOST_AUTO_TEST_CASE(IdentityUsernameAndPassword)
 {
-    dopamine::authenticator::AuthenticatorNone authenticatorNone;
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_username_and_password("foo", "bar");
 
-    dcmtkpp::DcmtkAssociation association;
+    dopamine::authentication::AuthenticatorNone const authenticator;
+    BOOST_REQUIRE(!authenticator(parameters));
+}
 
-    // ASC_USER_IDENTITY_USER
-    association.set_user_identity_to_username("user");
-    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
+BOOST_AUTO_TEST_CASE(IdentityKerberos)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_kerberos("foo");
 
-    // ASC_USER_IDENTITY_USER_PASSWORD
-    association.set_user_identity_to_username_and_password("user", "pwd");
-    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
+    dopamine::authentication::AuthenticatorNone const authenticator;
+    BOOST_REQUIRE(!authenticator(parameters));
+}
 
-    // ASC_USER_IDENTITY_KERBEROS
-    association.set_user_identity_to_kerberos("ticket");
-    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
+BOOST_AUTO_TEST_CASE(IdentitySAML)
+{
+    odil::AssociationParameters parameters;
+    parameters.set_user_identity_to_saml("foo");
 
-    // ASC_USER_IDENTITY_SAML
-    association.set_user_identity_to_saml("assertion");
-    BOOST_CHECK_EQUAL(authenticatorNone(association), false);
+    dopamine::authentication::AuthenticatorNone const authenticator;
+    BOOST_REQUIRE(!authenticator(parameters));
 }
