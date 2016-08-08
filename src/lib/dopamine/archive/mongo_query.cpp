@@ -20,33 +20,7 @@
 #include <odil/VR.h>
 
 #include "dopamine/bson_converter.h"
-
-namespace
-{
-
-/// @brief Replace every occurence of old by new_.
-std::string
-replace(std::string const & value, std::string const & old, std::string const & new_)
-{
-    std::string result(value);
-    size_t begin=0;
-    while(std::string::npos != (begin=result.find(old, begin)))
-    {
-        result = result.replace(begin, old.size(), new_);
-        if(begin+new_.size()<result.size())
-        {
-            begin = begin+new_.size();
-        }
-        else
-        {
-            begin = std::string::npos;
-        }
-    }
-
-    return result;
-}
-
-}
+#include "dopamine/utils.h"
 
 namespace dopamine
 {
