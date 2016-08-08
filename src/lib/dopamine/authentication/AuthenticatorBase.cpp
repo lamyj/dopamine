@@ -6,11 +6,9 @@
  * for details.
  ************************************************************************/
 
-#include "dopamine/authentication/AuthenticatorNone.h"
+#include "dopamine/authentication/AuthenticatorBase.h"
 
 #include <odil/AssociationParameters.h>
-
-#include "dopamine/authentication/AuthenticatorBase.h"
 
 namespace dopamine
 {
@@ -18,25 +16,16 @@ namespace dopamine
 namespace authentication
 {
 
-AuthenticatorNone
-::AuthenticatorNone()
-: AuthenticatorBase()
+AuthenticatorBase
+::AuthenticatorBase()
 {
-    // Nothing to do
+    // Nothing to do.
 }
 
-AuthenticatorNone
-::~AuthenticatorNone()
+AuthenticatorBase
+::~AuthenticatorBase()
 {
-    // Nothing to do
-}
-
-bool
-AuthenticatorNone
-::operator()(odil::AssociationParameters const & parameters) const
-{
-    return (parameters.get_user_identity().type ==
-        odil::AssociationParameters::UserIdentity::Type::None);
+    // Nothing to do.
 }
 
 } // namespace authentication

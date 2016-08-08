@@ -6,49 +6,47 @@
  * for details.
  ************************************************************************/
 
-#include <sstream>
+#include "dopamine/authentication/AuthenticatorCSV.h"
+
+#include <fstream>
+#include <map>
+#include <string>
 
 #include <boost/filesystem.hpp>
+#include <odil/AssociationParameters.h>
 
-#include "AuthenticatorCSV.h"
-#include "core/ExceptionPACS.h"
+#include "dopamine/authentication/AuthenticatorBase.h"
+#include "dopamine/Exception.h"
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
     
 AuthenticatorCSV
-::AuthenticatorCSV(std::string const & fileName):
+::AuthenticatorCSV(std::string const & path):
     AuthenticatorBase() // base class initialisation
 {
-    if ( ! boost::filesystem::exists(fileName.c_str()))
+    if(!boost::filesystem::exists(path.c_str()))
     {
-        std::stringstream streamerror;
-        streamerror << "Trying to parse non-existing file: " << fileName;
-        throw ExceptionPACS(streamerror.str());
+        throw Exception("Trying to parse non-existing file: " + path);
     }
     
     // Open file
-    std::ifstream file(fileName.c_str());
-    while(!file.eof())
+    std::ifstream stream(path);
+    while(!stream.eof())
     {
         // Store user / password
         std::string user;
         std::string password;
-        file >> user >> password;
-        if (user != "" && password != "")
+        stream >> user >> password;
+        if(user != "" && password != "")
         {
-            if (this->_table.find(user) == this->_table.end())
-            {
-                this->_table[user] = password;
-            }
-            //else ignore duplicate key
+            this->_table[user] = password;
         }
-        //else ignore empty line
     }
-    file.close();
+    stream.close();
 }
 
 AuthenticatorCSV
@@ -59,38 +57,29 @@ AuthenticatorCSV
 
 bool
 AuthenticatorCSV
-::operator ()(dcmtkpp::DcmtkAssociation const & association) const
+::operator()(odil::AssociationParameters const & parameters) const
 {
-    bool authorized = false;
+    bool authenticated = false;
 
     // Only available for Identity type: User / Password
-    if (association.get_user_identity_type() ==
-            dcmtkpp::UserIdentityType::UsernameAndPassword)
+    if(parameters.get_user_identity().type ==
+        odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
     {
-        std::string const username =
-                association.get_user_identity_primary_field();
-        std::string const pwd = association.get_user_identity_secondary_field();
+        auto const & username =
+            parameters.get_user_identity().primary_field;
+        auto const & password =
+            parameters.get_user_identity().secondary_field;
 
-        // Search in map
-        std::map<std::string, std::string>::const_iterator const it =
-            this->_table.find(username);
-        // If User exist
+        auto const it = this->_table.find(username);
         if(it != this->_table.end())
         {
-            authorized = it->second == pwd;
+            authenticated = (it->second == password);
         }
     }
 
-    return authorized;
+    return authenticated;
 }
 
-unsigned int
-AuthenticatorCSV
-::get_table_count() const
-{
-    return this->_table.size();
-}
-
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine

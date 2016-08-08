@@ -9,38 +9,30 @@
 #ifndef _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 #define _e0761b8c_9889_4e7c_bcf9_8bac78cc353b
 
-#include <dcmtkpp/DcmtkAssociation.h>
+#include <odil/AssociationParameters.h>
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
 
 /// @brief Abstract base class for all authenticators.
 class AuthenticatorBase
 {
 public:
-    /**
-     * Create a default Authenticator
-     */
-    AuthenticatorBase() {}
+    /// @brief Constructor
+    AuthenticatorBase();
 
-    /**
-     * Destroy the authenticator
-     */
-    virtual ~AuthenticatorBase() {}
+    /// @brief Destructor.
+    virtual ~AuthenticatorBase() =0;
     
-    /**
-     * Operator ()
-     * @param identity: requested authentication
-     * @return true if authentication success, false otherwise
-     */
+    /// @brief Test authentication based on association parameters.
     virtual bool operator()(
-            dcmtkpp::DcmtkAssociation const & association) const = 0;
+        odil::AssociationParameters const & parameters) const = 0;
 };
 
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine
 

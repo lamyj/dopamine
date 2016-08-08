@@ -12,50 +12,39 @@
 #include <map>
 #include <string>
 
-#include "AuthenticatorBase.h"
+#include <odil/AssociationParameters.h>
+
+#include "dopamine/authentication/AuthenticatorBase.h"
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
 
 /**
- * @brief \class Authenticator based on a CSV file with two columns
- *        (user and clear-text password).
+ * @brief Authenticator based on a CSV file with two columns
+ * (user name and clear-text password).
  */
-class AuthenticatorCSV : public AuthenticatorBase
+class AuthenticatorCSV: public AuthenticatorBase
 {
 public:
-    /**
-     * Create an instance of AuthenticatorCSV
-     * @param fileName : CSV file path
-     */
-    AuthenticatorCSV(std::string const & fileName);
+    /// @brief Constructor from a CSV file.
+    AuthenticatorCSV(std::string const & path);
     
-    /// Destroy the instance of AuthenticatorCSV
+    /// @brief Destructor.
     virtual ~AuthenticatorCSV();
 
-    /**
-     * Operator ()
-     * @param identity: requested authentication
-     * @return true if authentication success, false otherwise
-     */
-    virtual bool operator()(dcmtkpp::DcmtkAssociation const & association) const;
-    
-    /**
-     * Get number of dictionary entries
-     * @return number of dictionary entries
-     */
-    unsigned int get_table_count() const;
-    
+    /// @brief Look up the user name and password in the CSV file
+    virtual bool operator()(
+        odil::AssociationParameters const & parameters) const;
 private:
     /// User - Password dictionary
     std::map<std::string, std::string> _table;
     
 };
 
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine
 

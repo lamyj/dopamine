@@ -9,36 +9,33 @@
 #ifndef _78b49719_8a47_493e_8e12_92848f9bccbe
 #define _78b49719_8a47_493e_8e12_92848f9bccbe
 
-#include "AuthenticatorBase.h"
+#include <odil/AssociationParameters.h>
+
+#include "dopamine/authentication/AuthenticatorBase.h"
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
 
-/**
- * @brief \class The AuthenticatorNone class
- */
-class AuthenticatorNone : public AuthenticatorBase
+/// @brief Authenticator succeeding only for association without user identity
+class AuthenticatorNone: public AuthenticatorBase
 {
 public:
-    /// Create an instance of AuthenticatorNone
+    /// @brief Constructor.
     AuthenticatorNone();
 
-    /// Destroy the instance of AuthenticatorNone
+    /// @brief Destructor.
     virtual ~AuthenticatorNone();
 
-    /**
-     * @brief operator ()
-     * @param identity: requested authentication
-     * @return true if authentication success, false otherwise
-     */
-    virtual bool operator()(dcmtkpp::DcmtkAssociation const & association) const;
+    /// @brief Succeeds only if user identity type is None.
+    virtual bool operator()(
+        odil::AssociationParameters const & parameters) const;
 
 };
 
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine
 

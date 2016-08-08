@@ -6,119 +6,92 @@
  * for details.
  ************************************************************************/
 
-#include <sstream>
+#include "dopamine/authentication/AuthenticatorLDAP.h"
 
-#include <boost/algorithm/string/replace.hpp>
+#include <string>
 
 #include <ldap.h>
+#include <odil/AssociationParameters.h>
 
-#include "AuthenticatorLDAP.h"
-#include "core/ConfigurationPACS.h"
-#include "core/ExceptionPACS.h"
+#include "dopamine/authentication/AuthenticatorBase.h"
+#include "dopamine/Exception.h"
+#include "dopamine/utils.h"
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
 
 AuthenticatorLDAP
-::AuthenticatorLDAP(std::string const & ldap_server,
-                    std::string const & ldap_bind_user,
-                    std::string const & ldap_base,
-                    std::string const & ldap_filter):
-    AuthenticatorBase(), // base class initialisation
-    _ldap_server(ldap_server), _ldap_bind_user(ldap_bind_user),
-    _ldap_base(ldap_base), _ldap_filter(ldap_filter)
+::AuthenticatorLDAP(
+    std::string const & uri, std::string const & bind_dn_template)
+: _uri(uri), _bind_dn_template(bind_dn_template)
 {
-    // Nothing to do
+    // Nothing to do.
 }
 
 AuthenticatorLDAP
 ::~AuthenticatorLDAP()
 {
-    // Nothing to do
+    // Nothing to do.
 }
 
 bool
 AuthenticatorLDAP
-::operator()(dcmtkpp::DcmtkAssociation const & association) const
+::operator()(odil::AssociationParameters const & parameters) const
 {
-    bool return_ = false;
+    bool authenticated = false;
 
     // Only available for Identity type: User / Password
-    if (association.get_user_identity_type() ==
-            dcmtkpp::UserIdentityType::UsernameAndPassword)
+    if(parameters.get_user_identity().type ==
+        odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
     {
-        LDAP *ld;
+        LDAP * session;
 
-        /* Open LDAP Connection */
-        int rc = ldap_initialize( &ld, this->_ldap_server.c_str() );
-        if( rc != LDAP_SUCCESS )
+        auto const initialize_ok = ldap_initialize(&session, this->_uri.c_str());
+        if(initialize_ok != LDAP_SUCCESS)
         {
-            std::stringstream stream;
-            stream << "ldap_initialize error: " << ldap_err2string(rc);
-            throw ExceptionPACS(stream.str());
+            throw Exception(
+                std::string("ldap_initialize error: ")
+                + ldap_err2string(initialize_ok));
         }
 
-        std::string const username = association.get_user_identity_primary_field();
-        std::string const pwd = association.get_user_identity_secondary_field();
+        auto const & username = parameters.get_user_identity().primary_field;
+        auto const bind_dn = replace(
+            this->_bind_dn_template, "%user", username);
 
-        std::string bind_dn = this->_ldap_bind_user;
-        boost::replace_all(bind_dn, "%user", username.c_str());
-
-        char* password = new char[pwd.size()];
-        strncpy(password, &pwd[0], pwd.size());
-
-        // Password
-        berval credential;
-        credential.bv_val = password;
-        credential.bv_len = pwd.size();
+        auto const & password = parameters.get_user_identity().secondary_field;
+        berval credentials;
+        credentials.bv_val = const_cast<char*>(&password[0]);
+        credentials.bv_len = password.size();
 
         /* User authentication (bind) */
-        rc = ldap_sasl_bind_s( ld, bind_dn.c_str(), NULL, &credential,
-                               NULL, NULL,NULL);
-        if( rc != LDAP_SUCCESS )
+        auto const bind_ok = ldap_sasl_bind_s(
+            session, bind_dn.c_str(), NULL, &credentials, NULL, NULL,NULL);
+        if(bind_ok == LDAP_INVALID_CREDENTIALS)
         {
-            // Remove connection
-            ldap_destroy(ld);
-
-            std::stringstream stream;
-            stream << "ldap_sasl_bind_s error: " << ldap_err2string(rc);
-            throw ExceptionPACS(stream.str());
+            authenticated = false;
+            ldap_destroy(session);
         }
-
-        std::string filter = this->_ldap_filter;
-        boost::replace_all(filter, "%user", username.c_str());
-
-        LDAPMessage * msg;
-        // Request
-        rc = ldap_search_ext_s(ld, this->_ldap_base.c_str(), LDAP_SCOPE_SUBTREE,
-                               filter.c_str(), NULL, 0,
-                               NULL, NULL, NULL, 1024, &msg);
-        if (rc != LDAP_SUCCESS)
+        else if(bind_ok != LDAP_SUCCESS)
         {
-            std::stringstream stream;
-            stream << "ldap_search_ext_s error: " << ldap_err2string(rc);
-            throw ExceptionPACS(stream.str());
+            ldap_destroy(session);
+            throw Exception(
+                std::string("ldap_sasl_bind_s error: ")
+                + ldap_err2string(bind_ok));
         }
         else
         {
-            return_ = (ldap_count_entries(ld, msg) == 1);
-        }
-
-        // Unbind and remove connection
-        rc = ldap_unbind_ext_s( ld, NULL, NULL);
-        if (rc != LDAP_SUCCESS)
-        {
-            std::stringstream stream;
-            stream << "ldap_unbind_ext_s error: " << ldap_err2string(rc);
-            throw ExceptionPACS(stream.str());
+            authenticated = true;
+            ldap_unbind_ext_s(session, NULL, NULL);
+            // No need to call ldap_destroy, unbinding frees the session
         }
     }
-    return return_;
+
+    return authenticated;
 }
 
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine

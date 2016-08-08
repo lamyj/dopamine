@@ -11,58 +11,45 @@
 
 #include <string>
 
-#include "AuthenticatorBase.h"
+#include <odil/AssociationParameters.h>
+
+#include "dopamine/authentication/AuthenticatorBase.h"
 
 namespace dopamine
 {
 
-namespace authenticator
+namespace authentication
 {
 
 /**
- * @brief \class The AuthenticatorLDAP class
+ * @brief Authenticator based on an LDAP directory.
+ *
+ * This authenticator tries to bind to the specified LDAP uri with a bind DN
+ * derived from the user name and the password from the association.
+ *
+ * The bind DN template can contain "%user", which will be replaced with the
+ * user name.
  */
-class AuthenticatorLDAP : public AuthenticatorBase
+class AuthenticatorLDAP: public AuthenticatorBase
 {
 public:
-    /**
-     * @brief Create an instance of AuthenticatorLDAP
-     * @param ldap_server
-     * @param ldap_bind_user
-     * @param ldap_base
-     * @param ldap_filter
-     */
-    AuthenticatorLDAP(std::string const & ldap_server,
-                      std::string const & ldap_bind_user,
-                      std::string const & ldap_base,
-                      std::string const & ldap_filter);
+    /// @brief Constructor.
+    AuthenticatorLDAP(
+        std::string const & uri, std::string const & bind_dn_template);
 
-    /// Destroy the instance of AuthenticatorLDAP
+    /// @brief Destructor.
     virtual ~AuthenticatorLDAP();
 
-    /**
-     * Operator ()
-     * @param identity: requested authentication
-     * @return true if authentication success, false otherwise
-     */
-    virtual bool operator()(dcmtkpp::DcmtkAssociation const & association) const;
+    /// @brief Try to bind with the user name and password to an LDAP directory.
+    virtual bool operator()(
+        odil::AssociationParameters const & parameters) const;
 
 private:
-    ///
-    std::string _ldap_server;
-
-    ///
-    std::string _ldap_bind_user;
-
-    ///
-    std::string _ldap_base;
-
-    ///
-    std::string _ldap_filter;
-
+    std::string _uri;
+    std::string _bind_dn_template;
 };
 
-} // namespace authenticator
+} // namespace authentication
 
 } // namespace dopamine
 
