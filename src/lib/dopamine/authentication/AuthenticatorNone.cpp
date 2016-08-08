@@ -33,10 +33,9 @@ AuthenticatorNone
 
 bool
 AuthenticatorNone
-::operator()(odil::AssociationParameters const & parameters) const
+::operator()(odil::AssociationParameters const & /* not used */) const
 {
-    return (parameters.get_user_identity().type ==
-        odil::AssociationParameters::UserIdentity::Type::None);
+    return true;
 }
 
 } // namespace authentication

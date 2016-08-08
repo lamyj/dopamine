@@ -19,7 +19,7 @@ namespace dopamine
 namespace authentication
 {
 
-/// @brief Authenticator succeeding only for association without user identity
+/// @brief Authenticator succeeding for all associations
 class AuthenticatorNone: public AuthenticatorBase
 {
 public:
@@ -29,7 +29,7 @@ public:
     /// @brief Destructor.
     virtual ~AuthenticatorNone();
 
-    /// @brief Succeeds only if user identity type is None.
+    /// @brief Always succeed.
     virtual bool operator()(
         odil::AssociationParameters const & parameters) const;
 

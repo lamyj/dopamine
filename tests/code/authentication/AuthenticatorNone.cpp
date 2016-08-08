@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(IdentityUsername)
     parameters.set_user_identity_to_username("foo");
 
     dopamine::authentication::AuthenticatorNone const authenticator;
-    BOOST_REQUIRE(!authenticator(parameters));
+    BOOST_REQUIRE(authenticator(parameters));
 }
 
 BOOST_AUTO_TEST_CASE(IdentityUsernameAndPassword)
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(IdentityUsernameAndPassword)
     parameters.set_user_identity_to_username_and_password("foo", "bar");
 
     dopamine::authentication::AuthenticatorNone const authenticator;
-    BOOST_REQUIRE(!authenticator(parameters));
+    BOOST_REQUIRE(authenticator(parameters));
 }
 
 BOOST_AUTO_TEST_CASE(IdentityKerberos)
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(IdentityKerberos)
     parameters.set_user_identity_to_kerberos("foo");
 
     dopamine::authentication::AuthenticatorNone const authenticator;
-    BOOST_REQUIRE(!authenticator(parameters));
+    BOOST_REQUIRE(authenticator(parameters));
 }
 
 BOOST_AUTO_TEST_CASE(IdentitySAML)
@@ -55,5 +55,5 @@ BOOST_AUTO_TEST_CASE(IdentitySAML)
     parameters.set_user_identity_to_saml("foo");
 
     dopamine::authentication::AuthenticatorNone const authenticator;
-    BOOST_REQUIRE(!authenticator(parameters));
+    BOOST_REQUIRE(authenticator(parameters));
 }
