@@ -22,7 +22,9 @@ mongo::BSONObj as_bson(
     odil::Value::Strings const & specific_character_set = {});
 
 /// @brief Create a data set from its BSON representation.
-odil::DataSet as_dataset(mongo::BSONObj const & bson);
+odil::DataSet as_dataset(
+    mongo::BSONObj const & bson,
+    odil::Value::Strings const & specific_character_set = {});
 }
 
 #endif // _c31aa1cf_ad8a_44f1_9d23_97c045ad81fd

@@ -195,7 +195,6 @@ mongo::BSONObj as_bson(
         auto const & tag = item.first;
         auto const & element = item.second;
 
-        // Specific character set
         if(tag == odil::registry::SpecificCharacterSet)
         {
             current_specific_char_set = element.as_string();
@@ -214,8 +213,12 @@ mongo::BSONObj as_bson(
     return builder.obj();
 }
 
-odil::DataSet as_dataset(mongo::BSONObj const & bson)
+odil::DataSet as_dataset(
+    mongo::BSONObj const & bson,
+    odil::Value::Strings const & specific_character_set)
 {
+    auto current_specific_char_set = specific_character_set;
+
     odil::DataSet data_set;
 
     for(auto it = bson.begin(); it.more();)
@@ -254,7 +257,9 @@ odil::DataSet as_dataset(mongo::BSONObj const & bson)
                 {
                     for(auto const & item: values)
                     {
-                        dicom_element.as_string().push_back(item.String());
+                        dicom_element.as_string().push_back(
+                            odil::as_specific_character_set(
+                                item.String(), current_specific_char_set));
                     }
                 }
                 else
@@ -278,7 +283,9 @@ odil::DataSet as_dataset(mongo::BSONObj const & bson)
                             dicom_item = dicom_item.substr(0, dicom_item.size()-1);
                         }
 
-                        dicom_element.as_string().push_back(dicom_item);
+                        dicom_element.as_string().push_back(
+                            odil::as_specific_character_set(
+                                dicom_item, current_specific_char_set));
                     }
                 }
             }
@@ -319,7 +326,8 @@ odil::DataSet as_dataset(mongo::BSONObj const & bson)
 
                 for(auto const & bson_item: values)
                 {
-                    auto const dicom_item = as_dataset(bson_item.Obj());
+                    auto const dicom_item = as_dataset(
+                        bson_item.Obj(), current_specific_char_set);
                     dicom_element.as_data_set().push_back(dicom_item);
                 }
             }
@@ -338,6 +346,11 @@ odil::DataSet as_dataset(mongo::BSONObj const & bson)
         // Otherwise the element is empty, do nothing
 
         data_set.add(tag, dicom_element);
+
+        if(tag == odil::registry::SpecificCharacterSet)
+        {
+            current_specific_char_set = dicom_element.as_string();
+        }
     }
 
     return data_set;
