@@ -32,7 +32,8 @@ class QueryDataSetGenerator: public odil::SCP::DataSetGenerator
 public:
     QueryDataSetGenerator(
         mongo::DBClientConnection & connection, AccessControlList const & acl,
-        std::string const & database);
+        std::string const & database,
+        odil::AssociationParameters const & parameters);
 
     virtual ~QueryDataSetGenerator();
 
@@ -41,15 +42,6 @@ public:
 
     /// @brief Set the database name.
     void set_database(std::string const & database);
-
-    /// @brief Return the name of the principal.
-    std::string const & get_principal() const;
-
-    /// @brief Set the name of the principal.
-    void set_principal(std::string const & database);
-
-    /// @brief Set the name of the principal from the association parameters.
-    void set_principal(odil::AssociationParameters const & parameters);
 
     /// @brief Initialize the generator, the request must be a C-FIND request.
     virtual void initialize(odil::message::Request const & request);
@@ -77,7 +69,7 @@ private:
     std::string _database;
     std::string _namespace;
 
-    std::string _principal;
+    odil::AssociationParameters const & _parameters;
 
     std::vector<odil::Tag> _additional_attributes;
     std::vector<mongo::BSONObj> _results;

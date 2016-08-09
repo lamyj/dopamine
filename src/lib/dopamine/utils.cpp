@@ -9,6 +9,8 @@
 #include "dopamine/utils.h"
 
 #include <string>
+#include <odil/AssociationParameters.h>
+#include "dopamine/Exception.h"
 
 namespace dopamine
 {
@@ -33,6 +35,31 @@ replace(
     }
 
     return result;
+}
+
+std::string get_principal(odil::AssociationParameters const & parameters)
+{
+    std::string principal;
+
+    auto const identity = parameters.get_user_identity();
+    if(identity.type == odil::AssociationParameters::UserIdentity::Type::None)
+    {
+        principal = "";
+    }
+    else if(identity.type == odil::AssociationParameters::UserIdentity::Type::Username)
+    {
+        principal = identity.primary_field;
+    }
+    else if(identity.type == odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
+    {
+        principal = identity.primary_field;
+    }
+    else
+    {
+        throw odil::Exception("Cannot find principal");
+    }
+
+    return principal;
 }
 
 } // namespace dopamine

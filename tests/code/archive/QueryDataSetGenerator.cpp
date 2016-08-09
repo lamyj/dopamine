@@ -9,8 +9,14 @@
 #define BOOST_TEST_MODULE QueryDataSetGenerator
 #include <boost/test/unit_test.hpp>
 
+#include <cstdlib>
+#include <string>
+#include <sys/time.h>
+
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
+
+#include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
 #include <odil/json_converter.h>
 #include <odil/message/CFindRequest.h>
@@ -129,9 +135,11 @@ struct Fixture
     {
         odil::message::CFindRequest const request(1, "1.2.3.4", 1, query);
 
+        odil::AssociationParameters parameters;
+        parameters.set_user_identity_to_username(principal);
+
         dopamine::archive::QueryDataSetGenerator generator(
-            this->connection, this->acl, this->database);
-        generator.set_principal(principal);
+            this->connection, this->acl, this->database, parameters);
 
         generator.initialize(request);
         std::vector<odil::DataSet> data_sets;

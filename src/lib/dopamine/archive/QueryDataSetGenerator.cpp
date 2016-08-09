@@ -24,6 +24,7 @@
 #include "dopamine/AccessControlList.h"
 #include "dopamine/archive/mongo_query.h"
 #include "dopamine/bson_converter.h"
+#include "dopamine/utils.h"
 
 namespace dopamine
 {
@@ -38,8 +39,9 @@ QueryDataSetGenerator
 QueryDataSetGenerator
 ::QueryDataSetGenerator(
     mongo::DBClientConnection & connection, AccessControlList const & acl,
-    std::string const & database)
-: _connection(connection), _acl(acl)
+    std::string const & database,
+    odil::AssociationParameters const & parameters)
+: _connection(connection), _acl(acl), _parameters(parameters)
 {
     this->set_database(database);
 }
@@ -65,52 +67,15 @@ QueryDataSetGenerator
     this->_namespace = database+".datasets";
 }
 
-std::string const &
-QueryDataSetGenerator
-::get_principal() const
-{
-    return this->_principal;
-}
-
-void
-QueryDataSetGenerator
-::set_principal(std::string const & principal)
-{
-    this->_principal = principal;
-}
-
-void
-QueryDataSetGenerator
-::set_principal(odil::AssociationParameters const & parameters)
-{
-    auto const identity = parameters.get_user_identity();
-    if(identity.type == odil::AssociationParameters::UserIdentity::Type::None)
-    {
-        this->_principal = "";
-    }
-    else if(identity.type == odil::AssociationParameters::UserIdentity::Type::Username)
-    {
-        this->_principal = identity.primary_field;
-    }
-    else if(identity.type == odil::AssociationParameters::UserIdentity::Type::UsernameAndPassword)
-    {
-        this->_principal = identity.primary_field;
-    }
-    else
-    {
-        throw odil::SCP::Exception(
-            "Cannot set principal", odil::message::Response::ProcessingFailure);
-    }
-}
-
 void
 QueryDataSetGenerator
 ::initialize(odil::message::Request const & request)
 {
-    if(!this->_acl.is_allowed(this->_principal, "Query"))
+    auto const principal = get_principal(this->_parameters);
+    if(!this->_acl.is_allowed(principal, "Query"))
     {
         std::ostringstream message;
-        message << "User \"" << this->_principal << "\" is not allowed to query";
+        message << "User \"" << principal << "\" is not allowed to query";
         odil::DataSet status_fields;
         status_fields.add(odil::registry::ErrorComment, { message.str() });
         throw odil::SCP::Exception(
@@ -140,8 +105,7 @@ QueryDataSetGenerator
 
     auto const query = query_builder.arr();
     auto const projection = projection_builder.obj();
-    auto const constraints = this->_acl.get_constraints(
-        this->_principal, "Query");
+    auto const constraints = this->_acl.get_constraints(principal, "Query");
 
     mongo::BSONArrayBuilder condition_builder;
     if(!query.isEmpty())
@@ -281,8 +245,11 @@ QueryDataSetGenerator
 {
     mongo::BSONObj const condition(BSON(
         "$and" << BSON_ARRAY(
-            BSON(std::string(primary)+".Value" << data_set.as_string(primary, 0)) <<
-            this->_acl.get_constraints(this->_principal, "Query"))));
+            BSON(std::string(primary)+".Value" << data_set.as_string(primary, 0))
+            << this->_acl.get_constraints(
+                get_principal(this->_parameters), "Query")
+           )
+    ));
     auto const projection = BSON(
         std::string(primary) << 1 << std::string(secondary) << 1);
 
@@ -330,8 +297,11 @@ QueryDataSetGenerator
 {
     mongo::BSONObj const condition(BSON(
         "$and" << BSON_ARRAY(
-            BSON(std::string(primary)+".Value" << data_set.as_string(primary, 0)) <<
-            this->_acl.get_constraints(this->_principal, "Query"))));
+            BSON(std::string(primary)+".Value" << data_set.as_string(primary, 0))
+            << this->_acl.get_constraints(
+                get_principal(this->_parameters), "Query")
+        )
+    ));
     auto const projection = BSON(
         std::string(primary) << 1 << std::string(secondary) << 1);
 
