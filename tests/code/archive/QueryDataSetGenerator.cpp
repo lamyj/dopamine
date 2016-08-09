@@ -18,7 +18,6 @@
 
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
-#include <odil/json_converter.h>
 #include <odil/message/CFindRequest.h>
 #include <odil/registry.h>
 
