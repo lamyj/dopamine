@@ -10,16 +10,19 @@
 #define _28a4833c_45e9_4de8_a7ca_f45491e6410d
 
 #include <functional>
+#include <map>
 #include <string>
+#include <vector>
 
-#include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
 #include <odil/message/Request.h>
 #include <odil/SCP.h>
+#include <odil/Tag.h>
 
 #include "dopamine/AccessControlList.h"
+#include "dopamine/archive/DataSetGeneratorHelper.h"
 
 namespace dopamine
 {
@@ -72,8 +75,8 @@ private:
     odil::AssociationParameters const & _parameters;
 
     std::vector<odil::Tag> _additional_attributes;
-    std::vector<mongo::BSONObj> _results;
-    std::vector<mongo::BSONObj>::const_iterator _results_iterator;
+
+    DataSetGeneratorHelper _helper;
 
     mutable bool _dicom_data_set_up_to_date;
     mutable odil::DataSet _dicom_data_set;

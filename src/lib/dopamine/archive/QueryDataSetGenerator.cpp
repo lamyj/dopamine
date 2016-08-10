@@ -8,8 +8,10 @@
 
 #include "dopamine/archive/QueryDataSetGenerator.h"
 
-#include <memory>
+#include <functional>
+#include <map>
 #include <string>
+#include <vector>
 
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
@@ -22,7 +24,6 @@
 #include <odil/SCP.h>
 
 #include "dopamine/AccessControlList.h"
-#include "dopamine/archive/mongo_query.h"
 #include "dopamine/bson_converter.h"
 #include "dopamine/utils.h"
 
@@ -41,9 +42,11 @@ QueryDataSetGenerator
     mongo::DBClientConnection & connection, AccessControlList const & acl,
     std::string const & database,
     odil::AssociationParameters const & parameters)
-: _connection(connection), _acl(acl), _parameters(parameters)
+: _connection(connection), _acl(acl), _parameters(parameters), _helper(acl)
 {
     this->set_database(database);
+    this->_helper.principal = get_principal(this->_parameters);
+    this->_helper.service = "Query";
 }
 
 QueryDataSetGenerator
@@ -71,17 +74,7 @@ void
 QueryDataSetGenerator
 ::initialize(odil::message::Request const & request)
 {
-    auto const principal = get_principal(this->_parameters);
-    if(!this->_acl.is_allowed(principal, "Query"))
-    {
-        std::ostringstream message;
-        message << "User \"" << principal << "\" is not allowed to query";
-        odil::DataSet status_fields;
-        status_fields.add(odil::registry::ErrorComment, { message.str() });
-        throw odil::SCP::Exception(
-            message.str(), odil::message::Response::RefusedNotAuthorized,
-            status_fields);
-    }
+    this->_helper.check_acl();
 
     odil::message::CFindRequest const find_request(request);
     auto data_set = find_request.get_data_set();
@@ -99,28 +92,12 @@ QueryDataSetGenerator
         }
     }
 
-    mongo::BSONArrayBuilder query_builder;
+    mongo::BSONObjBuilder condition_builder;
     mongo::BSONObjBuilder projection_builder;
-    as_mongo_query(data_set, query_builder, projection_builder);
-
-    auto const query = query_builder.arr();
+    this->_helper.get_condition_and_projection(
+        data_set, condition_builder, projection_builder);
+    auto const condition = condition_builder.obj();
     auto const projection = projection_builder.obj();
-    auto const constraints = this->_acl.get_constraints(principal, "Query");
-
-    mongo::BSONArrayBuilder condition_builder;
-    if(!query.isEmpty())
-    {
-        condition_builder << BSON("$and" << query);
-    }
-    if(!constraints.isEmpty())
-    {
-        condition_builder << constraints;
-    }
-    mongo::BSONObj const condition(
-        (condition_builder.arrSize()>0)
-        ?BSON(
-            "$and" << condition_builder.arr())
-        :mongo::BSONObj());
 
     // Create the ID document for the group operator based on fields. This is
     // similar to a multi-key distinct.
@@ -152,14 +129,14 @@ QueryDataSetGenerator
 
     // Make sure to get the full BSONObj: BSONElement does not own the data, it
     // only points to it, and the BSONObj itself may not own its data.
-    auto const results = info["result"].Array();
-    this->_results.resize(results.size());
-    std::transform(
-        results.begin(), results.end(), this->_results.begin(),
-        [](mongo::BSONElement const & element) {
-            return element["_id"].Obj().getOwned();
-        });
-    this->_results_iterator = this->_results.begin();
+    std::vector<mongo::BSONObj> results;
+    for(auto const & result: info["result"].Array())
+    {
+        results.push_back(result["_id"].Obj().getOwned());
+    }
+
+    this->_helper.set_results(results);
+
     this->_dicom_data_set_up_to_date = false;
 }
 
@@ -167,14 +144,14 @@ bool
 QueryDataSetGenerator
 ::done() const
 {
-    return (this->_results_iterator == this->_results.end());
+    return this->_helper.done();
 }
 
 void
 QueryDataSetGenerator
 ::next()
 {
-    ++this->_results_iterator;
+    this->_helper.next();
     this->_dicom_data_set_up_to_date = false;
 }
 
@@ -184,7 +161,7 @@ QueryDataSetGenerator
 {
     if(!this->_dicom_data_set_up_to_date)
     {
-        this->_dicom_data_set = as_dataset(*this->_results_iterator);
+        this->_dicom_data_set = as_dataset(this->_helper.get());
         for(auto const & attribute: this->_additional_attributes)
         {
             auto const & function = this->_attribute_calculators.at(attribute);
