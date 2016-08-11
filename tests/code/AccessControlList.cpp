@@ -10,54 +10,29 @@
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
-#include <cstdlib>
-#include <iostream>
 #include <string>
-#include <sys/time.h>
 
-#include <mongo/client/dbclient.h>
+#include <mongo/bson/bson.h>
 
 #include "dopamine/AccessControlList.h"
 
-struct Fixture
+#include "fixtures/MongoDB.h"
+
+struct Fixture: fixtures::MongoDB
 {
-    static unsigned long const seed;
-    mongo::DBClientConnection connection;
-    std::string database;
-
-    static unsigned long get_seed()
-    {
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        unsigned long const seed(1000000*tv.tv_sec + tv.tv_usec);
-
-        std::srand(seed);
-        return seed;
-    }
+    std::string const collection;
 
     Fixture()
+    : MongoDB(), collection(this->database+".authorization")
     {
-        this->connection.connect("localhost");
-
-        // Create a random database name
-        for(int i=0; i<20; ++i)
-        {
-            this->database += 'A'+int(std::rand()/float(RAND_MAX)*26.);
-        }
-
-        this->connection.createCollection(this->database+".authorization");
+        this->connection.createCollection(this->collection);
     }
 
-    ~Fixture()
+    virtual ~Fixture()
     {
-        // Drop database
-        this->connection.dropDatabase(this->database);
+        this->connection.dropCollection(this->collection);
     }
 };
-
-unsigned long const
-Fixture
-::seed(Fixture::get_seed());
 
 BOOST_FIXTURE_TEST_CASE(Empty, Fixture)
 {
@@ -76,10 +51,10 @@ BOOST_FIXTURE_TEST_CASE(Entries, Fixture)
     auto entries = acl.get_entries();
     BOOST_REQUIRE_EQUAL(entries.size(), 2);
 
+    typedef dopamine::AccessControlList::Entry Entry;
     std::sort(
         entries.begin(), entries.end(),
-        [](dopamine::AccessControlList::Entry const & x, dopamine::AccessControlList::Entry const & y) {
-            return x.principal<y.principal; });
+        [](Entry const & x, Entry const & y) { return x.principal<y.principal; });
 
     BOOST_REQUIRE(entries[0].principal == "principal1");
     BOOST_REQUIRE(entries[0].service == "Echo");

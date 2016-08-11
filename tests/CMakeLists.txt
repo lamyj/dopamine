@@ -5,13 +5,17 @@ find_package(MongoDB REQUIRED)
 find_package(Odil REQUIRED)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src/lib ${Boost_INCLUDE_DIRS} ${MongoDB_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/src/lib ${CMAKE_SOURCE_DIR}/tests
+    ${Boost_INCLUDE_DIRS} ${MongoDB_INCLUDE_DIRS}
     ${Odil_INCLUDE_DIRS})
 add_definitions(-DBOOST_TEST_DYN_LINK)
 link_directories(${Boost_LIBRARY_DIRS})
 
 file(GLOB_RECURSE tests code/*.cpp)
 set(old_tests)
+
+file(GLOB_RECURSE fixtures fixtures/*.cpp)
+add_library(fixtures ${fixtures})
 
 foreach(test_file ${tests})
     if(test_file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/code/(core|dbconnection|services)")
@@ -22,7 +26,7 @@ foreach(test_file ${tests})
         add_executable(${test} ${test_file})
         target_link_libraries(
             ${test} libdopamine ${Boost_LIBRARIES} ${MongoDB_LIBRARIES}
-            ${Odil_LIBRARIES} ssl)
+            ${Odil_LIBRARIES} ssl fixtures)
 
         file(READ ${test_file} content)
 

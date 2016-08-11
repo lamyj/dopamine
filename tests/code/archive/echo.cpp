@@ -9,69 +9,18 @@
 #define BOOST_TEST_MODULE echo
 #include <boost/test/unit_test.hpp>
 
-#include <cstdlib>
-#include <string>
-#include <sys/time.h>
-
-#include <mongo/bson/bson.h>
-#include <mongo/client/dbclient.h>
-
 #include <odil/message/CEchoRequest.h>
 #include <odil/message/Response.h>
 #include <odil/registry.h>
 
 #include "dopamine/archive/echo.h"
 
-struct Fixture
-{
-    static unsigned long const seed;
-    mongo::DBClientConnection connection;
-    std::string database;
-    dopamine::AccessControlList acl;
+#include "fixtures/Authorization.h"
 
-    static unsigned long get_seed()
-    {
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        unsigned long const seed(1000000*tv.tv_sec + tv.tv_usec);
-
-        std::srand(seed);
-        return seed;
-    }
-
-    static std::string get_random_name()
-    {
-        std::string name;
-        // Create a random database name
-        for(int i=0; i<20; ++i)
-        {
-            name += 'A'+int(std::rand()/float(RAND_MAX)*26.);
-        }
-        return name;
-    }
-
-    Fixture()
-    : connection(), database(Fixture::get_random_name()),
-       acl(this->connection, this->database)
-    {
-        this->connection.connect("localhost");
-        acl.set_entries({
-            { "echo_only", "Echo", mongo::BSONObj() },
-            { "store_only", "Store", mongo::BSONObj() },
-        });
-    }
-
-    ~Fixture()
-    {
-        // Drop database
-        this->connection.dropDatabase(this->database);
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(Echo, Fixture)
+BOOST_FIXTURE_TEST_CASE(Echo, fixtures::Authorization)
 {
     odil::AssociationParameters parameters;
-    parameters.set_user_identity_to_username("echo_only");
+    parameters.set_user_identity_to_username("echo");
 
     odil::message::CEchoRequest const request(
         1, odil::registry::VerificationSOPClass);
@@ -81,10 +30,10 @@ BOOST_FIXTURE_TEST_CASE(Echo, Fixture)
     BOOST_REQUIRE_EQUAL(status, odil::message::Response::Success);
 }
 
-BOOST_FIXTURE_TEST_CASE(EchoBadUser, Fixture)
+BOOST_FIXTURE_TEST_CASE(EchoBadUser, fixtures::Authorization)
 {
     odil::AssociationParameters parameters;
-    parameters.set_user_identity_to_username("store_only");
+    parameters.set_user_identity_to_username("store");
 
     odil::message::CEchoRequest const request(
         1, odil::registry::VerificationSOPClass);
