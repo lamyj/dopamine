@@ -6,7 +6,7 @@
  * for details.
  ************************************************************************/
 
-#include "fixtures/MetaData.h"
+#include "fixtures/SampleData.h"
 
 #include <algorithm>
 #include <functional>
@@ -17,16 +17,18 @@
 
 #include <odil/DataSet.h>
 #include <odil/registry.h>
+#include <odil/Value.h>
+#include <odil/VR.h>
 
-#include "dopamine/bson_converter.h"
+#include "dopamine/archive/Storage.h"
 
 #include "fixtures/Authorization.h"
 
 namespace fixtures
 {
 
-MetaData
-::MetaData()
+SampleData
+::SampleData()
 {
     auto entries = this->acl.get_entries();
     entries.emplace_back(
@@ -39,14 +41,14 @@ MetaData
     this->_populate();
 }
 
-MetaData
-::~MetaData()
+SampleData
+::~SampleData()
 {
     // Nothing to do.
 }
 
 bool
-MetaData
+SampleData
 ::less(odil::DataSet const & x, odil::DataSet const & y)
 {
     std::vector<odil::Tag> const tags{
@@ -74,9 +76,11 @@ MetaData
 }
 
 void
-MetaData
+SampleData
 ::_populate()
 {
+    dopamine::archive::Storage storage(this->connection, this->database);
+
     std::vector<std::string> const modalities{"MR", "CT"};
     std::vector<std::string> const sop_classes{
         odil::registry::MRImageStorage, odil::registry::CTImageStorage };
@@ -120,8 +124,14 @@ MetaData
                         odil::registry::SOPClassUID,
                         { sop_classes[instance_index-1] });
 
-                    this->connection.insert(
-                        this->database+".datasets", dopamine::as_bson(data_set));
+                    data_set.add(
+                        odil::registry::PixelData,
+                        { odil::Value::Binary::value_type{
+                            uint8_t(patient_index), uint8_t(study_index),
+                            uint8_t(series_index), uint8_t(instance_index) } },
+                        odil::VR::OB);
+
+                    storage.store(data_set);
                 }
             }
         }

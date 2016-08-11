@@ -20,9 +20,9 @@
 
 #include "dopamine/archive/QueryDataSetGenerator.h"
 
-#include "fixtures/MetaData.h"
+#include "fixtures/SampleData.h"
 
-struct Fixture: public fixtures::MetaData
+struct Fixture: public fixtures::SampleData
 {
     Fixture()
     {
@@ -55,7 +55,8 @@ struct Fixture: public fixtures::MetaData
             generator.next();
         }
 
-        std::sort(data_sets.begin(), data_sets.end(), fixtures::MetaData::less);
+        std::sort(
+            data_sets.begin(), data_sets.end(), fixtures::SampleData::less);
 
         return data_sets;
     }

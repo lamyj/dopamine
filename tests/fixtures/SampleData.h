@@ -16,12 +16,12 @@
 namespace fixtures
 {
 
-/// @brief Fill the database with data-sets (meta-data only, no bulk data)
-class MetaData: public fixtures::Authorization
+/// @brief Fill the database with data-sets
+class SampleData: public fixtures::Authorization
 {
 public:
-    MetaData();
-    virtual ~MetaData();
+    SampleData();
+    virtual ~SampleData();
 
     /// @brief Ordering for data sets.
     static bool less(odil::DataSet const & x, odil::DataSet const & y);
