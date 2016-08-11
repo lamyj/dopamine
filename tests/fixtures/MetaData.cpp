@@ -8,6 +8,8 @@
 
 #include "fixtures/MetaData.h"
 
+#include <algorithm>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -41,6 +43,34 @@ MetaData
 ::~MetaData()
 {
     // Nothing to do.
+}
+
+bool
+MetaData
+::less(odil::DataSet const & x, odil::DataSet const & y)
+{
+    std::vector<odil::Tag> const tags{
+        odil::registry::PatientID, odil::registry::StudyInstanceUID,
+        odil::registry::SeriesInstanceUID, odil::registry::SOPInstanceUID
+    };
+
+    std::vector<std::string> x_values;
+    std::vector<std::string> y_values;
+    for(auto const & tag: tags)
+    {
+        if(x.has(tag))
+        {
+            x_values.push_back(x.as_string(tag, 0));
+        }
+        if(y.has(tag))
+        {
+            y_values.push_back(y.as_string(tag, 0));
+        }
+    }
+
+    return std::lexicographical_compare(
+        x_values.begin(), x_values.end(), y_values.begin(), y_values.end(),
+        std::less<std::string>());
 }
 
 void

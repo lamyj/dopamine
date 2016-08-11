@@ -9,6 +9,8 @@
 #ifndef _c1f2925f_2df1_438d_a45a_6a1d25f0bd51
 #define _c1f2925f_2df1_438d_a45a_6a1d25f0bd51
 
+#include <odil/DataSet.h>
+
 #include "fixtures/Authorization.h"
 
 namespace fixtures
@@ -20,6 +22,9 @@ class MetaData: public fixtures::Authorization
 public:
     MetaData();
     virtual ~MetaData();
+
+    /// @brief Ordering for data sets.
+    static bool less(odil::DataSet const & x, odil::DataSet const & y);
 private:
     void _populate();
 };

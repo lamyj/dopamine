@@ -9,7 +9,9 @@
 #define BOOST_TEST_MODULE QueryDataSetGenerator
 #include <boost/test/unit_test.hpp>
 
+#include <algorithm>
 #include <string>
+#include <vector>
 
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
@@ -53,35 +55,9 @@ struct Fixture: public fixtures::MetaData
             generator.next();
         }
 
-        std::sort(data_sets.begin(), data_sets.end(), Fixture::less);
+        std::sort(data_sets.begin(), data_sets.end(), fixtures::MetaData::less);
 
         return data_sets;
-    }
-
-    static bool less(odil::DataSet const & x, odil::DataSet const & y)
-    {
-        std::vector<odil::Tag> const tags{
-            odil::registry::PatientID, odil::registry::StudyInstanceUID,
-            odil::registry::SeriesInstanceUID, odil::registry::SOPInstanceUID
-        };
-
-        std::vector<std::string> x_values;
-        std::vector<std::string> y_values;
-        for(auto const & tag: tags)
-        {
-            if(x.has(tag))
-            {
-                x_values.push_back(x.as_string(tag, 0));
-            }
-            if(y.has(tag))
-            {
-                y_values.push_back(y.as_string(tag, 0));
-            }
-        }
-
-        return std::lexicographical_compare(
-            x_values.begin(), x_values.end(), y_values.begin(), y_values.end(),
-            std::less<std::string>());
     }
 };
 
