@@ -23,7 +23,7 @@ Authorization
         { "echo", "Echo", {} },
         { "store", "Store", {} },
         { "query", "Query", {} },
-        { "retrieve", "Retreive", {} },
+        { "retrieve", "Retrieve", {} },
         { "all", "*", {} },
     });
 }

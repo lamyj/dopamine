@@ -70,7 +70,6 @@ GetDataSetGenerator
     auto const condition = condition_builder.obj();
     auto const projection = BSON(
         std::string(odil::registry::SOPInstanceUID) << 1
-        << std::string(odil::registry::TransferSyntaxUID) << 1
         << "Content" << 1);
 
     auto const cursor = this->_connection.query(
@@ -108,8 +107,10 @@ GetDataSetGenerator
     if(!this->_dicom_data_set_up_to_date)
     {
         auto const current = this->_helper.get();
-        this->_dicom_data_set = this->_helper.retrieve(
-            current[std::string(odil::registry::SOPInstanceUID)].String());
+        auto const sop_instance_uid = current[
+            std::string(odil::registry::SOPInstanceUID)][
+                "Value"].Array()[0].String();
+        this->_dicom_data_set = this->_helper.retrieve(sop_instance_uid);
         this->_dicom_data_set_up_to_date = true;
     }
 
