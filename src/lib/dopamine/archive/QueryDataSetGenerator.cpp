@@ -42,11 +42,10 @@ QueryDataSetGenerator
     mongo::DBClientConnection & connection, AccessControlList const & acl,
     std::string const & database,
     odil::AssociationParameters const & parameters)
-: _connection(connection), _acl(acl), _parameters(parameters), _helper(acl)
+: _connection(connection), _acl(acl), _parameters(parameters),
+  _helper(connection, acl, database, "", get_principal(parameters), "Query")
 {
     this->set_database(database);
-    this->_helper.principal = get_principal(this->_parameters);
-    this->_helper.service = "Query";
 }
 
 QueryDataSetGenerator

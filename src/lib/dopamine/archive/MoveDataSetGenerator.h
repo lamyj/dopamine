@@ -39,18 +39,6 @@ public:
 
     virtual ~MoveDataSetGenerator();
 
-    /// @brief Return the database name.
-    std::string const & get_database() const;
-
-    /// @brief Set the database name.
-    void set_database(std::string const & database);
-
-    /// @brief Return the bulk database name.
-    std::string const & get_bulk_database() const;
-
-    /// @brief Set the bulk database name.
-    void set_bulk_database(std::string const & bulk_database);
-
     /// @brief Initialize the generator, the request must be a C-MOVE request.
     virtual void initialize(odil::message::Request const & request);
 
@@ -73,11 +61,8 @@ private:
     mongo::DBClientConnection & _connection;
     AccessControlList const & _acl;
 
-    std::string _database;
     std::string _datasets_namespace;
     std::string _peers_namespace;
-
-    std::string _bulk_database;
 
     odil::AssociationParameters const & _parameters;
 

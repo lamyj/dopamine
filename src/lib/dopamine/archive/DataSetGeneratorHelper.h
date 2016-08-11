@@ -18,6 +18,7 @@
 #include <odil/DataSet.h>
 
 #include "dopamine/AccessControlList.h"
+#include "dopamine/archive/Storage.h"
 
 namespace dopamine
 {
@@ -29,14 +30,11 @@ namespace archive
 class DataSetGeneratorHelper
 {
 public:
-    /// @brief Name of the principal related to the association.
-    std::string principal;
-
-    /// @brief Name of the service.
-    std::string service;
-
     /// @brief Constructor.
-    DataSetGeneratorHelper(AccessControlList const & acl);
+    DataSetGeneratorHelper(
+        mongo::DBClientConnection & connection, AccessControlList const & acl,
+        std::string const & database, std::string const & bulk_database,
+        std::string const & principal, std::string const & service);
 
     /**
      * @brief Check that the principal is allowed to use the service, throw
@@ -68,13 +66,22 @@ public:
     /// @brief Return the number of responses.
     unsigned int count() const;
 
-    /// @brief Retrieve the current data set from the data base.
-    odil::DataSet retrieve_data_set(
-        mongo::DBClientConnection & connection,
-        std::string const & bulk_database) const;
+    /// @brief Store the data set.
+    void store(odil::DataSet const & data_set);
+
+    /**
+     * @brief Return the data set with given SOP instance UID; throw an
+     * exception if no such data set is stored.
+     */
+    odil::DataSet retrieve(std::string const & sop_instance_uid) const;
 
 private:
+    mongo::DBClientConnection & _connection;
     AccessControlList const & _acl;
+    Storage _storage;
+
+    std::string _principal;
+    std::string _service;
 
     std::vector<mongo::BSONObj> _results;
     std::vector<mongo::BSONObj>::const_iterator _results_iterator;

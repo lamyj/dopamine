@@ -13,7 +13,6 @@
 
 #include <mongo/client/dbclient.h>
 
-#include <odil/Association.h>
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
 #include <odil/message/Request.h>
@@ -38,18 +37,6 @@ public:
 
     virtual ~GetDataSetGenerator();
 
-    /// @brief Return the database name.
-    std::string const & get_database() const;
-
-    /// @brief Set the database name.
-    void set_database(std::string const & database);
-
-    /// @brief Return the bulk database name.
-    std::string const & get_bulk_database() const;
-
-    /// @brief Set the bulk database name.
-    void set_bulk_database(std::string const & bulk_database);
-
     /// @brief Initialize the generator, the request must be a C-GET request.
     virtual void initialize(odil::message::Request const & request);
 
@@ -68,10 +55,7 @@ private:
     mongo::DBClientConnection & _connection;
     AccessControlList const & _acl;
 
-    std::string _database;
     std::string _namespace;
-
-    std::string _bulk_database;
 
     odil::AssociationParameters const & _parameters;
 

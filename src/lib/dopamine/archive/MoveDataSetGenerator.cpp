@@ -13,6 +13,7 @@
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
 
+#include <odil/Association.h>
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
 #include <odil/Exception.h>
@@ -35,49 +36,19 @@ MoveDataSetGenerator
     mongo::DBClientConnection & connection, AccessControlList const & acl,
     std::string const & database, std::string const & bulk_database,
     odil::AssociationParameters const & parameters)
-: _connection(connection), _acl(acl), _parameters(parameters), _helper(acl)
+: _connection(connection), _acl(acl), _parameters(parameters),
+  _helper(
+    connection, acl, database, bulk_database, get_principal(parameters),
+    "Retrieve")
 {
-    this->set_database(database);
-    this->set_bulk_database(bulk_database);
-    this->_helper.principal = get_principal(this->_parameters);
-    this->_helper.service = "Retrieve";
+    this->_datasets_namespace = database+".datasets";
+    this->_peers_namespace = database+".application_entities";
 }
 
 MoveDataSetGenerator
 ::~MoveDataSetGenerator()
 {
     // Nothing to do.
-}
-
-std::string const &
-MoveDataSetGenerator
-::get_database() const
-{
-    return this->_database;
-}
-
-void
-MoveDataSetGenerator
-::set_database(std::string const & database)
-{
-    this->_database = database;
-    this->_datasets_namespace = database+".datasets";
-    this->_peers_namespace = database+".peers";
-}
-
-
-std::string const &
-MoveDataSetGenerator
-::get_bulk_database() const
-{
-    return this->_bulk_database;
-}
-
-void
-MoveDataSetGenerator
-::set_bulk_database(std::string const & bulk_database)
-{
-    this->_bulk_database = bulk_database;
 }
 
 void
@@ -138,8 +109,9 @@ MoveDataSetGenerator
 {
     if(!this->_dicom_data_set_up_to_date)
     {
-        this->_dicom_data_set = this->_helper.retrieve_data_set(
-            this->_connection, this->_bulk_database);
+        auto const current = this->_helper.get();
+        this->_dicom_data_set = this->_helper.retrieve(
+            current[std::string(odil::registry::SOPInstanceUID)].String());
         this->_dicom_data_set_up_to_date = true;
     }
 
@@ -166,8 +138,8 @@ MoveDataSetGenerator
     }
 
     odil::Association association;
-    association.set_peer_host(peer["peer_host"].String());
-    association.set_peer_port(peer["peer_port"].Int());
+    association.set_peer_host(peer["host"].String());
+    association.set_peer_port(peer["port"].Int());
 
     return association;
 }

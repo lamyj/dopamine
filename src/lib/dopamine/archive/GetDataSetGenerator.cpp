@@ -35,48 +35,18 @@ GetDataSetGenerator
     mongo::DBClientConnection & connection, AccessControlList const & acl,
     std::string const & database, std::string const & bulk_database,
     odil::AssociationParameters const & parameters)
-: _connection(connection), _acl(acl), _parameters(parameters), _helper(acl)
+: _connection(connection), _acl(acl), _parameters(parameters),
+  _helper(
+    connection, acl, database, bulk_database, get_principal(parameters),
+    "Retrieve")
 {
-    this->set_database(database);
-    this->set_bulk_database(bulk_database);
-    this->_helper.principal = get_principal(this->_parameters);
-    this->_helper.service = "Retrieve";
+    this->_namespace = database+".datasets";
 }
 
 GetDataSetGenerator
 ::~GetDataSetGenerator()
 {
     // Nothing to do.
-}
-
-std::string const &
-GetDataSetGenerator
-::get_database() const
-{
-    return this->_database;
-}
-
-void
-GetDataSetGenerator
-::set_database(std::string const & database)
-{
-    this->_database = database;
-    this->_namespace = database+".datasets";
-}
-
-
-std::string const &
-GetDataSetGenerator
-::get_bulk_database() const
-{
-    return this->_bulk_database;
-}
-
-void
-GetDataSetGenerator
-::set_bulk_database(std::string const & bulk_database)
-{
-    this->_bulk_database = bulk_database;
 }
 
 void
@@ -137,8 +107,9 @@ GetDataSetGenerator
 {
     if(!this->_dicom_data_set_up_to_date)
     {
-        this->_dicom_data_set = this->_helper.retrieve_data_set(
-            this->_connection, this->_bulk_database);
+        auto const current = this->_helper.get();
+        this->_dicom_data_set = this->_helper.retrieve(
+            current[std::string(odil::registry::SOPInstanceUID)].String());
         this->_dicom_data_set_up_to_date = true;
     }
 

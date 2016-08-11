@@ -9,23 +9,20 @@
 
 #include "dopamine/archive/DataSetGeneratorHelper.h"
 
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
-#include <mongo/client/gridfs.h>
 
 #include <odil/DataSet.h>
 #include <odil/message/Response.h>
-#include <odil/Reader.h>
 #include <odil/SCP.h>
 
 #include "dopamine/AccessControlList.h"
 #include "dopamine/archive/mongo_query.h"
-#include "dopamine/utils.h"
+#include "dopamine/archive/Storage.h"
 
 namespace dopamine
 {
@@ -34,8 +31,13 @@ namespace archive
 {
 
 DataSetGeneratorHelper
-::DataSetGeneratorHelper(AccessControlList const & acl)
-: _acl(acl)
+::DataSetGeneratorHelper(
+    mongo::DBClientConnection & connection, AccessControlList const & acl,
+    std::string const & database, std::string const & bulk_database,
+    std::string const & principal, std::string const & service)
+: _connection(connection), _acl(acl),
+  _storage(connection, database, bulk_database),
+  _principal(principal), _service(service)
 {
     // Nothing else
 }
@@ -44,12 +46,12 @@ void
 DataSetGeneratorHelper
 ::check_acl() const
 {
-    if(!this->_acl.is_allowed(this->principal, this->service))
+    if(!this->_acl.is_allowed(this->_principal, this->_service))
     {
         std::ostringstream message;
         message
-            << "User \"" << this->principal << "\" "
-            << "is not allowed to " << this->service;
+            << "User \"" << this->_principal << "\" "
+            << "is not allowed to " << this->_service;
 
         odil::DataSet status_fields;
         status_fields.add(odil::registry::ErrorComment, { message.str() });
@@ -72,7 +74,7 @@ DataSetGeneratorHelper
 
     auto const query = query_builder.arr();
     auto const constraints = this->_acl.get_constraints(
-        this->principal, this->service);
+        this->_principal, this->_service);
 
     mongo::BSONArrayBuilder condition_terms_builder;
     if(!query.isEmpty())
@@ -127,69 +129,38 @@ DataSetGeneratorHelper
     return this->_results.size();
 }
 
+void
+DataSetGeneratorHelper
+::store(odil::DataSet const & data_set)
+{
+    try
+    {
+        this->_storage.store(data_set);
+    }
+    catch(std::exception const & e)
+    {
+        odil::DataSet status;
+        status.add(odil::registry::ErrorComment, { e.what()});
+        throw odil::SCP::Exception(
+            e.what(), odil::message::Response::ProcessingFailure, status);
+    }
+}
+
 odil::DataSet
 DataSetGeneratorHelper
-::retrieve_data_set(
-    mongo::DBClientConnection & connection,
-    std::string const & bulk_database) const
+::retrieve(std::string const & sop_instance_uid) const
 {
-    auto const & result = this->get();
-    // Need shared_ptr since istringstream has no affectation operator
-    std::shared_ptr<std::stringstream> stream;
-
-    auto const content = result.getField("Content");
-
-    if(content.type() == mongo::BSONType::String)
+    try
     {
-        auto const sop_instance_uid =
-            result[std::string(odil::registry::SOPInstanceUID)]
-                .Obj().getField("Value").Array()[0].String();
-
-        mongo::GridFS gridfs(connection, bulk_database);
-        auto const file = gridfs.findFile(sop_instance_uid);
-        if(file.exists())
-        {
-            stream = std::make_shared<std::stringstream>();
-            file.write(*stream);
-        }
-        else
-        {
-            auto const bulk_data = connection.findOne(
-                bulk_database+".datasets",
-                BSON("SOPInstanceUID" << sop_instance_uid));
-            if(bulk_data.isEmpty())
-            {
-                throw odil::SCP::Exception(
-                    "No bulk data",
-                    odil::message::Response::NoSuchSOPInstance);
-            }
-            auto const bulk_data_content = bulk_data.getField("Content");
-            int size=0;
-            char const * begin = bulk_data_content.binDataClean(size);
-
-            stream = std::make_shared<std::stringstream>(
-                std::string(begin, size));
-        }
+        return this->_storage.retrieve(sop_instance_uid);
     }
-    else if(content.type() == mongo::BSONType::BinData)
+    catch(std::exception const & e)
     {
-        int size=0;
-        char const * begin = content.binDataClean(size);
-
-        stream = std::make_shared<std::stringstream>(
-            std::string(begin, size));
-    }
-    else
-    {
-        std::stringstream streamerror;
-        streamerror << "Unknown type '" << content.type()
-                    << "' for Content attribute";
+        odil::DataSet status;
+        status.add(odil::registry::ErrorComment, { e.what()});
         throw odil::SCP::Exception(
-            "Unknown content type '"+std::to_string(content.type())+"'",
-            odil::message::Response::ProcessingFailure);
+            e.what(), odil::message::Response::ProcessingFailure, status);
     }
-
-    return odil::Reader::read_file(*stream).second;
 }
 
 } // namespace archive
