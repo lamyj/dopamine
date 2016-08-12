@@ -25,8 +25,3 @@ install(
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
-
-file(GLOB_RECURSE files "core/*" "dbconnection/*" "services/*")
-add_custom_target(
-    libdopamineOLD
-    ${CMAKE_COMMAND} -E echo "Old dopamine library" SOURCES ${files})
