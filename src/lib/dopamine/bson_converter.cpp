@@ -343,7 +343,10 @@ odil::DataSet as_dataset(
                 dicom_element.as_binary().emplace_back(begin, begin+size);
             }
         }
-        // Otherwise the element is empty, do nothing
+        else
+        {
+            dicom_element = odil::Element(odil::Value(), vr);
+        }
 
         data_set.add(tag, dicom_element);
 
