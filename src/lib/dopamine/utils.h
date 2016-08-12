@@ -23,6 +23,9 @@ replace(
 /// @brief Return the name of the principal of a DICOM association.
 std::string get_principal(odil::AssociationParameters const & parameters);
 
+/// @brief Return the UID name if it is known.
+std::string get_uid_name(std::string const & uid);
+
 } // namespace dopamine
 
 #endif // _da25cc04_b8bb_4e69_8cd2_b27f5acf27fc

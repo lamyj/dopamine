@@ -10,6 +10,7 @@
 
 #include <string>
 #include <odil/AssociationParameters.h>
+#include <odil/registry.h>
 #include "dopamine/Exception.h"
 
 namespace dopamine
@@ -60,6 +61,12 @@ std::string get_principal(odil::AssociationParameters const & parameters)
     }
 
     return principal;
+}
+
+std::string get_uid_name(std::string const & uid)
+{
+    auto const it = odil::registry::uids_dictionary.find(uid);
+    return (it!=odil::registry::uids_dictionary.end())?it->second.name:uid;
 }
 
 } // namespace dopamine
