@@ -23,6 +23,7 @@
 
 #include "dopamine/AccessControlList.h"
 #include "dopamine/archive/DataSetGeneratorHelper.h"
+#include "dopamine/logging.h"
 #include "dopamine/utils.h"
 
 namespace dopamine
@@ -83,6 +84,9 @@ MoveDataSetGenerator
         results.push_back(object);
     }
     this->_helper.set_results(results);
+    DOPAMINE_LOG(DEBUG)
+        << "Sending " << results.size()
+        << " instance" << (results.size()>1?"s":"");
 
     this->_dicom_data_set_up_to_date = false;
 }
@@ -91,6 +95,10 @@ bool
 MoveDataSetGenerator
 ::done() const
 {
+    if(this->_helper.done())
+    {
+        DOPAMINE_LOG(DEBUG) << "All matching entries have been sent";
+    }
     return this->_helper.done();
 }
 
@@ -186,6 +194,15 @@ MoveDataSetGenerator
         .set_called_ae_title(request.get_move_destination())
         .set_calling_ae_title(this->_parameters.get_called_ae_title())
         .set_presentation_contexts(contexts);
+
+    DOPAMINE_LOG(DEBUG)
+        << "Opening sub-association to "
+        << association.get_peer_host() << ":" << association.get_peer_port()
+        << " ("
+        << association.update_parameters().get_calling_ae_title()
+        << " -> "
+        << association.update_parameters().get_called_ae_title()
+        << ")";
 
     return association;
 }

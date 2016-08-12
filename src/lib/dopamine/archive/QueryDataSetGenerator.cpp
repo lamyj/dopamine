@@ -25,6 +25,7 @@
 
 #include "dopamine/AccessControlList.h"
 #include "dopamine/bson_converter.h"
+#include "dopamine/logging.h"
 #include "dopamine/utils.h"
 
 namespace dopamine
@@ -136,6 +137,10 @@ QueryDataSetGenerator
 
     this->_helper.set_results(results);
 
+    DOPAMINE_LOG(DEBUG)
+        << "Found " << results.size()
+        << " matching entr" << (results.size()>1?"ies":"y");
+
     this->_dicom_data_set_up_to_date = false;
 }
 
@@ -143,6 +148,10 @@ bool
 QueryDataSetGenerator
 ::done() const
 {
+    if(this->_helper.done())
+    {
+        DOPAMINE_LOG(DEBUG) << "All matching entries have been sent";
+    }
     return this->_helper.done();
 }
 

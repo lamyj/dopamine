@@ -22,6 +22,7 @@
 
 #include "dopamine/AccessControlList.h"
 #include "dopamine/archive/DataSetGeneratorHelper.h"
+#include "dopamine/logging.h"
 #include "dopamine/utils.h"
 
 namespace dopamine
@@ -81,6 +82,9 @@ GetDataSetGenerator
         results.push_back(object);
     }
     this->_helper.set_results(results);
+    DOPAMINE_LOG(DEBUG)
+        << "Sending " << results.size()
+        << " instance" << (results.size()>1?"s":"");
 
     this->_dicom_data_set_up_to_date = false;
 }
@@ -89,6 +93,10 @@ bool
 GetDataSetGenerator
 ::done() const
 {
+    if(this->_helper.done())
+    {
+        DOPAMINE_LOG(DEBUG) << "All matching entries have been sent";
+    }
     return this->_helper.done();
 }
 
