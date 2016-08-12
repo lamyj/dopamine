@@ -1,23 +1,21 @@
-find_package(JsonCpp REQUIRED)
-find_package(Log4Cpp REQUIRED)
-find_package(MongoDB REQUIRED)
-find_package(Odil REQUIRED)
+include(packages_finder)
 
-file(GLOB_RECURSE files "dopamine/*.cpp")
+# Boost and SSL are required by MongoDB
+set(packages Boost JsonCpp LDAP Log4Cpp MongoDB Odil SSL)
+set(Boost_components filesystem system thread)
+
+packages_finder("${packages}" include_dirs libraries library_dirs)
+
+file(GLOB_RECURSE sources "dopamine/*.cpp")
 file(GLOB_RECURSE headers "dopamine/*.h")
 file(GLOB_RECURSE templates "dopamine/*.txx")
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${JsonCpp_INCLUDE_DIRS} ${Log4Cpp_INCLUDE_DIRS} ${MongoDB_INCLUDE_DIRS}
-    ${Odil_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${include_dirs})
+link_directories(${library_dirs})
 
-add_library(libdopamine SHARED ${files} ${headers} ${templates})
+add_library(libdopamine SHARED ${sources} ${headers} ${templates})
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
-
-target_link_libraries(
-    libdopamine ${JsonCpp_LIBRARIES} ${Log4Cpp_LIBRARIES} ${MongoDB_LIBRARIES}
-    ${Odil_LIBRARIES} ldap)
+target_link_libraries(libdopamine ${libraries})
 
 install(
     DIRECTORY dopamine/ DESTINATION include/
@@ -28,9 +26,7 @@ install(
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
 
-file(
-    GLOB_RECURSE files
-    "authenticator/*" "ConverterBSON/*" "core/*" "dbconnection/*" "services/*")
+file(GLOB_RECURSE files "core/*" "dbconnection/*" "services/*")
 add_custom_target(
     libdopamineOLD
     ${CMAKE_COMMAND} -E echo "Old dopamine library" SOURCES ${files})

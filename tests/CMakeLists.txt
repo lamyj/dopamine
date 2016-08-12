@@ -1,21 +1,21 @@
 add_subdirectory(tools)
 
-find_package(Boost COMPONENTS unit_test_framework system thread REQUIRED)
-find_package(MongoDB REQUIRED)
-find_package(Odil REQUIRED)
+include(packages_finder)
+
+set(packages Boost MongoDB Odil SSL)
+set(Boost_components filesystem system thread unit_test_framework)
+
+packages_finder("${packages}" include_dirs libraries library_dirs)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src/lib ${CMAKE_SOURCE_DIR}/tests
-    ${Boost_INCLUDE_DIRS} ${MongoDB_INCLUDE_DIRS}
-    ${Odil_INCLUDE_DIRS})
+    ${CMAKE_SOURCE_DIR}/src/lib ${CMAKE_CURRENT_SOURCE_DIR} ${include_dirs})
 add_definitions(-DBOOST_TEST_DYN_LINK)
-link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${library_dirs})
 
 file(GLOB_RECURSE tests code/*.cpp)
 set(old_tests)
 
 file(GLOB_RECURSE fixtures fixtures/*.cpp)
-add_library(fixtures ${fixtures})
 
 foreach(test_file ${tests})
     if(test_file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/code/(core|dbconnection|services)")
@@ -23,10 +23,8 @@ foreach(test_file ${tests})
     else()
         get_filename_component(test ${test_file} NAME_WE)
 
-        add_executable(${test} ${test_file})
-        target_link_libraries(
-            ${test} libdopamine ${Boost_LIBRARIES} ${MongoDB_LIBRARIES}
-            ${Odil_LIBRARIES} ssl fixtures)
+        add_executable(${test} ${test_file} ${fixtures})
+        target_link_libraries(${test} libdopamine ${libraries})
 
         file(READ ${test_file} content)
 
