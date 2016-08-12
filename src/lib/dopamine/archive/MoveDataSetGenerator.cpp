@@ -42,7 +42,7 @@ MoveDataSetGenerator
     "Retrieve")
 {
     this->_datasets_namespace = database+".datasets";
-    this->_peers_namespace = database+".application_entities";
+    this->_peers_namespace = database+".peers";
 }
 
 MoveDataSetGenerator
@@ -130,6 +130,7 @@ odil::Association
 MoveDataSetGenerator
 ::get_association(odil::message::CMoveRequest const & request) const
 {
+    // Find the peer information
     auto const peer = this->_connection.findOne(
         this->_peers_namespace,
         BSON("ae_title" << request.get_move_destination()));
@@ -138,9 +139,53 @@ MoveDataSetGenerator
         throw odil::Exception("Unknown move destination");
     }
 
+    // Find all SOP classes targeted by this query
+    auto data_set = request.get_data_set();
+    if(!data_set.has(odil::registry::SOPClassUID))
+    {
+        data_set.add(odil::registry::SOPClassUID);
+    }
+
+    mongo::BSONObjBuilder condition_builder;
+    mongo::BSONObjBuilder projection_builder;
+    this->_helper.get_condition_and_projection(
+        data_set, condition_builder, projection_builder);
+
+    auto const condition = condition_builder.obj();
+    auto const projection = BSON(
+        std::string(odil::registry::SOPClassUID) << 1
+        << "Content" << 1);
+
+    auto const cursor = this->_connection.query(
+        this->_datasets_namespace, condition, 0, 0, &projection);
+    std::set<std::string> sop_classes;
+    while(cursor->more())
+    {
+        auto const object = cursor->next();
+        sop_classes.insert(
+            object[std::string(odil::registry::SOPClassUID)].Obj()
+                ["Value"].Array()[0].String());
+    }
+
+    std::vector<odil::AssociationParameters::PresentationContext> contexts;
+    std::vector<std::string> const transfer_syntaxes{
+        odil::registry::ExplicitVRLittleEndian,
+        odil::registry::ImplicitVRLittleEndian
+    };
+    for(auto const & sop_class: sop_classes)
+    {
+        contexts.emplace_back(
+            2*contexts.size()+1, sop_class, transfer_syntaxes, true, false);
+    }
+
+    // Build the association
     odil::Association association;
     association.set_peer_host(peer["host"].String());
-    association.set_peer_port(peer["port"].Int());
+    association.set_peer_port(peer["port"].Number());
+    association.update_parameters()
+        .set_called_ae_title(request.get_move_destination())
+        .set_calling_ae_title(this->_parameters.get_called_ae_title())
+        .set_presentation_contexts(contexts);
 
     return association;
 }
