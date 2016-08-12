@@ -72,9 +72,11 @@ void as_mongo_query(
             auto const array = value.Array();
             if(array.empty())
             {
+                odil::DataSet status;
+                status.add(odil::registry::ErrorComment, {"Empty query array"});
                 throw odil::SCP::Exception(
                     "Empty query array",
-                    odil::message::Response::ProcessingFailure);
+                    odil::message::Response::ProcessingFailure, status);
             }
             if(array.size() == 1)
             {

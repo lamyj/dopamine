@@ -18,6 +18,7 @@
 #include <odil/AssociationParameters.h>
 #include <odil/DataSet.h>
 #include <odil/message/CFindRequest.h>
+#include <odil/message/CFindResponse.h>
 #include <odil/message/Response.h>
 #include <odil/message/Request.h>
 #include <odil/registry.h>
@@ -257,9 +258,12 @@ QueryDataSetGenerator
         BSON("aggregate" << "datasets" << "pipeline" << pipeline), info);
     if(!ok)
     {
+        odil::DataSet status;
+        status.add(odil::registry::OffendingElement, {destination});
+        status.add(odil::registry::ErrorComment, {info["errmsg"].String()});
         throw odil::SCP::Exception(
             info["errmsg"].String(),
-            odil::message::Response::ProcessingFailure);
+            odil::message::CFindResponse::UnableToProcess, status);
     }
 
     odil::Value::Strings values;
@@ -309,9 +313,12 @@ QueryDataSetGenerator
         BSON("aggregate" << "datasets" << "pipeline" << pipeline), info);
     if(!ok)
     {
+        odil::DataSet status;
+        status.add(odil::registry::OffendingElement, {destination});
+        status.add(odil::registry::ErrorComment, {info["errmsg"].String()});
         throw odil::SCP::Exception(
             info["errmsg"].String(),
-            odil::message::Response::ProcessingFailure);
+            odil::message::CFindResponse::UnableToProcess, status);
     }
 
     data_set.add(
