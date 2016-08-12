@@ -78,7 +78,8 @@ QueryDataSetGenerator
     this->_helper.check_acl();
 
     odil::message::CFindRequest const find_request(request);
-    auto data_set = find_request.get_data_set();
+    this->_query = find_request.get_data_set();
+    auto data_set = this->_query;
 
     // Don't query additional attributes (PS 3.4, C.3.4), they are processed
     // later.
@@ -176,6 +177,13 @@ QueryDataSetGenerator
             auto const & function = this->_attribute_calculators.at(attribute);
             function(this, this->_dicom_data_set);
         }
+        this->_dicom_data_set.add(
+            odil::registry::SpecificCharacterSet, {"ISO_IR 192"});
+        this->_dicom_data_set.add(
+            odil::registry::QueryRetrieveLevel,
+            this->_query[odil::registry::QueryRetrieveLevel]);
+        this->_dicom_data_set.add(
+            odil::registry::InstanceAvailability, {"ONLINE"});
 
         this->_dicom_data_set_up_to_date = true;
     }

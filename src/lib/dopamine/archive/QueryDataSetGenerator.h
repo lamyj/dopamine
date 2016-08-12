@@ -74,6 +74,7 @@ private:
 
     odil::AssociationParameters const & _parameters;
 
+    odil::DataSet _query;
     std::vector<odil::Tag> _additional_attributes;
 
     DataSetGeneratorHelper _helper;
