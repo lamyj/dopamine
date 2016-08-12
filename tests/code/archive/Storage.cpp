@@ -17,36 +17,6 @@
 
 #include "fixtures/MongoDB.h"
 
-void print_data_set(odil::DataSet const & data_set)
-{
-    for(auto const & item: data_set)
-    {
-        std::cout
-            << item.first.get_name() << " "
-            << odil::as_string(item.second.vr) << " ";
-        if(item.second.is_string())
-        {
-            for(auto const & value: item.second.as_string())
-            {
-                std::cout << "'" << value << "', ";
-            }
-        }
-        else
-        {
-            for(auto const & binary_item: item.second.as_binary())
-            {
-                std::cout << "{ ";
-                for(auto const & value: binary_item)
-                {
-                    std::cout << "'" << value << "', ";
-                }
-                std::cout << "}, ";
-            }
-        }
-        std::cout << std::endl;
-    }
-}
-
 struct Fixture: public fixtures::MongoDB
 {
     std::string const bulk_database;
