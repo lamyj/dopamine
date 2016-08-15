@@ -29,14 +29,14 @@
 #ifndef SCU_H
 #define SCU_H
 
-#include <dcmtk/config/osconfig.h>  /* make sure OS specific configuration is included first */
+#include "dcmtk/config/osconfig.h"  /* make sure OS specific configuration is included first */
 
-#include <dcmtk/dcmdata/dctk.h>     /* Covers most common dcmdata classes */
-#include <dcmtk/dcmnet/dcompat.h>
-#include <dcmtk/dcmnet/dimse.h>     /* DIMSE network layer */
-#include <dcmtk/dcmnet/dcasccff.h>  /* For reading a association config file */
-#include <dcmtk/dcmnet/dcasccfg.h>  /* For holding association config file infos */
-#include <dcmtk/ofstd/oflist.h>
+#include "dcmtk/dcmdata/dctk.h"     /* Covers most common dcmdata classes */
+#include "dcmtk/dcmnet/dcompat.h"
+#include "dcmtk/dcmnet/dimse.h"     /* DIMSE network layer */
+#include "dcmtk/dcmnet/dcasccff.h"  /* For reading a association config file */
+#include "dcmtk/dcmnet/dcasccfg.h"  /* For holding association config file infos */
+#include "dcmtk/ofstd/oflist.h"
 // MODIFICATION: Use local header file
 #include "dndefine.h"
 // END Modification
