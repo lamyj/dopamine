@@ -9,8 +9,6 @@
 #define BOOST_TEST_MODULE AuthenticatorCSV
 #include <boost/test/unit_test.hpp>
 
-#include <cstdio>
-#include <fstream>
 #include <string>
 
 #include <odil/AssociationParameters.h>
@@ -18,34 +16,16 @@
 #include "dopamine/authentication/AuthenticatorCSV.h"
 #include "dopamine/Exception.h"
 
-struct Fixture
-{
-    std::string filename;
+#include "fixtures/CSV.h"
 
-    Fixture()
-    : filename("./tmp_test_moduleAuthenticatorCSV.csv")
-    {
-        std::ofstream myfile;
-        myfile.open(filename);
-        myfile << "user1\tpassword1\n";
-        myfile << "user2\tpassword2\n";
-        myfile.close();
-    }
-
-    ~Fixture()
-    {
-        std::remove(filename.c_str());
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(BadFilename, Fixture)
+BOOST_FIXTURE_TEST_CASE(BadFilename, fixtures::CSV)
 {
     BOOST_REQUIRE_THROW(
         dopamine::authentication::AuthenticatorCSV const authenticator(filename+"foo"),
         dopamine::Exception);
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityNone, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_none();
@@ -54,7 +34,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsername, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username("foo");
@@ -63,7 +43,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password("user2", "password2");
@@ -72,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
     BOOST_REQUIRE(authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password("foo", "password2");
@@ -81,7 +61,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password("user2", "password");
@@ -90,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityKerberos, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_kerberos("foo");
@@ -99,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentitySAML, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentitySAML, fixtures::CSV)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_saml("foo");

@@ -9,61 +9,14 @@
 #define BOOST_TEST_MODULE AuthenticatorLDAP
 #include <boost/test/unit_test.hpp>
 
-#include <cstdlib>
-#include <stdexcept>
-
 #include <odil/AssociationParameters.h>
 
 #include "dopamine/authentication/AuthenticatorLDAP.h"
 #include "dopamine/Exception.h"
 
-/**
- * The following environment variables must be defined
- * * URI
- * * BIND_DN_TEMPLATE
- * * USERNAME
- * * PASSWORD
- */
+#include "fixtures/LDAP.h"
 
-struct Fixture
-{
-    std::string uri;
-    std::string bind_dn_template;
-    std::string username;
-    std::string password;
-
-    Fixture()
-    {
-        this->uri = Fixture::get_environment_variable("URI");
-        this->bind_dn_template = Fixture::get_environment_variable("BIND_DN_TEMPLATE");
-        this->username = Fixture::get_environment_variable("USERNAME");
-        this->password = Fixture::get_environment_variable("PASSWORD");
-    }
-
-    ~Fixture()
-    {
-        // Nothing to do
-    }
-
-    static std::string get_environment_variable(std::string const & name)
-    {
-        char const * const value = getenv(name.c_str());
-
-        std::string result;
-        if(value == nullptr)
-        {
-            throw std::runtime_error("Missing environment variable: "+name);
-        }
-        else
-        {
-            result = std::string(value);
-        }
-
-        return result;
-    }
-};
-
-BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityNone, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_none();
@@ -73,7 +26,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityNone, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsername, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username("foo");
@@ -83,7 +36,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsername, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password(username, password);
@@ -93,7 +46,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordOK, Fixture)
     BOOST_REQUIRE(authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password(
@@ -104,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadUsername, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password(
@@ -115,7 +68,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadPassword, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadURI, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadURI, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password(username, password);
@@ -125,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadURI, Fixture)
     BOOST_REQUIRE_THROW(authenticator(parameters), dopamine::Exception);
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadTemplate, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadTemplate, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_username_and_password(username, password);
@@ -135,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityUsernameAndPasswordBadTemplate, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentityKerberos, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_kerberos("foo");
@@ -145,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE(IdentityKerberos, Fixture)
     BOOST_REQUIRE(!authenticator(parameters));
 }
 
-BOOST_FIXTURE_TEST_CASE(IdentitySAML, Fixture)
+BOOST_FIXTURE_TEST_CASE(IdentitySAML, fixtures::LDAP)
 {
     odil::AssociationParameters parameters;
     parameters.set_user_identity_to_saml("foo");
