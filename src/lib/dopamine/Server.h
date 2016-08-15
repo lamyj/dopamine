@@ -19,6 +19,7 @@
 #include "dopamine/authentication/AuthenticatorBase.h"
 #include "dopamine/AccessControlList.h"
 #include "dopamine/archive/Storage.h"
+#include "dopamine/logging.h"
 
 namespace dopamine
 {
@@ -36,7 +37,7 @@ public:
 
     void run();
 
-    // void shutdown();
+    void shutdown();
 
 private:
     mongo::DBClientConnection & _connection;
@@ -46,6 +47,9 @@ private:
     authentication::AuthenticatorBase const & _authenticator;
     AccessControlList _acl;
     archive::Storage _storage;
+
+    std::shared_ptr<odil::Association> _association;
+    bool _is_running;
 
     static odil::AssociationParameters _acceptor(
         odil::AssociationParameters const &,

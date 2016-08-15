@@ -45,7 +45,7 @@ Server
     uint16_t port, authentication::AuthenticatorBase const & authenticator)
 : _connection(connection), _database(database), _bulk_database(bulk_database),
   _port(port), _authenticator(authenticator), _acl(connection, database),
-  _storage(connection, database, bulk_database)
+  _storage(connection, database, bulk_database), _is_running(false)
 {
     // Nothing else.
 }
@@ -60,12 +60,13 @@ void
 Server
 ::run()
 {
-    while(true) // FIXME: shutdown
+    this->_is_running = true;
+    while(this->_is_running)
     {
-        odil::Association association;
+        this->_association = std::make_shared<odil::Association>();
         try
         {
-            association.receive_association(
+            this->_association->receive_association(
                 boost::asio::ip::tcp::v4(), this->_port,
                 std::bind(
                     Server::_acceptor, std::placeholders::_1,
@@ -75,26 +76,34 @@ Server
         {
             DOPAMINE_LOG(DEBUG)
                 << "Incoming association from "
-                << association.get_transport().get_socket()->remote_endpoint().address()
+                << this->_association->get_transport().get_socket()->remote_endpoint().address()
                 << "/"
-                << association.get_parameters().get_calling_ae_title()
+                << this->_association->get_parameters().get_calling_ae_title()
                 << "rejected";
+            // FIXME: close ?
+            this->_association = nullptr;
+            continue;
         }
         catch(std::exception const & e)
         {
-            DOPAMINE_LOG(ERROR) << "Failed receiving association: " << e.what();
+            DOPAMINE_LOG(ERROR)
+                << "Failed receiving association: "
+                << e.what() << " (" << typeid(e).name() << ")";
+            // FIXME: close ?
+            this->_association = nullptr;
+            continue;
         }
 
         DOPAMINE_LOG(INFO)
             << "Association received from "
-            << association.get_transport().get_socket()->remote_endpoint().address()
+            << this->_association->get_transport().get_socket()->remote_endpoint().address()
             << " ("
-            << association.get_negotiated_parameters().get_calling_ae_title()
+            << this->_association->get_negotiated_parameters().get_calling_ae_title()
             << " -> "
-            << association.get_negotiated_parameters().get_called_ae_title()
+            << this->_association->get_negotiated_parameters().get_called_ae_title()
             << ")";
         DOPAMINE_LOG(DEBUG) << "Negotiated presentation contexts: ";
-        for(auto const & pc: association.get_negotiated_parameters().get_presentation_contexts())
+        for(auto const & pc: this->_association->get_negotiated_parameters().get_presentation_contexts())
         {
             DOPAMINE_LOG(DEBUG)
                 << get_uid_name(pc.abstract_syntax) << " / "
@@ -104,7 +113,7 @@ Server
                 << (pc.scp_role_support?"SCP":"");
         }
 
-        auto dispatcher = this->_get_dispatcher(association);
+        auto dispatcher = this->_get_dispatcher(*this->_association);
 
         bool done = false;
         while(!done)
@@ -117,14 +126,14 @@ Server
             {
                 DOPAMINE_LOG(INFO)
                     << "Association released from "
-                    << association.get_transport().get_socket()->remote_endpoint().address();
+                    << this->_association->get_transport().get_socket()->remote_endpoint().address();
                 done = true;
             }
             catch(odil::AssociationAborted const &)
             {
                 DOPAMINE_LOG(INFO)
                     << "Association aborted from "
-                    << association.get_transport().get_socket()->remote_endpoint().address();
+                    << this->_association->get_transport().get_socket()->remote_endpoint().address();
                 done = true;
             }
             catch(std::exception const & e)
@@ -134,7 +143,17 @@ Server
                 done = true;
             }
         }
+
+        this->_association = nullptr;
     }
+}
+
+void
+Server
+::shutdown()
+{
+    this->_is_running = false;
+    this->_association->get_transport().close();
 }
 
 odil::AssociationParameters
