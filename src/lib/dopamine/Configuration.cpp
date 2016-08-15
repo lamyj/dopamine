@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <istream>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -54,9 +55,6 @@ namespace dopamine
 
 Configuration
 ::Configuration(std::istream & stream)
-: _mongo_host(), _mongo_port(27017), _database(), _bulk_database(""),
-  _archive_port(), _logger_priority("WARN"),
-  _logger_destination("")
 {
     this->parse(stream);
 }
@@ -65,6 +63,15 @@ void
 Configuration
 ::parse(std::istream & stream)
 {
+    this->_mongo_host = nullptr;
+    this->_mongo_port = 27017;
+    this->_database = nullptr;
+    this->_bulk_database = "";
+    this->_archive_port = nullptr;
+    this->_authentication.clear();
+    this->_logger_priority = "WARN";
+    this->_logger_destination = "";
+
     boost::property_tree::ptree tree;
     boost::property_tree::ini_parser::read_ini(stream, tree);
 
@@ -75,13 +82,24 @@ Configuration
     set(tree, "dicom.port", this->_archive_port);
     set(tree, "logger.priority", this->_logger_priority);
     set(tree, "logger.destination", this->_logger_destination);
+
+    auto const & authentication = tree.get_child_optional("authentication");
+    if(authentication)
+    {
+        for(auto const & item: authentication.get())
+        {
+            this->_authentication[item.first] = item.second.data();
+        }
+    }
 }
 
 bool
 Configuration
 ::is_valid() const
 {
-    return (this->_mongo_host && this->_database && this->_archive_port);
+    return (
+        this->_mongo_host && this->_database && this->_archive_port
+        && !this->_authentication.empty());
 }
 
 std::string const &
@@ -138,6 +156,13 @@ Configuration
     {
         throw Exception("No archive port");
     }
+}
+
+std::map<std::string, std::string> const &
+Configuration
+::get_authentication() const
+{
+    return this->_authentication;
 }
 
 std::string const &

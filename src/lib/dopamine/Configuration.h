@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <istream>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -44,6 +45,9 @@ public:
     /// @brief Return the port on which the DICOM archive listens, or throw an exception if none was defined.
     uint16_t get_archive_port() const;
 
+    /// @brief Return the authentication data.
+    std::map<std::string, std::string> const & get_authentication() const;
+
     /// @brief Return the logger priority, default to "WARN".
     std::string const & get_logger_priority() const;
 
@@ -64,8 +68,7 @@ private:
 
     std::shared_ptr<uint16_t> _archive_port;
 
-    // FIXME: authenticator factory?
-    std::shared_ptr<std::string> _authenticator;
+    std::map<std::string, std::string> _authentication;
 
     std::string _logger_priority;
     std::string _logger_destination;
