@@ -28,7 +28,7 @@ struct Fixture: public fixtures::SampleData
     Fixture()
     {
         this->connection.insert(
-            this->database+".application_entities",
+            this->database+".peers",
             BSON(
                 "ae_title" << "pacs"
                 << "host" << "pacs.example.com"
@@ -71,6 +71,7 @@ struct Fixture: public fixtures::SampleData
 BOOST_FIXTURE_TEST_CASE(Association, Fixture)
 {
     odil::DataSet data_set;
+    data_set.add(odil::registry::QueryRetrieveLevel, {"PATIENT"});
     data_set.add(odil::registry::PatientID, {"1"});
     odil::message::CMoveRequest const request(
         1, odil::registry::PatientRootQueryRetrieveInformationModelMOVE,
@@ -89,6 +90,7 @@ BOOST_FIXTURE_TEST_CASE(Association, Fixture)
 BOOST_FIXTURE_TEST_CASE(UnknownPeer, Fixture)
 {
     odil::DataSet data_set;
+    data_set.add(odil::registry::QueryRetrieveLevel, {"PATIENT"});
     data_set.add(odil::registry::PatientID, {"1"});
     odil::message::CMoveRequest const request(
         1, odil::registry::PatientRootQueryRetrieveInformationModelMOVE,

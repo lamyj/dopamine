@@ -18,7 +18,7 @@ set(old_tests)
 file(GLOB_RECURSE fixtures fixtures/*.cpp)
 
 foreach(test_file ${tests})
-    if(test_file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/code/(core|dbconnection|services)")
+    if(test_file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/code/services")
         set(old_tests ${old_tests} ${test_file})
     else()
         get_filename_component(test ${test_file} NAME_WE)
@@ -43,6 +43,3 @@ endforeach()
 
 add_custom_target(
     Runner ${CMAKE_COMMAND} -E echo "Test runner" SOURCES run_tests.sh)
-
-add_custom_target(
-    OldTests ${CMAKE_COMMAND} -E echo "Old tests" SOURCES ${old_tests})
