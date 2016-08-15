@@ -6,13 +6,21 @@
  * for details.
  ************************************************************************/
 
-#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <string>
 
 #include <boost/filesystem.hpp>
+#include <log4cpp/Category.hh>
+#include <log4cpp/OstreamAppender.hh>
+#include <log4cpp/Priority.hh>
+#include <mongo/client/dbclient.h>
 
-#include "core/ConfigurationPACS.h"
-#include "core/LoggerPACS.h"
-#include "core/NetworkPACS.h"
+#include "dopamine/authentication/factory.h"
+#include "dopamine/Configuration.h"
+#include "dopamine/Server.h"
+
+
 
 int main(int argc, char** argv)
 {
@@ -20,34 +28,61 @@ int main(int argc, char** argv)
     if(argc != 3 || std::string(argv[1]) != std::string("-f"))
     {
         std::cerr << "Syntax: " << syntax << "\n";
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // Read configuration file
-    dopamine::ConfigurationPACS& configuration =
-            dopamine::ConfigurationPACS::get_instance();
-    std::string const config_file(argv[2]);
-    if(!boost::filesystem::exists(config_file))
+    std::string const config_path(argv[2]);
+    if(!boost::filesystem::exists(config_path))
     {
-        std::cerr << "No such file: '" << config_file << "'\n";
+        std::cerr << "No such file: '" << config_path << "'\n";
         std::cerr << "Syntax: " << syntax << "\n";
         return 1;
     }
-    configuration.parse(config_file);
+    std::ifstream config_stream(config_path);
+    dopamine::Configuration const configuration(config_stream);
+    if(!configuration.is_valid())
+    {
+        std::cerr << "Invalid configuration in '" << config_path << "'\n";
+        std::cerr << "Syntax: " << syntax << "\n";
+        return 1;
+    }
 
-    // Create and Initialize Logger
-    auto const priority =
-        dopamine::ConfigurationPACS::get_instance().get_value("logger.priority");
-    auto const destination =
-        dopamine::ConfigurationPACS::get_instance().get_value("logger.destination");
-    auto const path =
-        (destination=="file")?
-        dopamine::ConfigurationPACS::get_instance().get_value("logger.path"):"";
-    dopamine::initialize_logger(priority, destination, path);
+    // Initialize Logger
+    auto & logger = log4cpp::Category::getInstance("dopamine");
+    logger.setPriority(
+        log4cpp::Priority::getPriorityValue(
+            configuration.get_logger_priority()));
+
+    auto const & destination = configuration.get_logger_destination();
+    log4cpp::OstreamAppender * appender;
+    if(destination.empty())
+    {
+        appender = new log4cpp::OstreamAppender("console", &std::cout);
+    }
+    else
+    {
+        auto * log_stream = new std::ofstream(destination);
+        appender = new log4cpp::OstreamAppender("console", log_stream);
+    }
+    appender->setLayout(new log4cpp::BasicLayout());
+
+    logger.removeAllAppenders();
+    logger.addAppender(appender);
+
+    // Create the MongoDB connection
+    mongo::DBClientConnection connection;
+    connection.connect(mongo::HostAndPort(
+        configuration.get_mongo_host(), configuration.get_mongo_port()));
 
     // Create and run Network listener
-    dopamine::NetworkPACS::get_instance().run();
-    dopamine::NetworkPACS::delete_instance();
+    auto authenticator = dopamine::authentication::factory(
+        configuration.get_authentication());
+    dopamine::Server server(
+        connection,
+        configuration.get_database(), configuration.get_bulk_database(),
+        configuration.get_archive_port(), *authenticator);
+    server.run();
 
     return EXIT_SUCCESS;
 }
