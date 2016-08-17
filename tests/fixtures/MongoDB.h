@@ -31,9 +31,12 @@ public:
     virtual ~MongoDB() =0;
 private:
     static unsigned long const _seed;
+    static bool _client_initialized;
 
     static unsigned long _get_seed();
     std::string _generate_database_name() const;
+
+    static void _initialize_mongo_client();
 };
 
 } // namespace fixtures

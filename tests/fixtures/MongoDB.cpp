@@ -9,10 +9,32 @@
 #include "MongoDB.h"
 
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <sys/time.h>
 
 #include <mongo/client/dbclient.h>
+
+namespace {
+
+class Appender : public mongo::logger::MessageLogDomain::EventAppender {
+public:
+    Appender() {}
+
+    virtual mongo::Status append(const mongo::logger::MessageLogDomain::EventAppender::Event& event) {
+        std::cout
+            << event.getSeverity() << " "
+            << event.getDate() << ": "
+            << event.getMessage() << std::endl;
+        return mongo::Status::OK();
+    }
+};
+
+mongo::client::Options::LogAppenderPtr make_appender() {
+    return mongo::client::Options::LogAppenderPtr(new Appender());
+}
+
+}  // namespace
 
 namespace fixtures
 {
@@ -21,6 +43,11 @@ MongoDB
 ::MongoDB()
 : database(this->_generate_database_name())
 {
+    if(!this->_client_initialized)
+    {
+        this->_initialize_mongo_client();
+        this->_client_initialized = true;
+    }
     this->connection.connect("localhost");
 }
 
@@ -33,6 +60,8 @@ MongoDB
 unsigned long const
 MongoDB
 ::_seed(MongoDB::_get_seed());
+
+bool MongoDB::_client_initialized(false);
 
 unsigned long
 MongoDB
@@ -56,6 +85,26 @@ MongoDB
         database += 'A'+int(std::rand()/float(RAND_MAX)*26.);
     }
     return database;
+}
+
+void
+MongoDB
+::_initialize_mongo_client()
+{
+    auto const options = mongo::client::Options()
+        .setLogAppenderFactory(&make_appender)
+        .setMinLoggedSeverity(mongo::logger::LogSeverity::Log());
+
+    auto const status = mongo::client::initialize(options);
+    if(!status.isOK())
+    {
+        throw std::runtime_error(
+            "Could not initialize MongoDB client: "+status.toString());
+    }
+    else
+    {
+        std::cout << "Client is initialized" << std::endl;
+    }
 }
 
 } // namespace fixtures

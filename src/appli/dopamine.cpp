@@ -70,10 +70,14 @@ int main(int argc, char** argv)
     logger.removeAllAppenders();
     logger.addAppender(appender);
 
+    // Initialize the MongoDB client
+    mongo::client::initialize();
+
     // Create the MongoDB connection
     mongo::DBClientConnection connection;
-    connection.connect(mongo::HostAndPort(
-        configuration.get_mongo_host(), configuration.get_mongo_port()));
+    connection.connect(
+        configuration.get_mongo_host()+":"
+            +std::to_string(configuration.get_mongo_port()));
 
     // Create and run Network listener
     auto authenticator = dopamine::authentication::factory(
