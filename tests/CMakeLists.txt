@@ -2,13 +2,16 @@ add_subdirectory(tools)
 
 include(packages_finder)
 
-set(packages Boost MongoDB Odil SSL)
-set(Boost_components filesystem system thread unit_test_framework)
+set(packages Boost Odil)
+set(Boost_components filesystem system unit_test_framework)
 
 packages_finder("${packages}" include_dirs libraries library_dirs)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src/lib ${CMAKE_CURRENT_SOURCE_DIR} ${include_dirs})
+    ${CMAKE_SOURCE_DIR}/src/lib
+    ${CMAKE_SOURCE_DIR}/src/mongo-cxx-driver/src
+    ${CMAKE_BINARY_DIR}/src/mongo-cxx-driver/src
+    ${CMAKE_CURRENT_SOURCE_DIR} ${include_dirs})
 add_definitions(-DBOOST_TEST_DYN_LINK)
 link_directories(${library_dirs})
 
@@ -24,7 +27,7 @@ foreach(test_file ${tests})
         get_filename_component(test ${test_file} NAME_WE)
 
         add_executable(${test} ${test_file} ${fixtures})
-        target_link_libraries(${test} libdopamine ${libraries})
+        target_link_libraries(${test} libdopamine-mongo libdopamine ${libraries})
 
         file(READ ${test_file} content)
 

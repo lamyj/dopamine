@@ -15,7 +15,7 @@
 
 #include <boost/filesystem.hpp>
 #include <log4cpp/Category.hh>
-#include <mongo/client/dbclientinterface.h>
+#include <mongo/client/dbclient.h>
 #include <odil/Reader.h>
 
 #include "dopamine/Server.h"

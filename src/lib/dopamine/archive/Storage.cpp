@@ -12,6 +12,7 @@
 #include <string>
 
 #include <mongo/client/dbclient.h>
+#include <mongo/client/gridfs.h>
 #include <odil/DataSet.h>
 #include <odil/Reader.h>
 #include <odil/registry.h>
@@ -215,11 +216,11 @@ Storage
     {
         // Look in GridFS
         mongo::GridFS const gridfs(this->_connection, this->_database);
-        auto file = gridfs.findFile(sop_instance_uid);
+        auto file = gridfs.findFileByName(sop_instance_uid);
         if(!file.exists())
         {
             mongo::GridFS const gridfs(this->_connection, this->_bulk_database);
-            file = gridfs.findFile(sop_instance_uid);
+            file = gridfs.findFileByName(sop_instance_uid);
         }
         if(file.exists())
         {
