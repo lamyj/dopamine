@@ -101,10 +101,6 @@ MongoDB
         throw std::runtime_error(
             "Could not initialize MongoDB client: "+status.toString());
     }
-    else
-    {
-        std::cout << "Client is initialized" << std::endl;
-    }
 }
 
 } // namespace fixtures

@@ -5,7 +5,7 @@ include(TestBigEndian)
 
 include(packages_finder)
 
-set(packages Boost JsonCpp SSL)
+set(packages Boost SSL)
 set(Boost_components filesystem regex system thread)
 
 packages_finder("${packages}" include_dirs libraries library_dirs)
@@ -318,8 +318,9 @@ include_directories(
     ${include_dirs})
 
 add_definitions(
+    -pthread -pipe -Wno-deprecated-declarations
     -DMONGO_EXPOSE_MACROS -D_FILE_OFFSET_BITS=64 -DLIBMONGOCLIENT_BUILDING
-    -DBOOST_THREAD_USES_DATETIME)
+    -DBOOST_THREAD_USES_DATETIME -DMONGO_HAVE_HEADER_UNISTD_H)
 
 check_c_source_compiles("#include <openssl/crypto.h>
 #include <openssl/evp.h>
@@ -345,11 +346,17 @@ if(have_timegm)
     add_definitions(-DMONGO_HAVE_TIMEGM)
 endif()
 
+check_c_source_compiles("__thread int tsp_int;
+int main(int argc, char* argv[]) { tsp_int = argc; return 0; }" have___thread)
+if(have___thread)
+    add_definitions(-DMONGO_HAVE___THREAD)
+endif()
+
 link_directories(${library_dirs})
 
 add_library(libdopamine-mongo SHARED ${sources} ${headers})
 set_target_properties(libdopamine-mongo PROPERTIES OUTPUT_NAME dopamine-mongo)
-target_link_libraries(libdopamine-mongo ${libraries} rt)
+target_link_libraries(libdopamine-mongo pthread rt sasl2 ${libraries})
 
 #install(
 #    DIRECTORY dopamine/ DESTINATION include/
