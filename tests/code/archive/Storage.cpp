@@ -55,6 +55,7 @@ BOOST_FIXTURE_TEST_CASE(MainContent, Fixture)
     storage.store(data_set);
 
     BOOST_REQUIRE(!this->connection.exists(this->database+".fs.files"));
+    BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".datasets"));
     BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".fs"));
 
     auto const stored = storage.retrieve(
@@ -73,6 +74,7 @@ BOOST_FIXTURE_TEST_CASE(MainGridFS, Fixture)
 
     BOOST_REQUIRE(
         !this->connection.findOne(this->database+".fs.files", {}).isEmpty());
+    BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".datasets"));
     BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".fs"));
 
     auto const stored = storage.retrieve(
@@ -114,6 +116,7 @@ BOOST_FIXTURE_TEST_CASE(BulkGridFS, Fixture)
     BOOST_REQUIRE(
         !this->connection.findOne(this->bulk_database+".fs.files", {}).isEmpty());
     BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".datasets"));
+    BOOST_REQUIRE(!this->connection.exists(this->bulk_database+".fs"));
 
     auto const stored = storage.retrieve(
         data_set.as_string(odil::registry::SOPInstanceUID, 0));
