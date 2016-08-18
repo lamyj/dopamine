@@ -71,7 +71,7 @@ AccessControlList
         result.emplace_back(
             response["principal_name"].String(),
             response["service"].String(),
-            response["dataset"].Obj());
+            response["dataset"].Obj().getOwned());
     }
 
     return result;
