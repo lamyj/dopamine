@@ -66,9 +66,6 @@ public:
     /// @brief Return the number of responses.
     unsigned int count() const;
 
-    /// @brief Store the data set.
-    void store(odil::DataSet const & data_set);
-
     /**
      * @brief Return the data set with given SOP instance UID; throw an
      * exception if no such data set is stored.

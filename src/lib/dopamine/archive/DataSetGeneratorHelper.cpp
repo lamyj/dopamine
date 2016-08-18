@@ -129,23 +129,6 @@ DataSetGeneratorHelper
     return this->_results.size();
 }
 
-void
-DataSetGeneratorHelper
-::store(odil::DataSet const & data_set)
-{
-    try
-    {
-        this->_storage.store(data_set);
-    }
-    catch(std::exception const & e)
-    {
-        odil::DataSet status;
-        status.add(odil::registry::ErrorComment, { e.what()});
-        throw odil::SCP::Exception(
-            e.what(), odil::message::Response::ProcessingFailure, status);
-    }
-}
-
 odil::DataSet
 DataSetGeneratorHelper
 ::retrieve(std::string const & sop_instance_uid) const
