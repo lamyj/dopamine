@@ -19,6 +19,7 @@ file(GLOB_RECURSE tests code/*.cpp)
 set(old_tests)
 
 file(GLOB_RECURSE fixtures fixtures/*.cpp)
+add_library(fixtures ${fixtures})
 
 foreach(test_file ${tests})
     if(test_file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/code/services")
@@ -26,8 +27,9 @@ foreach(test_file ${tests})
     else()
         get_filename_component(test ${test_file} NAME_WE)
 
-        add_executable(${test} ${test_file} ${fixtures})
-        target_link_libraries(${test} libdopamine-mongo libdopamine ${libraries})
+        add_executable(${test} ${test_file})
+        target_link_libraries(
+            ${test} libdopamine-mongo libdopamine fixtures ${libraries})
 
         file(READ ${test_file} content)
 
