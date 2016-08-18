@@ -7,6 +7,8 @@ option(BUILD_EXAMPLES "Build the examples directory." ON)
 
 include(CTest)
 
+add_definitions(-std=c++0x)
+
 add_subdirectory(src)
 
 if(BUILD_TESTING)

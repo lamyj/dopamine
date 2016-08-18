@@ -30,7 +30,6 @@ endmacro()
 check_include_file("unistd.h" have_header_unistd_h)
 set_config_variable(have_header_unistd_h)
 
-set(CMAKE_REQUIRED_FLAGS "-std=c++0x")
 check_cxx_source_compiles("
 #include <atomic>
 int main(int argc, char **argv) { std::atomic<int> a(0); return a.fetch_add(1); }
