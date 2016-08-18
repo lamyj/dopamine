@@ -214,19 +214,31 @@ Storage
 
     if(content.type() == mongo::BSONType::String)
     {
-        // Look in GridFS
-        mongo::GridFS const gridfs(this->_connection, this->_database);
-        auto file = gridfs.findFileByName(sop_instance_uid);
-        if(!file.exists())
+        // WARNING: GridFile has a private pointer to the GridFS instance
+        bool found = false;
+        if(!found)
         {
+            // Look in main GridFS
+            mongo::GridFS const gridfs(this->_connection, this->_database);
+            auto file = gridfs.findFileByName(sop_instance_uid);
+            if(file.exists())
+            {
+                file.write(stream);
+                found = true;
+            }
+        }
+        if(!found)
+        {
+            // Look in bulk GridFS
             mongo::GridFS const gridfs(this->_connection, this->_bulk_database);
-            file = gridfs.findFileByName(sop_instance_uid);
+            auto file = gridfs.findFileByName(sop_instance_uid);
+            if(file.exists())
+            {
+                file.write(stream);
+                found = true;
+            }
         }
-        if(file.exists())
-        {
-            file.write(stream);
-        }
-        else
+        if(!found)
         {
             // Look in bulk data Content
             auto const bulk_data = this->_connection.findOne(
