@@ -24,3 +24,5 @@ if [ -x "/etc/init.d/dopamine" ] || [ -e "/etc/init/dopamine.conf" ]; then
     fi
     invoke-rc.d dopamine start || exit $?
 fi
+
+#DEBHELPER#

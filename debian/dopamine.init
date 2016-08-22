@@ -1,3 +1,4 @@
+#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          dopamine
 # Required-Start:    $network $remote_fs $syslog
