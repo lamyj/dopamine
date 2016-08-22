@@ -18,11 +18,4 @@ fi
 chmod 755 /var/run/dopamine
 chown -h -R dopamine:dopamine /var/run/dopamine || true
 
-if [ -x "/etc/init.d/dopamine" ] || [ -e "/etc/init/dopamine.conf" ]; then
-    if [ ! -e "/etc/init/dopamine.conf" ]; then
-        update-rc.d dopamine defaults >/dev/null
-    fi
-    invoke-rc.d dopamine start || exit $?
-fi
-
 #DEBHELPER#
