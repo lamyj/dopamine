@@ -2,7 +2,7 @@
 
 set -e
 
-# Create dcmtk user and group
+# Create dopamine user and group
 
 if ! getent passwd dopamine >/dev/null 2>&1; then
     if ! getent group dopamine > /dev/null 2>&1; then
