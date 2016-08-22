@@ -1,9 +1,0 @@
-659263ed4d9ad98e3c54569b34647932  usr/bin/dopamine
-c7ec5c630be2221f46129164bb11696c  usr/bin/qido-rs
-d2a685ee1440fea9524d56bcf7cddbdd  usr/bin/stow-rs
-ddeba8e9d637113dbb81f05853d676c4  usr/bin/wado-rs
-2e4c88f7f1b79f43d30f905b41117e02  usr/bin/wado-uri
-3fdcbc1fcf3ebb14e0356cb370588c9a  usr/lib/libdopamine.so
-a0174d2beea209407db462d21eb78b49  usr/share/doc/dopamine/README.Debian
-bdd94783b8c2ecd9e3749dac39b178ff  usr/share/doc/dopamine/changelog.Debian.gz
-a31f6f75b59262c7c054e9504755466c  usr/share/doc/dopamine/copyright
