@@ -1,20 +1,29 @@
 Source: dopamine
 Section: science
 Priority: optional
-Maintainer: Romain Lahaxe <lahaxe@unistra.fr>
-Build-Depends: debhelper (>= 8.0.0), swig2.0, libdcmtk2-dev, libmimetic-dev, libmongo-client-dev, libcgicc5-dev, libqt4-dev, liblog4cpp5-dev, libldap2-dev, libssl-dev, libwrap0-dev, mongodb-dev, mongodb, libboost-filesystem-dev, libboost-system-dev, libboost-regex-dev, libboost-random-dev, libboost-thread-dev, libboost-test-dev
-Standards-Version: 3.9.4
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: git://git.debian.org/collab-maint/dopamine.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/dopamine.git;a=summary
+Maintainer: Julien Lamy <lamy@unistra.fr>
+Build-Depends: debhelper (>= 9), 
+               cmake,
+               pkg-config,
+               libboost-filesystem-dev,
+               libboost-regex-dev,
+               libboost-thread-dev,
+               libcgicc5-dev,
+               libldap2-dev,
+               liblog4cpp5-dev,
+               libmimetic-dev,
+               libodil0-dev (>= 0.7.2),
+               libsasl2-dev,
+               libssl-dev,
+               dcmtk,
+               libboost-test-dev,
+               mongodb-clients,
+               mongodb-server,
+Standards-Version: 3.9.8
+Homepage: https://github.com/lamyj/dopamine
 
 Package: dopamine
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, adduser
-Description: Document Oriented PACS
- <insert long description, indented with spaces>
-
-Package: dopamine-doc
-Architecture: all
-Description: documentation for dopamine
- <insert long description, indented with spaces>
+Description: PACS (DICOM server)
+ Dopamine is a PACS (DICOM server) backed by MongoDB.
