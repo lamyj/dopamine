@@ -11,11 +11,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "core/ConfigurationPACS.h"
-#include "services/RetrieveGenerator.h"
-#include "services/ServicesTools.h"
+#include <dcmtkpp/message/CGetResponse.h>
+#include <dcmtkpp/Writer.h>
+
+#include "services/GetGenerator.h"
+#include "services/webservices/WebServiceException.h"
 #include "Wado_rs.h"
-#include "WebServiceException.h"
 
 namespace dopamine
 {
@@ -25,16 +26,17 @@ namespace services
 
 Wado_rs
 ::Wado_rs(std::string const & pathinfo, std::string const & remoteuser):
-    Wado(pathinfo, "", remoteuser)
+    Wado(pathinfo, "")
 {
+    GetGenerator::Pointer generator = GetGenerator::New();
+    generator->set_username(remoteuser);
+
     mongo::BSONObj const object = this->_parse_string();
 
-    RetrieveGenerator generator(this->_username);
-
-    Uint16 status = generator.process_bson(object);
-    if (status != STATUS_Pending)
+    auto status = generator->initialize(object);
+    if (status != dcmtkpp::message::CGetResponse::Pending)
     {
-        if ( ! generator.is_allow())
+        if (status == dcmtkpp::message::CGetResponse::RefusedNotAuthorized)
         {
             throw WebServiceException(401, "Authorization Required",
                                       authentication_string);
@@ -47,27 +49,33 @@ Wado_rs
     // Multipart Response
     this->_create_boundary();
 
-    mongo::BSONObj findedobject = generator.next();
-    if (!findedobject.isValid() || findedobject.isEmpty())
+    if (generator->done())
     {
         throw WebServiceException(404, "Not Found", "No Dataset");
     }
 
     std::stringstream stream;
-    while (findedobject.isValid() && !findedobject.isEmpty())
+    while (!generator->done())
     {
-        std::string currentdata;
+        std::string filename = "";
+        std::stringstream stream_dataset;
         try
         {
-            currentdata = generator.retrieve_dataset_as_string(findedobject);
+            generator->next();
+
+            auto datasets = generator->get();
+            dcmtkpp::Writer::write_file(
+                        datasets.second, stream_dataset, datasets.first,
+                        dcmtkpp::registry::ExplicitVRLittleEndian,
+                        dcmtkpp::Writer::ItemEncoding::ExplicitLength);
+
+            filename = datasets.second.as_string(
+                        dcmtkpp::registry::SOPInstanceUID)[0];
         }
         catch (ExceptionPACS const & exc)
         {
             throw WebServiceException(500, "Internal Server Error", exc.what());
         }
-
-        std::string const filename =
-                findedobject["00080018"].Obj()["Value"].Array()[0].String();
 
         stream << "--" << this->_boundary << "\n";
         stream << CONTENT_TYPE << MIME_TYPE_APPLICATION_DICOM << "\n";
@@ -76,9 +84,7 @@ Wado_rs
         stream << CONTENT_TRANSFER_ENCODING << TRANSFER_ENCODING_BINARY
                << "\n" << "\n";
 
-        stream << currentdata << "\n" << "\n";
-
-        findedobject = generator.next();
+        stream << stream_dataset.str() << "\n" << "\n";
     }
 
     // Close the response
@@ -108,7 +114,7 @@ Wado_rs
     boost::split(vartemp, this->_pathinfo, boost::is_any_of("/"),
                  boost::token_compress_off);
 
-    if (vartemp.size() > 0 && vartemp[0] == "")
+    if (!vartemp.empty() && vartemp[0] == "")
     {
         vartemp.erase(vartemp.begin());
     }

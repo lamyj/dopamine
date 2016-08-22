@@ -9,10 +9,7 @@
 #ifndef _f3f03ce9_754b_4843_9c32_7b7000d94934
 #define _f3f03ce9_754b_4843_9c32_7b7000d94934
 
-#include <string>
-#include <vector>
-
-#include "Webservices.h"
+#include "services/webservices/Webservices.h"
 
 namespace dopamine
 {
@@ -40,7 +37,7 @@ public:
             std::string const & remoteuser = "");
 
     /// Destroy the instance of Stow_rs
-    ~Stow_rs();
+    virtual ~Stow_rs();
 
     std::string get_content_type() const;
 

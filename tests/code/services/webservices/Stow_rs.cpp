@@ -14,13 +14,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-/* make sure OS specific configuration is included first */
-#include <dcmtk/config/osconfig.h>
-#include <dcmtk/dcmdata/dcdatset.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include <dcmtk/dcmdata/dcistrmb.h>
-
-#include "services/ServicesTools.h"
 #include "services/webservices/Stow_rs.h"
 #include "services/webservices/WebServiceException.h"
 #include "../ServicesTestClass.h"
@@ -71,13 +64,11 @@ public:
     {
         mongo::BSONObjBuilder builder;
         builder.appendRegex("00080018", "Unknown");
-        this->set_authorization(dopamine::services::Service_Store,
-                                "root", builder.obj());
+        this->set_authorization("Store", "root", builder.obj());
 
         mongo::BSONObjBuilder builder2;
         builder2 << "00080060" << "NotMR";
-        this->add_constraint(dopamine::services::Service_Store,
-                             "not_me", builder2.obj());
+        this->add_constraint("Store", "not_me", builder2.obj());
     }
 
     virtual ~TestDataRequestNotAllow()
@@ -86,7 +77,7 @@ public:
     }
 };
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs Accessors
  */
@@ -105,16 +96,17 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
     BOOST_CHECK_EQUAL(stowrs.get_code(), "OK");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset
  */
 BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(
+        connection->get_connection().count(
+                    connection->get_db_name() + ".datasets",
+                    BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -170,27 +162,31 @@ BOOST_FIXTURE_TEST_CASE(InsertOneDICOM, TestDataRequest)
                 std::string::npos);
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_03_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 3 dataset
  */
 BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_02)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                             BSON("00080018.Value" <<
+                                  SOP_INSTANCE_UID_04_01_01_02)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_03)), 0);
 
     std::vector<std::string> const files =
     {
@@ -263,103 +259,63 @@ BOOST_FIXTURE_TEST_CASE(InsertThreeDICOM, TestDataRequest)
                 std::string::npos);
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_02)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_03)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
  */
 BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_BIG_02)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_BIG_02)), 0);
 
     std::stringstream datasetstring;
     datasetstring << get_content_type() << "\n\n";
 
-    OFCondition condition = EC_Normal;
-
     // Create the dataset
-    DcmDataset * dataset = new DcmDataset();
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPInstanceUID,
-                OFString(SOP_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_StudyInstanceUID,
-                OFString(STUDY_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SeriesInstanceUID,
-                OFString(SERIES_INSTANCE_UID_BIG_02.c_str()));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_PatientName, OFString("Big^Data"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_Modality,
-                                                   OFString("MR"));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(
-                DCM_SOPClassUID, OFString(UID_MRImageStorage));
-    BOOST_REQUIRE(condition.good());
-    condition = dataset->putAndInsertOFStringArray(DCM_PatientID,
-                                                   "123");
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::DataSet dataset;
+
+    dataset.add(dcmtkpp::registry::SOPInstanceUID,
+                dcmtkpp::Element({SOP_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::StudyInstanceUID,
+                dcmtkpp::Element({STUDY_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::SeriesInstanceUID,
+                dcmtkpp::Element({SERIES_INSTANCE_UID_BIG_02}, dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PatientName,
+                dcmtkpp::Element({"Big^Data"}, dcmtkpp::VR::PN));
+    dataset.add(dcmtkpp::registry::Modality,
+                dcmtkpp::Element({"MR"}, dcmtkpp::VR::CS));
+    dataset.add(dcmtkpp::registry::SOPClassUID,
+                dcmtkpp::Element({dcmtkpp::registry::MRImageStorage},
+                                 dcmtkpp::VR::UI));
+    dataset.add(dcmtkpp::registry::PatientID,
+                dcmtkpp::Element({"123"}, dcmtkpp::VR::LO));
+
     // Binary
     size_t vectorsize = 4096*4096;
-    std::vector<Uint8> value(vectorsize, 0);
-    condition = dataset->putAndInsertUint8Array(DCM_PixelData,
-                                                &value[0],
-                                                vectorsize);
-    BOOST_REQUIRE(condition.good());
+    dcmtkpp::Value::Binary value(vectorsize, 0);
+    dataset.add(dcmtkpp::registry::PixelData,
+                dcmtkpp::Element(value, dcmtkpp::VR::OW));
 
-    // Create Dataset with Header
-    DcmFileFormat fileformat(dataset);
-
-    // Keep the original transfer syntax (if available)
-    E_TransferSyntax xfer = fileformat.getMetaInfo()->getOriginalXfer();
-    if (xfer == EXS_Unknown)
-    {
-      // No information about the original transfer syntax: This is
-      // most probably a DICOM dataset that was read from memory.
-      xfer = EXS_LittleEndianExplicit;
-    }
-    fileformat.validateMetaInfo(xfer);
-    fileformat.removeInvalidGroups();
-
-    // Create a memory buffer with the proper size
-    uint32_t size = fileformat.calcElementLength(xfer, EET_ExplicitLength);
-    std::string buffer;
-    buffer.resize(size);
-
-    // Create buffer for DCMTK
-    DcmOutputBufferStream* outputstream =
-            new DcmOutputBufferStream(&buffer[0], size);
-
-    // Fill the memory buffer with the meta-header and the dataset
-    fileformat.transferInit();
-    condition = fileformat.write(*outputstream,
-                                 xfer,
-                                 EET_ExplicitLength, NULL);
-    fileformat.transferEnd();
-
-    delete outputstream;
-
-    if (condition.bad())
-    {
-        BOOST_FAIL(condition.text());
-    }
+    std::stringstream stream_dataset;
+    dcmtkpp::Writer::write_file(dataset, stream_dataset);
+    std::string const buffer = stream_dataset.str();
 
     datasetstring << "--" << get_boundary() << "\n";
     datasetstring << dopamine::services::CONTENT_TYPE
@@ -399,14 +355,16 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
                 std::string::npos);
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_BIG_02)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_BIG_02)), 1);
 
     mongo::Query query = BSON("00080018.Value" << SOP_INSTANCE_UID_BIG_02);
     mongo::BSONObj fields = BSON("Content" << 1);
-    mongo::BSONObj sopinstanceuidobj = connection.findOne(db_name + ".datasets",
-                                                          query, &fields);
+    mongo::BSONObj sopinstanceuidobj =
+            connection->get_connection().findOne(
+                connection->get_db_name() + ".datasets", query, &fields);
 
     BOOST_REQUIRE(sopinstanceuidobj.hasField("Content"));
     BOOST_REQUIRE(sopinstanceuidobj.getField("Content").type() ==
@@ -418,31 +376,34 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, TestDataRequest)
     builder.appendOID(std::string("_id"), &oid);
     mongo::Query query_ = builder.obj();
     mongo::BSONObj fields_ = BSON("filename" << 1);
-    mongo::BSONObj sopinstanceuidobj_ = connection.findOne(db_name + ".fs.files",
-                                                           query_, &fields_);
+    mongo::BSONObj sopinstanceuidobj_ =
+            connection->get_connection().findOne(
+                connection->get_bulk_data_db() + ".fs.files", query_, &fields_);
     std::string const sopinstanceuid =
             sopinstanceuidobj_.getField("filename").String();
 
     // Create GridFS interface
-    mongo::GridFS gridfs(connection, db_name);
+    mongo::GridFS gridfs(this->connection->get_connection(),
+                         this->connection->get_bulk_data_db());
 
     // Get the GridFile corresponding to the filename
     mongo::GridFile file = gridfs.findFile(sopinstanceuid);
 
-    BOOST_CHECK_EQUAL(file.getContentLength(), 16777742);
+    BOOST_CHECK_EQUAL(file.getContentLength(), 16777738);
 }
 
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert DICOM already register
  */
 BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_01_01_01_01)), 1);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_01_01_01_01)), 1);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_01"));
 
@@ -483,10 +444,14 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
     BOOST_CHECK(ptree2.find("NativeDicomModel") != ptree2.not_found());
 
     // check mandatory tag
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081190\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081197\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081150\"") != std::string::npos);
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081155\"") != std::string::npos);
 
-    // check tag error is missing
-    BOOST_CHECK(xmlstream2.str().find("tag=\"00081198\"") == std::string::npos);
+    // check tag ReferencedSOPSequence is missing
+    BOOST_CHECK(xmlstream2.str().find("tag=\"00081199\"") == std::string::npos);
 
     // check values
     BOOST_CHECK(xmlstream2.str().find("1.2.840.10008.5.1.4.1.1.4") !=
@@ -495,27 +460,31 @@ BOOST_FIXTURE_TEST_CASE(DicomAlreadyRegister, TestDataRequest)
                 std::string::npos);
 
     // Check into database (always present)
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_01_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_01_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs check return status code
  */
 BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_02)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_02)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_03)), 0);
 
     {
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_08"));
@@ -554,15 +523,18 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     BOOST_CHECK_EQUAL(stowrs.get_code(), "OK");
 
     // Check into database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_01)), 0);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_02)), 1);
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_04_01_01_03)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_02)), 1);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_04_01_01_03)), 0);
     }
 
     {
@@ -622,15 +594,18 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     }
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_02)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_03)), 1);
 
     // All in error
     {
@@ -679,28 +654,32 @@ BOOST_FIXTURE_TEST_CASE(ReturnStatusCode, TestDataRequest)
     }
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_01)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_02)), 1);
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_04_01_01_03)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_02)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_04_01_01_03)), 1);
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 identified Study
  */
 BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(
+        connection->get_connection().count(
+                    connection->get_db_name() + ".datasets",
+                    BSON("00080018.Value" << SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -758,21 +737,23 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithStudyInstanceUID, TestDataRequest)
                 std::string::npos);
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_03_01_01_01)), 1);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_03_01_01_01)), 1);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: stow_rs insert 1 dataset for 1 wrong Study
  */
 BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -833,21 +814,23 @@ BOOST_FIXTURE_TEST_CASE(InsertDatasetWithWrongStudyInstanceUID, TestDataRequest)
                 std::string::npos);
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Bad content-type for the part
  */
 BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -901,21 +884,23 @@ BOOST_FIXTURE_TEST_CASE(BadPartContentType, TestDataRequest)
                 std::string::npos); // error code 0110
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: Cannot read dataset
  */
 BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -970,12 +955,13 @@ BOOST_FIXTURE_TEST_CASE(UnableToReadDataset, TestDataRequest)
                 std::string::npos); // error code A700
 
     // Check into database
-    BOOST_CHECK_EQUAL(connection.count(db_name + ".datasets",
-                                       BSON("00080018.Value" <<
-                                            SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_CHECK_EQUAL(connection->get_connection().count(
+                          connection->get_db_name() + ".datasets",
+                          BSON("00080018.Value" <<
+                               SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Content-type not supported
  */
@@ -1036,16 +1022,17 @@ BOOST_FIXTURE_TEST_CASE(TypeNotSupported, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Not allow
  */
 BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
 {
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_03_01_01_01)), 0);
 
     std::string datasetfile(getenv("DOPAMINE_TEST_DICOMFILE_05"));
 
@@ -1084,12 +1071,13 @@ BOOST_FIXTURE_TEST_CASE(NotAllowToStore, TestDataRequestNotAllow)
                               exc.statusmessage() == "Unauthorized"); });
 
     // Check SOP Instance UID not present in database
-    BOOST_REQUIRE_EQUAL(connection.count(db_name + ".datasets",
-                                         BSON("00080018.Value" <<
-                                              SOP_INSTANCE_UID_03_01_01_01)), 0);
+    BOOST_REQUIRE_EQUAL(connection->get_connection().count(
+                            connection->get_db_name() + ".datasets",
+                            BSON("00080018.Value" <<
+                                 SOP_INSTANCE_UID_03_01_01_01)), 0);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad parameter (first parameter should be studies)
  */
@@ -1103,7 +1091,7 @@ BOOST_FIXTURE_TEST_CASE(BadParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing parameter
  */
@@ -1117,7 +1105,7 @@ BOOST_FIXTURE_TEST_CASE(MissingParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Too Many parameter
  */
@@ -1131,7 +1119,7 @@ BOOST_FIXTURE_TEST_CASE(TooManyParameter, TestDataRequest)
                                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad Content-Type
  */
@@ -1190,7 +1178,7 @@ BOOST_FIXTURE_TEST_CASE(BadContentType, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Media type not supported
  */

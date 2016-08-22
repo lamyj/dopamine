@@ -1,37 +1,30 @@
-find_package(DCMTK REQUIRED)
+include(packages_finder)
 
-include_directories(${DCMTK_INCLUDE_DIRS}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+set(packages Odil)
 
+packages_finder("${packages}" include_dirs libraries library_dirs)
 
-add_executable(dopamine "dopamine.cpp")
-target_link_libraries(dopamine libdopamine log4cpp ssl
-                               crypt ${DCMTK_LIBRARIES} oflog z )
-set_target_properties(dopamine PROPERTIES COMPILE_DEFINITIONS HAVE_CONFIG_H)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/src/lib
+    ${CMAKE_SOURCE_DIR}/src/mongo-cxx-driver/src
+    ${CMAKE_BINARY_DIR}/src/mongo-cxx-driver/src
+    ${include_dirs})
+link_directories(${library_dirs})
 
-add_executable(wado-rs "wado-rs.cpp")
-target_link_libraries(wado-rs cgicc libdopamine)
+file(GLOB files *.cpp)
+set(old_files)
 
-add_executable(wado-uri "wado-uri.cpp")
-target_link_libraries(wado-uri cgicc libdopamine ssl crypt oflog z )
+foreach(file ${files})
+    if(NOT file MATCHES "${CMAKE_CURRENT_SOURCE_DIR}/dopamine.cpp")
+        set(old_files ${old_files} ${file})
+    else()
+        get_filename_component(name ${file} NAME_WE)
 
-add_executable(qido-rs "qido-rs.cpp")
-target_link_libraries(qido-rs cgicc libdopamine)
+        add_executable(${name} ${file})
+        target_link_libraries(${name} ${libraries} libdopamine)
+    endif()
+endforeach()
 
-add_executable(stow-rs "stow-rs.cpp")
-target_link_libraries(stow-rs cgicc libdopamine)
-
-install(TARGETS dopamine wado-rs wado-uri qido-rs stow-rs
-        RUNTIME DESTINATION bin
-        COMPONENT applications)
-
-# copy all header files to the include directory
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                         GROUP_READ GROUP_EXECUTE
-                         WORLD_READ WORLD_EXECUTE
-        DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                              GROUP_READ GROUP_EXECUTE
-                              WORLD_READ WORLD_EXECUTE
-        DESTINATION include/dopamine
-        FILES_MATCHING PATTERN "*.h")
+add_custom_target(
+    dopamineOLD_APPS
+    ${CMAKE_COMMAND} -E echo "Old dopamine apps" SOURCES ${old_files})

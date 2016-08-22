@@ -25,7 +25,7 @@
  *          * DOPAMINE_TEST_DICOMFILE
  */
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
  */
@@ -45,7 +45,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_EQUAL(wadouri.get_boundary(), "");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_uri request
  */
@@ -66,32 +66,16 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     std::string data = wadouri.get_response();
 
     BOOST_REQUIRE(data != "");
-    BOOST_CHECK_EQUAL(data.size(), 1538);
 
-    // Create buffer for DCMTK
-    DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-    inputbufferstream->setBuffer(data.c_str(), data.size());
-    inputbufferstream->setEos();
+    std::stringstream stream_dataset; stream_dataset << data;
+    auto file = dcmtkpp::Reader::read_file(stream_dataset);
+    auto const dataset = file.second;
 
-    // Convert buffer into Dataset
-    DcmFileFormat fileformat;
-    fileformat.transferInit();
-    OFCondition condition = fileformat.read(*inputbufferstream);
-    fileformat.transferEnd();
-
-    delete inputbufferstream;
-    BOOST_REQUIRE(condition.good());
-
-    // check sop instance
-    OFString sopinstanceuid;
-    condition = fileformat.getDataset()->findAndGetOFStringArray(
-                    DCM_SOPInstanceUID, sopinstanceuid);
-    BOOST_REQUIRE(condition.good());
-    BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+    BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                       SOP_INSTANCE_UID_01_01_01_01);
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Unknown parameter
  */
@@ -105,7 +89,7 @@ BOOST_AUTO_TEST_CASE(UnknownParameters)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad request Missing mandatory parameters
  */
@@ -129,7 +113,7 @@ BOOST_AUTO_TEST_CASE(MissingMandatoryParameters)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Not implemented
  */
@@ -150,7 +134,7 @@ BOOST_AUTO_TEST_CASE(NotImplemented)
                               exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: bad request type
  */
@@ -170,7 +154,7 @@ BOOST_AUTO_TEST_CASE(BadRequestType)
                               exc.statusmessage() == "Not Acceptable"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
  */
@@ -190,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
                               exc.statusmessage() == "Not Found"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No database
  */
@@ -210,7 +194,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
                           exc.statusmessage() == "Internal Server Error"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
  */

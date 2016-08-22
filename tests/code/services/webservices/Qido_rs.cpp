@@ -85,7 +85,7 @@ mimetic::MimeEntity to_MIME_message(std::string const & message,
     return mimetic::MimeEntity(streamresponse);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs Accessors
  */
@@ -106,7 +106,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, TestDataRequest)
                       dopamine::services::MIME_TYPE_APPLICATION_JSON);
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Study level)
  */
@@ -206,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
 {
     std::string const pathinfo = "/studies";
@@ -271,7 +271,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
  */
@@ -372,7 +372,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
  */
@@ -442,7 +442,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
  */
@@ -557,7 +557,7 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Series level)
  */
@@ -638,7 +638,7 @@ BOOST_FIXTURE_TEST_CASE(RequestSeries_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -736,7 +736,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -802,7 +802,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -911,7 +911,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -988,7 +988,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudyInstance_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -1116,7 +1116,7 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Instance level)
  */
@@ -1203,7 +1203,7 @@ BOOST_FIXTURE_TEST_CASE(RequestInstance_JSON, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request IncludeField
  */
@@ -1309,7 +1309,7 @@ BOOST_FIXTURE_TEST_CASE(RequestIncludeField_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request Limit
  */
@@ -1385,7 +1385,7 @@ BOOST_FIXTURE_TEST_CASE(RequestLimit_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request Offset
  */
@@ -1454,7 +1454,7 @@ BOOST_FIXTURE_TEST_CASE(RequestOffset_XML, TestDataRequest)
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: qido_rs request (Study level)
  */
@@ -1530,7 +1530,7 @@ BOOST_FIXTURE_TEST_CASE(Request_Range, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad query
  */
@@ -1564,7 +1564,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBadQuery, TestDataRequest)
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Bad tag
  */
@@ -1584,7 +1584,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBadTag, TestDataRequest)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Fuzzy Matching (not implemented)
  */

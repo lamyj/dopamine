@@ -1,43 +1,30 @@
-find_package(DCMTK REQUIRED)
-find_package(MongoDB REQUIRED)
-find_package(Boost COMPONENTS filesystem system regex random REQUIRED)
+include(packages_finder)
 
-# libraries ICU for character set management
-SET(ICU_LIBRARIES icuuc icuio)
+set(packages JsonCpp LDAP Log4Cpp Odil)
+set(Boost_components filesystem system thread)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${DCMTK_INCLUDE_DIRS}
-                    ${MONGO_DB_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
-                    ${ICU_INCLUDE_DIRS})
+packages_finder("${packages}" include_dirs libraries library_dirs)
 
-add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
-add_definitions(-DHAVE_CONFIG_H)
+file(GLOB_RECURSE sources "dopamine/*.cpp")
+file(GLOB_RECURSE headers "dopamine/*.h")
+file(GLOB_RECURSE templates "dopamine/*.txx")
 
-file(GLOB_RECURSE files "*.cpp")
-add_library(libdopamine SHARED ${files})
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/mongo-cxx-driver/src
+    ${CMAKE_BINARY_DIR}/src/mongo-cxx-driver/src
+    ${include_dirs})
+link_directories(${library_dirs})
 
+add_library(libdopamine SHARED ${sources} ${headers} ${templates})
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
-target_link_libraries(libdopamine ${MONGO_DB_LIBRARIES}
-                                  ${DCMTK_LIBRARIES}
-                                  ${Boost_LIBRARIES}
-                                  ${ICU_LIBRARIES}
-                                  mimetic
-                                  log4cpp ldap dcmtls ssl
-                                  wrap pthread)
+target_link_libraries(libdopamine libdopamine-mongo ${libraries})
 
-# deploy the library
-install(TARGETS libdopamine
-        LIBRARY DESTINATION lib
-        COMPONENT libraries)
-
-# copy all header files to the include directory
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                         GROUP_READ GROUP_EXECUTE
-                         WORLD_READ WORLD_EXECUTE
-        DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                              GROUP_READ GROUP_EXECUTE
-                              WORLD_READ WORLD_EXECUTE
-        DESTINATION include/dopamine
-        FILES_MATCHING PATTERN "*.h")
+install(
+    DIRECTORY dopamine/ DESTINATION include/
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.txx")
+install(
+    TARGETS libdopamine
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin)

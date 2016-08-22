@@ -40,6 +40,8 @@
 #include <zlib.h>                   /* for zlibVersion() */
 #endif
 
+#if OFFIS_DCMTK_VERSION_NUMBER <= 360
+
 // MODIFICATION: Add missing Errors
 const OFConditionConst NET_EC_InvalidSOPClassUID(OFM_dcmnet, 1000, OF_error, "Invalid SOP Class UID");
 const OFConditionConst NET_EC_UnknownStorageSOPClass(OFM_dcmnet, 1001, OF_error, "Unknown Storage SOP Class");
@@ -54,6 +56,8 @@ const OFConditionConst NET_EC_InvalidDatasetPointer(OFM_dcmnet, 1009, OF_error, 
 const OFConditionConst NET_EC_AlreadyConnected(OFM_dcmnet, 1010, OF_error, "Already connected");
 const OFConditionConst NET_EC_InsufficientPortPrivileges(OFM_dcmnet, 1023, OF_error, "Insufficient port privileges");
 // END Modification
+
+#endif
 
 DcmSCU::DcmSCU() :
   m_assoc(NULL),

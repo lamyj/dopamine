@@ -29,7 +29,7 @@
 void check_response(std::string const & response, std::string const & boundary)
 {
     BOOST_REQUIRE(response != "");
-    BOOST_REQUIRE_EQUAL(response.size(), 1735);
+    BOOST_REQUIRE_EQUAL(response.size(), 1711);
     BOOST_REQUIRE(response.find(SOP_INSTANCE_UID_01_01_01_01) !=
                   std::string::npos);
 
@@ -77,30 +77,16 @@ void check_response(std::string const & response, std::string const & boundary)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        // Create buffer for DCMTK
-        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-        inputbufferstream->setBuffer(temp.c_str(), temp.size());
-        inputbufferstream->setEos();
+        std::stringstream stream; stream << temp;
+        auto file = dcmtkpp::Reader::read_file(stream);
+        auto const dataset = file.second;
 
-        // Convert buffer into Dataset
-        DcmFileFormat fileformat;
-        fileformat.transferInit();
-        OFCondition condition = fileformat.read(*inputbufferstream);
-        fileformat.transferEnd();
-
-        delete inputbufferstream;
-        BOOST_REQUIRE(condition.good());
-
-        // check sop instance
-        OFString sopinstanceuid;
-        fileformat.getDataset()->findAndGetOFStringArray(DCM_SOPInstanceUID,
-                                                         sopinstanceuid);
-        BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+        BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                           SOP_INSTANCE_UID_01_01_01_01);
     }
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs Accessors
  */
@@ -115,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(Accessors, ServicesTestClass)
     BOOST_CHECK_NE(wadors.get_boundary(), "");
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study)
  */
@@ -131,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudy, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series)
  */
@@ -148,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeries, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request (Study/Series/Instance)
  */
@@ -166,7 +152,7 @@ BOOST_FIXTURE_TEST_CASE(RequestStudySeriesInstance, ServicesTestClass)
     check_response(wadors.get_response(), wadors.get_boundary());
 }
 
-/*************************** TEST Nominal *******************************/
+/******************************* TEST Nominal **********************************/
 /**
  * Nominal test case: wado_rs request Big dataset
  */
@@ -185,7 +171,7 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
     std::string const boundary = wadors.get_boundary();
 
     BOOST_REQUIRE(response != "");
-    BOOST_REQUIRE_EQUAL(response.size(), 16777915);
+    BOOST_REQUIRE_EQUAL(response.size(), 16777911);
     BOOST_REQUIRE(response.find(SOP_INSTANCE_UID_BIG_01) !=
                   std::string::npos);
 
@@ -233,40 +219,18 @@ BOOST_FIXTURE_TEST_CASE(RequestBigDataset, ServicesTestClass)
             temp = temp.substr(0, temp.rfind("\n"));
         }
 
-        // Create buffer for DCMTK
-        DcmInputBufferStream* inputbufferstream = new DcmInputBufferStream();
-        inputbufferstream->setBuffer(temp.c_str(), temp.size());
-        inputbufferstream->setEos();
+        std::stringstream stream; stream << temp;
+        auto file = dcmtkpp::Reader::read_file(stream);
+        auto const dataset = file.second;
 
-        // Convert buffer into Dataset
-        DcmFileFormat fileformat;
-        fileformat.transferInit();
-        OFCondition condition = fileformat.read(*inputbufferstream);
-        fileformat.transferEnd();
-
-        delete inputbufferstream;
-        BOOST_REQUIRE(condition.good());
-
-        // check sop instance
-        OFString sopinstanceuid;
-        condition = fileformat.getDataset()->findAndGetOFStringArray(
-                            DCM_SOPInstanceUID, sopinstanceuid);
-        BOOST_REQUIRE(condition.good());
-        BOOST_CHECK_EQUAL(std::string(sopinstanceuid.c_str()),
+        BOOST_CHECK_EQUAL(dataset.as_string(dcmtkpp::registry::SOPInstanceUID)[0],
                           SOP_INSTANCE_UID_BIG_01);
 
-        DcmElement* element = NULL;
-        condition = fileformat.getDataset()->findAndGetElement(DCM_PixelData,
-                                                               element);
-        BOOST_REQUIRE(condition.good());
-        DcmOtherByteOtherWord* byte_string =
-                dynamic_cast<DcmOtherByteOtherWord*>(element);
-        BOOST_REQUIRE(byte_string != NULL);
-        BOOST_CHECK_EQUAL(byte_string->getLength(), 16777216); // 4096*4096
+        BOOST_CHECK_EQUAL(dataset.as_binary(dcmtkpp::registry::PixelData).size(), 16777216); // 4096*4096
     }
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No parameter
  */
@@ -287,7 +251,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown first parameter
  */
@@ -301,7 +265,7 @@ BOOST_AUTO_TEST_CASE(UnknownFirstParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Study Instance UID
  */
@@ -322,7 +286,7 @@ BOOST_AUTO_TEST_CASE(MissingStudyInstance)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown second parameter
  */
@@ -336,7 +300,7 @@ BOOST_AUTO_TEST_CASE(UnknownSecondParameter)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing Series Instance UID
  */
@@ -357,7 +321,7 @@ BOOST_AUTO_TEST_CASE(MissingSeriesInstance)
                               exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Unknown third parameter
  */
@@ -372,7 +336,7 @@ BOOST_AUTO_TEST_CASE(UnknownThirdParameter)
                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: Missing SOP Instance UID
  */
@@ -395,7 +359,7 @@ BOOST_AUTO_TEST_CASE(MissingSOPInstance)
                       exc.statusmessage() == "Bad Request"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset not find
  */
@@ -410,7 +374,7 @@ BOOST_FIXTURE_TEST_CASE(DatasetNotFind, ServicesTestClass)
                           exc.statusmessage() == "Not Found"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: No database
  */
@@ -425,7 +389,7 @@ BOOST_AUTO_TEST_CASE(DatabaseNotConnected)
                           exc.statusmessage() == "Internal Server Error"); });
 }
 
-/*************************** TEST Error *********************************/
+/******************************* TEST Error ************************************/
 /**
  * Error test case: dataset cannot be return
  */
