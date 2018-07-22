@@ -8,6 +8,7 @@
 
 #include "dopamine/bson_converter.h"
 
+#include <memory>
 #include <string>
 
 #include <mongo/bson/bson.h>
@@ -243,7 +244,7 @@ odil::DataSet as_dataset(
         }
 
         mongo::BSONObj const object = bson_element.Obj();
-        odil::Element dicom_element;
+        std::shared_ptr<odil::Element> dicom_element;
         auto const vr = odil::as_vr(object.getField("vr").String());
 
         if(object.hasField("Value") && !object.getField("Value").isNull())
@@ -252,12 +253,13 @@ odil::DataSet as_dataset(
 
             if(odil::is_string(vr))
             {
-                dicom_element = odil::Element(odil::Value::Strings(), vr);
+                dicom_element = std::make_shared<odil::Element>(
+                    odil::Value::Strings(), vr);
                 if(vr != odil::VR::PN)
                 {
                     for(auto const & item: values)
                     {
-                        dicom_element.as_string().push_back(
+                        dicom_element->as_string().push_back(
                             odil::as_specific_character_set(
                                 item.String(), current_specific_char_set));
                     }
@@ -283,7 +285,7 @@ odil::DataSet as_dataset(
                             dicom_item = dicom_item.substr(0, dicom_item.size()-1);
                         }
 
-                        dicom_element.as_string().push_back(
+                        dicom_element->as_string().push_back(
                             odil::as_specific_character_set(
                                 dicom_item, current_specific_char_set));
                     }
@@ -291,16 +293,18 @@ odil::DataSet as_dataset(
             }
             else if(odil::is_real(vr))
             {
-                dicom_element = odil::Element(odil::Value::Reals(), vr);
+                dicom_element = std::make_shared<odil::Element>(
+                    odil::Value::Reals(), vr);
 
                 for(auto const & bson_item: values)
                 {
-                    dicom_element.as_real().push_back(bson_item.Double());
+                    dicom_element->as_real().push_back(bson_item.Double());
                 }
             }
             else if(odil::is_int(vr))
             {
-                dicom_element = odil::Element(odil::Value::Integers(), vr);
+                dicom_element = std::make_shared<odil::Element>(
+                    odil::Value::Integers(), vr);
 
                 for(auto const & bson_item: values)
                 {
@@ -317,43 +321,45 @@ odil::DataSet as_dataset(
                     {
                         dicom_item = bson_item.Int();
                     }
-                    dicom_element.as_int().push_back(dicom_item);
+                    dicom_element->as_int().push_back(dicom_item);
                 }
             }
             else if(vr == odil::VR::SQ)
             {
-                dicom_element = odil::Element(odil::Value::DataSets(), vr);
+                dicom_element = std::make_shared<odil::Element>(
+                    odil::Value::DataSets(), vr);
 
                 for(auto const & bson_item: values)
                 {
                     auto const dicom_item = as_dataset(
                         bson_item.Obj(), current_specific_char_set);
-                    dicom_element.as_data_set().push_back(dicom_item);
+                    dicom_element->as_data_set().push_back(dicom_item);
                 }
             }
         }
         else if(object.hasField("InlineBinary") && !object.getField("InlineBinary").isNull())
         {
-            dicom_element = odil::Element(odil::Value::Binary(), vr);
+            dicom_element = std::make_shared<odil::Element>(
+                odil::Value::Binary(), vr);
             auto const values = object.getField("InlineBinary").Array();
             for(auto const & bson_item: values)
             {
                 int size=0;
                 char const * const begin = bson_item.binDataClean(size);
-                dicom_element.as_binary().emplace_back(begin, begin+size);
+                dicom_element->as_binary().emplace_back(begin, begin+size);
             }
         }
         else
         {
-            dicom_element = odil::Element(odil::Value(), vr);
+            dicom_element = std::make_shared<odil::Element>(vr);
         }
-
-        data_set.add(tag, dicom_element);
 
         if(tag == odil::registry::SpecificCharacterSet)
         {
-            current_specific_char_set = dicom_element.as_string();
+            current_specific_char_set = dicom_element->as_string();
         }
+        
+        data_set.add(tag, std::move(*dicom_element));
     }
 
     return data_set;
