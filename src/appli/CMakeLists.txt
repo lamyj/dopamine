@@ -1,14 +1,11 @@
 include(packages_finder)
 
-set(packages Odil)
+set(Boost_components filesystem system)
+set(packages Boost Odil)
 
 packages_finder("${packages}" include_dirs libraries library_dirs)
 
-include_directories(
-    ${CMAKE_SOURCE_DIR}/src/lib
-    ${CMAKE_SOURCE_DIR}/src/mongo-cxx-driver/src
-    ${CMAKE_BINARY_DIR}/src/mongo-cxx-driver/src
-    ${include_dirs})
+include_directories(${CMAKE_SOURCE_DIR}/src/lib ${include_dirs})
 link_directories(${library_dirs})
 
 file(GLOB files *.cpp)
