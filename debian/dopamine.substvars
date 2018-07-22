@@ -1,2 +1,0 @@
-shlibs:Depends=libboost-filesystem1.54.0, libboost-random1.54.0, libboost-regex1.54.0, libboost-system1.54.0, libboost-thread1.54.0, libc6 (>= 2.14), libcgicc5, libdcmtk2 (>= 3.6.0), libgcc1 (>= 1:4.1.1), libicu52 (>= 52~m1-1~), libldap-2.4-2 (>= 2.4.7), liblog4cpp5, libmimetic0, libssl1.0.0 (>= 1.0.0), libstdc++6 (>= 4.6)
-misc:Depends=

@@ -1,0 +1,32 @@
+Subject: Fix the install rules of CMake
+Index: debian/src/appli/CMakeLists.txt
+===================================================================
+--- debian.orig/src/appli/CMakeLists.txt	2016-08-22 11:03:58.919815109 +0200
++++ debian/src/appli/CMakeLists.txt	2016-08-22 11:44:18.876283467 +0200
+@@ -28,3 +28,12 @@
+ add_custom_target(
+     dopamineOLD_APPS
+     ${CMAKE_COMMAND} -E echo "Old dopamine apps" SOURCES ${old_files})
++
++install(
++    TARGETS dopamine
++    DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
++    PERMISSIONS 
++    OWNER_READ OWNER_EXECUTE 
++    GROUP_READ GROUP_EXECUTE 
++    WORLD_READ WORLD_EXECUTE
++)
+Index: debian/configuration/CMakeLists.txt
+===================================================================
+--- debian.orig/configuration/CMakeLists.txt	2016-08-22 11:05:44.934422440 +0200
++++ debian/configuration/CMakeLists.txt	2016-08-22 11:50:20.376697508 +0200
+@@ -2,3 +2,9 @@
+ file(GLOB_RECURSE conffile RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.ini")
+ add_custom_target(
+     ConfigurationFiles ${CMAKE_COMMAND} -E echo "Configuration fiels" SOURCES ${conffile})
++
++install(
++    FILES dopamine.ini
++    DESTINATION ${CMAKE_INSTALL_PREFIX}/etc
++    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ 
++)

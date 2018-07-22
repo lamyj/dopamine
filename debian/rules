@@ -1,18 +1,13 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-# This has to be exported to make some magic below work.
-export DH_OPTIONS
-
-export CXXFLAGS=-std=c++0x
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --buildsystem=cmake
-
-override_dh_auto_test:
+	dh $@ --builddirectory=build --buildsystem=cmake
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DBUILD_TESTING:BOOL=OFF
+
+override_dh_install-arch:
+	mv debian/dopamine/usr/etc debian/dopamine
+	dh_install
