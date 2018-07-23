@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Julien Lamy <lamy@unistra.fr>
 Build-Depends: debhelper (>= 10), 
                cmake,
-               g++,
                pkg-config,
                libboost-filesystem-dev,
                libldap2-dev,
