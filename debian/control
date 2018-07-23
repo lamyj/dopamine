@@ -2,24 +2,20 @@ Source: dopamine
 Section: science
 Priority: optional
 Maintainer: Julien Lamy <lamy@unistra.fr>
-Build-Depends: debhelper (>= 9), 
+Build-Depends: debhelper (>= 10), 
                cmake,
+               g++ (>= 4:7),
                pkg-config,
                libboost-filesystem-dev,
-               libboost-regex-dev,
-               libboost-thread-dev,
-               libcgicc5-dev,
                libldap2-dev,
                liblog4cpp5-dev,
-               libmimetic-dev,
-               libodil0-dev (>= 0.7.2),
+               libmongoclient-dev,
+               libodil-dev (>= 0.9.2),
                libsasl2-dev,
-               libssl-dev,
                dcmtk,
                libboost-test-dev,
-               mongodb-clients,
-               mongodb-server,
-Standards-Version: 3.9.8
+               mongodb
+Standards-Version: 4.1.4
 Homepage: https://github.com/lamyj/dopamine
 
 Package: dopamine

@@ -1,3 +1,9 @@
+dopamine (0.5.1-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Julien Lamy <lamy@unistra.fr>  Sun, 22 Jul 2018 16:47:33 +0200
+
 dopamine (0.5.0-1) unstable; urgency=medium
 
   * New upstream release.

@@ -3,11 +3,13 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --builddirectory=build --buildsystem=cmake
-
-override_dh_auto_configure:
-	dh_auto_configure -- -DBUILD_TESTING:BOOL=OFF
+	dh $@ --builddirectory=build
 
 override_dh_install-arch:
 	mv debian/dopamine/usr/etc debian/dopamine
 	dh_install
+
+override_dh_auto_test:
+	cd build && \
+	export PATH=$$(pwd)/tests/tools:$${PATH} && \
+	../tests/run.sh -E '(AuthenticatorLDAP|factory_LDAP)'

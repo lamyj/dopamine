@@ -16,6 +16,6 @@ fi
 
 [ -d /var/run/dopamine ] || mkdir -p /var/run/dopamine
 chmod 755 /var/run/dopamine
-chown -h -R dopamine:dopamine /var/run/dopamine || true
+chown -h dopamine:dopamine /var/run/dopamine || true
 
 #DEBHELPER#
