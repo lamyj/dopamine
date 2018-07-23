@@ -17,7 +17,7 @@ set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
 target_link_libraries(libdopamine ${libraries})
 
 install(
-    DIRECTORY dopamine/ DESTINATION include/
+    DIRECTORY dopamine/ DESTINATION include/dopamine
     FILES_MATCHING PATTERN "*.h" PATTERN "*.txx")
 install(
     TARGETS libdopamine
