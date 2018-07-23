@@ -4,14 +4,13 @@ Priority: optional
 Maintainer: Julien Lamy <lamy@unistra.fr>
 Build-Depends: debhelper (>= 10), 
                cmake,
-               g++ (>= 4:7),
+               g++,
                pkg-config,
                libboost-filesystem-dev,
                libldap2-dev,
                liblog4cpp5-dev,
                libmongoclient-dev,
                libodil-dev (>= 0.9.2),
-               libsasl2-dev,
                dcmtk,
                libboost-test-dev,
                mongodb
@@ -20,6 +19,6 @@ Homepage: https://github.com/lamyj/dopamine
 
 Package: dopamine
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, adduser
+Depends: ${shlibs:Depends}, ${misc:Depends}, adduser, lsb-base
 Description: PACS (DICOM server)
  Dopamine is a PACS (DICOM server) backed by MongoDB.

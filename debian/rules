@@ -7,6 +7,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 override_dh_install-arch:
 	mv debian/dopamine/usr/etc debian/dopamine
+	rm -r debian/dopamine/usr/include
 	dh_install
 
 override_dh_auto_test:
