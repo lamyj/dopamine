@@ -1,18 +1,17 @@
-include(packages_finder)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
+find_package(Log4Cpp REQUIRED)
+find_package(MongoClient REQUIRED)
 
-set(Boost_components filesystem system)
-set(packages Boost Odil)
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src/lib
+    ${Boost_INCLUDE_DIRS} ${Log4Cpp_INCLUDE_DIRS} ${MongoClient_INCLUDE_DIRS})
+link_directories(
+    ${Boost_LIBRARY_DIRS} ${Log4Cpp_LIBRARY_DIRS} ${MongoClient_LIBRARY_DIRS})
 
-packages_finder("${packages}" include_dirs libraries library_dirs)
+add_executable(dopamine dopamine.cpp)
+target_link_libraries(
+    dopamine 
+    ${Boost_LIBRARIES} ${Log4Cpp_LIBRARIES} ${MongoClient_LIBRARIES} 
+    libdopamine)
 
-include_directories(${CMAKE_SOURCE_DIR}/src/lib ${include_dirs})
-link_directories(${library_dirs})
-
-file(GLOB files *.cpp)
-
-foreach(file ${files})
-    get_filename_component(name ${file} NAME_WE)
-
-    add_executable(${name} ${file})
-    target_link_libraries(${name} ${libraries} libdopamine)
-endforeach()
+install(TARGETS dopamine DESTINATION bin)
