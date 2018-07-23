@@ -15,6 +15,9 @@ link_directories(${library_dirs})
 add_library(libdopamine SHARED ${sources} ${headers} ${templates})
 set_target_properties(libdopamine PROPERTIES OUTPUT_NAME dopamine)
 target_link_libraries(libdopamine ${libraries})
+set_target_properties(libdopamine PROPERTIES
+    VERSION ${dopamine_VERSION} 
+    SOVERSION ${dopamine_MAJOR_VERSION})
 
 install(
     DIRECTORY dopamine/ DESTINATION include/dopamine
